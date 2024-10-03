@@ -1,13 +1,35 @@
+using Serilog;
+using StartedIn.API.Configuration;
+
 var builder = WebApplication.CreateBuilder(args);
+var config = builder.Configuration;
+builder.Logging.AddSerilog();
+
+builder.Services.EmailConfiguration(config);
 
 // Add services to the container.
+builder.Services.AddSecurityConfiguration(config);
+builder.Services.AddDatabaseConfiguration(config);
+//builder.Services.AddRepositoryConfiguration();
+//builder.Services.AddServiceConfiguration(config);
+builder.Services.AddAutoMapper(typeof(Program));
 
-builder.Services.AddControllers();
-// Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
+builder.Services.AddControllers(options =>
+{
+    options.SuppressAsyncSuffixInActionNames = false;
+});
+builder.Services.AddJwtAuthenticationService(config);
 builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen();
+builder.Services.AddSwaggerService();
+
+builder.Host.UseSerilog((ctx, config) =>
+{
+    config.WriteTo.Console().MinimumLevel.Information();
+});
 
 var app = builder.Build();
+
+app.UseSerilogRequestLogging();
 
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
@@ -16,10 +38,8 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
 }
 
-app.UseHttpsRedirection();
-
-app.UseAuthorization();
-
+app.SeedIdentity();
+app.UseSecurityConfiguration();
 app.MapControllers();
 
 app.Run();

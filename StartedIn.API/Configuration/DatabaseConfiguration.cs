@@ -13,7 +13,7 @@ namespace StartedIn.API.Configuration
             {
                 services.AddDbContext<AppDbContext>(options =>
                 {
-                    options.UseNpgsql(configuration.GetConnectionString("StartedInDB"));
+                    options.UseNpgsql(configuration.GetConnectionString("StartedInDataBase"));
                 });
             }
             else
