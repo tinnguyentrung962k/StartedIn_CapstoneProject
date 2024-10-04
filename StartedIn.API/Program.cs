@@ -10,8 +10,8 @@ builder.Services.EmailConfiguration(config);
 // Add services to the container.
 builder.Services.AddSecurityConfiguration(config);
 builder.Services.AddDatabaseConfiguration(config);
-//builder.Services.AddRepositoryConfiguration();
-//builder.Services.AddServiceConfiguration(config);
+builder.Services.AddRepositoryConfiguration();
+builder.Services.AddServiceConfiguration(config);
 builder.Services.AddAutoMapper(typeof(Program));
 
 builder.Services.AddControllers(options =>
