@@ -92,7 +92,7 @@ namespace StartedIn.Service.Services
                 {
                     throw new InvalidRegisterException("Đăng ký thất bại");
                 }
-                await _userManager.AddToRoleAsync(registerUser, RoleConstants.USER);
+                await _userManager.AddToRoleAsync(registerUser, RoleConstants.INVESTOR);
                 await _unitOfWork.SaveChangesAsync();
                 // Only send mail if user is created successfully
                 _emailService.SendVerificationMail(registerUser.Email, registerUser.Id);

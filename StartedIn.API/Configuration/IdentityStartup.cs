@@ -25,34 +25,45 @@ namespace StartedIn.API.Configuration
         {
             return new List<Role>
             {
-            new Role {Id = "role_admin", Name = RoleConstants.ADMIN},
-            new Role {Id = "role_user",Name = RoleConstants.USER}
-        };
+                new Role {Id = "role_admin", Name = RoleConstants.ADMIN},
+                new Role {Id = "role_user",Name = RoleConstants.USER},
+                new Role {Id = "role_investor",Name = RoleConstants.INVESTOR}
+            };
         }
 
         private static IEnumerable<User> Users()
         {
             return new List<User>
-        {
-
-            new User
             {
-                Id = "user-1",
-                UserName = "admin@gmail.com",
-                FullName = "Administrator",
-                PasswordHash = "AQAAAAIAAYagAAAAEDVvGpkikGvRZ56Ri2MKtaJTlb+tqMqrUG0TM7irCuj430fot1Qiq5eopSnTR+vbew==",
-                Email = "admin@gmail.com",
-                EmailConfirmed = true
-             },
-        };
+
+                new User
+                {
+                    Id = "admin",
+                    UserName = "admin@gmail.com",
+                    FullName = "Administrator",
+                    PasswordHash = "AQAAAAIAAYagAAAAEDVvGpkikGvRZ56Ri2MKtaJTlb+tqMqrUG0TM7irCuj430fot1Qiq5eopSnTR+vbew==",
+                    Email = "admin@gmail.com",
+                    EmailConfirmed = true
+                },
+                new User
+                {
+                    Id = "user-demo",
+                    UserName = "user@gmail.com",
+                    FullName = "User Demo",
+                    PasswordHash = "AQAAAAIAAYagAAAAEDVvGpkikGvRZ56Ri2MKtaJTlb+tqMqrUG0TM7irCuj430fot1Qiq5eopSnTR+vbew==",
+                    Email = "user@gmail.com",
+                    EmailConfirmed = true
+                },
+            };
         }
 
         private static IDictionary<string, string[]> UserRoles()
         {
             return new Dictionary<string, string[]>
             {
-            { "user-1", new[] {RoleConstants.ADMIN, RoleConstants.USER}},
-        };
+                { "admin", new[] {RoleConstants.ADMIN}},
+                { "user-demo", new[] {RoleConstants.USER }}
+            };
         }
 
 
