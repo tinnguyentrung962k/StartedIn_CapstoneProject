@@ -31,6 +31,7 @@ namespace StartedIn.Service.Services.Interface
 
         Task<User> GetUserWithId(string id);
         Task<IEnumerable<User>> GetUsersList(int pageIndex, int pageSize);
+        Task ImportUsersFromExcel(IFormFile file);
         //Task<IEnumerable<User>> GetUserSuggestedFriendList(string userId, int pageIndex, int pageSize);
     }
 }

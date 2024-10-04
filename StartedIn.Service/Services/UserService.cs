@@ -10,6 +10,7 @@ using StartedIn.Domain.Entities;
 using StartedIn.Repository.Repositories.Interface;
 using StartedIn.Service.Services.Interface;
 using StartedIn.Repository.Repositories.Extensions;
+using OfficeOpenXml;
 
 namespace StartedIn.Service.Services
 {
@@ -95,7 +96,7 @@ namespace StartedIn.Service.Services
                 await _userManager.AddToRoleAsync(registerUser, RoleConstants.INVESTOR);
                 await _unitOfWork.SaveChangesAsync();
                 // Only send mail if user is created successfully
-                _emailService.SendVerificationMail(registerUser.Email, registerUser.Id);
+                _emailService.SendVerificationMailAsync(registerUser.Email, registerUser.Id);
                 await _unitOfWork.CommitAsync();
             }
             catch (Exception ex)
@@ -195,6 +196,122 @@ namespace StartedIn.Service.Services
                 throw new NotFoundException("Không có người dùng nào trong danh sách");
             }
             return userList;
+        }
+        public async Task ImportUsersFromExcel(IFormFile file)
+        {
+            // Check if file is valid
+            if (file == null || file.Length == 0)
+            {
+                throw new ArgumentException("File is empty or null.");
+            }
+            try
+            {
+                _unitOfWork.BeginTransaction();
+                var newUsers = new List<(User user, string password)>(); // Tuple to store user and password
+
+                using (var stream = new MemoryStream())
+                {
+                    await file.CopyToAsync(stream);
+                    ExcelPackage.LicenseContext = LicenseContext.NonCommercial; // Set the license context
+                    using (var package = new ExcelPackage(stream))
+                    {
+                        var worksheet = package.Workbook.Worksheets[0]; // Assume first sheet
+
+                        // Get the column names from the first row
+                        var columnNames = new Dictionary<string, int>();
+                        var columnCount = worksheet.Dimension.Columns;
+
+                        for (int col = 1; col <= columnCount; col++)
+                        {
+                            var columnName = worksheet.Cells[1, col].Text; // Reading the first row for column names
+                            if (!string.IsNullOrEmpty(columnName))
+                            {
+                                columnNames[columnName] = col; // Map column name to index
+                            }
+                        }
+
+                        // Ensure required columns exist
+                        if (!columnNames.ContainsKey("Email") || !columnNames.ContainsKey("FullName"))
+                        {
+                            throw new ArgumentException("The Excel file must contain 'Email' and 'FullName' columns.");
+                        }
+
+                        var rowCount = worksheet.Dimension.Rows;
+
+                        for (int row = 2; row <= rowCount; row++) // Skip header row
+                        {
+                            // Get data by column names
+                            var email = worksheet.Cells[row, columnNames["Email"]].Text;
+                            var fullName = worksheet.Cells[row, columnNames["FullName"]].Text;
+                            var password = GenerateRandomPassword(8); // Generate random password
+                            var studentCode = worksheet.Cells[row, columnNames["StudentID"]].Text;
+                            var phoneNumber = worksheet.Cells[row, columnNames["PhoneNumber"]].Text;
+                            // Skip rows with missing data
+                            if (string.IsNullOrEmpty(email) || string.IsNullOrEmpty(password))
+                            {
+                                continue;
+                            }
+
+                            // Check if user already exists
+                            var existingUser = await _userManager.FindByEmailAsync(email);
+                            if (existingUser != null)
+                            {
+                                // Log or continue to skip this user
+                                _logger.LogInformation($"User with email {email} already exists. Skipping.");
+                                continue; // Skip this user and move to the next row
+                            }
+
+                            // Create new user
+                            var newUser = new User
+                            {
+                                Email = email,
+                                UserName = email,
+                                FullName = fullName,
+                                EmailConfirmed = true, // Set default, adjust as needed
+                                ProfilePicture = ProfileConstant.defaultAvatarUrl, // Default avatar
+                                PhoneNumber = phoneNumber,
+                                StudentCode = studentCode
+                            };
+
+                            var result = await _userManager.CreateAsync(newUser, password);
+                            if (result.Succeeded)
+                            {
+                                // Assign default role after successful creation
+                                await _userManager.AddToRoleAsync(newUser, RoleConstants.USER);
+                                newUsers.Add((newUser, password)); // Store new user and password in the list
+                            }
+                            else
+                            {
+                                // Handle failure case
+                                throw new Exception($"Failed to create user {email}: {string.Join(", ", result.Errors.Select(e => e.Description))}");
+                            }
+                        }
+                    }
+                }
+
+                await _unitOfWork.SaveChangesAsync();
+
+                foreach (var (user, password) in newUsers) // Loop through the newly created users
+                {
+                    // Send account info email including the email and generated password
+                    _emailService.SendAccountInfoMailAsync(user.Email, password);
+                }
+
+                await _unitOfWork.CommitAsync(); // Commit the transaction after sending the emails
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError($"Error during user import: {ex.Message}");
+                _unitOfWork.RollbackAsync();
+                throw;
+            }
+        }
+        private string GenerateRandomPassword(int length)
+        {
+            const string chars = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890!@#$%^&*";
+            var random = new Random();
+            return new string(Enumerable.Repeat(chars, length)
+                .Select(s => s[random.Next(s.Length)]).ToArray());
         }
     }
 }

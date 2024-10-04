@@ -17,6 +17,7 @@ namespace StartedIn.Domain.Entities
         public string FullName { get; set; }
         public string? ProfilePicture { get; set; }
         public string? CoverPhoto { get; set; }
+        public string? StudentCode { get; set; }
 
         [StringLength(120)]
         public string? Bio { get; set; }

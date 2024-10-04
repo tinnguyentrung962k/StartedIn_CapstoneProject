@@ -9,8 +9,9 @@ namespace StartedIn.Service.Services.Interface
 {
     public interface IEmailService
     {
-        void SendMail(SendEmailModel model);
-        void SendVerificationMail(string receiveEmail, string id);
-        void SendInvitationToTeam(string receiveEmail, string teamId);
+        Task SendInvitationToTeamAsync(string receiveEmail, string teamId);
+        Task SendMailAsync(SendEmailModel model);
+        Task SendVerificationMailAsync(string receiveEmail, string id);
+        Task SendAccountInfoMailAsync(string receiveEmail, string password);
     }
 }

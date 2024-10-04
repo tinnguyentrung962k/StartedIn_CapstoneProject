@@ -14,102 +14,87 @@ namespace StartedIn.Service.Services
     public class EmailService : IEmailService
     {
         private readonly IConfiguration _configuration;
+
         public EmailService(IConfiguration configuration)
         {
             _configuration = configuration;
         }
 
-        public void SendInvitationToTeam(string receiveEmail, string teamId)
+        public async Task SendInvitationToTeamAsync(string receiveEmail, string teamId)
         {
-            var webDomain = _configuration.GetValue<string>("WEB_DOMAIN") ?? (_configuration["Local_domain"]);
+            var webDomain = _configuration.GetValue<string>("WEB_DOMAIN") ?? _configuration["Local_domain"];
+            var subject = "Lời mời tham gia nhóm";
+            var body = $"Bạn vui lòng bấm vào đường link sau để tham gia vào nhóm:\n{webDomain}/invite/{teamId} \n\n Xin chân thành cảm ơn vì đã đồng hành cùng StartedIn!";
+
+            await SendEmailAsync(receiveEmail, subject, body);
+        }
+
+        public async Task SendMailAsync(SendEmailModel model)
+        {
+            var subject = string.IsNullOrEmpty(model.Subject) ? "No Subject" : model.Subject;
+            await SendEmailAsync(model.ReceiveAddress, subject, model.Content);
+        }
+
+        public async Task SendVerificationMailAsync(string receiveEmail, string id)
+        {
+            var appDomain = _configuration.GetValue<string>("API_DOMAIN") ?? _configuration["Api_domain"];
+            var subject = "Kích hoạt tài khoản";
+            var body = $"Bạn vui lòng bấm vào đường link sau để kích hoạt tài khoản StartedIn:\n{appDomain}/api/activate-user/{id} \n\n Xin chân thành cảm ơn vì đã đồng hành cùng StartedIn!";
+
+            await SendEmailAsync(receiveEmail, subject, body);
+        }
+
+        public async Task SendAccountInfoMailAsync(string receiveEmail, string password)
+        {
+            var subject = "Thông tin tài khoản StartedIn";
+            var body = $"Bạn đã được cấp tài khoản StartedIn với thông tin sau:\n Tên đăng nhập (Email): {receiveEmail} \n Mật khẩu: {password} \n\n Xin chân thành cảm ơn vì đã đồng hành cùng StartedIn!";
+
+            await SendEmailAsync(receiveEmail, subject, body);
+        }
+
+        private async Task SendEmailAsync(string recipient, string subject, string body)
+        {
             try
             {
-                MailMessage mailMessage = new MailMessage()
+                var mailMessage = CreateMailMessage(recipient, subject, body);
+
+                using (var smtpClient = CreateSmtpClient())
                 {
-                    Subject = "Lời mời tham gia nhóm",
-                    Body = $"Bạn vui lòng bấm vào đường link sau để tham gia vào nhóm:\n{webDomain}/invite/{teamId} \n\n Xin chân thành cảm ơn vì đã đồng hành cùng StartedIn!",
-                    IsBodyHtml = false,
-                };
-                mailMessage.From = new MailAddress(EmailSettingModel.Instance.FromEmailAddress, EmailSettingModel.Instance.FromDisplayName);
-                mailMessage.To.Add(receiveEmail);
-                var smtp = new SmtpClient()
-                {
-                    EnableSsl = EmailSettingModel.Instance.Smtp.EnableSsl,
-                    Host = EmailSettingModel.Instance.Smtp.Host,
-                    Port = EmailSettingModel.Instance.Smtp.Port,
-                };
-                var network = new NetworkCredential(EmailSettingModel.Instance.Smtp.EmailAddress, EmailSettingModel.Instance.Smtp.Password);
-                smtp.Credentials = network;
-                smtp.Send(mailMessage);
+                    await smtpClient.SendMailAsync(mailMessage);
+                }
             }
             catch (Exception ex)
             {
-                throw;
+                // Log the error or handle it accordingly
+                throw new Exception("Email sending failed.", ex);
             }
         }
 
-        public void SendMail(SendEmailModel model)
+        private MailMessage CreateMailMessage(string recipient, string subject, string body)
         {
-            try
+            var mailMessage = new MailMessage
             {
-                MailMessage mailMessage = new MailMessage()
-                {
-                    Subject = "",
-                    Body = model.Content,
-                    IsBodyHtml = false,
-                };
-                mailMessage.From = new MailAddress(EmailSettingModel.Instance.FromEmailAddress, EmailSettingModel.Instance.FromDisplayName);
-                mailMessage.To.Add(model.ReceiveAddress);
+                Subject = subject,
+                Body = body,
+                IsBodyHtml = false,
+                From = new MailAddress(EmailSettingModel.Instance.FromEmailAddress, EmailSettingModel.Instance.FromDisplayName)
+            };
 
-                var smtp = new SmtpClient()
-                {
-                    EnableSsl = EmailSettingModel.Instance.Smtp.EnableSsl,
-                    Host = EmailSettingModel.Instance.Smtp.Host,
-                    Port = EmailSettingModel.Instance.Smtp.Port,
-                };
-                var network = new NetworkCredential(EmailSettingModel.Instance.Smtp.EmailAddress, EmailSettingModel.Instance.Smtp.Password);
-                smtp.Credentials = network;
-
-                smtp.Send(mailMessage);
-            }
-            catch (Exception ex)
-            {
-
-                throw;
-            }
+            mailMessage.To.Add(recipient);
+            return mailMessage;
         }
 
-        public void SendVerificationMail(string receiveEmail, string id)
+        private SmtpClient CreateSmtpClient()
         {
-            var appDomain = _configuration.GetValue<string>("API_DOMAIN") ?? (_configuration["Api_domain"]);
-            try
+            var smtpClient = new SmtpClient
             {
+                EnableSsl = EmailSettingModel.Instance.Smtp.EnableSsl,
+                Host = EmailSettingModel.Instance.Smtp.Host,
+                Port = EmailSettingModel.Instance.Smtp.Port,
+                Credentials = new NetworkCredential(EmailSettingModel.Instance.Smtp.EmailAddress, EmailSettingModel.Instance.Smtp.Password)
+            };
 
-                MailMessage mailMessage = new MailMessage()
-                {
-
-                    Subject = "Kích hoạt tài khoản",
-                    Body = $"Bạn vui lòng bấm vào đường link sau để kích hoạt tài khoản StartedIn:\n{appDomain}/api/activate-user/{id} \n\n Xin chân thành cảm ơn vì đã đồng hành cùng StartedIn!",
-                    IsBodyHtml = false,
-                };
-                mailMessage.From = new MailAddress(EmailSettingModel.Instance.FromEmailAddress, EmailSettingModel.Instance.FromDisplayName);
-                mailMessage.To.Add(receiveEmail);
-
-                var smtp = new SmtpClient()
-                {
-                    EnableSsl = EmailSettingModel.Instance.Smtp.EnableSsl,
-                    Host = EmailSettingModel.Instance.Smtp.Host,
-                    Port = EmailSettingModel.Instance.Smtp.Port,
-                };
-                var network = new NetworkCredential(EmailSettingModel.Instance.Smtp.EmailAddress, EmailSettingModel.Instance.Smtp.Password);
-                smtp.Credentials = network;
-
-                smtp.Send(mailMessage);
-            }
-            catch (Exception ex)
-            {
-                throw;
-            }
+            return smtpClient;
         }
     }
 }
