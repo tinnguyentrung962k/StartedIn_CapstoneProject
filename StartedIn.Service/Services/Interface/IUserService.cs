@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Http;
+using StartedIn.CrossCutting.DTOs.RequestDTO;
 using StartedIn.CrossCutting.DTOs.ResponseDTO;
 using StartedIn.Domain.Entities;
 using System;
@@ -32,6 +33,9 @@ namespace StartedIn.Service.Services.Interface
         Task<User> GetUserWithId(string id);
         Task<IEnumerable<User>> GetUsersList(int pageIndex, int pageSize);
         Task ImportUsersFromExcel(IFormFile file);
+        Task RequestResetPassword(string email);
+        Task ResetPassword(ResetPasswordDTO resetPasswordDTO);
+
         //Task<IEnumerable<User>> GetUserSuggestedFriendList(string userId, int pageIndex, int pageSize);
     }
 }

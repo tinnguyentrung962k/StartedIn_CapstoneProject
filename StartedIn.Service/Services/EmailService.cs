@@ -96,5 +96,13 @@ namespace StartedIn.Service.Services
 
             return smtpClient;
         }
+
+        public async Task SendResetPasswordEmail(string receiveEmail, string resetLink)
+        {
+            var subject = "Đặt lại mật khẩu";
+            var body = $"Bạn vui lòng bấm vào đường link sau để đặt lại mật khẩu của bạn:\n{resetLink}\n\n Xin chân thành cảm ơn vì đã đồng hành cùng StartedIn!";
+
+            await SendEmailAsync(receiveEmail, subject, body);
+        }
     }
 }

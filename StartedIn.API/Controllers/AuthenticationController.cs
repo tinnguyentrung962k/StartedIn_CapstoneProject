@@ -138,5 +138,33 @@ namespace StartedIn.API.Controllers
             }
         }
 
+        [HttpPost("request-reset-password")]
+        public async Task<IActionResult> RequestResetPasswordLink(string email)
+        {
+            try
+            {
+                await _userService.RequestResetPassword(email);
+                return Ok("Link đã được gửi đến email");
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, "Lỗi server");
+            }
+        }
+
+        [HttpPost("reset-password")]
+        public async Task<IActionResult> ResetPassword(ResetPasswordDTO resetPasswordDTO)
+        {
+            try
+            {
+                await _userService.ResetPassword(resetPasswordDTO);
+                return Ok("Reset Password thành công");
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, "Lỗi server");
+            }
+        }
+
     }
 }

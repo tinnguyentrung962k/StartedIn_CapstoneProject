@@ -13,5 +13,6 @@ namespace StartedIn.Service.Services.Interface
         Task SendMailAsync(SendEmailModel model);
         Task SendVerificationMailAsync(string receiveEmail, string id);
         Task SendAccountInfoMailAsync(string receiveEmail, string password);
+        Task SendResetPasswordEmail(string receiveEmail, string resetLink);
     }
 }

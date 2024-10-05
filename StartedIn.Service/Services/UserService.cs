@@ -11,6 +11,8 @@ using StartedIn.Repository.Repositories.Interface;
 using StartedIn.Service.Services.Interface;
 using StartedIn.Repository.Repositories.Extensions;
 using OfficeOpenXml;
+using System;
+using StartedIn.CrossCutting.DTOs.RequestDTO;
 
 namespace StartedIn.Service.Services
 {
@@ -22,6 +24,7 @@ namespace StartedIn.Service.Services
         private readonly IEmailService _emailService;
         private readonly ILogger<UserService> _logger;
         private readonly RoleManager<Role> _roleManager;
+        private readonly IConfiguration _configuration;
         public UserService(ITokenService tokenService,
             UserManager<User> userManager, IUnitOfWork unitOfWork,
             IConfiguration configuration, IEmailService emailService,
@@ -35,6 +38,7 @@ namespace StartedIn.Service.Services
             _userManager = userManager;
             _logger = logger;
             _roleManager = roleManager;
+            _configuration = configuration;
         }
 
         public async Task<LoginResponseDTO> Login(string email, string password)
@@ -312,6 +316,45 @@ namespace StartedIn.Service.Services
             var random = new Random();
             return new string(Enumerable.Repeat(chars, length)
                 .Select(s => s[random.Next(s.Length)]).ToArray());
+        }
+
+        public async Task RequestResetPassword(string email)
+        {
+            var user = await _userManager.FindByEmailAsync(email);
+            if (user == null)
+            {
+                throw new NotFoundException("Người dùng không tồn tại");
+            }
+
+            // Generate reset token
+            var token = await _userManager.GeneratePasswordResetTokenAsync(user);
+
+            // Get app domain from configuration
+            var appDomain = _configuration.GetValue<string>("API_DOMAIN"); // You should add this to your config
+
+            // Manually construct reset URL
+            var resetLink = $"{appDomain}/account/reset-password?token={Uri.EscapeDataString(token)}&email={Uri.EscapeDataString(user.Email)}";
+
+            // Send reset email
+            await _emailService.SendResetPasswordEmail(user.Email, resetLink);
+        }
+
+        public async Task ResetPassword(ResetPasswordDTO resetPasswordDTO)
+        {
+            var user = await _userManager.FindByEmailAsync(resetPasswordDTO.Email);
+            if (user == null)
+            {
+                throw new NotFoundException("Người dùng không tồn tại");
+            }
+            var resetResult = await _userManager.ResetPasswordAsync(user, resetPasswordDTO.Token, resetPasswordDTO.NewPassword);
+            if (!resetResult.Succeeded)
+            {
+                // Handle the error (log and return validation errors)
+                foreach (var error in resetResult.Errors)
+                {
+                    throw new Exception("Lỗi reset");
+                }
+            }
         }
     }
 }
