@@ -44,9 +44,13 @@ namespace StartedIn.Service.Services
         public async Task<LoginResponseDTO> Login(string email, string password)
         {
             var loginUser = await _userManager.FindByEmailAsync(email);
-            if (loginUser == null || !await _userManager.CheckPasswordAsync(loginUser, password))
+            if (loginUser == null)
             {
-                throw new InvalidLoginException("Đăng nhập thất bại!");
+                throw new InvalidLoginException("Sai tài khoản đăng nhập");
+            }
+            if (!await _userManager.CheckPasswordAsync(loginUser, password))
+            {
+                throw new InvalidLoginException("Sai mật khẩu đăng nhập");
             }
             if (loginUser.EmailConfirmed == false)
             {
