@@ -169,6 +169,5 @@ namespace StartedIn.API.Controllers
                 return StatusCode(500, "Lỗi server");
             }
         }
-
     }
 }

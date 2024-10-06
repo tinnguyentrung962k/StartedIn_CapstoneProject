@@ -1,6 +1,7 @@
 ﻿using AutoMapper;
 using Microsoft.Extensions.Hosting;
 using StartedIn.CrossCutting.DTOs.RequestDTO;
+using StartedIn.CrossCutting.DTOs.ResponseDTO;
 using StartedIn.Domain.Entities;
 using static Microsoft.EntityFrameworkCore.DbLoggerCategory.Database;
 
@@ -57,14 +58,20 @@ namespace StartedIn.API.Configuration.AutoMapper
         private void UserMappingProfile()
         {
             CreateMap<User, RegisterDTO>().ReverseMap();
-            //CreateMap<User, HeaderProfileDTO>()
-            //    .ForMember(userDto => userDto.UserRoles,
-            //        opt => opt.MapFrom(user
-            //            => user.UserRoles.Select(iur => iur.Role.Name).ToHashSet()))
-            //    .ReverseMap()
-            //    .ForPath(user => user.UserRoles, opt
-            //        => opt.MapFrom(userDto => userDto.UserRoles.Select(role => new UserRole { Role = new Role { Name = role } }).ToHashSet()));
-            //CreateMap<User, FullProfileDTO>().ReverseMap();
+            CreateMap<User, HeaderProfileDTO>()
+                .ForMember(userDto => userDto.UserRoles,
+                    opt => opt.MapFrom(user
+                        => user.UserRoles.Select(iur => iur.Role.Name).ToHashSet()))
+                .ReverseMap()
+                .ForPath(user => user.UserRoles, opt
+                    => opt.MapFrom(userDto => userDto.UserRoles.Select(role => new UserRole { Role = new Role { Name = role } }).ToHashSet()));
+            CreateMap<User, FullProfileDTO>()
+                .ForMember(userDto => userDto.UserRoles,
+                    opt => opt.MapFrom(user
+                        => user.UserRoles.Select(iur => iur.Role.Name).ToHashSet()))
+                .ReverseMap()
+                .ForPath(user => user.UserRoles, opt
+                    => opt.MapFrom(userDto => userDto.UserRoles.Select(role => new UserRole { Role = new Role { Name = role } }).ToHashSet()));
             //CreateMap<User, UpdateProfileDTO>().ReverseMap();
             //CreateMap<User, ProjectLeaderResponseDTO>().ReverseMap();
             //CreateMap<User, TeamLeaderResponseDTO>().ReverseMap();
