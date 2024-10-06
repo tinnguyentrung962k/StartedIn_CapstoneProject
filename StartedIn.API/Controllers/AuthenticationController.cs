@@ -69,13 +69,17 @@ namespace StartedIn.API.Controllers
         }
 
         [HttpPost("refresh-token")]
-        public async Task<IActionResult> Refresh([FromBody] RefreshTokenDTO refreshTokenDto)
+        public async Task<IActionResult> Refresh([FromBody] RefreshTokenDTO refreshToken)
         {
             try
             {
-                var res = await _userService.Refresh(refreshTokenDto.RefreshToken);
-                refreshTokenDto.AccessToken = res;
-                return Ok(refreshTokenDto);
+                var res = await _userService.Refresh(refreshToken.RefreshToken);
+                RefreshAndAccessTokenResponseDTO resultDTO = new RefreshAndAccessTokenResponseDTO 
+                { 
+                    RefreshToken = refreshToken.RefreshToken, 
+                    AccessToken = res 
+                };
+                return Ok(resultDTO);
             }
             catch (NotFoundException ex)
             {
