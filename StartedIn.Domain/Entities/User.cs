@@ -24,5 +24,6 @@ namespace StartedIn.Domain.Entities
         public DateTimeOffset? Verified { get; set; }
         public string? RefreshToken { get; set; }
         [JsonIgnore] public virtual IEnumerable<UserRole> UserRoles { get; }
+        public ICollection<UserProject> UserProjects { get; set; }
     }
 }
