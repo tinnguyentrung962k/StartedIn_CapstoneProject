@@ -10,6 +10,7 @@ using System.Linq;
 using System.Numerics;
 using System.Text;
 using System.Threading.Tasks;
+using StartedIn.CrossCutting.Enum;
 using static Microsoft.EntityFrameworkCore.DbLoggerCategory.Database;
 
 namespace StartedIn.Domain.Context
@@ -25,7 +26,18 @@ namespace StartedIn.Domain.Context
         {
 
         }
-
+        
+        public DbSet<Project> Projects { get; set; }
+        public DbSet<Phase> Phases { get; set; }
+        public DbSet<Milestone> Milestones { get; set; }
+        public DbSet<MilestoneHistory> MilestoneHistories { get; set; }
+        public DbSet<TaskEntity> TaskEntities { get; set; }
+        public DbSet<TaskAttachment> TaskAttachments { get; set; }
+        public DbSet<Taskboard> Taskboards { get; set; }
+        public DbSet<TaskComment> TaskComments { get; set; }
+        public DbSet<TaskHistory> TaskHistories { get; set; }
+        public DbSet<User> Users { get; set; }
+        public DbSet<UserProject> UserProjects { get; set; }
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);
@@ -54,8 +66,29 @@ namespace StartedIn.Domain.Context
             {
                 entity.ToTable("Role");
             });
-            
 
+            modelBuilder.Entity<UserProject>()
+                .HasKey(up => new { up.UserId, up.ProjectId });
+
+            modelBuilder.Entity<UserProject>()
+                .HasOne(up => up.Project)
+                .WithMany(p => p.UserProjects)
+                .HasForeignKey(up => up.ProjectId);
+
+            modelBuilder.Entity<UserProject>()
+                .HasOne(up => up.User)
+                .WithMany(u => u.UserProjects)
+                .HasForeignKey(up => up.UserId);
+            
+            modelBuilder.Entity<UserProject>()
+                .Property(u => u.RoleInTeam)
+                .HasConversion(
+                    v => v.ToString(),
+                    v => (RoleInTeam)Enum.Parse(typeof(RoleInTeam), v));
+            
+            modelBuilder.Entity<UserProject>()
+                .ToTable("UserProject");
+            
             foreach (var entityType in modelBuilder.Model.GetEntityTypes())
             {
                 var tableName = entityType.GetTableName();
