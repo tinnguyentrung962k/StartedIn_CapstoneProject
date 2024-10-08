@@ -1,4 +1,5 @@
 using StartedIn.Domain.Entities.BaseEntities;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace StartedIn.Domain.Entities;
 

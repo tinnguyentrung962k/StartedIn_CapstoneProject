@@ -88,6 +88,24 @@ namespace StartedIn.Domain.Context
             
             modelBuilder.Entity<UserProject>()
                 .ToTable("UserProject");
+            modelBuilder.Entity<Milestone>()
+                .ToTable("Milestone");
+            modelBuilder.Entity<MilestoneHistory>()
+                .ToTable("MilestoneHistory");
+            modelBuilder.Entity<Phase>()
+                .ToTable("Phase");
+            modelBuilder.Entity<Project>()
+                .ToTable("Project");
+            modelBuilder.Entity<TaskAttachment>()
+                .ToTable("TaskAttachment");
+            modelBuilder.Entity<TaskHistory>()
+                .ToTable("TaskHistory");
+            modelBuilder.Entity<Taskboard>()
+                .ToTable("Taskboard");
+            modelBuilder.Entity<TaskEntity>()
+                .ToTable("Task");
+            modelBuilder.Entity<TaskComment>()
+                .ToTable("TaskComment");
             
             foreach (var entityType in modelBuilder.Model.GetEntityTypes())
             {

@@ -1,4 +1,5 @@
 using StartedIn.CrossCutting.Enum;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace StartedIn.Domain.Entities;
 
