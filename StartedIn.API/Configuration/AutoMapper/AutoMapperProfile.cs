@@ -17,42 +17,42 @@ namespace StartedIn.API.Configuration.AutoMapper
             ProjectMappingProfile();
             ConnectionMappingProfile();
             PhaseMappingProfile();
-            MajorTaskMappingProfile();
+            MilestoneMappingProfile();
             TaskboardMappingProfile();
-            MinorTaskMappingProfile();
+            TaskMappingProfile();
         }
 
         private void TaskboardMappingProfile()
         {
-            //CreateMap<Taskboard, TaskboardResponseDTO>()
-            //    .ForMember(dest => dest.MinorTasks,
-            //        opt => opt.MapFrom(src => src.MinorTasks))
-            //    .ReverseMap();
+            CreateMap<Taskboard, TaskboardResponseDTO>()
+                .ForMember(dest => dest.TasksList,
+                    opt => opt.MapFrom(src => src.TasksList))
+                .ReverseMap();
         }
 
-        private void MinorTaskMappingProfile()
+        private void TaskMappingProfile()
         {
-            //CreateMap<MinorTask, MinorTaskInTaskboardResponseDTO>().ReverseMap();
-            //CreateMap<MinorTask, MinorTaskResponseDTO>().ReverseMap();
+            CreateMap<TaskEntity, TaskInTaskboardResponseDTO>().ReverseMap();
+            CreateMap<TaskEntity, TaskResponseDTO>().ReverseMap();
             //CreateMap<MinorTask, AssignableMinorTaskResponseDTO>();
         }
 
-        private void MajorTaskMappingProfile()
+        private void MilestoneMappingProfile()
         {
-            //CreateMap<MajorTask, MajorTaskResponseDTO>().ReverseMap();
-            //CreateMap<MajorTask, MajorTaskWithListMinorTasksResponseDTO>()
-            //    .ForMember(rmj => rmj.MajorTask, opt => opt.MapFrom(mj => mj))
-            //    .ForMember(rmj => rmj.MinorTasks, opt => opt.MapFrom(mj => mj.MinorTasks));
+            CreateMap<Milestone, MilestoneResponseDTO>().ReverseMap();
+            CreateMap<Milestone, MilestoneAndTaskboardResponseDTO>()
+                .ForMember(rms => rms.Milestone, opt => opt.MapFrom(ms => ms))
+                .ForMember(rms => rms.Taskboards, opt => opt.MapFrom(ms => ms.Taskboards));
             //CreateMap<MajorTask, AssignableMajorTaskResponseDTO>();
         }
 
         private void PhaseMappingProfile()
         {
             //CreateMap<Phase, PhaseResponseDTO>();
-            //CreateMap<Phase, PhaseDetailResponseDTO>()
-            //    .ForMember(dest => dest.Taskboards,
-            //        opt => opt.MapFrom(src => src.Taskboards))
-            //    .ReverseMap();
+            CreateMap<Phase, PhaseDetailResponseDTO>()
+                .ForMember(dest => dest.Milestones,
+                    opt => opt.MapFrom(src => src.Milestones))
+                .ReverseMap();
         }
 
         private void UserMappingProfile()

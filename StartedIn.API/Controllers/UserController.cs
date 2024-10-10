@@ -43,5 +43,18 @@ namespace StartedIn.API.Controllers
             }
 
         }
+        [HttpPost("import-user-excel")]
+        public async Task<IActionResult> ImportStudentExcelList(IFormFile formFile)
+        {
+            try
+            {
+                await _userService.ImportUsersFromExcel(formFile);
+                return Ok("Hoàn thành tải file");
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, "Lỗi tải file");
+            }
+        }
     }
 }

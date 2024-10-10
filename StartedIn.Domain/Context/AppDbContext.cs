@@ -104,6 +104,11 @@ namespace StartedIn.Domain.Context
                 .ToTable("Taskboard");
             modelBuilder.Entity<TaskEntity>()
                 .ToTable("Task");
+            modelBuilder.Entity<TaskEntity>()
+                .Property(u => u.Status)
+                .HasConversion(v => v.ToString(),
+               v => (TaskEntityStatus)Enum.Parse(typeof(TaskEntityStatus), v));
+
             modelBuilder.Entity<TaskComment>()
                 .ToTable("TaskComment");
             

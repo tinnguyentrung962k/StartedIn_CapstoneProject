@@ -11,6 +11,7 @@ public class Phase : BaseAuditEntity<string>
     public DateTimeOffset StartTime { get; set; }
     public DateTimeOffset EndTime { get; set; }
     public int Duration { get; set; }
-    
+
     public Project Project { get; set; }
+    public ICollection<Milestone> Milestones { get; set; }
 }

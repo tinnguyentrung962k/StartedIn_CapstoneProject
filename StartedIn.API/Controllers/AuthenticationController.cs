@@ -128,19 +128,7 @@ namespace StartedIn.API.Controllers
                 return StatusCode(500, "Lỗi kích hoạt");
             }
         }
-        [HttpPost("import-user-excel")]
-        public async Task<IActionResult> ImportStudentExcelList(IFormFile formFile)
-        {
-            try
-            {
-                await _userService.ImportUsersFromExcel(formFile);
-                return Ok("Hoàn thành tải file");
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(500, "Lỗi tải file");
-            }
-        }
+        
 
         [HttpPost("request-reset-password")]
         public async Task<IActionResult> RequestResetPasswordLink(string email)

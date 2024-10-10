@@ -9,6 +9,8 @@ public class Milestone : BaseAuditEntity<string>
     public string PhaseId { get; set; }
     public string Title { get; set; }
     public string Description { get; set; }
-    
+    public DateOnly MilestoneDate { get; set; }
+    public int Position { get; set; }
     public Phase Phase { get; set; }
+    public ICollection<Taskboard> Taskboards { get; set; }
 }

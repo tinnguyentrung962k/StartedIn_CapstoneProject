@@ -13,10 +13,10 @@ namespace StartedIn.API.Configuration
             //services.AddScoped<IProjectRepository, ProjectRepository>();
             //services.AddScoped<IUserRepository, UserRepository>();
             //services.AddScoped<IConnectionRepository, ConnectionRepository>();
-            //services.AddScoped<IPhaseRepository, PhaseRepository>();
-            //services.AddScoped<IMajorTaskRepository, MajorTaskRepository>();
-            //services.AddScoped<IMinorTaskRepository, MinorTaskRepository>();
-            //services.AddScoped<ITaskboardRepository, TaskboardRepository>();
+            services.AddScoped<IPhaseRepository, PhaseRepository>();
+            services.AddScoped<IMilestoneRepository, MilestoneRepository>();
+            services.AddScoped<ITaskRepository, TaskRepository>();
+            services.AddScoped<ITaskboardRepository, TaskboardRepository>();
             return services;
         }
     }

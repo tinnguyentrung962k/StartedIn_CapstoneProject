@@ -7,10 +7,8 @@ public class Taskboard : BaseAuditEntity<string>
 {
     [ForeignKey(nameof(Milestone))]
     public string MilestoneId { get; set; }
-    [ForeignKey(nameof(Phase))]
-    public string PhaseId { get; set; }
     public string Title { get; set; }
     public int Position { get; set; }
     public Milestone Milestone { get; set; }
-    public Phase Phase { get; set; }
+    public ICollection<TaskEntity> TasksList { get; set; }
 }
