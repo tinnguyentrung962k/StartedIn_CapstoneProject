@@ -9,4 +9,5 @@ public class Project : BaseAuditEntity<String>
     public string Description { get; set; }
     public string ProjectStatus { get; set; }   
     public ICollection<UserProject> UserProjects { get; set; }
+    public ICollection<Phase> Phases { get; set; }
 }
