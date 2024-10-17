@@ -1,10 +1,14 @@
-using System.ComponentModel.DataAnnotations;
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
 
-namespace StartedIn.CrossCutting.DTOs.RequestDTO;
-
-public class ProjectCreateDTO
+namespace StartedIn.CrossCutting.DTOs.RequestDTO
 {
-    [Required(ErrorMessage = "Vui lòng điền tên dự án")]
-    public string ProjectName { get; set; }
-    public string Description { get; set; }
+    public class ProjectCreateDTO
+    {
+        public string ProjectName { get; set; }
+        public string Description { get; set; }
+    }
 }

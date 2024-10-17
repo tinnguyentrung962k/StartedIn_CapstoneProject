@@ -5,4 +5,5 @@ namespace StartedIn.Repository.Repositories.Interface;
 public interface IProjectRepository : IGenericRepository<Project, string>
 { 
     Task<Project> GetProjectById(string id);
+    Task<Project> GetProjectAndMemberByProjectId(string projectId);
 }

@@ -12,8 +12,8 @@ using StartedIn.Domain.Context;
 namespace StartedIn.Domain.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20241007154601_addDbSet07102024")]
-    partial class addDbSet07102024
+    [Migration("20241017080824_171020241508")]
+    partial class _171020241508
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -141,9 +141,15 @@ namespace StartedIn.Domain.Migrations
                     b.Property<DateTimeOffset>("LastUpdatedTime")
                         .HasColumnType("timestamp with time zone");
 
+                    b.Property<DateOnly>("MilestoneDate")
+                        .HasColumnType("date");
+
                     b.Property<string>("PhaseId")
                         .IsRequired()
                         .HasColumnType("text");
+
+                    b.Property<int>("Position")
+                        .HasColumnType("integer");
 
                     b.Property<string>("Title")
                         .IsRequired()
@@ -153,7 +159,7 @@ namespace StartedIn.Domain.Migrations
 
                     b.HasIndex("PhaseId");
 
-                    b.ToTable("Milestones");
+                    b.ToTable("Milestone", (string)null);
                 });
 
             modelBuilder.Entity("StartedIn.Domain.Entities.MilestoneHistory", b =>
@@ -187,7 +193,9 @@ namespace StartedIn.Domain.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("MilestoneHistories");
+                    b.HasIndex("MilestoneId");
+
+                    b.ToTable("MilestoneHistory", (string)null);
                 });
 
             modelBuilder.Entity("StartedIn.Domain.Entities.Phase", b =>
@@ -232,7 +240,7 @@ namespace StartedIn.Domain.Migrations
 
                     b.HasIndex("ProjectId");
 
-                    b.ToTable("Phases");
+                    b.ToTable("Phase", (string)null);
                 });
 
             modelBuilder.Entity("StartedIn.Domain.Entities.Project", b =>
@@ -270,7 +278,7 @@ namespace StartedIn.Domain.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Projects");
+                    b.ToTable("Project", (string)null);
                 });
 
             modelBuilder.Entity("StartedIn.Domain.Entities.Role", b =>
@@ -313,7 +321,7 @@ namespace StartedIn.Domain.Migrations
 
                     b.HasIndex("TaskId");
 
-                    b.ToTable("TaskAttachments");
+                    b.ToTable("TaskAttachment", (string)null);
                 });
 
             modelBuilder.Entity("StartedIn.Domain.Entities.TaskComment", b =>
@@ -349,7 +357,7 @@ namespace StartedIn.Domain.Migrations
 
                     b.HasIndex("TaskId");
 
-                    b.ToTable("TaskComments");
+                    b.ToTable("TaskComment", (string)null);
                 });
 
             modelBuilder.Entity("StartedIn.Domain.Entities.TaskEntity", b =>
@@ -362,6 +370,9 @@ namespace StartedIn.Domain.Migrations
                         .HasColumnType("text");
 
                     b.Property<DateTimeOffset>("CreatedTime")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<DateTimeOffset?>("Deadline")
                         .HasColumnType("timestamp with time zone");
 
                     b.Property<DateTimeOffset?>("DeletedTime")
@@ -377,9 +388,8 @@ namespace StartedIn.Domain.Migrations
                     b.Property<DateTimeOffset>("LastUpdatedTime")
                         .HasColumnType("timestamp with time zone");
 
-                    b.Property<string>("MilestoneId")
-                        .IsRequired()
-                        .HasColumnType("text");
+                    b.Property<int>("Position")
+                        .HasColumnType("integer");
 
                     b.Property<string>("Status")
                         .IsRequired()
@@ -395,11 +405,9 @@ namespace StartedIn.Domain.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("MilestoneId");
-
                     b.HasIndex("TaskboardId");
 
-                    b.ToTable("TaskEntities");
+                    b.ToTable("Task", (string)null);
                 });
 
             modelBuilder.Entity("StartedIn.Domain.Entities.TaskHistory", b =>
@@ -423,7 +431,7 @@ namespace StartedIn.Domain.Migrations
 
                     b.HasIndex("TaskId");
 
-                    b.ToTable("TaskHistories");
+                    b.ToTable("TaskHistory", (string)null);
                 });
 
             modelBuilder.Entity("StartedIn.Domain.Entities.Taskboard", b =>
@@ -451,10 +459,6 @@ namespace StartedIn.Domain.Migrations
                         .IsRequired()
                         .HasColumnType("text");
 
-                    b.Property<string>("PhaseId")
-                        .IsRequired()
-                        .HasColumnType("text");
-
                     b.Property<int>("Position")
                         .HasColumnType("integer");
 
@@ -466,9 +470,7 @@ namespace StartedIn.Domain.Migrations
 
                     b.HasIndex("MilestoneId");
 
-                    b.HasIndex("PhaseId");
-
-                    b.ToTable("Taskboards");
+                    b.ToTable("Taskboard", (string)null);
                 });
 
             modelBuilder.Entity("StartedIn.Domain.Entities.User", b =>
@@ -637,7 +639,7 @@ namespace StartedIn.Domain.Migrations
             modelBuilder.Entity("StartedIn.Domain.Entities.Milestone", b =>
                 {
                     b.HasOne("StartedIn.Domain.Entities.Phase", "Phase")
-                        .WithMany()
+                        .WithMany("Milestones")
                         .HasForeignKey("PhaseId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
@@ -645,10 +647,21 @@ namespace StartedIn.Domain.Migrations
                     b.Navigation("Phase");
                 });
 
+            modelBuilder.Entity("StartedIn.Domain.Entities.MilestoneHistory", b =>
+                {
+                    b.HasOne("StartedIn.Domain.Entities.Milestone", "Milestone")
+                        .WithMany()
+                        .HasForeignKey("MilestoneId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Milestone");
+                });
+
             modelBuilder.Entity("StartedIn.Domain.Entities.Phase", b =>
                 {
                     b.HasOne("StartedIn.Domain.Entities.Project", "Project")
-                        .WithMany()
+                        .WithMany("Phases")
                         .HasForeignKey("ProjectId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
@@ -680,19 +693,11 @@ namespace StartedIn.Domain.Migrations
 
             modelBuilder.Entity("StartedIn.Domain.Entities.TaskEntity", b =>
                 {
-                    b.HasOne("StartedIn.Domain.Entities.Milestone", "Milestone")
-                        .WithMany()
-                        .HasForeignKey("MilestoneId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
                     b.HasOne("StartedIn.Domain.Entities.Taskboard", "Taskboard")
-                        .WithMany()
+                        .WithMany("TasksList")
                         .HasForeignKey("TaskboardId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
-
-                    b.Navigation("Milestone");
 
                     b.Navigation("Taskboard");
                 });
@@ -711,20 +716,12 @@ namespace StartedIn.Domain.Migrations
             modelBuilder.Entity("StartedIn.Domain.Entities.Taskboard", b =>
                 {
                     b.HasOne("StartedIn.Domain.Entities.Milestone", "Milestone")
-                        .WithMany()
+                        .WithMany("Taskboards")
                         .HasForeignKey("MilestoneId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("StartedIn.Domain.Entities.Phase", "Phase")
-                        .WithMany()
-                        .HasForeignKey("PhaseId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
                     b.Navigation("Milestone");
-
-                    b.Navigation("Phase");
                 });
 
             modelBuilder.Entity("StartedIn.Domain.Entities.UserProject", b =>
@@ -765,14 +762,31 @@ namespace StartedIn.Domain.Migrations
                     b.Navigation("User");
                 });
 
+            modelBuilder.Entity("StartedIn.Domain.Entities.Milestone", b =>
+                {
+                    b.Navigation("Taskboards");
+                });
+
+            modelBuilder.Entity("StartedIn.Domain.Entities.Phase", b =>
+                {
+                    b.Navigation("Milestones");
+                });
+
             modelBuilder.Entity("StartedIn.Domain.Entities.Project", b =>
                 {
+                    b.Navigation("Phases");
+
                     b.Navigation("UserProjects");
                 });
 
             modelBuilder.Entity("StartedIn.Domain.Entities.Role", b =>
                 {
                     b.Navigation("UserRoles");
+                });
+
+            modelBuilder.Entity("StartedIn.Domain.Entities.Taskboard", b =>
+                {
+                    b.Navigation("TasksList");
                 });
 
             modelBuilder.Entity("StartedIn.Domain.Entities.User", b =>

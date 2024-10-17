@@ -4,7 +4,7 @@ using StartedIn.Domain.Entities.BaseEntities;
 
 namespace StartedIn.Domain.Entities;
 
-public class TaskEntity : BaseAuditEntity<String>
+public class TaskEntity : BaseAuditEntity<string>
 {
     [ForeignKey(nameof(Taskboard))]
     public string TaskboardId { get; set; }

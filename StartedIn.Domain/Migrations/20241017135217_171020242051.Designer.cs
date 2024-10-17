@@ -12,8 +12,8 @@ using StartedIn.Domain.Context;
 namespace StartedIn.Domain.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20241010183839_111020240138")]
-    partial class _111020240138
+    [Migration("20241017135217_171020242051")]
+    partial class _171020242051
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -193,6 +193,8 @@ namespace StartedIn.Domain.Migrations
 
                     b.HasKey("Id");
 
+                    b.HasIndex("MilestoneId");
+
                     b.ToTable("MilestoneHistory", (string)null);
                 });
 
@@ -214,8 +216,8 @@ namespace StartedIn.Domain.Migrations
                     b.Property<int>("Duration")
                         .HasColumnType("integer");
 
-                    b.Property<DateTimeOffset>("EndTime")
-                        .HasColumnType("timestamp with time zone");
+                    b.Property<DateOnly>("EndDate")
+                        .HasColumnType("date");
 
                     b.Property<string>("LastUpdatedBy")
                         .HasColumnType("text");
@@ -231,8 +233,8 @@ namespace StartedIn.Domain.Migrations
                         .IsRequired()
                         .HasColumnType("text");
 
-                    b.Property<DateTimeOffset>("StartTime")
-                        .HasColumnType("timestamp with time zone");
+                    b.Property<DateOnly>("StartDate")
+                        .HasColumnType("date");
 
                     b.HasKey("Id");
 
@@ -645,10 +647,21 @@ namespace StartedIn.Domain.Migrations
                     b.Navigation("Phase");
                 });
 
+            modelBuilder.Entity("StartedIn.Domain.Entities.MilestoneHistory", b =>
+                {
+                    b.HasOne("StartedIn.Domain.Entities.Milestone", "Milestone")
+                        .WithMany()
+                        .HasForeignKey("MilestoneId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Milestone");
+                });
+
             modelBuilder.Entity("StartedIn.Domain.Entities.Phase", b =>
                 {
                     b.HasOne("StartedIn.Domain.Entities.Project", "Project")
-                        .WithMany()
+                        .WithMany("Phases")
                         .HasForeignKey("ProjectId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
@@ -761,6 +774,8 @@ namespace StartedIn.Domain.Migrations
 
             modelBuilder.Entity("StartedIn.Domain.Entities.Project", b =>
                 {
+                    b.Navigation("Phases");
+
                     b.Navigation("UserProjects");
                 });
 
