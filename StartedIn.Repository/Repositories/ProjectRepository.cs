@@ -13,11 +13,21 @@ public class ProjectRepository : GenericRepository<Project, string>, IProjectRep
     {
         _appDbContext = context;
     }
-    
+
+    public async Task<Project> GetProjectAndMemberByProjectId(string projectId)
+    {
+        var project = await _appDbContext.Projects.Where(p => p.Id.Equals(projectId))
+            .Include(p=>p.UserProjects)
+            .ThenInclude(up => up.User)
+            .FirstOrDefaultAsync();
+        return project;
+    }
+
     public async Task<Project> GetProjectById(string id)
     {
         var project = await _appDbContext.Projects.Where(p => p.Id.Equals(id))
                 .FirstOrDefaultAsync();
         return project;
     }
+
 }

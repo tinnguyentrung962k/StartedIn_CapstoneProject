@@ -8,7 +8,7 @@ namespace StartedIn.CrossCutting.DTOs.ResponseDTO
 {
     public class MilestoneResponseDTO : IdentityResponseDTO
     {
-        public string MileStoneTitle { get; set; }
+        public string Title { get; set; }
         public string Description { get; set; }
         public DateOnly MilestoneDate { get; set; }
         public int Position { get; set; }

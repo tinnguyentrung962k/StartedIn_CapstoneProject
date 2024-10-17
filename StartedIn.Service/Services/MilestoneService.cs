@@ -1,4 +1,5 @@
-﻿using Microsoft.Extensions.Logging;
+﻿using Microsoft.AspNetCore.Identity;
+using Microsoft.Extensions.Logging;
 using StartedIn.CrossCutting.DTOs.RequestDTO;
 using StartedIn.CrossCutting.Exceptions;
 using StartedIn.Domain.Entities;
@@ -19,24 +20,33 @@ namespace StartedIn.Service.Services
         private readonly ITaskRepository _taskRepository;
         private readonly IPhaseRepository _phaseRepository;
         private readonly ILogger<Milestone> _logger;
+        private readonly UserManager<User> _userManager;
+        private readonly IMilestoneHistoryRepository _milestoneHistoryRepository;
 
         public MilestoneService(
             IUnitOfWork unitOfWork,
             IMilestoneRepository milestoneRepository,
             ILogger<Milestone> logger,
             IPhaseRepository phaseRepository,
-            ITaskRepository taskRepository)
+            ITaskRepository taskRepository, UserManager<User> userManager, IMilestoneHistoryRepository milestoneHistoryRepository)
         {
             _unitOfWork = unitOfWork;
             _milestoneRepository = milestoneRepository;
             _logger = logger;
             _phaseRepository = phaseRepository;
             _taskRepository = taskRepository;
+            _userManager = userManager;
+            _milestoneHistoryRepository = milestoneHistoryRepository;
         }
-        public async Task<string> CreateNewMilestone(MilestoneCreateDTO milestoneCreateDto)
+        public async Task<Milestone> CreateNewMilestone(string userId, MilestoneCreateDTO milestoneCreateDto)
         {
             try
             {
+                var user = await _userManager.FindByIdAsync(userId);
+                if (user == null)
+                {
+                    throw new NotFoundException("Người dùng không tồn tại");
+                }
                 _unitOfWork.BeginTransaction();
                 Milestone milestone = new Milestone
                 {
@@ -47,9 +57,17 @@ namespace StartedIn.Service.Services
                     MilestoneDate = milestoneCreateDto.MilestoneDate,
                 };
                 var milestoneEntity = _milestoneRepository.Add(milestone);
+                string notification = user.FullName + " đã tạo ra cột mốc: " + milestone.Title;
+                MilestoneHistory history = new MilestoneHistory
+                {
+                    Content = notification,
+                    CreatedBy = user.FullName,
+                    MilestoneId = milestone.Id
+                };
+                var milestoneHistoryEntity = _milestoneHistoryRepository.Add(history);
                 await _unitOfWork.SaveChangesAsync();
                 await _unitOfWork.CommitAsync();
-                return milestoneEntity.Id;
+                return milestoneEntity;
             }
             catch (Exception ex)
             {

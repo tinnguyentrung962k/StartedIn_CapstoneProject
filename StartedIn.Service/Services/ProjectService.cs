@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Logging;
 using StartedIn.CrossCutting.DTOs.RequestDTO;
+using StartedIn.CrossCutting.Enum;
 using StartedIn.CrossCutting.Exceptions;
 using StartedIn.Domain.Entities;
 using StartedIn.Repository.Repositories.Interface;
@@ -14,34 +15,34 @@ public class ProjectService : IProjectService
     private readonly IUnitOfWork _unitOfWork;
     private readonly UserManager<User> _userManager;
     private readonly ILogger<ProjectService> _logger;
+    private readonly IEmailService _emailService;
+    private readonly IUserRepository _userRepository;
 
     public ProjectService(IProjectRepository projectRepository, IUnitOfWork unitOfWork, 
-        UserManager<User> userManager, ILogger<ProjectService> logger)
+        UserManager<User> userManager, ILogger<ProjectService> logger, IEmailService emailService, IUserRepository userRepository)
     {
         _projectRepository = projectRepository;
         _unitOfWork = unitOfWork;
         _userManager = userManager;
         _logger = logger;
+        _emailService = emailService;
+        _userRepository = userRepository;
     }
-    public async Task<Project> CreateNewProject(string userId, ProjectCreateDTO projectCreateDto)
+    public async Task CreateNewProject(string userId, Project project)
     {
-        try
-        {
+        try {
             _unitOfWork.BeginTransaction();
-            Project project = new Project
-            {
-                ProjectName = projectCreateDto.ProjectName,
-                Description = projectCreateDto.Description,
-                CreatedBy = userId
-            };
-            _projectRepository.Add(project);
+            var user = await _userManager.FindByIdAsync(userId);
+            project.ProjectStatus = ProjectStatus.DangHoatDong;
+            project.CreatedBy = user.FullName;
+            var projectEntity = _projectRepository.Add(project);
+            await _userRepository.AddUserToProject(userId, project.Id, RoleInTeam.Leader);
             await _unitOfWork.SaveChangesAsync();
             await _unitOfWork.CommitAsync();
-            return project;
         }
         catch (Exception ex) 
         {
-            _logger.LogError(ex, "Error while creating project");
+            _logger.LogError(ex, "Error while creating project and team");
             await _unitOfWork.RollbackAsync();
             throw;
         }
@@ -58,37 +59,56 @@ public class ProjectService : IProjectService
         return project;
     }
 
-    public async Task SendJoinProjectInvitation(string userId, List<string> userIds, string projectId)
+    public async Task SendJoinProjectInvitation(string userId, List<string> inviteEmails, string projectId)
     {
         var user = await _userManager.FindByIdAsync(userId);
         if (user == null)
         {
             throw new NotFoundException($"User with ID: {userId} not found.");
         }
-        var project = await _projectRepository.QueryHelper()
-            .Filter(project => project.Id.Equals(projectId))
-            .Include(project => project.UserProjects)
-            .Include()
-            .GetOneAsync();
+        var project = await _projectRepository.GetProjectAndMemberByProjectId(projectId);
         if (project == null)
         {
             throw new NotFoundException("Không tìm thấy team");
         }
-        if (project.UserProjects..Equals(user.Id))
+        var userProject = project.UserProjects.FirstOrDefault(up => up.UserId.Equals(userId));
+        if (userProject == null)
         {
-            throw new InviteException("Bạn không có quyền mời thành viên vào nhóm");
+            throw new NotFoundException("Người dùng không thuộc dự án này");
         }
-        if (team.TeamUsers.Count() >= 5)
+        if (userProject.RoleInTeam != CrossCutting.Enum.RoleInTeam.Leader)
         {
-            throw new TeamLimitException("Đội đã có đủ 5 thành viên. Vui lòng nâng cấp gói Premium");
-        }
-        if (team.TeamUsers.Count() + inviteEmails.Count > 5)
-        {
-            throw new TeamLimitException("Thêm người dùng này sẽ làm số thành viên của đội vượt quá 5 người. Vui lòng nâng cấp lên gói Premium");
+            throw new InviteException("Bạn không có quyền mời thành viên");
         }
         foreach (var inviteEmail in inviteEmails)
         {
-            _emailService.SendInvitationToTeam(inviteEmail, teamId);
+            _emailService.SendInvitationToProjectAsync(inviteEmail, projectId, user.FullName, project.ProjectName);
         }
+    }
+    public async Task AddUserToProject(string projectId, string userId)
+    {
+        var user = await _userManager.FindByIdAsync(userId);
+        if (user == null)
+        {
+            throw new NotFoundException("Không tìm thấy người dùng");
+        }
+        var userInTeam = await _userRepository.GetAUserInProject(projectId, user.Id);
+        if (userInTeam != null)
+        {
+            throw new InviteException("Người dùng đã có trong nhóm");
+        }
+        await _userRepository.AddUserToProject(userId, projectId, RoleInTeam.Member);
+        await _unitOfWork.SaveChangesAsync();
+    }
+
+    public async Task<Project> GetProjectAndMemberById(string id)
+    {
+        var project = await _projectRepository.GetProjectAndMemberByProjectId(id);
+        if (project == null) 
+        {
+            throw new NotFoundException("Không tìm thấy dự án");
+        }
+        return project;
+
     }
 }
