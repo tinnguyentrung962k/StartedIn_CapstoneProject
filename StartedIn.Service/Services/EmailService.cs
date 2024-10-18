@@ -20,12 +20,11 @@ namespace StartedIn.Service.Services
             _configuration = configuration;
         }
 
-        public async Task SendInvitationToTeamAsync(string receiveEmail, string teamId)
+        public async Task SendInvitationToProjectAsync(string receiveEmail, string projectId, string senderName, string projectName)
         {
             var webDomain = _configuration.GetValue<string>("WEB_DOMAIN") ?? _configuration["Local_domain"];
             var subject = "Lời mời tham gia nhóm";
-            var body = $"Bạn vui lòng bấm vào đường link sau để tham gia vào nhóm:\n{webDomain}/invite/{teamId} \n\n Xin chân thành cảm ơn vì đã đồng hành cùng StartedIn!";
-
+            var body = $"{senderName} đã gửi lời mời tham gia dự án {projectName} cho bạn \n\n Bạn vui lòng bấm vào đường link sau để tham gia vào dự án:\n{webDomain}/invite/{projectId} \n\n Xin chân thành cảm ơn vì đã đồng hành cùng StartedIn!";
             await SendEmailAsync(receiveEmail, subject, body);
         }
 

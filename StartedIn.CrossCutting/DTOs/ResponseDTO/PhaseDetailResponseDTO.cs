@@ -10,6 +10,9 @@ namespace StartedIn.CrossCutting.DTOs.ResponseDTO
     {
         public string ProjectId { get; set; }
         public string PhaseName { get; set; }
+        public DateOnly StartDate { get; set; }
+        public DateOnly EndDate { get; set; }
+        public int Duration { get; set; }
         public List<MilestoneResponseDTO> Milestones { get; set; }
     }
 }

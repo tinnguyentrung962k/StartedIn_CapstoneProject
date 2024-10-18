@@ -111,6 +111,11 @@ namespace StartedIn.Domain.Context
 
             modelBuilder.Entity<TaskComment>()
                 .ToTable("TaskComment");
+            modelBuilder.Entity<Project>()
+                .Property(p => p.ProjectStatus)
+                .HasConversion(
+                    p => p.ToString(),
+                    p => (ProjectStatus)Enum.Parse(typeof(ProjectStatus), p));
             
             foreach (var entityType in modelBuilder.Model.GetEntityTypes())
             {

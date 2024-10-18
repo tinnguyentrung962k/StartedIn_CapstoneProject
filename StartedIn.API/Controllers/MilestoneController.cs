@@ -5,6 +5,7 @@ using StartedIn.CrossCutting.DTOs.RequestDTO;
 using StartedIn.CrossCutting.DTOs.ResponseDTO;
 using StartedIn.CrossCutting.Exceptions;
 using StartedIn.Service.Services.Interface;
+using System.Security.Claims;
 
 namespace StartedIn.API.Controllers
 {
@@ -24,12 +25,15 @@ namespace StartedIn.API.Controllers
         }
 
         [HttpPost("milestone/create")]
-        public async Task<ActionResult<MilestoneResponseDTO>> CreateNewMajorTask(MilestoneCreateDTO milestoneCreateDto)
+        public async Task<ActionResult<MilestoneResponseDTO>> CreateNewMileStone(MilestoneCreateDTO milestoneCreateDto)
         {
             try
             {
-                string id = await _milestoneService.CreateNewMilestone(milestoneCreateDto);
-                return StatusCode(201, new { message = "Tạo cột mốc thành công", id = id });
+                var userId = User.FindFirst(ClaimTypes.NameIdentifier).Value;
+                var milestone = await _milestoneService.CreateNewMilestone(userId,milestoneCreateDto);
+                var responseMilestone = _mapper.Map<MilestoneResponseDTO>(milestone);
+                return CreatedAtAction(nameof(GetMilestoneById), new { milestoneId = responseMilestone.Id }, responseMilestone);
+                
             }
             catch (Exception ex)
             {
@@ -38,23 +42,23 @@ namespace StartedIn.API.Controllers
             }
         }
 
-        [HttpPut("milestone/move")]
-        public async Task<ActionResult<MilestoneResponseDTO>> MoveMilestone(UpdateMilestonePositionDTO updateMilestonePositionDTO)
-        {
-            try
-            {
-                var responseMilestone = _mapper.Map<MilestoneResponseDTO>(await _milestoneService.MoveMilestone(updateMilestonePositionDTO.Id, updateMilestonePositionDTO.PhaseId, updateMilestonePositionDTO.Position, updateMilestonePositionDTO.NeedsReposition));
-                return Ok(responseMilestone);
-            }
-            catch (NotFoundException ex)
-            {
-                return NotFound(ex.Message);
-            }
-            catch (Exception ex)
-            {
-                return BadRequest("Di chuyển cột mốc thất bại");
-            }
-        }
+        //[HttpPut("milestone/move")]
+        //public async Task<ActionResult<MilestoneResponseDTO>> MoveMilestone(UpdateMilestonePositionDTO updateMilestonePositionDTO)
+        //{
+        //    try
+        //    {
+        //        var responseMilestone = _mapper.Map<MilestoneResponseDTO>(await _milestoneService.MoveMilestone(updateMilestonePositionDTO.Id, updateMilestonePositionDTO.PhaseId, updateMilestonePositionDTO.Position, updateMilestonePositionDTO.NeedsReposition));
+        //        return Ok(responseMilestone);
+        //    }
+        //    catch (NotFoundException ex)
+        //    {
+        //        return NotFound(ex.Message);
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        return BadRequest("Di chuyển cột mốc thất bại");
+        //    }
+        //}
 
         [HttpGet("milestone/{milestoneId}")]
         public async Task<ActionResult<MilestoneAndTaskboardResponseDTO>> GetMilestoneById([FromRoute] string milestoneId)
