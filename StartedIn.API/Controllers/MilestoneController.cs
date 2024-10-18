@@ -42,23 +42,23 @@ namespace StartedIn.API.Controllers
             }
         }
 
-        [HttpPut("milestone/move")]
-        public async Task<ActionResult<MilestoneResponseDTO>> MoveMilestone(UpdateMilestonePositionDTO updateMilestonePositionDTO)
-        {
-            try
-            {
-                var responseMilestone = _mapper.Map<MilestoneResponseDTO>(await _milestoneService.MoveMilestone(updateMilestonePositionDTO.Id, updateMilestonePositionDTO.PhaseId, updateMilestonePositionDTO.Position, updateMilestonePositionDTO.NeedsReposition));
-                return Ok(responseMilestone);
-            }
-            catch (NotFoundException ex)
-            {
-                return NotFound(ex.Message);
-            }
-            catch (Exception ex)
-            {
-                return BadRequest("Di chuyển cột mốc thất bại");
-            }
-        }
+        //[HttpPut("milestone/move")]
+        //public async Task<ActionResult<MilestoneResponseDTO>> MoveMilestone(UpdateMilestonePositionDTO updateMilestonePositionDTO)
+        //{
+        //    try
+        //    {
+        //        var responseMilestone = _mapper.Map<MilestoneResponseDTO>(await _milestoneService.MoveMilestone(updateMilestonePositionDTO.Id, updateMilestonePositionDTO.PhaseId, updateMilestonePositionDTO.Position, updateMilestonePositionDTO.NeedsReposition));
+        //        return Ok(responseMilestone);
+        //    }
+        //    catch (NotFoundException ex)
+        //    {
+        //        return NotFound(ex.Message);
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        return BadRequest("Di chuyển cột mốc thất bại");
+        //    }
+        //}
 
         [HttpGet("milestone/{milestoneId}")]
         public async Task<ActionResult<MilestoneAndTaskboardResponseDTO>> GetMilestoneById([FromRoute] string milestoneId)

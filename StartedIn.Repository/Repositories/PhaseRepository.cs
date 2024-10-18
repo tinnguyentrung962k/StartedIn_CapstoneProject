@@ -21,7 +21,7 @@ namespace StartedIn.Repository.Repositories
         public async Task<Phase> GetPhaseDetailById(string id)
         {
             var phase = await _appDbContext.Phases
-                .Include(p => p.Milestones)
+                .Include(p => p.Milestones.OrderBy(p=>p.MilestoneDate))
                 .ThenInclude(t => t.Taskboards)
                 .ThenInclude(t=>t.TasksList)
                 .FirstOrDefaultAsync(p => p.Id.Equals(id));
