@@ -50,11 +50,11 @@ namespace StartedIn.Service.Services
                 _unitOfWork.BeginTransaction();
                 Milestone milestone = new Milestone
                 {
-                    Position = milestoneCreateDto.Position,
                     PhaseId = milestoneCreateDto.PhaseId,
                     Title = milestoneCreateDto.MilstoneTitle,
                     Description = milestoneCreateDto.Description,
                     MilestoneDate = milestoneCreateDto.MilestoneDate,
+                    ExtendedCount = 0
                 };
                 var milestoneEntity = _milestoneRepository.Add(milestone);
                 string notification = user.FullName + " đã tạo ra cột mốc: " + milestone.Title;

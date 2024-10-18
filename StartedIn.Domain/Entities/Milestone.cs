@@ -10,7 +10,9 @@ public class Milestone : BaseAuditEntity<string>
     public string Title { get; set; }
     public string Description { get; set; }
     public DateOnly MilestoneDate { get; set; }
-    public int Position { get; set; }
+    public DateOnly? ExtendedDate { get; set; }
+    public int? ExtendedCount { get; set; }
+    public decimal? Percentage { get; set; }
     public Phase Phase { get; set; }
     public ICollection<Taskboard> Taskboards { get; set; }
 }

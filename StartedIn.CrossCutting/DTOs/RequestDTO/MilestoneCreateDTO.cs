@@ -12,6 +12,5 @@ namespace StartedIn.CrossCutting.DTOs.RequestDTO
         public string MilstoneTitle { get; set; }
         public string Description { get; set; }
         public DateOnly MilestoneDate { get; set; }
-        public int Position { get; set; }
     }
 }
