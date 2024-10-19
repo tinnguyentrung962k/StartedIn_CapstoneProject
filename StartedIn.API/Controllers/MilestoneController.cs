@@ -25,7 +25,7 @@ namespace StartedIn.API.Controllers
             _logger = logger;
         }
 
-        [HttpPost("milestone/create")]
+        [HttpPost("milestones")]
         [Authorize]
         public async Task<ActionResult<MilestoneResponseDTO>> CreateNewMileStone(MilestoneCreateDTO milestoneCreateDto)
         {
@@ -62,7 +62,8 @@ namespace StartedIn.API.Controllers
         //    }
         //}
 
-        [HttpGet("milestone/{milestoneId}")]
+        [HttpGet("milestones/{milestoneId}")]
+        [Authorize]
         public async Task<ActionResult<MilestoneAndTaskboardResponseDTO>> GetMilestoneById([FromRoute] string milestoneId)
         {
             try
@@ -80,12 +81,13 @@ namespace StartedIn.API.Controllers
             }
         }
 
-        [HttpPut("milestone/edit/{id}")]
-        public async Task<ActionResult<MilestoneResponseDTO>> EditInfoMilestone(string id, [FromBody] MilestoneInfoUpdateDTO milestoneInfoUpdateDTO)
+        [HttpPut("milestones/{milestoneId}")]
+        [Authorize]
+        public async Task<ActionResult<MilestoneResponseDTO>> EditInfoMilestone(string milestoneId, [FromBody] MilestoneInfoUpdateDTO milestoneInfoUpdateDTO)
         {
             try
             {
-                var responseMilestone = _mapper.Map<MilestoneResponseDTO>(await _milestoneService.UpdateMilestoneInfo(id, milestoneInfoUpdateDTO));
+                var responseMilestone = _mapper.Map<MilestoneResponseDTO>(await _milestoneService.UpdateMilestoneInfo(milestoneId, milestoneInfoUpdateDTO));
                 return Ok(responseMilestone);
             }
             catch (NotFoundException ex)

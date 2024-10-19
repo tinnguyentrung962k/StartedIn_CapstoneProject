@@ -1,6 +1,8 @@
 ﻿using AutoMapper;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using StartedIn.CrossCutting.Constants;
 using StartedIn.CrossCutting.DTOs.ResponseDTO;
 using StartedIn.CrossCutting.Exceptions;
 using StartedIn.Service.Services.Interface;
@@ -23,6 +25,7 @@ namespace StartedIn.API.Controllers
             _logger = logger;
         }
         [HttpGet("users")]
+        [Authorize(Roles = RoleConstants.ADMIN)]
         public async Task<ActionResult<IEnumerable<FullProfileDTO>>> GetUserLists([FromQuery] int pageIndex, int pageSize)
         {
             try
@@ -43,7 +46,8 @@ namespace StartedIn.API.Controllers
             }
 
         }
-        [HttpPost("import-user-excel")]
+        [HttpPost("users/import-user-excel")]
+        [Authorize(Roles = RoleConstants.ADMIN)]
         public async Task<IActionResult> ImportStudentExcelList(IFormFile formFile)
         {
             try

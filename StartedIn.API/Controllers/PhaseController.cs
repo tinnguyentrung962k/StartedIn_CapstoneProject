@@ -1,4 +1,5 @@
 ﻿using AutoMapper;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using StartedIn.CrossCutting.DTOs.RequestDTO;
@@ -23,7 +24,8 @@ namespace StartedIn.API.Controllers
             _mapper = mapper;
         }
 
-        [HttpGet("phase/{phaseId}")]
+        [HttpGet("phases/{phaseId}")]
+        [Authorize]
         public async Task<ActionResult<PhaseDetailResponseDTO>> GetPhaseDetailById(string phaseId)
         {
             try
@@ -42,7 +44,8 @@ namespace StartedIn.API.Controllers
             }
         }
 
-        [HttpPost("phases/phase")]
+        [HttpPost("phases")]
+        [Authorize]
         public async Task<ActionResult<PhaseDetailResponseDTO>> CreateNewPhase(PhaseCreateDTO phaseCreateDto)
         {
             try

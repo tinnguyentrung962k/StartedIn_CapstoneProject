@@ -17,6 +17,11 @@ namespace StartedIn.CrossCutting.DTOs.RequestDTO
         [DataType(DataType.Password)]
         public string NewPassword { get; set; }
 
+        [Required(ErrorMessage = "Vui lòng xác nhận mật khẩu")]
+        [DataType(DataType.Password)]
+        [Compare("NewPassword", ErrorMessage = "Mật khẩu xác thực không khớp")]
+        public string ConfirmedPassword { get; set; }
+
         [Required]
         public string Token { get; set; }
     }

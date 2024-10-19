@@ -337,7 +337,7 @@ namespace StartedIn.Service.Services
             var appDomain = _configuration.GetValue<string>("API_DOMAIN"); // You should add this to your config
 
             // Manually construct reset URL
-            var resetLink = $"{appDomain}/account/reset-password?token={Uri.EscapeDataString(token)}&email={Uri.EscapeDataString(user.Email)}";
+            var resetLink = $"{appDomain}/account/reset-password?token={token}&email={user.Email}";
 
             // Send reset email
             await _emailService.SendResetPasswordEmail(user.Email, resetLink);

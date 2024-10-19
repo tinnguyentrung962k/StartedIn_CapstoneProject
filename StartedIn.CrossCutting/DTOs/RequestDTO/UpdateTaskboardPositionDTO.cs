@@ -6,10 +6,9 @@ using System.Threading.Tasks;
 
 namespace StartedIn.CrossCutting.DTOs.RequestDTO
 {
-    public class UpdateMilestonePositionDTO
+    public class UpdateTaskboardPositionDTO
     {
         public string Id { get; set; }
-        public string PhaseId { get; set; }
         public int Position { get; set; }
         public bool NeedsReposition { get; set; }
     }

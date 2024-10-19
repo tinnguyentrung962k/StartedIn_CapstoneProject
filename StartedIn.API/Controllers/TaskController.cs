@@ -25,7 +25,7 @@ namespace StartedIn.API.Controllers
             _logger = logger;
         }
 
-        [HttpPost("task/create")]
+        [HttpPost("tasks")]
         [Authorize]
         public async Task<ActionResult<TaskResponseDTO>> CreateNewTask(TaskCreateDTO taskCreateDto)
         {
@@ -43,7 +43,8 @@ namespace StartedIn.API.Controllers
             }
         }
 
-        [HttpPut("task/move")]
+        [HttpPut("tasks/move")]
+        [Authorize]
         public async Task<ActionResult<TaskResponseDTO>> MoveTask(UpdateTaskPositionDTO updateTaskPositionDTO)
         {
             try
@@ -61,12 +62,13 @@ namespace StartedIn.API.Controllers
             }
         }
 
-        [HttpPut("task/edit/{id}")]
-        public async Task<ActionResult<TaskResponseDTO>> EditInfoMinorTask(string id, [FromBody] UpdateTaskInfoDTO updateTaskInfoDTO)
+        [HttpPut("tasks/{taskId}")]
+        [Authorize]
+        public async Task<ActionResult<TaskResponseDTO>> EditInfoMinorTask([FromRoute]string taskId, [FromBody] UpdateTaskInfoDTO updateTaskInfoDTO)
         {
             try
             {
-                var responseTask = _mapper.Map<TaskResponseDTO>(await _taskService.UpdateTaskInfo(id, updateTaskInfoDTO));
+                var responseTask = _mapper.Map<TaskResponseDTO>(await _taskService.UpdateTaskInfo(taskId, updateTaskInfoDTO));
                 return Ok(responseTask);
             }
             catch (NotFoundException ex)

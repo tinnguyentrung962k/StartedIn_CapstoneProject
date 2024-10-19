@@ -27,7 +27,7 @@ public class ProjectController : ControllerBase
         _logger = logger;
     }
 
-    [HttpPost("projects/project")]
+    [HttpPost("projects")]
     [Authorize]
     public async Task<ActionResult<ProjectResponseDTO>> CreateANewProject(ProjectCreateDTO projectCreatedto) 
     {
@@ -50,6 +50,7 @@ public class ProjectController : ControllerBase
     }
     
     [HttpGet("projects/{projectId}")]
+    [Authorize]
     public async Task<ActionResult<ProjectResponseDTO>> GetProjectById(string projectId)
     {
         try
@@ -68,7 +69,7 @@ public class ProjectController : ControllerBase
         }
     }
     
-    [HttpPost("projects/project-invitation/{projectId}")]
+    [HttpPost("projects/{projectId}/project-invitation")]
     [Authorize]
     public async Task<IActionResult> SendInvitationToTeam([FromBody] List<string> emails, [FromRoute] string projectId)
     {
@@ -92,7 +93,7 @@ public class ProjectController : ControllerBase
         }
     }
 
-    [HttpPost("projects/invite/{projectId}")]
+    [HttpPost("projects/{projectId}/invite")]
     [Authorize]
     public async Task<IActionResult> AddUserToProject([FromRoute] string projectId)
     {
@@ -115,7 +116,7 @@ public class ProjectController : ControllerBase
             return BadRequest(ex.Message);
         }
     }
-    [HttpGet("projects/project-members/{projectId}")]
+    [HttpGet("projects/{projectId}/project-members")]
     [Authorize]
     public async Task<ActionResult<ProjectWithMembersResponseDTO>> GetProjectWithMembers([FromRoute] string projectId)
     {
