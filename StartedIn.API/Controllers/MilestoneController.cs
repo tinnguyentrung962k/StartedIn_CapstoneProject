@@ -6,6 +6,7 @@ using StartedIn.CrossCutting.DTOs.ResponseDTO;
 using StartedIn.CrossCutting.Exceptions;
 using StartedIn.Service.Services.Interface;
 using System.Security.Claims;
+using Microsoft.AspNetCore.Authorization;
 
 namespace StartedIn.API.Controllers
 {
@@ -25,6 +26,7 @@ namespace StartedIn.API.Controllers
         }
 
         [HttpPost("milestone/create")]
+        [Authorize]
         public async Task<ActionResult<MilestoneResponseDTO>> CreateNewMileStone(MilestoneCreateDTO milestoneCreateDto)
         {
             try

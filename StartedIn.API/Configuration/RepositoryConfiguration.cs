@@ -15,6 +15,7 @@ namespace StartedIn.API.Configuration
             services.AddScoped<ITaskRepository, TaskRepository>();
             services.AddScoped<ITaskboardRepository, TaskboardRepository>();
             services.AddScoped<IMilestoneHistoryRepository, MilestoneHistoryRepository>();
+            services.AddScoped<ITaskHistoryRepository, TaskHistoryRepository>();
             return services;
         }
     }

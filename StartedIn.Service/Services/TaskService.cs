@@ -11,6 +11,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Identity;
 
 namespace StartedIn.Service.Services
 {
@@ -20,20 +21,31 @@ namespace StartedIn.Service.Services
         private readonly ITaskRepository _taskRepository;
         private readonly ILogger<TaskEntity> _logger;
         private readonly ITaskboardRepository _taskboardRepository;
+        private readonly ITaskHistoryRepository _taskHistoryRepository;
+        private readonly UserManager<User> _userManager;
 
         public TaskService(
             IUnitOfWork unitOfWork,
             ITaskRepository taskRepository,
             ILogger<TaskEntity> logger,
-            ITaskboardRepository taskboardRepository)
+            ITaskboardRepository taskboardRepository,
+            ITaskHistoryRepository taskHistoryRepository,
+            UserManager<User> userManager)
         {
             _unitOfWork = unitOfWork;
             _taskRepository = taskRepository;
             _logger = logger;
             _taskboardRepository = taskboardRepository;
+            _taskHistoryRepository = taskHistoryRepository;
+            _userManager = userManager;
         }
-        public async Task<TaskEntity> CreateTask(TaskCreateDTO taskCreateDto)
+        public async Task<TaskEntity> CreateTask(TaskCreateDTO taskCreateDto, string userId)
         {
+            var user = await _userManager.FindByIdAsync(userId);
+            if (user == null)
+            {
+                throw new NotFoundException("Người dùng không tồn tại");
+            }
             try
             {
                 _unitOfWork.BeginTransaction();
@@ -48,6 +60,14 @@ namespace StartedIn.Service.Services
 
                 };
                 var taskEntity = _taskRepository.Add(task);
+                string notification = user.FullName + " đã tạo ra công việc: " + task.Title;
+                TaskHistory history = new TaskHistory
+                {
+                    Content = notification,
+                    CreatedBy = user.FullName,
+                    TaskId = task.Id
+                };
+                var taskHistory = _taskHistoryRepository.Add(history);
                 await _unitOfWork.SaveChangesAsync();
                 await _unitOfWork.CommitAsync();
                 return taskEntity;

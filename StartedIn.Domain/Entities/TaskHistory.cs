@@ -1,16 +1,13 @@
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
+using StartedIn.Domain.Entities.BaseEntities;
 
 namespace StartedIn.Domain.Entities;
 
-public class TaskHistory
+public class TaskHistory : BaseAuditEntity<string>
 {
-    [Key]
-    [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
-    public string Id { get; set; }
     [ForeignKey(nameof(TaskEntity))]
     public string TaskId { get; set; }
     public string Content { get; set; }
-    public DateTimeOffset CreatedTime { get; set; }
     public TaskEntity TaskEntity { get; set; }
 }

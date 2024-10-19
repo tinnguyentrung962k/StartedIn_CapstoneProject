@@ -10,7 +10,7 @@ namespace StartedIn.Service.Services.Interface
 {
     public interface ITaskService
     {
-        Task<TaskEntity> CreateTask(TaskCreateDTO taskCreateDto);
+        Task<TaskEntity> CreateTask(TaskCreateDTO taskCreateDto, string userId);
         Task<TaskEntity> MoveTask(string taskId, string taskBoardId, int position, bool needsReposition);
         Task<TaskEntity> UpdateTaskInfo(string id, UpdateTaskInfoDTO updateTaskInfoDTO);
     }
