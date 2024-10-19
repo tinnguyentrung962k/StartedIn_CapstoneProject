@@ -14,6 +14,7 @@ namespace StartedIn.API.Configuration
             services.AddScoped<IMilestoneService, MilestoneService>();
             services.AddScoped<ITaskService, TaskService>();
             services.AddScoped<IProjectService, ProjectService>();
+            services.AddScoped<ITaskboardService, TaskboardService>();
             return services;
         }
     }

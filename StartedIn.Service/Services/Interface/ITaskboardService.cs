@@ -10,7 +10,7 @@ namespace StartedIn.Service.Services.Interface
 {
     public interface ITaskboardService
     {
-        Task<Taskboard> CreateNewTaskboard(TaskboardCreateDTO taskboardCreateDto);
+        Task<Taskboard> CreateNewTaskboard(TaskboardCreateDTO taskboardCreateDto, string userId);
         Task<Taskboard> MoveTaskBoard(string taskBoardId, int position, bool needsReposition);
         Task<Taskboard> GetTaskboardById(string id);
         Task<Taskboard> UpdateTaskboard(string id, TaskboardInfoUpdateDTO taskboardInfoUpdateDTO);

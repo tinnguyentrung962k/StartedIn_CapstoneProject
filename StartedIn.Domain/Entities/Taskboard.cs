@@ -10,5 +10,5 @@ public class Taskboard : BaseAuditEntity<string>
     public string Title { get; set; }
     public int Position { get; set; }
     public Milestone Milestone { get; set; }
-    public ICollection<TaskEntity> TasksList { get; set; }
+    public ICollection<TaskEntity>? TasksList { get; set; }
 }

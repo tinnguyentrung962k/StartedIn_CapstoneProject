@@ -24,7 +24,7 @@ namespace StartedIn.Service.Services
             _unitOfWork = unitOfWork;
             _logger = logger;
         }
-        public async Task<Taskboard> CreateNewTaskboard(TaskboardCreateDTO taskboardCreateDto)
+        public async Task<Taskboard> CreateNewTaskboard(TaskboardCreateDTO taskboardCreateDto, string userId)
         {
             try
             {

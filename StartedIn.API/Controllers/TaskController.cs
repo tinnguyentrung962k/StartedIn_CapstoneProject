@@ -1,4 +1,6 @@
-﻿using AutoMapper;
+﻿using System.Security.Claims;
+using AutoMapper;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using StartedIn.CrossCutting.DTOs.RequestDTO;
@@ -24,11 +26,13 @@ namespace StartedIn.API.Controllers
         }
 
         [HttpPost("task/create")]
+        [Authorize]
         public async Task<ActionResult<TaskResponseDTO>> CreateNewTask(TaskCreateDTO taskCreateDto)
         {
             try
             {
-                var task = await _taskService.CreateTask(taskCreateDto);
+                var userId = User.FindFirst(ClaimTypes.NameIdentifier).Value;
+                var task = await _taskService.CreateTask(taskCreateDto, userId);
                 var response = _mapper.Map<TaskResponseDTO>(task);
                 return Ok(response);
             }

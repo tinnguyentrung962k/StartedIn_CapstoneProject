@@ -10,10 +10,10 @@ namespace StartedIn.CrossCutting.DTOs.ResponseDTO
     public class TaskResponseDTO : IdentityResponseDTO
     {
         public int Position { get; set; }
-        public string TaskTitle { get; set; }
+        public string Title { get; set; }
         public string Description { get; set; }
-        public string Status { get; set; }
+        public TaskEntityStatus Status { get; set; }
         public string TaskboardId { get; set; }
-        public DateOnly? Deadline { get; set; }
+        public DateTimeOffset? Deadline { get; set; }
     }
 }
