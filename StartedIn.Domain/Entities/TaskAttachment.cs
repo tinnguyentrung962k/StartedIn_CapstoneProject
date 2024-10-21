@@ -10,5 +10,6 @@ public class TaskAttachment
     public string Id { get; set; } 
     [ForeignKey(nameof(TaskEntity))]
     public string TaskId { get; set; }
+    public string? AttachmentUrl { get; set; }
     public TaskEntity TaskEntity { get; set; }
 }

@@ -6,8 +6,8 @@ namespace StartedIn.Domain.Entities;
 
 public class TaskHistory : BaseAuditEntity<string>
 {
-    [ForeignKey(nameof(TaskEntity))]
+    [ForeignKey(nameof(Task))]
     public string TaskId { get; set; }
     public string Content { get; set; }
-    public TaskEntity TaskEntity { get; set; }
+    public TaskEntity Task { get; set; }
 }

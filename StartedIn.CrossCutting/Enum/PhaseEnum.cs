@@ -11,7 +11,6 @@ namespace StartedIn.CrossCutting.Enum
         Initializing,
         Planning,
         Executing,
-        Monitoring,
         Closing
     }
 }

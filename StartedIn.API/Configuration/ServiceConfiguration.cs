@@ -10,11 +10,9 @@ namespace StartedIn.API.Configuration
             services.AddScoped<IUserService, UserService>();
             services.AddScoped<ITokenService, TokenService>();
             services.AddScoped<IEmailService, EmailService>();
-            services.AddScoped<IPhaseService, PhaseService>();
             services.AddScoped<IMilestoneService, MilestoneService>();
             services.AddScoped<ITaskService, TaskService>();
             services.AddScoped<IProjectService, ProjectService>();
-            services.AddScoped<ITaskboardService, TaskboardService>();
             return services;
         }
     }

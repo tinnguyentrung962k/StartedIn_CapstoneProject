@@ -20,7 +20,6 @@ namespace StartedIn.Service.Services
         private readonly IUnitOfWork _unitOfWork;
         private readonly ITaskRepository _taskRepository;
         private readonly ILogger<TaskEntity> _logger;
-        private readonly ITaskboardRepository _taskboardRepository;
         private readonly ITaskHistoryRepository _taskHistoryRepository;
         private readonly UserManager<User> _userManager;
 
@@ -28,14 +27,12 @@ namespace StartedIn.Service.Services
             IUnitOfWork unitOfWork,
             ITaskRepository taskRepository,
             ILogger<TaskEntity> logger,
-            ITaskboardRepository taskboardRepository,
             ITaskHistoryRepository taskHistoryRepository,
             UserManager<User> userManager)
         {
             _unitOfWork = unitOfWork;
             _taskRepository = taskRepository;
             _logger = logger;
-            _taskboardRepository = taskboardRepository;
             _taskHistoryRepository = taskHistoryRepository;
             _userManager = userManager;
         }
@@ -51,8 +48,7 @@ namespace StartedIn.Service.Services
                 _unitOfWork.BeginTransaction();
                 TaskEntity task = new TaskEntity
                 {
-                    Position = taskCreateDto.Position,
-                    TaskboardId = taskCreateDto.TaskboardId,
+                    MilestoneId = taskCreateDto.MilestoneId,
                     Title = taskCreateDto.TaskTitle,
                     Description = taskCreateDto.Description,
                     Deadline = taskCreateDto.Deadline,
@@ -75,80 +71,6 @@ namespace StartedIn.Service.Services
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error while creating Minor Task");
-                await _unitOfWork.RollbackAsync();
-                throw;
-            }
-        }
-
-        public async Task<TaskEntity> MoveTask(string taskId, string taskBoardId, int position, bool needsReposition)
-        {
-            var chosenTask = await _taskRepository.GetOneAsync(taskId);
-            if (chosenTask == null)
-            {
-                throw new NotFoundException("Không có công việc nào được tìm thấy");
-            }
-
-            var chosenTaskBoard = await _taskboardRepository.QueryHelper()
-                .Filter(p => p.Id.Equals(taskBoardId))
-                .Include(p => p.TasksList)
-                .GetOneAsync();
-            if (chosenTaskBoard == null)
-            {
-                throw new NotFoundException("Không có bảng công việc được tìm thấy");
-            }
-
-            var oldTaskBoard = await _taskboardRepository.GetOneAsync(chosenTask.TaskboardId);
-            if (oldTaskBoard == null)
-            {
-                throw new NotFoundException("Không có bảng công việc cũ được tìm thấy");
-            }
-            if (oldTaskBoard.MilestoneId != chosenTaskBoard.MilestoneId)
-            {
-                throw new Exception("Bảng công việc cũ không cùng cột mốc với bảng công việc mới");
-            }
-
-            try
-            {
-                // Update the chosen major task's new phase information
-                chosenTask.Position = position;
-                chosenTask.TaskboardId = taskBoardId;
-                _taskRepository.Update(chosenTask);
-
-                // Add the task to the new phase's task list
-                chosenTaskBoard.TasksList.Add(chosenTask);
-                _taskboardRepository.Update(chosenTaskBoard);
-
-                await _unitOfWork.SaveChangesAsync();
-
-                if (needsReposition)
-                {
-                    _unitOfWork.BeginTransaction();
-
-                    // Reposition tasks in the new phase
-                    var newTaskBoardTasks = await _taskRepository.QueryHelper()
-                        .Filter(p => p.TaskboardId.Equals(chosenTaskBoard.Id))
-                        .OrderBy(p => p.OrderBy(p => p.Position))
-                        .GetAllAsync();
-
-                    int newTaskBoardIncrement = (int)Math.Pow(2, 16);
-                    int newTaskBoardCurrentPosition = (int)Math.Pow(2, 16);
-
-                    foreach (var task in newTaskBoardTasks)
-                    {
-                        task.Position = newTaskBoardCurrentPosition;
-                        _taskRepository.Update(task);
-                        newTaskBoardCurrentPosition += newTaskBoardIncrement;
-                    }
-
-                    await _unitOfWork.SaveChangesAsync();
-                    await _unitOfWork.CommitAsync();
-                }
-
-                return chosenTask;
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error while moving minor task");
                 await _unitOfWork.RollbackAsync();
                 throw;
             }

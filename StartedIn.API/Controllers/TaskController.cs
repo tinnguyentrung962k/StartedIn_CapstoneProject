@@ -43,25 +43,6 @@ namespace StartedIn.API.Controllers
             }
         }
 
-        [HttpPut("tasks/move")]
-        [Authorize]
-        public async Task<ActionResult<TaskResponseDTO>> MoveTask(UpdateTaskPositionDTO updateTaskPositionDTO)
-        {
-            try
-            {
-                var responseTask = _mapper.Map<TaskResponseDTO>(await _taskService.MoveTask(updateTaskPositionDTO.Id, updateTaskPositionDTO.TaskboardId, updateTaskPositionDTO.Position, updateTaskPositionDTO.NeedsReposition));
-                return Ok(responseTask);
-            }
-            catch (NotFoundException ex)
-            {
-                return NotFound(ex.Message);
-            }
-            catch (Exception ex)
-            {
-                return BadRequest("Di chuyển công việc thất bại");
-            }
-        }
-
         [HttpPut("tasks/{taskId}")]
         [Authorize]
         public async Task<ActionResult<TaskResponseDTO>> EditInfoMinorTask([FromRoute]string taskId, [FromBody] UpdateTaskInfoDTO updateTaskInfoDTO)

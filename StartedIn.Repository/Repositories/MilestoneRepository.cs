@@ -21,8 +21,7 @@ namespace StartedIn.Repository.Repositories
         public async Task<Milestone> GetMilestoneDetailById(string milestoneId)
         {
             var milestone = await _appDbContext.Milestones
-                .Include(p => p.Taskboards)
-                .ThenInclude(t => t.TasksList)
+                .Include(t => t.Tasks)
                 .FirstOrDefaultAsync(p => p.Id.Equals(milestoneId));
             return milestone;
         }

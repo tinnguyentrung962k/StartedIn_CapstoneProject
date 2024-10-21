@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Logging;
 using StartedIn.CrossCutting.DTOs.RequestDTO;
+using StartedIn.CrossCutting.Enum;
 using StartedIn.CrossCutting.Exceptions;
 using StartedIn.Domain.Entities;
 using StartedIn.Repository.Repositories.Interface;
@@ -18,7 +19,6 @@ namespace StartedIn.Service.Services
         private readonly IUnitOfWork _unitOfWork;
         private readonly IMilestoneRepository _milestoneRepository;
         private readonly ITaskRepository _taskRepository;
-        private readonly IPhaseRepository _phaseRepository;
         private readonly ILogger<Milestone> _logger;
         private readonly UserManager<User> _userManager;
         private readonly IMilestoneHistoryRepository _milestoneHistoryRepository;
@@ -27,13 +27,11 @@ namespace StartedIn.Service.Services
             IUnitOfWork unitOfWork,
             IMilestoneRepository milestoneRepository,
             ILogger<Milestone> logger,
-            IPhaseRepository phaseRepository,
             ITaskRepository taskRepository, UserManager<User> userManager, IMilestoneHistoryRepository milestoneHistoryRepository)
         {
             _unitOfWork = unitOfWork;
             _milestoneRepository = milestoneRepository;
             _logger = logger;
-            _phaseRepository = phaseRepository;
             _taskRepository = taskRepository;
             _userManager = userManager;
             _milestoneHistoryRepository = milestoneHistoryRepository;
@@ -47,14 +45,16 @@ namespace StartedIn.Service.Services
                 {
                     throw new NotFoundException("Người dùng không tồn tại");
                 }
+                string phaseName = GetPhaseName(milestoneCreateDto.PhaseEnum);
                 _unitOfWork.BeginTransaction();
                 Milestone milestone = new Milestone
                 {
-                    PhaseId = milestoneCreateDto.PhaseId,
+                    ProjectId = milestoneCreateDto.ProjectId,
                     Title = milestoneCreateDto.MilstoneTitle,
                     Description = milestoneCreateDto.Description,
                     MilestoneDate = milestoneCreateDto.MilestoneDate,
-                    ExtendedCount = 0
+                    ExtendedCount = 0,
+                    PhaseName = phaseName
                 };
                 var milestoneEntity = _milestoneRepository.Add(milestone);
                 string notification = user.FullName + " đã tạo ra cột mốc: " + milestone.Title;
@@ -77,80 +77,18 @@ namespace StartedIn.Service.Services
             }
         }
 
-        //public async Task<Milestone> MoveMilestone(string milestoneId, string phaseId, int position, bool needsReposition)
-        //{
-        //    var chosenMilestone = await _milestoneRepository.GetOneAsync(milestoneId);
-        //    if (chosenMilestone == null)
-        //    {
-        //        throw new NotFoundException("Không có cột mốc được tìm thấy");
-        //    }
+        private string GetPhaseName(PhaseEnum phaseEnum)
+        {
+            return phaseEnum switch
+            {
+                PhaseEnum.Initializing => "Giai đoạn khởi động",
+                PhaseEnum.Planning => "Giai đoạn lập kế hoạch",
+                PhaseEnum.Executing => "Giai đoạn triển khai",
+                PhaseEnum.Closing => "Giai đoạn kết thúc",
+                _ => throw new ArgumentOutOfRangeException(nameof(phaseEnum), $"Giai đoạn không hợp lệ: {phaseEnum}")
+            };
+        }
 
-        //    var chosenPhase = await _phaseRepository.QueryHelper()
-        //        .Filter(p => p.Id.Equals(phaseId))
-        //        .Include(p => p.Milestones)
-        //        .GetOneAsync();
-        //    if (chosenPhase == null)
-        //    {
-        //        throw new NotFoundException("Không có giai đoạn được tìm thấy");
-        //    }
-
-        //    var oldPhase = await _phaseRepository.GetOneAsync(chosenMilestone.PhaseId);
-        //    if (oldPhase == null)
-        //    {
-        //        throw new NotFoundException("Không có giai đoạn cũ được tìm thấy");
-        //    }
-        //    if (oldPhase.ProjectId != chosenPhase.ProjectId)
-        //    {
-        //        throw new Exception("Giai đoạn cũ và giai đoạn mới không khớp");
-        //    }
-
-        //    try
-        //    {
-
-        //        // Update the chosen milestone's new phase information
-        //        chosenMilestone.Position = position;
-        //        chosenMilestone.PhaseId = phaseId;
-        //        _milestoneRepository.Update(chosenMilestone);
-
-        //        // Add the milestone to the new phase's task list
-        //        chosenPhase.Milestones.Add(chosenMilestone);
-        //        _phaseRepository.Update(chosenPhase);
-
-        //        await _unitOfWork.SaveChangesAsync();
-
-        //        if (needsReposition)
-        //        {
-        //            _unitOfWork.BeginTransaction();
-
-        //            // Reposition tasks in the new phase
-        //            var newPhaseMilestones = await _milestoneRepository.QueryHelper()
-        //                .Filter(p => p.PhaseId.Equals(chosenPhase.Id))
-        //                .OrderBy(p => p.OrderBy(p => p.Position))
-        //                .GetAllAsync();
-
-        //            int newPhaseIncrement = (int)Math.Pow(2, 16);
-        //            int newPhaseCurrentPosition = (int)Math.Pow(2, 16);
-
-        //            foreach (var milestone in newPhaseMilestones)
-        //            {
-        //                milestone.Position = newPhaseCurrentPosition;
-        //                _milestoneRepository.Update(milestone);
-        //                newPhaseCurrentPosition += newPhaseIncrement;
-        //            }
-
-        //            await _unitOfWork.SaveChangesAsync();
-        //            await _unitOfWork.CommitAsync();
-        //        }
-
-        //        return chosenMilestone;
-        //    }
-        //    catch (Exception ex)
-        //    {
-        //        _logger.LogError(ex, "Error while moving major task");
-        //        await _unitOfWork.RollbackAsync();
-        //        throw;
-        //    }
-        //}
         public async Task<Milestone> GetMilestoneById(string id)
         {
             var milestone = await _milestoneRepository.GetMilestoneDetailById(id);
