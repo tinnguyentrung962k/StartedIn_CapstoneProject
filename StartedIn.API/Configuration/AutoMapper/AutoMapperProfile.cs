@@ -13,41 +13,22 @@ namespace StartedIn.API.Configuration.AutoMapper
         {
             UserMappingProfile();
             ProjectMappingProfile();
-            PhaseMappingProfile();
             MilestoneMappingProfile();
-            TaskboardMappingProfile();
             TaskMappingProfile();
         }
 
-        private void TaskboardMappingProfile()
-        {
-            CreateMap<Taskboard, TaskboardResponseDTO>()
-                .ForMember(dest => dest.TasksList,
-                    opt => opt.MapFrom(src => src.TasksList))
-                .ReverseMap();
-        }
 
         private void TaskMappingProfile()
         {
-            CreateMap<TaskEntity, TaskInTaskboardResponseDTO>().ReverseMap();
             CreateMap<TaskEntity, TaskResponseDTO>().ReverseMap();
         }
 
         private void MilestoneMappingProfile()
         {
             CreateMap<Milestone, MilestoneResponseDTO>().ReverseMap();
-            CreateMap<Milestone, MilestoneAndTaskboardResponseDTO>()
+            CreateMap<Milestone, MilestoneAndTaskResponseDTO>()
                 .ForMember(rms => rms.Milestone, opt => opt.MapFrom(ms => ms))
-                .ForMember(rms => rms.Taskboards, opt => opt.MapFrom(ms => ms.Taskboards));
-        }
-
-        private void PhaseMappingProfile()
-        {
-            //CreateMap<Phase, PhaseResponseDTO>();
-            CreateMap<Phase, PhaseDetailResponseDTO>()
-                .ForMember(dest => dest.Milestones,
-                    opt => opt.MapFrom(src => src.Milestones))
-                .ReverseMap();
+                .ForMember(rms => rms.Tasks, opt => opt.MapFrom(ms => ms.Tasks));
         }
 
         private void UserMappingProfile()

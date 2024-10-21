@@ -34,6 +34,7 @@ public class ProjectService : IProjectService
             _unitOfWork.BeginTransaction();
             var user = await _userManager.FindByIdAsync(userId);
             project.ProjectStatus = ProjectStatus.DangHoatDong;
+            project.LogoUrl = "default";
             project.CreatedBy = user.FullName;
             var projectEntity = _projectRepository.Add(project);
             await _userRepository.AddUserToProject(userId, project.Id, RoleInTeam.Leader);

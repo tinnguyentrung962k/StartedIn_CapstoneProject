@@ -28,12 +28,10 @@ namespace StartedIn.Domain.Context
         }
         
         public DbSet<Project> Projects { get; set; }
-        public DbSet<Phase> Phases { get; set; }
         public DbSet<Milestone> Milestones { get; set; }
         public DbSet<MilestoneHistory> MilestoneHistories { get; set; }
         public DbSet<TaskEntity> TaskEntities { get; set; }
         public DbSet<TaskAttachment> TaskAttachments { get; set; }
-        public DbSet<Taskboard> Taskboards { get; set; }
         public DbSet<TaskComment> TaskComments { get; set; }
         public DbSet<TaskHistory> TaskHistories { get; set; }
         public DbSet<User> Users { get; set; }
@@ -92,16 +90,12 @@ namespace StartedIn.Domain.Context
                 .ToTable("Milestone");
             modelBuilder.Entity<MilestoneHistory>()
                 .ToTable("MilestoneHistory");
-            modelBuilder.Entity<Phase>()
-                .ToTable("Phase");
             modelBuilder.Entity<Project>()
                 .ToTable("Project");
             modelBuilder.Entity<TaskAttachment>()
                 .ToTable("TaskAttachment");
             modelBuilder.Entity<TaskHistory>()
                 .ToTable("TaskHistory");
-            modelBuilder.Entity<Taskboard>()
-                .ToTable("Taskboard");
             modelBuilder.Entity<TaskEntity>()
                 .ToTable("Task");
             modelBuilder.Entity<TaskEntity>()

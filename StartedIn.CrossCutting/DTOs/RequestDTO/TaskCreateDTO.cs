@@ -10,8 +10,7 @@ namespace StartedIn.CrossCutting.DTOs.RequestDTO
     {
         public string TaskTitle { get; set; }
         public string Description { get; set; }
-        public string TaskboardId { get; set; }
-        public int Position { get; set; }
+        public string MilestoneId { get; set; }
         public DateTimeOffset? Deadline { get; set; }
     }
 }

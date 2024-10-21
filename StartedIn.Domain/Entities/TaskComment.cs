@@ -3,7 +3,7 @@ using StartedIn.Domain.Entities.BaseEntities;
 
 namespace StartedIn.Domain.Entities;
 
-public class TaskComment : BaseAuditEntity<String>
+public class TaskComment : BaseAuditEntity<string>
 {
     [ForeignKey(nameof(TaskEntity))]
     public string TaskId { get; set; }

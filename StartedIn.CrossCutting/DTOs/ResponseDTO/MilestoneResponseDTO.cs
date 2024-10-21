@@ -13,5 +13,6 @@ namespace StartedIn.CrossCutting.DTOs.ResponseDTO
         public DateOnly MilestoneDate { get; set; }
         public DateOnly? ExtendedDate { get; set; }
         public int? ExtendedCount { get; set; }
+        public string PhaseName { get; set; }
     }
 }

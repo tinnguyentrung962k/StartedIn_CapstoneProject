@@ -7,7 +7,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace StartedIn.Domain.Migrations
 {
     /// <inheritdoc />
-    public partial class _171020241508 : Migration
+    public partial class _2110202417231 : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -19,7 +19,11 @@ namespace StartedIn.Domain.Migrations
                     Id = table.Column<string>(type: "text", nullable: false),
                     ProjectName = table.Column<string>(type: "text", nullable: false),
                     Description = table.Column<string>(type: "text", nullable: false),
+                    LogoUrl = table.Column<string>(type: "text", nullable: false),
                     ProjectStatus = table.Column<string>(type: "text", nullable: false),
+                    TotalShares = table.Column<int>(type: "integer", nullable: false),
+                    RemainingPercentOfShares = table.Column<decimal>(type: "numeric", nullable: false),
+                    RemainingShares = table.Column<int>(type: "integer", nullable: false),
                     CreatedTime = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: false),
                     LastUpdatedTime = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: false),
                     DeletedTime = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: true),
@@ -80,15 +84,18 @@ namespace StartedIn.Domain.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "Phase",
+                name: "ProjectCharter",
                 columns: table => new
                 {
                     Id = table.Column<string>(type: "text", nullable: false),
                     ProjectId = table.Column<string>(type: "text", nullable: false),
-                    PhaseName = table.Column<string>(type: "text", nullable: false),
-                    StartTime = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: false),
-                    EndTime = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: false),
-                    Duration = table.Column<int>(type: "integer", nullable: false),
+                    BusinessCase = table.Column<string>(type: "character varying(255)", maxLength: 255, nullable: true),
+                    Goal = table.Column<string>(type: "character varying(255)", maxLength: 255, nullable: true),
+                    Objective = table.Column<string>(type: "character varying(255)", maxLength: 255, nullable: true),
+                    Scope = table.Column<string>(type: "character varying(255)", maxLength: 255, nullable: true),
+                    Constraints = table.Column<string>(type: "character varying(255)", maxLength: 255, nullable: true),
+                    Assumptions = table.Column<string>(type: "character varying(255)", maxLength: 255, nullable: true),
+                    Deliverables = table.Column<string>(type: "character varying(255)", maxLength: 255, nullable: true),
                     CreatedTime = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: false),
                     LastUpdatedTime = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: false),
                     DeletedTime = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: true),
@@ -97,9 +104,9 @@ namespace StartedIn.Domain.Migrations
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_Phase", x => x.Id);
+                    table.PrimaryKey("PK_ProjectCharter", x => x.Id);
                     table.ForeignKey(
-                        name: "FK_Phase_Project_ProjectId",
+                        name: "FK_ProjectCharter_Project_ProjectId",
                         column: x => x.ProjectId,
                         principalTable: "Project",
                         principalColumn: "Id",
@@ -242,11 +249,15 @@ namespace StartedIn.Domain.Migrations
                 columns: table => new
                 {
                     Id = table.Column<string>(type: "text", nullable: false),
-                    PhaseId = table.Column<string>(type: "text", nullable: false),
-                    Title = table.Column<string>(type: "text", nullable: false),
-                    Description = table.Column<string>(type: "text", nullable: false),
+                    ProjectId = table.Column<string>(type: "text", nullable: false),
+                    CharterId = table.Column<string>(type: "text", nullable: true),
+                    PhaseName = table.Column<string>(type: "character varying(50)", maxLength: 50, nullable: false),
+                    Title = table.Column<string>(type: "character varying(50)", maxLength: 50, nullable: false),
+                    Description = table.Column<string>(type: "character varying(255)", maxLength: 255, nullable: false),
                     MilestoneDate = table.Column<DateOnly>(type: "date", nullable: false),
-                    Position = table.Column<int>(type: "integer", nullable: false),
+                    ExtendedDate = table.Column<DateOnly>(type: "date", nullable: true),
+                    ExtendedCount = table.Column<int>(type: "integer", nullable: true),
+                    Percentage = table.Column<decimal>(type: "numeric", nullable: true),
                     CreatedTime = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: false),
                     LastUpdatedTime = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: false),
                     DeletedTime = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: true),
@@ -257,9 +268,14 @@ namespace StartedIn.Domain.Migrations
                 {
                     table.PrimaryKey("PK_Milestone", x => x.Id);
                     table.ForeignKey(
-                        name: "FK_Milestone_Phase_PhaseId",
-                        column: x => x.PhaseId,
-                        principalTable: "Phase",
+                        name: "FK_Milestone_ProjectCharter_CharterId",
+                        column: x => x.CharterId,
+                        principalTable: "ProjectCharter",
+                        principalColumn: "Id");
+                    table.ForeignKey(
+                        name: "FK_Milestone_Project_ProjectId",
+                        column: x => x.ProjectId,
+                        principalTable: "Project",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                 });
@@ -289,40 +305,14 @@ namespace StartedIn.Domain.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "Taskboard",
-                columns: table => new
-                {
-                    Id = table.Column<string>(type: "text", nullable: false),
-                    MilestoneId = table.Column<string>(type: "text", nullable: false),
-                    Title = table.Column<string>(type: "text", nullable: false),
-                    Position = table.Column<int>(type: "integer", nullable: false),
-                    CreatedTime = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: false),
-                    LastUpdatedTime = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: false),
-                    DeletedTime = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: true),
-                    CreatedBy = table.Column<string>(type: "text", nullable: true),
-                    LastUpdatedBy = table.Column<string>(type: "text", nullable: true)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_Taskboard", x => x.Id);
-                    table.ForeignKey(
-                        name: "FK_Taskboard_Milestone_MilestoneId",
-                        column: x => x.MilestoneId,
-                        principalTable: "Milestone",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
-                });
-
-            migrationBuilder.CreateTable(
                 name: "Task",
                 columns: table => new
                 {
                     Id = table.Column<string>(type: "text", nullable: false),
-                    TaskboardId = table.Column<string>(type: "text", nullable: false),
-                    Title = table.Column<string>(type: "text", nullable: false),
-                    Description = table.Column<string>(type: "text", nullable: false),
-                    Status = table.Column<string>(type: "text", nullable: false),
-                    Position = table.Column<int>(type: "integer", nullable: false),
+                    MilestoneId = table.Column<string>(type: "text", nullable: false),
+                    Title = table.Column<string>(type: "character varying(50)", maxLength: 50, nullable: false),
+                    Description = table.Column<string>(type: "character varying(255)", maxLength: 255, nullable: false),
+                    Status = table.Column<string>(type: "character varying(10)", maxLength: 10, nullable: false),
                     Deadline = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: true),
                     CreatedTime = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: false),
                     LastUpdatedTime = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: false),
@@ -334,9 +324,9 @@ namespace StartedIn.Domain.Migrations
                 {
                     table.PrimaryKey("PK_Task", x => x.Id);
                     table.ForeignKey(
-                        name: "FK_Task_Taskboard_TaskboardId",
-                        column: x => x.TaskboardId,
-                        principalTable: "Taskboard",
+                        name: "FK_Task_Milestone_MilestoneId",
+                        column: x => x.MilestoneId,
+                        principalTable: "Milestone",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                 });
@@ -346,7 +336,8 @@ namespace StartedIn.Domain.Migrations
                 columns: table => new
                 {
                     Id = table.Column<string>(type: "text", nullable: false),
-                    TaskId = table.Column<string>(type: "text", nullable: false)
+                    TaskId = table.Column<string>(type: "text", nullable: false),
+                    AttachmentUrl = table.Column<string>(type: "text", nullable: true)
                 },
                 constraints: table =>
                 {
@@ -390,7 +381,11 @@ namespace StartedIn.Domain.Migrations
                     Id = table.Column<string>(type: "text", nullable: false),
                     TaskId = table.Column<string>(type: "text", nullable: false),
                     Content = table.Column<string>(type: "text", nullable: false),
-                    CreatedTime = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: false)
+                    CreatedTime = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: false),
+                    LastUpdatedTime = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: false),
+                    DeletedTime = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: true),
+                    CreatedBy = table.Column<string>(type: "text", nullable: true),
+                    LastUpdatedBy = table.Column<string>(type: "text", nullable: true)
                 },
                 constraints: table =>
                 {
@@ -404,9 +399,14 @@ namespace StartedIn.Domain.Migrations
                 });
 
             migrationBuilder.CreateIndex(
-                name: "IX_Milestone_PhaseId",
+                name: "IX_Milestone_CharterId",
                 table: "Milestone",
-                column: "PhaseId");
+                column: "CharterId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Milestone_ProjectId",
+                table: "Milestone",
+                column: "ProjectId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_MilestoneHistory_MilestoneId",
@@ -414,8 +414,8 @@ namespace StartedIn.Domain.Migrations
                 column: "MilestoneId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_Phase_ProjectId",
-                table: "Phase",
+                name: "IX_ProjectCharter_ProjectId",
+                table: "ProjectCharter",
                 column: "ProjectId");
 
             migrationBuilder.CreateIndex(
@@ -430,19 +430,14 @@ namespace StartedIn.Domain.Migrations
                 column: "RoleId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_Task_TaskboardId",
+                name: "IX_Task_MilestoneId",
                 table: "Task",
-                column: "TaskboardId");
+                column: "MilestoneId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_TaskAttachment_TaskId",
                 table: "TaskAttachment",
                 column: "TaskId");
-
-            migrationBuilder.CreateIndex(
-                name: "IX_Taskboard_MilestoneId",
-                table: "Taskboard",
-                column: "MilestoneId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_TaskComment_TaskId",
@@ -529,13 +524,10 @@ namespace StartedIn.Domain.Migrations
                 name: "User");
 
             migrationBuilder.DropTable(
-                name: "Taskboard");
-
-            migrationBuilder.DropTable(
                 name: "Milestone");
 
             migrationBuilder.DropTable(
-                name: "Phase");
+                name: "ProjectCharter");
 
             migrationBuilder.DropTable(
                 name: "Project");

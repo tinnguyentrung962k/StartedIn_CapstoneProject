@@ -10,10 +10,8 @@ namespace StartedIn.API.Configuration
             services.AddScoped<IUnitOfWork, UnitOfWork>();
             services.AddScoped<IProjectRepository, ProjectRepository>();
             services.AddScoped<IUserRepository, UserRepository>();
-            services.AddScoped<IPhaseRepository, PhaseRepository>();
             services.AddScoped<IMilestoneRepository, MilestoneRepository>();
             services.AddScoped<ITaskRepository, TaskRepository>();
-            services.AddScoped<ITaskboardRepository, TaskboardRepository>();
             services.AddScoped<IMilestoneHistoryRepository, MilestoneHistoryRepository>();
             services.AddScoped<ITaskHistoryRepository, TaskHistoryRepository>();
             return services;

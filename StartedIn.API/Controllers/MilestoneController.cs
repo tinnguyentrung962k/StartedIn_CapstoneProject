@@ -44,31 +44,13 @@ namespace StartedIn.API.Controllers
             }
         }
 
-        //[HttpPut("milestone/move")]
-        //public async Task<ActionResult<MilestoneResponseDTO>> MoveMilestone(UpdateMilestonePositionDTO updateMilestonePositionDTO)
-        //{
-        //    try
-        //    {
-        //        var responseMilestone = _mapper.Map<MilestoneResponseDTO>(await _milestoneService.MoveMilestone(updateMilestonePositionDTO.Id, updateMilestonePositionDTO.PhaseId, updateMilestonePositionDTO.Position, updateMilestonePositionDTO.NeedsReposition));
-        //        return Ok(responseMilestone);
-        //    }
-        //    catch (NotFoundException ex)
-        //    {
-        //        return NotFound(ex.Message);
-        //    }
-        //    catch (Exception ex)
-        //    {
-        //        return BadRequest("Di chuyển cột mốc thất bại");
-        //    }
-        //}
-
         [HttpGet("milestones/{milestoneId}")]
         [Authorize]
-        public async Task<ActionResult<MilestoneAndTaskboardResponseDTO>> GetMilestoneById([FromRoute] string milestoneId)
+        public async Task<ActionResult<MilestoneAndTaskResponseDTO>> GetMilestoneById([FromRoute] string milestoneId)
         {
             try
             {
-                var responseMilestone = _mapper.Map<MilestoneAndTaskboardResponseDTO>(await _milestoneService.GetMilestoneById(milestoneId));
+                var responseMilestone = _mapper.Map<MilestoneAndTaskResponseDTO>(await _milestoneService.GetMilestoneById(milestoneId));
                 return Ok(responseMilestone);
             }
             catch (NotFoundException ex)
