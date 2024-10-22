@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Logging;
 using StartedIn.CrossCutting.DTOs.RequestDTO;
@@ -17,9 +18,10 @@ public class ProjectService : IProjectService
     private readonly ILogger<ProjectService> _logger;
     private readonly IEmailService _emailService;
     private readonly IUserRepository _userRepository;
+    private readonly IAzureBlobService _azureBlobService;
 
     public ProjectService(IProjectRepository projectRepository, IUnitOfWork unitOfWork, 
-        UserManager<User> userManager, ILogger<ProjectService> logger, IEmailService emailService, IUserRepository userRepository)
+        UserManager<User> userManager, ILogger<ProjectService> logger, IEmailService emailService, IUserRepository userRepository, IAzureBlobService azureBlobService)
     {
         _projectRepository = projectRepository;
         _unitOfWork = unitOfWork;
@@ -27,14 +29,16 @@ public class ProjectService : IProjectService
         _logger = logger;
         _emailService = emailService;
         _userRepository = userRepository;
+        _azureBlobService = azureBlobService;
     }
-    public async Task CreateNewProject(string userId, Project project)
+    public async Task CreateNewProject(string userId, Project project, IFormFile avatar)
     {
         try {
             _unitOfWork.BeginTransaction();
             var user = await _userManager.FindByIdAsync(userId);
             project.ProjectStatus = ProjectStatus.DangHoatDong;
-            project.LogoUrl = "default";
+            var imgUrl = await _azureBlobService.UploadAvatarOrCover(avatar);
+            project.LogoUrl = imgUrl;
             project.CreatedBy = user.FullName;
             var projectEntity = _projectRepository.Add(project);
             await _userRepository.AddUserToProject(userId, project.Id, RoleInTeam.Leader);
