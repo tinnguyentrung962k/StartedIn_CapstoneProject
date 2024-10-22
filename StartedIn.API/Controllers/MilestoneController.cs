@@ -7,6 +7,7 @@ using StartedIn.CrossCutting.Exceptions;
 using StartedIn.Service.Services.Interface;
 using System.Security.Claims;
 using Microsoft.AspNetCore.Authorization;
+using StartedIn.CrossCutting.Constants;
 
 namespace StartedIn.API.Controllers
 {
@@ -26,16 +27,21 @@ namespace StartedIn.API.Controllers
         }
 
         [HttpPost("milestones")]
-        [Authorize]
+        [Authorize(Roles = RoleConstants.USER)]
         public async Task<ActionResult<MilestoneResponseDTO>> CreateNewMileStone(MilestoneCreateDTO milestoneCreateDto)
         {
             try
             {
                 var userId = User.FindFirst(ClaimTypes.NameIdentifier).Value;
-                var milestone = await _milestoneService.CreateNewMilestone(userId,milestoneCreateDto);
+                var milestone = await _milestoneService.CreateNewMilestone(userId, milestoneCreateDto);
                 var responseMilestone = _mapper.Map<MilestoneResponseDTO>(milestone);
                 return CreatedAtAction(nameof(GetMilestoneById), new { milestoneId = responseMilestone.Id }, responseMilestone);
-                
+
+            }
+            catch (UnauthorizedProjectRoleException ex)
+            {
+                _logger.LogError(ex, "Unauthorized Role");
+                return StatusCode(403, ex.Message);
             }
             catch (Exception ex)
             {

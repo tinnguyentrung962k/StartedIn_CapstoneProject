@@ -19,13 +19,15 @@ public class Milestone : BaseAuditEntity<string>
     public string Title { get; set; }
 
     [MaxLength(255)]
-    public string Description { get; set; }
-    public DateOnly MilestoneDate { get; set; }
+    public string? Description { get; set; }
+    public DateOnly DueDate { get; set; }
     public DateOnly? ExtendedDate { get; set; }
     public int? ExtendedCount { get; set; }
+
+    [Column(TypeName = "decimal(5,2)")]
     public decimal? Percentage { get; set; }
     public Project Project { get; set; }
-    public ICollection<TaskEntity> Tasks { get; set; }
+    public ICollection<TaskEntity>? Tasks { get; set; }
     public ProjectCharter ProjectCharter { get; set; }
-    public ICollection<MilestoneHistory> MilestoneHistories { get; set; }
+    public ICollection<MilestoneHistory>? MilestoneHistories { get; set; }
 }

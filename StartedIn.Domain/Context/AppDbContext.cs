@@ -112,6 +112,9 @@ namespace StartedIn.Domain.Context
             modelBuilder.Entity<Project>()
             .Property(p => p.RemainingPercentOfShares)
             .HasColumnType("decimal(5,2)");
+            modelBuilder.Entity<Milestone>()
+            .Property(p => p.Percentage)
+            .HasColumnType("decimal(5,2)");
 
             foreach (var entityType in modelBuilder.Model.GetEntityTypes())
             {

@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Http;
 using StartedIn.CrossCutting.DTOs.RequestDTO;
+using StartedIn.CrossCutting.Enum;
 using StartedIn.Domain.Entities;
 
 namespace StartedIn.Service.Services.Interface;
