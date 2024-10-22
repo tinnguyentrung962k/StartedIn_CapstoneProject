@@ -102,7 +102,6 @@ namespace StartedIn.Domain.Context
                 .Property(u => u.Status)
                 .HasConversion(v => v.ToString(),
                v => (TaskEntityStatus)Enum.Parse(typeof(TaskEntityStatus), v));
-
             modelBuilder.Entity<TaskComment>()
                 .ToTable("TaskComment");
             modelBuilder.Entity<Project>()
@@ -110,7 +109,10 @@ namespace StartedIn.Domain.Context
                 .HasConversion(
                     p => p.ToString(),
                     p => (ProjectStatus)Enum.Parse(typeof(ProjectStatus), p));
-            
+            modelBuilder.Entity<Project>()
+            .Property(p => p.RemainingPercentOfShares)
+            .HasColumnType("decimal(5,2)");
+
             foreach (var entityType in modelBuilder.Model.GetEntityTypes())
             {
                 var tableName = entityType.GetTableName();

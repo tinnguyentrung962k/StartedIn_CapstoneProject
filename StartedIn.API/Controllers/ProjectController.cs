@@ -29,13 +29,13 @@ public class ProjectController : ControllerBase
 
     [HttpPost("projects")]
     [Authorize]
-    public async Task<ActionResult<ProjectResponseDTO>> CreateANewProject(ProjectCreateDTO projectCreatedto) 
+    public async Task<ActionResult<ProjectResponseDTO>> CreateANewProject([FromForm]ProjectCreateDTO projectCreatedto) 
     {
         try
         {
             var userId = User.FindFirst(ClaimTypes.NameIdentifier).Value;
             var newProject = _mapper.Map<Project>(projectCreatedto);
-            await _projectService.CreateNewProject(userId, newProject);
+            await _projectService.CreateNewProject(userId, newProject, projectCreatedto.LogoFile);
             var responseNewProject = _mapper.Map<ProjectResponseDTO>(newProject);
             return CreatedAtAction(nameof(GetProjectById), new { projectId = responseNewProject.Id }, responseNewProject);
         }

@@ -13,6 +13,7 @@ namespace StartedIn.API.Configuration
             services.AddScoped<IMilestoneService, MilestoneService>();
             services.AddScoped<ITaskService, TaskService>();
             services.AddScoped<IProjectService, ProjectService>();
+            services.AddScoped<IAzureBlobService, AzureBlobService>();
             return services;
         }
     }

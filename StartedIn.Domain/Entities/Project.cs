@@ -8,11 +8,16 @@ public class Project : BaseAuditEntity<string>
 {
     public string ProjectName { get; set; }
     public string Description { get; set; }
-    public string LogoUrl { get; set; }
+    public string? LogoUrl { get; set; }
     public ProjectStatus ProjectStatus { get; set; }
-    public int TotalShares { get; set; }
-    public decimal RemainingPercentOfShares { get; set; }
-    public int RemainingShares { get; set; }
-    public IEnumerable<UserProject> UserProjects { get; set; }
-    public IEnumerable<Milestone> Milestones { get; set; }
+    public int? TotalShares { get; set; }
+
+    [Column(TypeName = "decimal(5,2)")]
+    public decimal RemainingPercentOfShares { get; set; } = 100;
+    public int? RemainingShares { get; set; }
+    public DateOnly StartDate { get; set; }
+    public DateOnly? EndDate { get; set; }
+
+    public IEnumerable<UserProject>? UserProjects { get; set; }
+    public IEnumerable<Milestone>? Milestones { get; set; }
 }
