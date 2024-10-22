@@ -70,7 +70,7 @@ namespace StartedIn.Service.Services
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error while creating Minor Task");
+                _logger.LogError(ex, "Lỗi khi tạo công việc");
                 await _unitOfWork.RollbackAsync();
                 throw;
             }
