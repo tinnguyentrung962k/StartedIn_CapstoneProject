@@ -9,7 +9,7 @@ namespace StartedIn.CrossCutting.DTOs.ResponseDTO
     public class ProjectWithMembersResponseDTO
     {
         public ProjectResponseDTO Project { get; set; }
-        public List<MemberWithRoleInProjectResponseDTO> MemberWithRoleInProject { get; set; }
+        public List<MemberWithRoleInProjectResponseDTO>? MemberWithRoleInProject { get; set; }
 
     }
 }

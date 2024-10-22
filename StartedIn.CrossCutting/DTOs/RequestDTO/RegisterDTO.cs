@@ -14,7 +14,7 @@ namespace StartedIn.CrossCutting.DTOs.RequestDTO
         public string? Email { get; set; }
 
         [Required(ErrorMessage = "Vui lòng nhập mật khẩu")]
-        [StringLength(40, MinimumLength = 8, ErrorMessage = "Password must be at least 8 characters and less than 40 characters long.")]
+        [StringLength(40, MinimumLength = 8, ErrorMessage = "Mật khẩu phải lớn hơn 8 và nhỏ hơn 40 kí tự")]
         [DataType(DataType.Password)]
         public string? Password { get; set; }
 

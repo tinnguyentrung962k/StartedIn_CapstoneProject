@@ -1,4 +1,5 @@
 using Microsoft.EntityFrameworkCore;
+using StartedIn.CrossCutting.Enum;
 using StartedIn.Domain.Context;
 using StartedIn.Domain.Entities;
 using StartedIn.Repository.Repositories.Interface;
@@ -28,6 +29,12 @@ public class ProjectRepository : GenericRepository<Project, string>, IProjectRep
         var project = await _appDbContext.Projects.Where(p => p.Id.Equals(id))
                 .FirstOrDefaultAsync();
         return project;
+    }
+
+    public async Task<RoleInTeam> GetUserRoleInProject(string userId, string projectId)
+    {
+        var userProject = await _appDbContext.Set<UserProject>().Where(x => x.ProjectId.Equals(projectId) && x.UserId.Equals(userId)).FirstOrDefaultAsync();
+        return userProject.RoleInTeam;
     }
 
 }
