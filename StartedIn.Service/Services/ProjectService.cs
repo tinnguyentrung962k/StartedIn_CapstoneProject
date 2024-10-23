@@ -47,7 +47,7 @@ public class ProjectService : IProjectService
         }
         catch (Exception ex) 
         {
-            _logger.LogError(ex, "Error while creating project and team");
+            _logger.LogError(ex, "Error while creating project.");
             await _unitOfWork.RollbackAsync();
             throw;
         }
@@ -58,7 +58,7 @@ public class ProjectService : IProjectService
         var project = await _projectRepository.GetProjectById(id);
         if (project == null)
         {
-            throw new NotFoundException("No projects found");
+            throw new NotFoundException("Không có dự án được tìm thấy");
         }
 
         return project;
@@ -69,7 +69,7 @@ public class ProjectService : IProjectService
         var user = await _userManager.FindByIdAsync(userId);
         if (user == null)
         {
-            throw new NotFoundException($"User with ID: {userId} not found.");
+            throw new NotFoundException($"Người dùng ID: {userId} không tìm thấy.");
         }
         var project = await _projectRepository.GetProjectAndMemberByProjectId(projectId);
         if (project == null)

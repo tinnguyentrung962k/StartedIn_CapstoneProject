@@ -28,7 +28,9 @@ namespace StartedIn.Service.Services
             IUnitOfWork unitOfWork,
             IMilestoneRepository milestoneRepository,
             ILogger<Milestone> logger,
-            ITaskRepository taskRepository, UserManager<User> userManager, IMilestoneHistoryRepository milestoneHistoryRepository, IProjectRepository projectRepository)
+            ITaskRepository taskRepository, UserManager<User> userManager, 
+            IMilestoneHistoryRepository milestoneHistoryRepository, 
+            IProjectRepository projectRepository)
         {
             _unitOfWork = unitOfWork;
             _milestoneRepository = milestoneRepository;
