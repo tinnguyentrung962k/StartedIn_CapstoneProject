@@ -25,5 +25,6 @@ namespace StartedIn.Domain.Entities
         public string? RefreshToken { get; set; }
         [JsonIgnore] public virtual IEnumerable<UserRole> UserRoles { get; }
         public ICollection<UserProject> UserProjects { get; set; }
+        public IEnumerable<UserContract> UserContracts { get; set; }
     }
 }

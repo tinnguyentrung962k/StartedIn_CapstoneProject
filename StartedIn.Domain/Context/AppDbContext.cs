@@ -36,6 +36,8 @@ namespace StartedIn.Domain.Context
         public DbSet<TaskHistory> TaskHistories { get; set; }
         public DbSet<User> Users { get; set; }
         public DbSet<UserProject> UserProjects { get; set; }
+        public DbSet<Contract> Contracts { get; set; }
+        public DbSet<UserContract> UserContracts { get; set; }
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);
@@ -84,6 +86,19 @@ namespace StartedIn.Domain.Context
                     v => v.ToString(),
                     v => (RoleInTeam)Enum.Parse(typeof(RoleInTeam), v));
             
+            modelBuilder.Entity<UserContract>()
+               .HasKey(up => new { up.UserId, up.ContractId });
+
+            modelBuilder.Entity<UserContract>()
+                .HasOne(up => up.Contract)
+                .WithMany(p => p.UserContracts)
+                .HasForeignKey(up => up.ContractId);
+
+            modelBuilder.Entity<UserContract>()
+                .HasOne(up => up.User)
+                .WithMany(u => u.UserContracts)
+                .HasForeignKey(up => up.UserId);
+
             modelBuilder.Entity<UserProject>()
                 .ToTable("UserProject");
             modelBuilder.Entity<Milestone>()
@@ -115,6 +130,11 @@ namespace StartedIn.Domain.Context
             modelBuilder.Entity<Milestone>()
             .Property(p => p.Percentage)
             .HasColumnType("decimal(5,2)");
+            modelBuilder.Entity<Contract>()
+            .Property(p => p.ContractType)
+                .HasConversion(
+                    p => p.ToString(),
+                    p => (ContractType)Enum.Parse(typeof(ContractType), p));
 
             foreach (var entityType in modelBuilder.Model.GetEntityTypes())
             {
