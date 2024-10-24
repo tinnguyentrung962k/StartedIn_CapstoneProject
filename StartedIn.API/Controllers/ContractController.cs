@@ -7,6 +7,7 @@ using SignNow.Net.Model;
 using StartedIn.CrossCutting.Customize;
 using StartedIn.CrossCutting.DTOs.RequestDTO;
 using StartedIn.CrossCutting.DTOs.RequestDTO.Customize;
+using StartedIn.CrossCutting.DTOs.ResponseDTO;
 using StartedIn.Domain.Entities;
 using StartedIn.Service.Services.Interface;
 using System.Collections.Generic;
@@ -30,7 +31,7 @@ namespace StartedIn.API.Controllers
 
         [HttpPost("/contract")]
         [Authorize]
-        public async Task<ActionResult<Contract>> CreateAContract([FromForm] ContractCreateDTO contractCreateDTO,[FromForm] string editableFieldsJson)
+        public async Task<ActionResult<ContractResponseDTO>> CreateAContract([FromForm] ContractCreateDTO contractCreateDTO,[FromForm] string editableFieldsJson)
         {
             var userId = User.FindFirst(ClaimTypes.NameIdentifier).Value;
 
@@ -46,8 +47,9 @@ namespace StartedIn.API.Controllers
 
                 // Call the service to create the contract
                 var contract = await _contractService.CreateAContract(userId, contractCreateDTO, editableFields);
+                var responseContract = _mapper.Map<ContractResponseDTO>(contract);
 
-                return Ok(contract);
+                return Ok(responseContract);
             }
             catch (JsonSerializationException jsonEx)
             {

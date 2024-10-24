@@ -66,7 +66,7 @@ namespace StartedIn.Service.Services
                 await file.CopyToAsync(memoryStream);
                 memoryStream.Position = 0;
 
-                var uploadResponse = await _documentService.UploadDocumentAsync(memoryStream, file.FileName);
+                var uploadResponse = await _documentService.UploadDocumentWithFieldExtractAsync(memoryStream, file.FileName);
                 return uploadResponse.Id; // Return the document ID for reference
             }
         }
