@@ -6,8 +6,9 @@ using System.Threading.Tasks;
 
 namespace StartedIn.CrossCutting.DTOs.RequestDTO
 {
-    public class SignNowCredentials
+    public class SignNowSettings
     {
+        public string ApiBaseUrl { get; set; }
         public string ClientId { get; set; }
         public string ClientSecret { get; set; }
         public string Username { get; set; }

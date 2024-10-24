@@ -1,5 +1,7 @@
 ﻿using StartedIn.Repository.Repositories.Interface;
 using StartedIn.Repository.Repositories;
+using StartedIn.Service.Services.Interface;
+using StartedIn.Service.Services;
 
 namespace StartedIn.API.Configuration
 {
@@ -14,6 +16,7 @@ namespace StartedIn.API.Configuration
             services.AddScoped<ITaskRepository, TaskRepository>();
             services.AddScoped<IMilestoneHistoryRepository, MilestoneHistoryRepository>();
             services.AddScoped<ITaskHistoryRepository, TaskHistoryRepository>();
+            services.AddScoped<IContractRepository, ContractRepository>();
             return services;
         }
     }
