@@ -81,7 +81,7 @@ namespace StartedIn.Service.Services
                 }
                 foreach (var userParty in userPartys)
                 {
-                    await _emailService.SendingSigningContractRequest(user, contractLink);
+                    await _emailService.SendingSigningContractRequest(userParty, contractLink);
                 }
                 var contractEntity = _contractRepository.Add(contract);
                 await _unitOfWork.SaveChangesAsync();
