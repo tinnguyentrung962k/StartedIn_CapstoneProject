@@ -6,7 +6,6 @@ using Newtonsoft.Json;
 using SignNow.Net.Model;
 using StartedIn.CrossCutting.Customize;
 using StartedIn.CrossCutting.DTOs.RequestDTO;
-using StartedIn.CrossCutting.DTOs.RequestDTO.Customize;
 using StartedIn.CrossCutting.DTOs.ResponseDTO;
 using StartedIn.Domain.Entities;
 using StartedIn.Service.Services.Interface;

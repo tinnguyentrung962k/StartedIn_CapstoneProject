@@ -169,5 +169,31 @@ namespace StartedIn.Service.Services
                 throw; // Rethrow or handle as appropriate
             }
         }
+
+        public async Task SendFreeformInviteAsync(string documentId, List<SignInvite> signInvites)
+        {
+            try
+            {
+                foreach (var signInvite in signInvites)
+                {
+                    // Send the invite to the signer
+                    var inviteResponse = await _signInvite.CreateInviteAsync(documentId, signInvite);
+
+                    // Check response and log
+                    if (inviteResponse == null || string.IsNullOrEmpty(inviteResponse.Id))
+                    {
+                        throw new Exception($"Failed to send invite for subject '{signInvite.Subject}'.");
+                    }
+
+                    Console.WriteLine($"Freeform invite sent with Subject: {signInvite.Subject}, Invite ID: {inviteResponse.Id}");
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error while sending freeform invites: {ex.Message}");
+                throw; // Re-throw the exception to handle it further up the call stack if necessary
+            }
+        }
     }
+
 }
