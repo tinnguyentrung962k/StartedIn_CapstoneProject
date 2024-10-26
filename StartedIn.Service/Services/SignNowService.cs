@@ -169,31 +169,16 @@ namespace StartedIn.Service.Services
                 throw; // Rethrow or handle as appropriate
             }
         }
-
-        public async Task SendFreeformInviteAsync(string documentId, List<SignInvite> signInvites)
+        public async Task<InviteResponse> CreateInviteAsync(string documentId, SignInvite invite, List<string> emails)
         {
-            try
-            {
-                foreach (var signInvite in signInvites)
-                {
-                    // Send the invite to the signer
-                    var inviteResponse = await _signInvite.CreateInviteAsync(documentId, signInvite);
-
-                    // Check response and log
-                    if (inviteResponse == null || string.IsNullOrEmpty(inviteResponse.Id))
-                    {
-                        throw new Exception($"Failed to send invite for subject '{signInvite.Subject}'.");
-                    }
-
-                    Console.WriteLine($"Freeform invite sent with Subject: {signInvite.Subject}, Invite ID: {inviteResponse.Id}");
-                }
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"Error while sending freeform invites: {ex.Message}");
-                throw; // Re-throw the exception to handle it further up the call stack if necessary
-            }
+            var document = await _documentService.GetDocumentAsync(documentId);
+            invite.Subject = "Please sign this document";
+            invite.Message = "Sign it now";
+            invite.AddCcRecipients(emails);
+            var inviteResponse = await _signInvite.CreateInviteAsync(documentId, invite);
+            return inviteResponse;            
         }
+        
     }
 
 }

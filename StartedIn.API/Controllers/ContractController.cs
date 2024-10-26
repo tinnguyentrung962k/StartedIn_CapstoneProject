@@ -6,6 +6,7 @@ using Newtonsoft.Json;
 using SignNow.Net.Model;
 using StartedIn.CrossCutting.Customize;
 using StartedIn.CrossCutting.DTOs.RequestDTO;
+using StartedIn.CrossCutting.DTOs.RequestDTO.Customize;
 using StartedIn.CrossCutting.DTOs.ResponseDTO;
 using StartedIn.Domain.Entities;
 using StartedIn.Service.Services.Interface;
@@ -21,11 +22,13 @@ namespace StartedIn.API.Controllers
         private readonly IContractService _contractService;
         private readonly IMapper _mapper;
         private readonly ILogger<ContractController> _logger;
-        public ContractController(IContractService contractService, IMapper mapper, ILogger<ContractController> logger)
+        private readonly ISignNowService _signNowService;
+        public ContractController(IContractService contractService, IMapper mapper, ILogger<ContractController> logger, ISignNowService signNowService)
         {
             _contractService = contractService;
             _mapper = mapper;
             _logger = logger;
+            _signNowService = signNowService;
         }
 
         [HttpPost("/contract")]
@@ -60,6 +63,12 @@ namespace StartedIn.API.Controllers
                 _logger.LogError(ex, "Error while creating contract");
                 return StatusCode(500, "Lỗi server");
             }
+        }
+
+        [HttpPost("/signNow-contract")]
+        public async Task<ActionResult<InviteResponse>> CreateInviteAsync([FromBody]CreateInviteDTO createInviteDTO) { 
+            var response = await _signNowService.CreateInviteAsync(createInviteDTO.DocumentId,createInviteDTO.Invite,createInviteDTO.Emails);
+            return Ok(response);
         }
     }
 }
