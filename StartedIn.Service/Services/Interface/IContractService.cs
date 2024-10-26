@@ -1,5 +1,4 @@
-﻿using StartedIn.CrossCutting.Customize;
-using StartedIn.CrossCutting.DTOs.RequestDTO;
+﻿using StartedIn.CrossCutting.DTOs.RequestDTO;
 using StartedIn.Domain.Entities;
 using System;
 using System.Collections.Generic;
@@ -11,6 +10,6 @@ namespace StartedIn.Service.Services.Interface
 {
     public interface IContractService
     {
-        Task<Contract> CreateAContract(string userId, ContractCreateDTO contractCreateDTO, List<EditableField> editableFields);
+        Task<Contract> CreateAContract(string userId, ContractCreateDTO contractCreateDTO);
     }
 }

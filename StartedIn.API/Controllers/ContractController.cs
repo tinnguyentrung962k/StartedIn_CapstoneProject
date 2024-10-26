@@ -3,10 +3,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json;
-using SignNow.Net.Model;
-using StartedIn.CrossCutting.Customize;
 using StartedIn.CrossCutting.DTOs.RequestDTO;
-using StartedIn.CrossCutting.DTOs.RequestDTO.Customize;
 using StartedIn.CrossCutting.DTOs.ResponseDTO;
 using StartedIn.Domain.Entities;
 using StartedIn.Service.Services.Interface;
@@ -33,30 +30,16 @@ namespace StartedIn.API.Controllers
 
         [HttpPost("/contract")]
         [Authorize]
-        public async Task<ActionResult<ContractResponseDTO>> CreateAContract([FromForm] ContractCreateDTO contractCreateDTO,[FromForm] string editableFieldsJson)
+        public async Task<ActionResult<ContractResponseDTO>> CreateAContract([FromForm] ContractCreateDTO contractCreateDTO)
         {
             var userId = User.FindFirst(ClaimTypes.NameIdentifier).Value;
 
             try
             {
-                // Manually deserialize the JSON string to a list of EditableField objects
-                var editableFields = JsonConvert.DeserializeObject<List<EditableField>>(editableFieldsJson);
-
-                if (editableFields == null || !editableFields.Any())
-                {
-                    throw new Exception("Editable fields are required and must not be empty.");
-                }
-
-                // Call the service to create the contract
-                var contract = await _contractService.CreateAContract(userId, contractCreateDTO, editableFields);
+                var contract = await _contractService.CreateAContract(userId, contractCreateDTO);
                 var responseContract = _mapper.Map<ContractResponseDTO>(contract);
 
                 return Ok(responseContract);
-            }
-            catch (JsonSerializationException jsonEx)
-            {
-                _logger.LogError(jsonEx, "JSON serialization error while creating contract");
-                return BadRequest("Invalid JSON format for editable fields.");
             }
             catch (Exception ex)
             {
@@ -65,10 +48,5 @@ namespace StartedIn.API.Controllers
             }
         }
 
-        [HttpPost("/signNow-contract")]
-        public async Task<ActionResult<InviteResponse>> CreateInviteAsync([FromBody]CreateInviteDTO createInviteDTO) { 
-            var response = await _signNowService.CreateInviteAsync(createInviteDTO.DocumentId,createInviteDTO.Invite,createInviteDTO.Emails);
-            return Ok(response);
-        }
     }
 }

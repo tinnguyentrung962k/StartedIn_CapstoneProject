@@ -1,6 +1,5 @@
 ﻿using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Logging;
-using StartedIn.CrossCutting.Customize;
 using StartedIn.CrossCutting.DTOs.RequestDTO;
 using StartedIn.CrossCutting.Exceptions;
 using StartedIn.Domain.Entities;
@@ -37,7 +36,7 @@ namespace StartedIn.Service.Services
             _emailService = emailService;
         }
 
-        public async Task<Contract> CreateAContract(string userId, ContractCreateDTO contractCreateDTO,List<EditableField> editableFields)
+        public async Task<Contract> CreateAContract(string userId, ContractCreateDTO contractCreateDTO)
         {
             var user = await _userManager.FindByIdAsync(userId);
             if (user == null)
@@ -48,7 +47,6 @@ namespace StartedIn.Service.Services
             try
             {
                 _unitOfWork.BeginTransaction();
-
                 Contract contract = new Contract
                 {
                     ContractName = contractCreateDTO.ContractName,
@@ -69,19 +67,14 @@ namespace StartedIn.Service.Services
                     userInContract.Add(userContract);
                 }
                 contract.UserContracts = userInContract;
-
-                // Upload the document and generate a signing link
+                await _signNowService.AuthenticateAsync();
                 contract.AttachmentLink = await _signNowService.UploadDocumentAsync(contractCreateDTO.FormFile);
-                string contractLink = await _signNowService.GenerateSigningLinkAsync(contract.AttachmentLink,editableFields);
+  
                 var userPartys = new List<User>();
                 foreach (var id in contractCreateDTO.UserIds)
                 {
                     User userParty = await _userManager.FindByIdAsync(id);
                     userPartys.Add(userParty);
-                }
-                foreach (var userParty in userPartys)
-                {
-                    await _emailService.SendingSigningContractRequest(userParty, contractLink);
                 }
                 var contractEntity = _contractRepository.Add(contract);
                 await _unitOfWork.SaveChangesAsync();

@@ -1,7 +1,5 @@
 ﻿using Microsoft.AspNetCore.Http;
-using SignNow.Net.Model;
 using StartedIn.CrossCutting.Enum;
-using StartedIn.CrossCutting.Customize;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics.Contracts;

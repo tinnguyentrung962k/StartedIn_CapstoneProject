@@ -1,16 +1,17 @@
-﻿using Microsoft.AspNetCore.Http;
-using SignNow.Net.Model;
-using StartedIn.CrossCutting.Customize;
+﻿using Azure.Core;
+using Microsoft.AspNetCore.Http;
+using Newtonsoft.Json;
+using StartedIn.CrossCutting.DTOs.RequestDTO;
+using StartedIn.CrossCutting.DTOs.ResponseDTO;
+using System.Net.Http.Headers;
+using System.Text;
 
 
 namespace StartedIn.Service.Services.Interface
 {
     public interface ISignNowService
     {
+        Task AuthenticateAsync();
         Task<string> UploadDocumentAsync(IFormFile file);
-        Task AddSignatureFieldAsync(string documentId, List<EditableField> editableFields);
-        Task<string> GenerateSigningLinkAsync(string documentId, List<EditableField> editableFields);
-        Task DownloadSignedDocumentAsync(string documentId, string savePath);
-        Task<InviteResponse> CreateInviteAsync(string documentId, SignInvite invite, List<string> emails);
     }
 }
