@@ -15,6 +15,7 @@ namespace StartedIn.API.Configuration.AutoMapper
             ProjectMappingProfile();
             MilestoneMappingProfile();
             TaskMappingProfile();
+            ContractMappingProfile();
         }
 
 
@@ -63,6 +64,16 @@ namespace StartedIn.API.Configuration.AutoMapper
                         RoleInTeam = tu.RoleInTeam.ToString()
                     }).ToList()));
             
+        }
+        private void ContractMappingProfile() 
+        {
+            CreateMap<Contract, ContractResponseDTO>()
+                .ForMember(dest => dest.userInContractResponseDTOs, opt => opt.MapFrom(
+                    src => src.UserContracts.Select(tu => new UserInContractResponseDTO
+                    {
+                        Id = tu.UserId,
+                        PartyFullName = tu.User.FullName,
+                    }).ToList()));
         }
     }
 }

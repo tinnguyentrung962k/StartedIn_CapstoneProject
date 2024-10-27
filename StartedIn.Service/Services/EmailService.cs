@@ -8,6 +8,7 @@ using System.Net.Mail;
 using System.Net;
 using System.Text;
 using System.Threading.Tasks;
+using StartedIn.Domain.Entities;
 
 namespace StartedIn.Service.Services
 {
@@ -102,6 +103,13 @@ namespace StartedIn.Service.Services
             var body = $"Bạn vui lòng bấm vào đường link sau để đặt lại mật khẩu của bạn:\n{resetLink}\n\n Xin chân thành cảm ơn vì đã đồng hành cùng StartedIn!";
 
             await SendEmailAsync(receiveEmail, subject, body);
+        }
+
+        public async Task SendingSigningContractRequest(User user, string contractLink)
+        {
+            var subject = "Yêu cầu ký hợp đồng";
+            var emailContent = $"Hi {user.FullName}, \nPlease review and sign the contract using the following link:\n{contractLink} \n\n Xin chân thành cảm ơn vì đã đồng hành cùng StartedIn!";
+            await SendEmailAsync(user.Email, subject, emailContent);
         }
     }
 }

@@ -1,4 +1,5 @@
 ﻿using StartedIn.CrossCutting.DTOs.Email;
+using StartedIn.Domain.Entities;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -14,5 +15,6 @@ namespace StartedIn.Service.Services.Interface
         Task SendVerificationMailAsync(string receiveEmail, string id);
         Task SendAccountInfoMailAsync(string receiveEmail, string password);
         Task SendResetPasswordEmail(string receiveEmail, string resetLink);
+        Task SendingSigningContractRequest(User user, string contractLink);
     }
 }

@@ -1,5 +1,6 @@
 ﻿using StartedIn.Service.Services.Interface;
 using StartedIn.Service.Services;
+using StartedIn.CrossCutting.DTOs.RequestDTO;
 
 namespace StartedIn.API.Configuration
 {
@@ -14,6 +15,8 @@ namespace StartedIn.API.Configuration
             services.AddScoped<ITaskService, TaskService>();
             services.AddScoped<IProjectService, ProjectService>();
             services.AddScoped<IAzureBlobService, AzureBlobService>();
+            services.AddScoped<ISignNowService, SignNowService>();
+            services.AddScoped<IContractService, ContractService>();
             return services;
         }
     }
