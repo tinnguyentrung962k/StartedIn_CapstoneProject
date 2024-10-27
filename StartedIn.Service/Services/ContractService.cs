@@ -76,6 +76,12 @@ namespace StartedIn.Service.Services
                     User userParty = await _userManager.FindByIdAsync(id);
                     userPartys.Add(userParty);
                 }
+                var userEmails = new List<string>();
+                foreach (var userParty in userPartys)
+                {
+                    userEmails.Add(userParty.Email);
+                }
+                var inviteResposne = await _signNowService.CreateFreeFormInvite(contract.AttachmentLink, userEmails);
                 var contractEntity = _contractRepository.Add(contract);
                 await _unitOfWork.SaveChangesAsync();
                 await _unitOfWork.CommitAsync();

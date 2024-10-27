@@ -94,8 +94,41 @@ namespace StartedIn.Service.Services
                 }
             }
         }
+        public async Task<List<FreeFormInvitationResponseDTO>> CreateFreeFormInvite(string documentId, List<string> inviteEmails)
+        {
+            var inviteUrl = $"{_signNowSettings.ApiBaseUrl}/document/{documentId}/invite";
+            var invitationResponses = new List<FreeFormInvitationResponseDTO>();
 
-        
+            foreach (var inviteEmail in inviteEmails)
+            {
+                var freeformInviteCreateDTO = new SignNowFreeFormInviteCreateDTO
+                {
+                    DocumentId = documentId,
+                    From = _signNowSettings.Username,
+                    To = inviteEmail,
+                    Message = "Vui lòng xem và ký nhận tài liệu",
+                    Subject = "Tài liệu cần ký",
+                    OnComplete = "document_and_attachments"
+                };
+
+                var content = new StringContent(JsonConvert.SerializeObject(freeformInviteCreateDTO), Encoding.UTF8, "application/json");
+                var response = await _httpClient.PostAsync(inviteUrl, content);
+
+                if (response.IsSuccessStatusCode)
+                {
+                    var responseContent = await response.Content.ReadAsStringAsync();
+                    var inviteResponse = JsonConvert.DeserializeObject<FreeFormInvitationResponseDTO>(responseContent);
+                    invitationResponses.Add(inviteResponse);
+                }
+                else
+                {
+                    var errorContent = await response.Content.ReadAsStringAsync();
+                    throw new Exception($"Failed to send invite to {inviteEmail}: {errorContent}");
+                }
+            }
+
+            return invitationResponses;
+        }
     }
 }
 
