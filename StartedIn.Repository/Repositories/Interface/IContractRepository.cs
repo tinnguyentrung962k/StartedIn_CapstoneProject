@@ -9,5 +9,6 @@ namespace StartedIn.Repository.Repositories.Interface
 {
     public interface IContractRepository : IGenericRepository<Contract, string>
     {
+        Task<Contract> GetContractById(string contractId);
     }
 }

@@ -1,4 +1,5 @@
-﻿using StartedIn.CrossCutting.DTOs.RequestDTO;
+﻿using Microsoft.AspNetCore.Http;
+using StartedIn.CrossCutting.DTOs.RequestDTO;
 using StartedIn.Domain.Entities;
 using System;
 using System.Collections.Generic;
@@ -10,6 +11,7 @@ namespace StartedIn.Service.Services.Interface
 {
     public interface IContractService
     {
-        Task<Contract> CreateAContract(string userId, ContractCreateDTO contractCreateDTO);
+        Task<Contract> CreateAContract(string userId, ContractCreateThreeModelsDTO contractCreateThreeModelsDTO);
+        Task<Contract> UploadContractFile(string userId, string contractId, IFormFile file);
     }
 }

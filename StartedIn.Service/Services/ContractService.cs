@@ -1,15 +1,11 @@
-﻿using Microsoft.AspNetCore.Identity;
+﻿using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Logging;
 using StartedIn.CrossCutting.DTOs.RequestDTO;
 using StartedIn.CrossCutting.Exceptions;
 using StartedIn.Domain.Entities;
 using StartedIn.Repository.Repositories.Interface;
 using StartedIn.Service.Services.Interface;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace StartedIn.Service.Services
 {
@@ -36,7 +32,7 @@ namespace StartedIn.Service.Services
             _emailService = emailService;
         }
 
-        public async Task<Contract> CreateAContract(string userId, ContractCreateDTO contractCreateDTO)
+        public async Task<Contract> CreateAContract(string userId, ContractCreateThreeModelsDTO contractCreateThreeModelsDTO)
         {
             var user = await _userManager.FindByIdAsync(userId);
             if (user == null)
@@ -49,31 +45,29 @@ namespace StartedIn.Service.Services
                 _unitOfWork.BeginTransaction();
                 Contract contract = new Contract
                 {
-                    ContractName = contractCreateDTO.ContractName,
-                    ContractPolicy = contractCreateDTO.ContractPolicy,
-                    ContractType = contractCreateDTO.ContractType,
+                    ContractName = contractCreateThreeModelsDTO.contractCreateDTO.ContractName,
+                    ContractPolicy = contractCreateThreeModelsDTO.contractCreateDTO.ContractPolicy,
+                    ContractType = contractCreateThreeModelsDTO.contractCreateDTO.ContractType,
                     CreatedBy = user.FullName,
-                    ProjectId = contractCreateDTO.ProjectId,
+                    ProjectId = contractCreateThreeModelsDTO.contractCreateDTO.ProjectId,
                 };
 
-                List<UserContract> userInContract = new List<UserContract>();
-                foreach (var id in contractCreateDTO.UserIds)
+                List<UserContract> usersInContract = new List<UserContract>();
+                foreach (var equityShare in contractCreateThreeModelsDTO.equityShareCreateDTOs)
                 {
                     UserContract userContract = new UserContract
                     {
                         ContractId = contract.Id,
-                        UserId = id,
+                        UserId = equityShare.UserId,
                     };
-                    userInContract.Add(userContract);
+                    usersInContract.Add(userContract);
                 }
-                contract.UserContracts = userInContract;
-                await _signNowService.AuthenticateAsync();
-                contract.AttachmentLink = await _signNowService.UploadDocumentAsync(contractCreateDTO.FormFile);
+                contract.UserContracts = usersInContract;
   
                 var userPartys = new List<User>();
-                foreach (var id in contractCreateDTO.UserIds)
+                foreach (var userInContract in usersInContract)
                 {
-                    User userParty = await _userManager.FindByIdAsync(id);
+                    User userParty = await _userManager.FindByIdAsync(userInContract.UserId);
                     userPartys.Add(userParty);
                 }
                 var userEmails = new List<string>();
@@ -81,7 +75,6 @@ namespace StartedIn.Service.Services
                 {
                     userEmails.Add(userParty.Email);
                 }
-                var inviteResposne = await _signNowService.CreateFreeFormInvite(contract.AttachmentLink, userEmails);
                 var contractEntity = _contractRepository.Add(contract);
                 await _unitOfWork.SaveChangesAsync();
                 await _unitOfWork.CommitAsync();
@@ -93,6 +86,49 @@ namespace StartedIn.Service.Services
                 _unitOfWork.RollbackAsync(); 
                 throw;
             }
+        }
+
+        public async Task<Contract> UploadContractFile(string userId, string contractId, IFormFile file)
+        {
+            var user = await _userManager.FindByIdAsync(userId);
+            if (user == null)
+            {
+                throw new NotFoundException("Không tìm thấy người dùng");
+            }
+            var chosenContract = await _contractRepository.GetContractById(contractId);
+            if (chosenContract is null)
+            {
+                throw new NotFoundException("Hợp đồng không tìm thấy");
+            }
+            try
+            {
+                await _signNowService.AuthenticateAsync();
+                var signNowDocumentId = await _signNowService.UploadDocumentAsync(file);
+                var userPartys = new List<User>();
+                foreach (var userInContract in chosenContract.UserContracts)
+                {
+                    User userParty = await _userManager.FindByIdAsync(userInContract.UserId);
+                    userPartys.Add(userParty);
+                }
+                var userEmails = new List<string>();
+                foreach (var userParty in userPartys)
+                {
+                    userEmails.Add(userParty.Email);
+                }
+                chosenContract.SignNowDocumentId = signNowDocumentId;
+                chosenContract.LastUpdatedBy = user.FullName;
+                chosenContract.LastUpdatedTime = DateTimeOffset.UtcNow;
+                var inviteResposne = await _signNowService.CreateFreeFormInvite(chosenContract.SignNowDocumentId, userEmails);
+                _contractRepository.Update(chosenContract);
+                await _unitOfWork.SaveChangesAsync();
+                return chosenContract;
+            }
+
+            catch (Exception ex) {
+                _logger.LogError($"An error occurred while upload the contract file: {ex.Message}");
+                _unitOfWork.RollbackAsync();
+                throw;
+            }   
         }
     }
 }

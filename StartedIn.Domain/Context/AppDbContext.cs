@@ -38,6 +38,7 @@ namespace StartedIn.Domain.Context
         public DbSet<UserProject> UserProjects { get; set; }
         public DbSet<Contract> Contracts { get; set; }
         public DbSet<UserContract> UserContracts { get; set; }
+        public DbSet<ShareEquity> ShareEquities { get; set; }
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);
@@ -98,7 +99,11 @@ namespace StartedIn.Domain.Context
                 .HasOne(up => up.User)
                 .WithMany(u => u.UserContracts)
                 .HasForeignKey(up => up.UserId);
-
+            modelBuilder.Entity<ShareEquity>()
+                .ToTable("ShareEquity");
+            modelBuilder.Entity<ShareEquity>()
+                .Property(u => u.Percentage)
+                .HasColumnType("decimal(5,2)");
             modelBuilder.Entity<UserProject>()
                 .ToTable("UserProject");
             modelBuilder.Entity<Milestone>()
