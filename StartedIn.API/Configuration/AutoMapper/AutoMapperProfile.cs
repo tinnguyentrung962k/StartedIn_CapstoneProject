@@ -16,6 +16,7 @@ namespace StartedIn.API.Configuration.AutoMapper
             MilestoneMappingProfile();
             TaskMappingProfile();
             ContractMappingProfile();
+            ProjectCharterMappingProfile();
         }
 
 
@@ -74,6 +75,12 @@ namespace StartedIn.API.Configuration.AutoMapper
                         Id = tu.UserId,
                         PartyFullName = tu.User.FullName,
                     }).ToList()));
+        }
+        private void ProjectCharterMappingProfile()
+        {
+            CreateMap<ProjectCharterResponseDTO, ProjectCharter>().ReverseMap()
+                .ForMember(dto => dto.Milestones, opt
+                    => opt.MapFrom(projectCharter => projectCharter.Milestones));
         }
     }
 }

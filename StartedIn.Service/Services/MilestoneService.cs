@@ -86,7 +86,7 @@ namespace StartedIn.Service.Services
             }
         }
 
-        private string GetPhaseName(PhaseEnum phaseEnum)
+        public string GetPhaseName(PhaseEnum phaseEnum)
         {
             return phaseEnum switch
             {

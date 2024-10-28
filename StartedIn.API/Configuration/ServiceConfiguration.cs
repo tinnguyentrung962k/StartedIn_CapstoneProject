@@ -17,6 +17,7 @@ namespace StartedIn.API.Configuration
             services.AddScoped<IAzureBlobService, AzureBlobService>();
             services.AddScoped<ISignNowService, SignNowService>();
             services.AddScoped<IContractService, ContractService>();
+            services.AddScoped<IProjectCharterService, ProjectCharterService>();
             return services;
         }
     }

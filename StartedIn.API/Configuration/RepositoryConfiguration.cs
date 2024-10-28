@@ -17,6 +17,7 @@ namespace StartedIn.API.Configuration
             services.AddScoped<IMilestoneHistoryRepository, MilestoneHistoryRepository>();
             services.AddScoped<ITaskHistoryRepository, TaskHistoryRepository>();
             services.AddScoped<IContractRepository, ContractRepository>();
+            services.AddScoped<IProjectCharterRepository, ProjectCharterRepository>();
             return services;
         }
     }

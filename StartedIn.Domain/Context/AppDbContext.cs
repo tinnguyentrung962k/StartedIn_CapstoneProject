@@ -26,7 +26,7 @@ namespace StartedIn.Domain.Context
         {
 
         }
-        
+        public DbSet<ProjectCharter> ProjectCharters { get; set; }
         public DbSet<Project> Projects { get; set; }
         public DbSet<Milestone> Milestones { get; set; }
         public DbSet<MilestoneHistory> MilestoneHistories { get; set; }
@@ -101,6 +101,8 @@ namespace StartedIn.Domain.Context
                 .HasForeignKey(up => up.UserId);
             modelBuilder.Entity<ShareEquity>()
                 .ToTable("ShareEquity");
+            modelBuilder.Entity<ProjectCharter>()
+                .ToTable("ProjectCharter");
             modelBuilder.Entity<ShareEquity>()
                 .Property(u => u.Percentage)
                 .HasColumnType("decimal(5,2)");

@@ -1,5 +1,6 @@
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
+using System.Text.Json.Serialization;
 using StartedIn.Domain.Entities.BaseEntities;
 
 namespace StartedIn.Domain.Entities;
@@ -28,6 +29,6 @@ public class Milestone : BaseAuditEntity<string>
     public decimal? Percentage { get; set; }
     public Project Project { get; set; }
     public ICollection<TaskEntity>? Tasks { get; set; }
-    public ProjectCharter ProjectCharter { get; set; }
+    [JsonIgnore] public ProjectCharter ProjectCharter { get; set; }
     public ICollection<MilestoneHistory>? MilestoneHistories { get; set; }
 }
