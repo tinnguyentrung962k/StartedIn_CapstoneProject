@@ -19,7 +19,7 @@ namespace StartedIn.Domain.Entities
         public string ContractName { get; set; }
 
         public ContractType ContractType { get; set; }
-        public string AttachmentLink { get; set; }
+        public string? SignNowDocumentId { get; set; }
         
         [MaxLength(50)]
         public string ContractPolicy { get; set; }
@@ -28,6 +28,7 @@ namespace StartedIn.Domain.Entities
         public DateOnly? ExpiredDate { get; set; }
         public Project Project { get; set; }
         public IEnumerable<UserContract> UserContracts { get; set; }
+        public IEnumerable<ShareEquity>? ShareEquities { get; set; }
 
     }
 }

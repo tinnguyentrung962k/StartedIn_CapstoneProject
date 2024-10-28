@@ -30,13 +30,13 @@ namespace StartedIn.API.Controllers
 
         [HttpPost("/contract")]
         [Authorize]
-        public async Task<ActionResult<ContractResponseDTO>> CreateAContract([FromForm] ContractCreateDTO contractCreateDTO)
+        public async Task<ActionResult<ContractResponseDTO>> CreateAContract([FromBody]ContractCreateThreeModelsDTO contractCreateThreeModelsDTO)
         {
             var userId = User.FindFirst(ClaimTypes.NameIdentifier).Value;
 
             try
             {
-                var contract = await _contractService.CreateAContract(userId, contractCreateDTO);
+                var contract = await _contractService.CreateAContract(userId, contractCreateThreeModelsDTO);
                 var responseContract = _mapper.Map<ContractResponseDTO>(contract);
 
                 return Ok(responseContract);
@@ -47,6 +47,25 @@ namespace StartedIn.API.Controllers
                 return StatusCode(500, "Lỗi server");
             }
         }
+        [HttpPost("/upload-contract")]
+        [Authorize]
+        public async Task<ActionResult<ContractResponseDTO>> UploadContractFile(ContractUploadFileDTO contractUploadFileDTO)
+        {
+            var userId = User.FindFirst(ClaimTypes.NameIdentifier).Value;
+            try
+            {
+                var contract = await _contractService.UploadContractFile(userId, contractUploadFileDTO.ContractId,contractUploadFileDTO.ContractFile);
+                var responseContract = _mapper.Map<ContractResponseDTO>(contract);
+
+                return Ok(responseContract);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error while creating contract");
+                return StatusCode(500, "Lỗi server");
+            }
+        }
+
 
     }
 }
