@@ -39,6 +39,9 @@ namespace StartedIn.Domain.Context
         public DbSet<Contract> Contracts { get; set; }
         public DbSet<UserContract> UserContracts { get; set; }
         public DbSet<ShareEquity> ShareEquities { get; set; }
+        public DbSet<DealOffer> DealOffers { get; set; }
+        public DbSet<DealOfferHistory> DealOfferHistories { get; set; }
+
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);
@@ -99,6 +102,10 @@ namespace StartedIn.Domain.Context
                 .HasOne(up => up.User)
                 .WithMany(u => u.UserContracts)
                 .HasForeignKey(up => up.UserId);
+            modelBuilder.Entity<DealOffer>()
+                .ToTable("DealOffer");
+            modelBuilder.Entity<DealOfferHistory>()
+                .ToTable("DealOfferHistory");
             modelBuilder.Entity<ShareEquity>()
                 .ToTable("ShareEquity");
             modelBuilder.Entity<ProjectCharter>()
