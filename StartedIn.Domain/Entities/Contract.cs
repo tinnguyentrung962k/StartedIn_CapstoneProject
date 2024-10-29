@@ -21,7 +21,7 @@ namespace StartedIn.Domain.Entities
         public ContractType ContractType { get; set; }
         public string? SignNowDocumentId { get; set; }
         
-        [MaxLength(50)]
+        [MaxLength(4500)]
         public string ContractPolicy { get; set; }
 
         public DateOnly? ValidDate { get; set; }

@@ -47,14 +47,14 @@ namespace StartedIn.API.Controllers
                 return StatusCode(500, "Lỗi server");
             }
         }
-        [HttpPost("/upload-contract")]
+        [HttpPost("/contract/upload-contract/{contractId}")]
         [Authorize]
-        public async Task<ActionResult<ContractResponseDTO>> UploadContractFile(ContractUploadFileDTO contractUploadFileDTO)
+        public async Task<ActionResult<ContractResponseDTO>> UploadContractFile([FromRoute]string contractId,IFormFile uploadFile)
         {
             var userId = User.FindFirst(ClaimTypes.NameIdentifier).Value;
             try
             {
-                var contract = await _contractService.UploadContractFile(userId, contractUploadFileDTO.ContractId,contractUploadFileDTO.ContractFile);
+                var contract = await _contractService.UploadContractFile(userId,contractId,uploadFile);
                 var responseContract = _mapper.Map<ContractResponseDTO>(contract);
 
                 return Ok(responseContract);
