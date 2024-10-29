@@ -26,7 +26,7 @@ namespace StartedIn.API.Controllers
             _logger = logger;
         }
 
-        [HttpPost]
+        [HttpPost("deal-offer")]
         [Authorize(Roles = RoleConstants.INVESTOR)]
         public async Task<ActionResult<DealOfferResponseDTO>> SendADealOffer(DealOfferCreateDTO dealOfferCreateDTO)
         {
