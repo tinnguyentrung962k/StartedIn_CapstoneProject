@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Logging;
+using StartedIn.CrossCutting.Constants;
 using StartedIn.CrossCutting.DTOs.RequestDTO;
 using StartedIn.CrossCutting.Enum;
 using StartedIn.CrossCutting.Exceptions;
@@ -90,10 +91,10 @@ namespace StartedIn.Service.Services
         {
             return phaseEnum switch
             {
-                PhaseEnum.Initializing => "Giai đoạn khởi động",
-                PhaseEnum.Planning => "Giai đoạn lập kế hoạch",
-                PhaseEnum.Executing => "Giai đoạn triển khai",
-                PhaseEnum.Closing => "Giai đoạn kết thúc",
+                PhaseEnum.Initializing => PhaseConstant.Initialzing,
+                PhaseEnum.Planning => PhaseConstant.Planning,
+                PhaseEnum.Executing => PhaseConstant.Executing,
+                PhaseEnum.Closing => PhaseConstant.Closing,
                 _ => throw new ArgumentOutOfRangeException(nameof(phaseEnum), $"Giai đoạn không hợp lệ: {phaseEnum}")
             };
         }

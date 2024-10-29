@@ -17,6 +17,7 @@ namespace StartedIn.API.Configuration.AutoMapper
             TaskMappingProfile();
             ContractMappingProfile();
             ProjectCharterMappingProfile();
+            DealOfferMappingProfile();
         }
 
 
@@ -83,6 +84,15 @@ namespace StartedIn.API.Configuration.AutoMapper
             CreateMap<ProjectCharterResponseDTO, ProjectCharter>().ReverseMap()
                 .ForMember(dto => dto.Milestones, opt
                     => opt.MapFrom(projectCharter => projectCharter.Milestones));
+        }
+        private void DealOfferMappingProfile()
+        {
+            CreateMap<DealOffer, DealOfferResponseDTO>()
+                .ForMember(dr => dr.InvestorName, opt => opt.MapFrom(de => de.Investor.FullName))
+                .ForMember(dr => dr.ProjectName, opt => opt.MapFrom(de => de.Project.ProjectName))
+                .ForMember(dr => dr.EquityShareOffer, opt => opt.MapFrom(de => de.EquityShareOffer.ToString()))
+                .ForMember(dr => dr.Amount, opt => opt.MapFrom(de => de.Amount.ToString()))
+                .ReverseMap();
         }
     }
 }

@@ -18,6 +18,8 @@ namespace StartedIn.API.Configuration
             services.AddScoped<ITaskHistoryRepository, TaskHistoryRepository>();
             services.AddScoped<IContractRepository, ContractRepository>();
             services.AddScoped<IProjectCharterRepository, ProjectCharterRepository>();
+            services.AddScoped<IDealOfferRepository, DealOfferRepository>();
+            services.AddScoped<IDealOfferHistoryRepository, DealOfferHistoryRepository>();
             return services;
         }
     }

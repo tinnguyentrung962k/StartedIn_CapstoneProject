@@ -85,7 +85,7 @@ namespace StartedIn.Service.Services
             catch (Exception ex)
             {
                 _logger.LogError($"An error occurred while creating the contract: {ex.Message}");
-                _unitOfWork.RollbackAsync(); 
+                await _unitOfWork.RollbackAsync(); 
                 throw;
             }
         }
