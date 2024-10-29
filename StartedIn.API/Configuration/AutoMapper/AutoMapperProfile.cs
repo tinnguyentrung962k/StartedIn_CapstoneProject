@@ -70,10 +70,12 @@ namespace StartedIn.API.Configuration.AutoMapper
         {
             CreateMap<Contract, ContractResponseDTO>()
                 .ForMember(dest => dest.userInContractResponseDTOs, opt => opt.MapFrom(
-                    src => src.UserContracts.Select(tu => new UserInContractResponseDTO
+                    src => src.UserContracts.Select(uc => new UserInContractResponseDTO
                     {
-                        Id = tu.UserId,
-                        PartyFullName = tu.User.FullName,
+                        Id = uc.UserId,
+                        PartyFullName = uc.User.FullName,
+                        PartyEmail = uc.User.Email,
+                        PartyPhoneNumber = uc.User.PhoneNumber
                     }).ToList()));
         }
         private void ProjectCharterMappingProfile()

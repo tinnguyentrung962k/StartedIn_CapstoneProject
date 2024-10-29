@@ -13,5 +13,6 @@ namespace StartedIn.Service.Services.Interface
     {
         Task<Contract> CreateAContract(string userId, ContractCreateThreeModelsDTO contractCreateThreeModelsDTO);
         Task<Contract> UploadContractFile(string userId, string contractId, IFormFile file);
+        Task<IEnumerable<Contract>> GetContractsByUserIdInAProject(string userId, string projectId, int pageIndex, int pageSize);
     }
 }

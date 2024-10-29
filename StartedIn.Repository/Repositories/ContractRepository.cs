@@ -27,5 +27,17 @@ namespace StartedIn.Repository.Repositories
                 .FirstOrDefaultAsync();
             return contract;
         }
+        public async Task<IEnumerable<Contract>> GetContractsByUserIdInAProject(string userId, string projectId, int pageIndex, int pageSize)
+        {
+            pageIndex = pageIndex < 1 ? 0 : pageIndex - 1;
+            pageSize = pageSize < 1 ? 10 : pageSize;
+            var contract = await _appDbContext.Contracts.Where(x => x.ProjectId.Equals(projectId) && x.UserContracts.Any(us => us.UserId.Equals(userId)))
+                .Include(x => x.UserContracts)
+                .ThenInclude(x => x.User)
+                .Include(x => x.Project)
+                .Skip(pageIndex * pageSize).Take(pageSize)
+                .ToListAsync();
+            return contract;
+        }
     }
 }

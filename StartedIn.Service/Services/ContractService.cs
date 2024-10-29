@@ -17,12 +17,13 @@ namespace StartedIn.Service.Services
         private readonly UserManager<User> _userManager;
         private readonly ISignNowService _signNowService;
         private readonly IEmailService _emailService;
+        private readonly IProjectRepository _projectRepository;
         public ContractService(IContractRepository contractRepository, 
             IUnitOfWork unitOfWork, 
             ILogger<Contract> logger,
             UserManager<User> userManager,
             ISignNowService signNowService,
-            IEmailService emailService)
+            IEmailService emailService, IProjectRepository projectRepository)
         {
             _contractRepository = contractRepository;
             _unitOfWork = unitOfWork;
@@ -30,6 +31,7 @@ namespace StartedIn.Service.Services
             _userManager = userManager;
             _signNowService = signNowService;
             _emailService = emailService;
+            _projectRepository = projectRepository;
         }
 
         public async Task<Contract> CreateAContract(string userId, ContractCreateThreeModelsDTO contractCreateThreeModelsDTO)
@@ -86,6 +88,26 @@ namespace StartedIn.Service.Services
                 _unitOfWork.RollbackAsync(); 
                 throw;
             }
+        }
+
+        public async Task<IEnumerable<Contract>> GetContractsByUserIdInAProject(string userId, string projectId, int pageIndex, int pageSize)
+        {
+            var user = await _userManager.FindByIdAsync(userId);
+            if (user == null) 
+            {
+                throw new NotFoundException("Không tìm thấy người dùng");
+            }
+            var chosenProject = await _projectRepository.GetOneAsync(projectId);
+            if (chosenProject == null)
+            {
+                throw new NotFoundException("Không tìm thấy dự án");
+            }
+            var contracts = await _contractRepository.GetContractsByUserIdInAProject(userId,projectId,pageIndex,pageSize);
+            if (contracts is null) 
+            {
+                throw new NotFoundException("Không có hợp đồng nào trong danh sách");
+            }
+            return contracts;
         }
 
         public async Task<Contract> UploadContractFile(string userId, string contractId, IFormFile file)

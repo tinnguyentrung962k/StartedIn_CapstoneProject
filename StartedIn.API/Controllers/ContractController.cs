@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json;
 using StartedIn.CrossCutting.DTOs.RequestDTO;
 using StartedIn.CrossCutting.DTOs.ResponseDTO;
+using StartedIn.CrossCutting.Exceptions;
 using StartedIn.Domain.Entities;
 using StartedIn.Service.Services.Interface;
 using System.Collections.Generic;
@@ -38,7 +39,6 @@ namespace StartedIn.API.Controllers
             {
                 var contract = await _contractService.CreateAContract(userId, contractCreateThreeModelsDTO);
                 var responseContract = _mapper.Map<ContractResponseDTO>(contract);
-
                 return Ok(responseContract);
             }
             catch (Exception ex)
@@ -58,6 +58,27 @@ namespace StartedIn.API.Controllers
                 var responseContract = _mapper.Map<ContractResponseDTO>(contract);
 
                 return Ok(responseContract);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error while creating contract");
+                return StatusCode(500, "Lỗi server");
+            }
+        }
+        [HttpGet("/contract/user-contract/project/{projectId}")]
+        [Authorize]
+        public async Task<ActionResult<List<ContractResponseDTO>>> GetPersonalContractsInAProject([FromRoute] string projectId, [FromQuery] int pageIndex, int pageSize)
+        {
+            var userId = User.FindFirst(ClaimTypes.NameIdentifier).Value;
+            try
+            {
+                var contracts = await _contractService.GetContractsByUserIdInAProject(userId, projectId, pageIndex, pageSize);
+                var responseContract = _mapper.Map<List<ContractResponseDTO>>(contracts);
+                return Ok(responseContract);
+            }
+            catch (NotFoundException ex)
+            {
+                return NotFound(ex.Message);
             }
             catch (Exception ex)
             {

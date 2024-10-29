@@ -9,5 +9,7 @@ namespace StartedIn.CrossCutting.DTOs.ResponseDTO
     public class UserInContractResponseDTO : IdentityResponseDTO
     {
         public string PartyFullName { get; set; }
+        public string PartyEmail { get; set; }
+        public string PartyPhoneNumber { get; set; }
     }
 }
