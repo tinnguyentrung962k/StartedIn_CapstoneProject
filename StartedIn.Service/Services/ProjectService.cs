@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Logging;
 using StartedIn.CrossCutting.Constants;
 using StartedIn.CrossCutting.DTOs.RequestDTO;
+using StartedIn.CrossCutting.DTOs.ResponseDTO;
 using StartedIn.CrossCutting.Enum;
 using StartedIn.CrossCutting.Exceptions;
 using StartedIn.Domain.Entities;
@@ -116,5 +117,18 @@ public class ProjectService : IProjectService
         }
         return project;
 
+    }
+
+    public async Task<List<Project>> GetListOfProjectsWithRole(string userId, string role)
+    {
+        if (!Enum.TryParse<RoleInTeam>(role, true, out var roleEnum))
+        {
+            throw new ArgumentException($"Invalid role: {role}");
+        }
+        var projects = await _projectRepository.QueryHelper()
+            .Include(x => x.UserProjects)
+            .Filter(p => p.UserProjects.Any(up => up.UserId == userId && up.RoleInTeam == roleEnum)).GetAllAsync();
+        var listProject = projects.ToList();
+        return listProject;
     }
 }
