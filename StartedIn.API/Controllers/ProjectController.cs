@@ -136,14 +136,15 @@ public class ProjectController : ControllerBase
         }
     }
 
-    [HttpGet("projects/user-projects/{userId}")]
+    [HttpGet("projects/user-projects")]
     [Authorize]
-    public async Task<ActionResult<ProjectListDTO>> GetListOfProjectsWithRole(string userId)
+    public async Task<ActionResult<ProjectListDTO>> GetListOfProjectsWithRole()
     {
+        var userId = User.FindFirst(ClaimTypes.NameIdentifier).Value;
         try
         {
-            var ownedProjects = _mapper.Map<List<ProjectResponseDTO>>(await _projectService.GetListOfProjectsWithRole(userId, "Leader"));
-            var participatedProjects = _mapper.Map<List<ProjectResponseDTO>>(await _projectService.GetListOfProjectsWithRole(userId, "Member"));
+            var ownedProjects = _mapper.Map<List<ProjectResponseDTO>>(await _projectService.GetListOwnProjects(userId));
+            var participatedProjects = _mapper.Map<List<ProjectResponseDTO>>(await _projectService.GetListParticipatedProjects(userId));
             var response = new ProjectListDTO
             {
                 listOwnProject = ownedProjects,

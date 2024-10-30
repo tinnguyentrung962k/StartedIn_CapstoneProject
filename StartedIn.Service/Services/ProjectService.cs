@@ -119,15 +119,20 @@ public class ProjectService : IProjectService
 
     }
 
-    public async Task<List<Project>> GetListOfProjectsWithRole(string userId, string role)
+    public async Task<List<Project>> GetListOwnProjects(string userId)
     {
-        if (!Enum.TryParse<RoleInTeam>(role, true, out var roleEnum))
-        {
-            throw new ArgumentException($"Invalid role: {role}");
-        }
         var projects = await _projectRepository.QueryHelper()
             .Include(x => x.UserProjects)
-            .Filter(p => p.UserProjects.Any(up => up.UserId == userId && up.RoleInTeam == roleEnum)).GetAllAsync();
+            .Filter(p => p.UserProjects.Any(up => up.UserId == userId && up.RoleInTeam == RoleInTeam.Leader)).GetAllAsync();
+        var listProject = projects.ToList();
+        return listProject;
+    }
+
+    public async Task<List<Project>> GetListParticipatedProjects(string userId)
+    {
+        var projects = await _projectRepository.QueryHelper()
+            .Include(x => x.UserProjects)
+            .Filter(p => p.UserProjects.Any(up => up.UserId == userId && up.RoleInTeam != RoleInTeam.Leader)).GetAllAsync();
         var listProject = projects.ToList();
         return listProject;
     }
