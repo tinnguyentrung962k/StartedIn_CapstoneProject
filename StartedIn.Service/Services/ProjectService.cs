@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Logging;
 using StartedIn.CrossCutting.Constants;
 using StartedIn.CrossCutting.DTOs.RequestDTO;
+using StartedIn.CrossCutting.DTOs.ResponseDTO;
 using StartedIn.CrossCutting.Enum;
 using StartedIn.CrossCutting.Exceptions;
 using StartedIn.Domain.Entities;
@@ -116,5 +117,23 @@ public class ProjectService : IProjectService
         }
         return project;
 
+    }
+
+    public async Task<List<Project>> GetListOwnProjects(string userId)
+    {
+        var projects = await _projectRepository.QueryHelper()
+            .Include(x => x.UserProjects)
+            .Filter(p => p.UserProjects.Any(up => up.UserId == userId && up.RoleInTeam == RoleInTeam.Leader)).GetAllAsync();
+        var listProject = projects.ToList();
+        return listProject;
+    }
+
+    public async Task<List<Project>> GetListParticipatedProjects(string userId)
+    {
+        var projects = await _projectRepository.QueryHelper()
+            .Include(x => x.UserProjects)
+            .Filter(p => p.UserProjects.Any(up => up.UserId == userId && up.RoleInTeam != RoleInTeam.Leader)).GetAllAsync();
+        var listProject = projects.ToList();
+        return listProject;
     }
 }
