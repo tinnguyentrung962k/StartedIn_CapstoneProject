@@ -12,6 +12,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Identity;
+using StartedIn.CrossCutting.Constants;
 
 namespace StartedIn.Service.Services
 {
@@ -52,8 +53,7 @@ namespace StartedIn.Service.Services
                     Title = taskCreateDto.TaskTitle,
                     Description = taskCreateDto.Description,
                     Deadline = taskCreateDto.Deadline,
-                    Status = TaskEntityStatus.Pending
-
+                    Status = TaskStatusConstant.Pending
                 };
                 var taskEntity = _taskRepository.Add(task);
                 string notification = user.FullName + " đã tạo ra công việc: " + task.Title;
@@ -75,6 +75,16 @@ namespace StartedIn.Service.Services
                 throw;
             }
         }
+        public string GetTaskStatusName(TaskEntityStatus taskStatus)
+        {
+            return taskStatus switch
+            {
+                TaskEntityStatus.Pending => TaskStatusConstant.Pending,
+                TaskEntityStatus.InProgress => TaskStatusConstant.InProgress,
+                TaskEntityStatus.Done => TaskStatusConstant.Done,
+                _ => throw new ArgumentOutOfRangeException(nameof(taskStatus), $"Giai đoạn không hợp lệ: {taskStatus}")
+            };
+        }
 
         public async Task<TaskEntity> UpdateTaskInfo(string id, UpdateTaskInfoDTO updateTaskInfoDTO)
         {
@@ -85,9 +95,10 @@ namespace StartedIn.Service.Services
             }
             try
             {
+                string taskStatus = GetTaskStatusName(updateTaskInfoDTO.Status);
                 chosenTask.Title = updateTaskInfoDTO.TaskTitle;
                 chosenTask.Description = updateTaskInfoDTO.Description;
-                chosenTask.Status = updateTaskInfoDTO.Status;
+                chosenTask.Status = taskStatus;
                 chosenTask.Deadline = updateTaskInfoDTO.Deadline;
                 chosenTask.LastUpdatedTime = DateTimeOffset.UtcNow;
                 _taskRepository.Update(chosenTask);

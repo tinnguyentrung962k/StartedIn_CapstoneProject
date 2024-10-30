@@ -99,7 +99,8 @@ namespace StartedIn.Domain.Context
                 .HasOne(up => up.Contract)
                 .WithMany(p => p.UserContracts)
                 .HasForeignKey(up => up.ContractId);
-
+            modelBuilder.Entity<Contract>()
+                .ToTable("Contract");
             modelBuilder.Entity<UserContract>()
                 .HasOne(up => up.User)
                 .WithMany(u => u.UserContracts)
@@ -133,10 +134,6 @@ namespace StartedIn.Domain.Context
                 .ToTable("TaskHistory");
             modelBuilder.Entity<TaskEntity>()
                 .ToTable("Task");
-            modelBuilder.Entity<TaskEntity>()
-                .Property(u => u.Status)
-                .HasConversion(v => v.ToString(),
-               v => (TaskEntityStatus)Enum.Parse(typeof(TaskEntityStatus), v));
             modelBuilder.Entity<TaskComment>()
                 .ToTable("TaskComment");
             modelBuilder.Entity<Project>()
@@ -145,11 +142,6 @@ namespace StartedIn.Domain.Context
             modelBuilder.Entity<Milestone>()
             .Property(p => p.Percentage)
             .HasColumnType("decimal(5,2)");
-            modelBuilder.Entity<Contract>()
-            .Property(p => p.ContractType)
-                .HasConversion(
-                    p => p.ToString(),
-                    p => (ContractType)Enum.Parse(typeof(ContractType), p));
 
             foreach (var entityType in modelBuilder.Model.GetEntityTypes())
             {
