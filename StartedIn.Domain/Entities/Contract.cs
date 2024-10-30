@@ -17,8 +17,7 @@ namespace StartedIn.Domain.Entities
 
         [MaxLength(50)]
         public string ContractName { get; set; }
-
-        public ContractType ContractType { get; set; }
+        public string ContractType { get; set; }
         public string? SignNowDocumentId { get; set; }
         
         [MaxLength(4500)]

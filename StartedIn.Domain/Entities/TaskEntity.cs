@@ -15,7 +15,7 @@ public class TaskEntity : BaseAuditEntity<string>
     [MaxLength(255)]
     public string? Description { get; set; }
     [MaxLength(10)]
-    public TaskEntityStatus Status { get; set; }
+    public string Status { get; set; }
     public DateTimeOffset? Deadline { get; set; }
     public Milestone Milestone { get; set; }
     public ICollection<TaskComment> TaskComments { get; set; }

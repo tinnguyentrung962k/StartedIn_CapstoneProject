@@ -23,6 +23,7 @@ namespace StartedIn.Service.Services
         private readonly IEmailService _emailService;
         private readonly IProjectRepository _projectRepository;
         private readonly IShareEquityRepository _shareEquityRepository;
+        private readonly IDisbursementRepository _disbursementRepository;
 
         public ContractService(IContractRepository contractRepository, 
             IUnitOfWork unitOfWork, 
@@ -31,7 +32,8 @@ namespace StartedIn.Service.Services
             ISignNowService signNowService,
             IEmailService emailService, 
             IProjectRepository projectRepository,
-            IShareEquityRepository shareEquityRepository)
+            IShareEquityRepository shareEquityRepository,
+            IDisbursementRepository disbursementRepository)
         {
             _contractRepository = contractRepository;
             _unitOfWork = unitOfWork;
@@ -41,6 +43,7 @@ namespace StartedIn.Service.Services
             _emailService = emailService;
             _projectRepository = projectRepository;
             _shareEquityRepository = shareEquityRepository;
+            _disbursementRepository = disbursementRepository;
         }
 
         public async Task<Contract> CreateInvestmentContract(string userId, InvestmentContractCreateDTO investmentContractCreateDTO)
@@ -71,7 +74,7 @@ namespace StartedIn.Service.Services
                 {
                     ContractName = investmentContractCreateDTO.Contract.ContractName,
                     ContractPolicy = investmentContractCreateDTO.Contract.ContractPolicy,
-                    ContractType = CrossCutting.Enum.ContractType.Investment,
+                    ContractType = ContractTypeConstant.Investment,
                     CreatedBy = user.FullName,
                     ProjectId = investmentContractCreateDTO.Contract.ProjectId,
                 };
@@ -101,6 +104,25 @@ namespace StartedIn.Service.Services
                 };
                 var contractEntity = _contractRepository.Add(contract);
                 var shareEquityEntity = _shareEquityRepository.Add(shareEquity);
+                foreach (var disbursementTime in investmentContractCreateDTO.Disbursements)
+                {
+                    Disbursement disbursement = new Disbursement
+                    {
+                        Amount = disbursementTime.Amount,
+                        Condition = disbursementTime.Condition,
+                        Contract = contract,
+                        ContractId = contract.Id,
+                        CreatedBy = user.FullName,
+                        DisbursementStatus = DisbursementStatusConstant.Pending,
+                        StartDate = disbursementTime.StartDate,
+                        EndDate = disbursementTime.EndDate,
+                        Title = disbursementTime.Title,
+                        Investor = investor,
+                        InvestorId = investor.Id,
+                        OrderCode = GenerateUniqueBookingCode()
+                    };
+                    var disbursementEntity = _disbursementRepository.Add(disbursement);
+                }
                 await _unitOfWork.SaveChangesAsync();
                 await _unitOfWork.CommitAsync();
                 return contractEntity;
@@ -111,6 +133,22 @@ namespace StartedIn.Service.Services
                 await _unitOfWork.RollbackAsync();
                 throw;
             }
+        }
+        public long GenerateUniqueBookingCode()
+        {
+            var random = new Random();
+            long orderCode;
+
+            // Generate a random number with a desired number of digits, e.g., 6 digits
+            orderCode = random.Next(100000, 999999);
+
+            // Ensure the booking code is unique
+            while (_disbursementRepository.ExistsAsync(orderCode).Result)
+            {
+                orderCode = random.Next(100000, 999999);
+            }
+
+            return orderCode;
         }
 
         public async Task<Contract> GetContractByContractId(string id)

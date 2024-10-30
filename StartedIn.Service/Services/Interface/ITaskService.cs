@@ -1,4 +1,5 @@
 ﻿using StartedIn.CrossCutting.DTOs.RequestDTO;
+using StartedIn.CrossCutting.Enum;
 using StartedIn.Domain.Entities;
 using System;
 using System.Collections.Generic;
@@ -12,5 +13,6 @@ namespace StartedIn.Service.Services.Interface
     {
         Task<TaskEntity> CreateTask(TaskCreateDTO taskCreateDto, string userId);
         Task<TaskEntity> UpdateTaskInfo(string id, UpdateTaskInfoDTO updateTaskInfoDTO);
+        string GetTaskStatusName(TaskEntityStatus taskStatus);
     }
 }
