@@ -61,7 +61,7 @@ public class ProjectController : ControllerBase
         }
         catch (NotFoundException ex)
         {
-            return BadRequest(ex.Message);
+            return NotFound(ex.Message);
         }
         catch (Exception ex)
         {

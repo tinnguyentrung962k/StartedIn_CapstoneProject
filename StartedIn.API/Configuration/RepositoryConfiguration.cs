@@ -20,6 +20,7 @@ namespace StartedIn.API.Configuration
             services.AddScoped<IProjectCharterRepository, ProjectCharterRepository>();
             services.AddScoped<IDealOfferRepository, DealOfferRepository>();
             services.AddScoped<IDealOfferHistoryRepository, DealOfferHistoryRepository>();
+            services.AddScoped<IShareEquityRepository,ShareEquityRepository>();
             return services;
         }
     }

@@ -8,8 +8,9 @@ namespace StartedIn.CrossCutting.DTOs.RequestDTO
 {
     public class DisbursementCreateDTO
     {
-        public string DisbursementTitle { get; set; }
-        public DateOnly DisbursementDate { get; set; }
+        public string Title { get; set; }
+        public DateOnly StartDate { get; set; }
+        public DateOnly EndDate { get; set; }
         public decimal Amount { get; set; }
         public string Condition { get; set; }
     }

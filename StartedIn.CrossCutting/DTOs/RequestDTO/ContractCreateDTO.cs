@@ -14,7 +14,6 @@ namespace StartedIn.CrossCutting.DTOs.RequestDTO
     {
         public string ProjectId { get; set; }
         public string ContractName { get; set; }
-        public ContractType ContractType { get; set; }
         public string ContractPolicy { get; set; }
     }
 }

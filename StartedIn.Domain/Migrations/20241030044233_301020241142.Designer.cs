@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using StartedIn.Domain.Context;
@@ -11,9 +12,11 @@ using StartedIn.Domain.Context;
 namespace StartedIn.Domain.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20241030044233_301020241142")]
+    partial class _301020241142
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -273,17 +276,24 @@ namespace StartedIn.Domain.Migrations
                     b.Property<DateTimeOffset?>("DeletedTime")
                         .HasColumnType("timestamp with time zone");
 
+                    b.Property<DateOnly>("DisbursementEndDate")
+                        .HasColumnType("date");
+
                     b.Property<string>("DisbursementMethod")
                         .HasMaxLength(50)
                         .HasColumnType("character varying(50)");
+
+                    b.Property<DateOnly>("DisbursementStartDate")
+                        .HasColumnType("date");
 
                     b.Property<string>("DisbursementStatus")
                         .IsRequired()
                         .HasMaxLength(50)
                         .HasColumnType("character varying(50)");
 
-                    b.Property<DateOnly>("EndDate")
-                        .HasColumnType("date");
+                    b.Property<string>("DisbursementTitle")
+                        .IsRequired()
+                        .HasColumnType("text");
 
                     b.Property<DateTimeOffset?>("ExecutedTime")
                         .HasColumnType("timestamp with time zone");
@@ -300,13 +310,6 @@ namespace StartedIn.Domain.Migrations
 
                     b.Property<long>("OrderCode")
                         .HasColumnType("bigint");
-
-                    b.Property<DateOnly>("StartDate")
-                        .HasColumnType("date");
-
-                    b.Property<string>("Title")
-                        .IsRequired()
-                        .HasColumnType("text");
 
                     b.HasKey("Id");
 
@@ -610,7 +613,7 @@ namespace StartedIn.Domain.Migrations
                     b.Property<DateTimeOffset>("CreatedTime")
                         .HasColumnType("timestamp with time zone");
 
-                    b.Property<DateOnly?>("DateAssigned")
+                    b.Property<DateOnly>("DateAssigned")
                         .HasColumnType("date");
 
                     b.Property<DateTimeOffset?>("DeletedTime")

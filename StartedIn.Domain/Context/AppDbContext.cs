@@ -41,6 +41,8 @@ namespace StartedIn.Domain.Context
         public DbSet<ShareEquity> ShareEquities { get; set; }
         public DbSet<DealOffer> DealOffers { get; set; }
         public DbSet<DealOfferHistory> DealOfferHistories { get; set; }
+        public DbSet<Disbursement> Disbursements { get; set; }
+        public DbSet<DisbursementAttachment> DisbursementAttachments { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -104,6 +106,10 @@ namespace StartedIn.Domain.Context
                 .HasForeignKey(up => up.UserId);
             modelBuilder.Entity<DealOffer>()
                 .ToTable("DealOffer");
+            modelBuilder.Entity<Disbursement>()
+                .ToTable("Disbursement");
+            modelBuilder.Entity<DisbursementAttachment>()
+                .ToTable("DisbursementAttachment");
             modelBuilder.Entity<DealOfferHistory>()
                 .ToTable("DealOfferHistory");
             modelBuilder.Entity<ShareEquity>()
@@ -133,11 +139,6 @@ namespace StartedIn.Domain.Context
                v => (TaskEntityStatus)Enum.Parse(typeof(TaskEntityStatus), v));
             modelBuilder.Entity<TaskComment>()
                 .ToTable("TaskComment");
-            modelBuilder.Entity<Project>()
-                .Property(p => p.ProjectStatus)
-                .HasConversion(
-                    p => p.ToString(),
-                    p => (ProjectStatus)Enum.Parse(typeof(ProjectStatus), p));
             modelBuilder.Entity<Project>()
             .Property(p => p.RemainingPercentOfShares)
             .HasColumnType("decimal(5,2)");

@@ -28,18 +28,21 @@ namespace StartedIn.API.Controllers
             _logger = logger;
             _signNowService = signNowService;
         }
-
-        [HttpPost("/contract")]
+        [HttpPost("/investment-contract")]
         [Authorize]
-        public async Task<ActionResult<ContractResponseDTO>> CreateAContract([FromBody]ContractCreateThreeModelsDTO contractCreateThreeModelsDTO)
+        public async Task<ActionResult<ContractResponseDTO>> CreateAnInvestmentContract([FromBody] InvestmentContractCreateDTO investmentContractCreateDTO)
         {
             var userId = User.FindFirst(ClaimTypes.NameIdentifier).Value;
 
             try
             {
-                var contract = await _contractService.CreateAContract(userId, contractCreateThreeModelsDTO);
+                var contract = await _contractService.CreateInvestmentContract(userId, investmentContractCreateDTO);
                 var responseContract = _mapper.Map<ContractResponseDTO>(contract);
-                return Ok(responseContract);
+                return CreatedAtAction(nameof(GetContractById), new { contractId = responseContract.Id }, responseContract);
+            }
+            catch (UnauthorizedProjectRoleException ex)
+            {
+                return Forbid(ex.Message);
             }
             catch (Exception ex)
             {
@@ -47,6 +50,7 @@ namespace StartedIn.API.Controllers
                 return StatusCode(500, "Lỗi server");
             }
         }
+
         [HttpPost("/contract/upload-contract/{contractId}")]
         [Authorize]
         public async Task<ActionResult<ContractResponseDTO>> UploadContractFile([FromRoute]string contractId,IFormFile uploadFile)
@@ -84,6 +88,25 @@ namespace StartedIn.API.Controllers
             {
                 _logger.LogError(ex, "Error while creating contract");
                 return StatusCode(500, "Lỗi server");
+            }
+        }
+        [HttpGet("/contract/{contractId}")]
+        [Authorize]
+        public async Task<ActionResult<ContractResponseDTO>> GetContractById([FromRoute]string contractId)
+        {
+            try
+            {
+                var contract = await _contractService.GetContractByContractId(contractId);
+                var responseContract = _mapper.Map<ContractResponseDTO>(contract);
+                return Ok(responseContract);
+            }
+            catch (NotFoundException ex)
+            {
+                return NotFound(ex.Message);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
             }
         }
 

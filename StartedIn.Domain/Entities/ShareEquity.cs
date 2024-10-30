@@ -21,7 +21,7 @@ namespace StartedIn.Domain.Entities
         [Column(TypeName = "decimal(5,2)")]
         public decimal? Percentage { get; set; }
         public string? StakeHolderType { get; set; }
-        public DateOnly DateAssigned { get; set; }
+        public DateOnly? DateAssigned { get; set; }
         public Contract Contract { get; set; }
         public User User { get; set; }
     }

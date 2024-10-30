@@ -70,7 +70,7 @@ namespace StartedIn.API.Configuration.AutoMapper
         private void ContractMappingProfile() 
         {
             CreateMap<Contract, ContractResponseDTO>()
-                .ForMember(dest => dest.userInContractResponseDTOs, opt => opt.MapFrom(
+                .ForMember(dest => dest.UsersInContract, opt => opt.MapFrom(
                     src => src.UserContracts.Select(uc => new UserInContractResponseDTO
                     {
                         Id = uc.UserId,

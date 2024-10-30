@@ -1,6 +1,10 @@
-﻿using Microsoft.AspNetCore.Http;
+﻿using DocumentFormat.OpenXml;
+using DocumentFormat.OpenXml.Packaging;
+using DocumentFormat.OpenXml.Wordprocessing;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Logging;
+using StartedIn.CrossCutting.Constants;
 using StartedIn.CrossCutting.DTOs.RequestDTO;
 using StartedIn.CrossCutting.Exceptions;
 using StartedIn.Domain.Entities;
@@ -18,12 +22,16 @@ namespace StartedIn.Service.Services
         private readonly ISignNowService _signNowService;
         private readonly IEmailService _emailService;
         private readonly IProjectRepository _projectRepository;
+        private readonly IShareEquityRepository _shareEquityRepository;
+
         public ContractService(IContractRepository contractRepository, 
             IUnitOfWork unitOfWork, 
             ILogger<Contract> logger,
             UserManager<User> userManager,
             ISignNowService signNowService,
-            IEmailService emailService, IProjectRepository projectRepository)
+            IEmailService emailService, 
+            IProjectRepository projectRepository,
+            IShareEquityRepository shareEquityRepository)
         {
             _contractRepository = contractRepository;
             _unitOfWork = unitOfWork;
@@ -32,52 +40,67 @@ namespace StartedIn.Service.Services
             _signNowService = signNowService;
             _emailService = emailService;
             _projectRepository = projectRepository;
+            _shareEquityRepository = shareEquityRepository;
         }
 
-        public async Task<Contract> CreateAContract(string userId, ContractCreateThreeModelsDTO contractCreateThreeModelsDTO)
+        public async Task<Contract> CreateInvestmentContract(string userId, InvestmentContractCreateDTO investmentContractCreateDTO)
         {
             var user = await _userManager.FindByIdAsync(userId);
-            if (user == null)
+            if (user == null) 
             {
                 throw new NotFoundException("Không tìm thấy người dùng");
             }
-
-            try
+            var project = await _projectRepository.GetProjectById(investmentContractCreateDTO.Contract.ProjectId);
+            if (project == null)
             {
+                throw new NotFoundException("Không tìm thấy dự án");
+            }
+            var projectRole = await _projectRepository.GetUserRoleInProject(userId,investmentContractCreateDTO.Contract.ProjectId);
+            if (projectRole != CrossCutting.Enum.RoleInTeam.Leader)
+            {
+                throw new UnauthorizedProjectRoleException("Bạn không phải nhóm trưởng");
+            }
+            try {
                 _unitOfWork.BeginTransaction();
+                var investor = await _userManager.FindByIdAsync(investmentContractCreateDTO.InvestorInfo.UserId);
+                if (investor == null)
+                {
+                    throw new NotFoundException("Không tìm thấy nhà đầu tư");
+                }
                 Contract contract = new Contract
                 {
-                    ContractName = contractCreateThreeModelsDTO.contractCreateDTO.ContractName,
-                    ContractPolicy = contractCreateThreeModelsDTO.contractCreateDTO.ContractPolicy,
-                    ContractType = contractCreateThreeModelsDTO.contractCreateDTO.ContractType,
+                    ContractName = investmentContractCreateDTO.Contract.ContractName,
+                    ContractPolicy = investmentContractCreateDTO.Contract.ContractPolicy,
+                    ContractType = CrossCutting.Enum.ContractType.Investment,
                     CreatedBy = user.FullName,
-                    ProjectId = contractCreateThreeModelsDTO.contractCreateDTO.ProjectId,
+                    ProjectId = investmentContractCreateDTO.Contract.ProjectId,
                 };
-
+                var leader = user;
                 List<UserContract> usersInContract = new List<UserContract>();
-                foreach (var equityShare in contractCreateThreeModelsDTO.equityShareCreateDTOs)
+                List<User> chosenUsersList = new List<User> { investor, leader };
+                foreach (var chosenUser in chosenUsersList)
                 {
                     UserContract userContract = new UserContract
                     {
                         ContractId = contract.Id,
-                        UserId = equityShare.UserId,
+                        UserId = chosenUser.Id
                     };
                     usersInContract.Add(userContract);
                 }
                 contract.UserContracts = usersInContract;
-  
-                var userPartys = new List<User>();
-                foreach (var userInContract in usersInContract)
+                ShareEquity shareEquity = new ShareEquity
                 {
-                    User userParty = await _userManager.FindByIdAsync(userInContract.UserId);
-                    userPartys.Add(userParty);
-                }
-                var userEmails = new List<string>();
-                foreach (var userParty in userPartys)
-                {
-                    userEmails.Add(userParty.Email);
-                }
+                    ContractId = contract.Id,
+                    Contract = contract,
+                    CreatedBy = user.FullName,
+                    Percentage = investmentContractCreateDTO.InvestorInfo.Percentage,
+                    StakeHolderType = RoleInTeamConstant.INVESTOR,
+                    User = investor,
+                    UserId = investor.Id,
+                    ShareQuantity = project.TotalShares * investmentContractCreateDTO.InvestorInfo.ShareQuantity,
+                };
                 var contractEntity = _contractRepository.Add(contract);
+                var shareEquityEntity = _shareEquityRepository.Add(shareEquity);
                 await _unitOfWork.SaveChangesAsync();
                 await _unitOfWork.CommitAsync();
                 return contractEntity;
@@ -85,9 +108,19 @@ namespace StartedIn.Service.Services
             catch (Exception ex)
             {
                 _logger.LogError($"An error occurred while creating the contract: {ex.Message}");
-                await _unitOfWork.RollbackAsync(); 
+                await _unitOfWork.RollbackAsync();
                 throw;
             }
+        }
+
+        public async Task<Contract> GetContractByContractId(string id)
+        {
+            var chosenContract = await _contractRepository.GetContractById(id);
+            if (chosenContract == null) 
+            {
+                throw new NotFoundException("Không có hợp đồng");
+            }
+            return chosenContract;
         }
 
         public async Task<IEnumerable<Contract>> GetContractsByUserIdInAProject(string userId, string projectId, int pageIndex, int pageSize)

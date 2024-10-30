@@ -6,10 +6,9 @@ using System.Threading.Tasks;
 
 namespace StartedIn.CrossCutting.DTOs.RequestDTO
 {
-    public class EquityShareCreateDTO
+    public class GroupContractCreateDTO
     {
-        public string UserId { get; set; }
-        public int? ShareQuantity { get; set; }
-        public int? Percentage { get; set; }
+        public ContractCreateDTO ContractCreateDTO { get; set; }
+        public List<EquityShareCreateDTO> EquityShares { get; set; }
     }
 }

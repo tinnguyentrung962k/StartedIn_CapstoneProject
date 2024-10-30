@@ -9,7 +9,7 @@ public class Project : BaseAuditEntity<string>
     public string ProjectName { get; set; }
     public string Description { get; set; }
     public string? LogoUrl { get; set; }
-    public ProjectStatus ProjectStatus { get; set; }
+    public string ProjectStatus { get; set; }
     public int? TotalShares { get; set; }
 
     [Column(TypeName = "decimal(5,2)")]

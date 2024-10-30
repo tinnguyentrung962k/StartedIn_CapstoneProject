@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Logging;
+using StartedIn.CrossCutting.Constants;
 using StartedIn.CrossCutting.DTOs.RequestDTO;
 using StartedIn.CrossCutting.Enum;
 using StartedIn.CrossCutting.Exceptions;
@@ -36,7 +37,7 @@ public class ProjectService : IProjectService
         try {
             _unitOfWork.BeginTransaction();
             var user = await _userManager.FindByIdAsync(userId);
-            project.ProjectStatus = ProjectStatus.DangHoatDong;
+            project.ProjectStatus = ProjectStatusConstant.Constructing;
             var imgUrl = await _azureBlobService.UploadAvatarOrCover(avatar);
             project.LogoUrl = imgUrl;
             project.CreatedBy = user.FullName;
