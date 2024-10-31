@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Newtonsoft.Json;
 using StartedIn.CrossCutting.DTOs.RequestDTO;
+using StartedIn.CrossCutting.DTOs.RequestDTO.SignNowWebhookRequestDTO;
 using StartedIn.CrossCutting.DTOs.ResponseDTO;
 using StartedIn.CrossCutting.Exceptions;
 using StartedIn.Domain.Entities;
@@ -112,12 +113,12 @@ namespace StartedIn.API.Controllers
         }
 
         [HttpPost("/api/contract/signnow-webhook")]
-        public async Task<IActionResult> RegisterWebhookForContract([FromBody]string contractId, string callbackUrl)
+        public async Task<IActionResult> RegisterWebhookForContract([FromBody] RegisterContractWebhookDTO registerContractWebhookDTO)
         {
             try
             {
-                var contract = await _contractService.GetContractByContractId(contractId);
-                var success = await _signNowService.RegisterWebhookAsync(contract.SignNowDocumentId, callbackUrl);
+                var contract = await _contractService.GetContractByContractId(registerContractWebhookDTO.ContractId);
+                var success = await _signNowService.RegisterWebhookAsync(contract.SignNowDocumentId, registerContractWebhookDTO.CallBack);
                 return Ok("Webhook registered successfully.");
             }
             catch (Exception ex)
