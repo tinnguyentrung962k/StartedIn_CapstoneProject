@@ -147,7 +147,7 @@ namespace StartedIn.Service.Services
                 {
                     CallBack = callBackUrl,
                     UseTls12 = true,
-                    DocIdQueryParam = true,
+                    DocIdQueryParam = false,
                     IncludeMetaData = true,
                     SecretKey = _signNowSettings.ClientSecret
                 }
