@@ -12,6 +12,7 @@ using Microsoft.Extensions.Configuration;
 using Newtonsoft.Json;
 using System.Net.Http.Headers;
 using StartedIn.CrossCutting.DTOs.ResponseDTO.SignNowResponseDTO;
+using StartedIn.CrossCutting.DTOs.RequestDTO.SignNowWebhookRequestDTO;
 
 namespace StartedIn.Service.Services
 {
@@ -94,6 +95,7 @@ namespace StartedIn.Service.Services
                 }
             }
         }
+
         public async Task<List<FreeFormInvitationResponseDTO>> CreateFreeFormInvite(string documentId, List<string> inviteEmails)
         {
             var inviteUrl = $"{_signNowSettings.ApiBaseUrl}/document/{documentId}/invite";
@@ -128,6 +130,47 @@ namespace StartedIn.Service.Services
             }
 
             return invitationResponses;
+        }
+        public async Task<bool> RegisterWebhookAsync(string documentId, string callBackUrl)
+        {
+            if (string.IsNullOrEmpty(_accessToken))
+            {
+                await AuthenticateAsync(); // Authenticate if token is missing
+            }
+            var webhookUrl = $"{_signNowSettings.ApiBaseUrl}/v2/event-subscriptions";
+            var webHookRegister = new WebhookRegisterRequestDTO
+            {
+                EntityId = documentId,
+                Action = "callback",
+                Event = "document.freeform.signed",
+                WebhookAttribute = new WebhookAttribute
+                {
+                    CallBack = callBackUrl,
+                    UseTls12 = true,
+                    DocIdQueryParam = true,
+                    IncludeMetaData = true,
+                    SecretKey = _signNowSettings.ClientSecret
+                }
+            };
+            var content = new StringContent(JsonConvert.SerializeObject(webHookRegister), Encoding.UTF8, "application/json");
+
+            try
+            {
+                var response = await _httpClient.PostAsync(webhookUrl, content);
+                if (response.IsSuccessStatusCode)
+                {
+                    return true; // Successfully registered
+                }
+                else
+                {
+                    var errorContent = await response.Content.ReadAsStringAsync();
+                    throw new Exception($"Failed to register webhook. Status Code: {response.StatusCode}, Error: {errorContent}");
+                }
+            }
+            catch (Exception ex)
+            {
+                throw new Exception($"Error registering webhook: {ex.Message}");
+            }
         }
     }
 }

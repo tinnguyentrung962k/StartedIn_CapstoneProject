@@ -15,5 +15,6 @@ namespace StartedIn.Service.Services.Interface
         Task AuthenticateAsync();
         Task<string> UploadDocumentAsync(IFormFile file);
         Task<List<FreeFormInvitationResponseDTO>> CreateFreeFormInvite(string documentId, List<string> inviteEmails);
+        Task<bool> RegisterWebhookAsync(string documentId, string callBackUrl);
     }
 }

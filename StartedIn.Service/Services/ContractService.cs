@@ -3,6 +3,7 @@ using DocumentFormat.OpenXml.Packaging;
 using DocumentFormat.OpenXml.Wordprocessing;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using StartedIn.CrossCutting.Constants;
 using StartedIn.CrossCutting.DTOs.RequestDTO;
@@ -222,6 +223,26 @@ namespace StartedIn.Service.Services
                 _unitOfWork.RollbackAsync();
                 throw;
             }   
+        }
+        public async Task<Contract> ValidateContractOnSignedAsync(string id)
+        {
+            var chosenContract = await _contractRepository.GetContractById(id);
+            if (chosenContract == null) {
+                throw new NotFoundException("Không tìm thấy hợp đồng");
+            }
+            try
+            {
+                chosenContract.ValidDate = DateOnly.FromDateTime(DateTime.Now);
+                _contractRepository.Update(chosenContract);
+                await _unitOfWork.SaveChangesAsync();
+                return chosenContract;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError($"An error occurred while update the contract: {ex.Message}");
+                _unitOfWork.RollbackAsync();
+                throw;
+            }
         }
     }
 }

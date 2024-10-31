@@ -16,5 +16,6 @@ namespace StartedIn.Service.Services.Interface
         Task<IEnumerable<Contract>> GetContractsByUserIdInAProject(string userId, string projectId, int pageIndex, int pageSize);
         Task<Contract> GetContractByContractId(string id);
         long GenerateUniqueBookingCode();
+        Task<Contract> ValidateContractOnSignedAsync(string id);
     }
 }

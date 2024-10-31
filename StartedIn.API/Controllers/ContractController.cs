@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using Newtonsoft.Json;
 using StartedIn.CrossCutting.DTOs.RequestDTO;
 using StartedIn.CrossCutting.DTOs.ResponseDTO;
@@ -53,12 +54,12 @@ namespace StartedIn.API.Controllers
 
         [HttpPost("/contract/upload-contract/{contractId}")]
         [Authorize]
-        public async Task<ActionResult<ContractResponseDTO>> UploadContractFile([FromRoute]string contractId,IFormFile uploadFile)
+        public async Task<ActionResult<ContractResponseDTO>> UploadContractFile([FromRoute] string contractId, IFormFile uploadFile)
         {
             var userId = User.FindFirst(ClaimTypes.NameIdentifier).Value;
             try
             {
-                var contract = await _contractService.UploadContractFile(userId,contractId,uploadFile);
+                var contract = await _contractService.UploadContractFile(userId, contractId, uploadFile);
                 var responseContract = _mapper.Map<ContractResponseDTO>(contract);
 
                 return Ok(responseContract);
@@ -92,7 +93,7 @@ namespace StartedIn.API.Controllers
         }
         [HttpGet("/contract/{contractId}")]
         [Authorize]
-        public async Task<ActionResult<ContractResponseDTO>> GetContractById([FromRoute]string contractId)
+        public async Task<ActionResult<ContractResponseDTO>> GetContractById([FromRoute] string contractId)
         {
             try
             {
@@ -109,7 +110,35 @@ namespace StartedIn.API.Controllers
                 return BadRequest(ex.Message);
             }
         }
-        
+
+        [HttpPost("/api/contract/signnow-webhook")]
+        public async Task<IActionResult> RegisterWebhookForContract(string contractId, string callbackUrl)
+        {
+            try
+            {
+                var contract = await _contractService.GetContractByContractId(contractId);
+                var success = await _signNowService.RegisterWebhookAsync(contract.SignNowDocumentId, callbackUrl);
+                return Ok("Webhook registered successfully.");
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, "Lỗi không đăng ký được webhook");
+            }
+        }
+        [HttpPut("/api/contract/valid-contract/{contractId}")]
+        public async Task<IActionResult> ValidAcontract([FromRoute] string contractId)
+        {
+            try
+            {
+                var contract = await _contractService.ValidateContractOnSignedAsync(contractId);
+                return Ok("Cập nhật hợp đồng thành công");
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, "Lỗi Cập nhật");
+            }
+        }
 
     }
+        
 }
