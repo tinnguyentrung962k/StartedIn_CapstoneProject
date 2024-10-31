@@ -112,7 +112,7 @@ namespace StartedIn.API.Controllers
         }
 
         [HttpPost("/api/contract/signnow-webhook")]
-        public async Task<IActionResult> RegisterWebhookForContract(string contractId, string callbackUrl)
+        public async Task<IActionResult> RegisterWebhookForContract([FromBody]string contractId, string callbackUrl)
         {
             try
             {
