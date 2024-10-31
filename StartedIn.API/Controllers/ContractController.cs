@@ -126,7 +126,7 @@ namespace StartedIn.API.Controllers
                 return StatusCode(500, "Lỗi không đăng ký được webhook");
             }
         }
-        [HttpGet("/api/contract/valid-contract/{contractId}")]
+        [HttpPost("/api/contract/valid-contract/{contractId}")]
         public async Task<IActionResult> ValidAcontract([FromRoute] string contractId)
         {
             try
