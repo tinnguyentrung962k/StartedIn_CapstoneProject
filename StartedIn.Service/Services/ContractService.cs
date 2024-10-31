@@ -242,6 +242,11 @@ namespace StartedIn.Service.Services
                     equityShare.DateAssigned = DateOnly.FromDateTime(DateTime.Now);
                     _shareEquityRepository.Update(equityShare);
                 }
+                foreach (var disbursement in chosenContract.Disbursements)
+                {
+                    disbursement.IsValidWithContract = true;
+                    _disbursementRepository.Update(disbursement);
+                }
                 _contractRepository.Update(chosenContract);
                 await _unitOfWork.SaveChangesAsync();
                 return chosenContract;

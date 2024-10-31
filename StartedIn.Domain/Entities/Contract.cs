@@ -29,6 +29,7 @@ namespace StartedIn.Domain.Entities
         public Project Project { get; set; }
         public IEnumerable<UserContract> UserContracts { get; set; }
         public IEnumerable<ShareEquity>? ShareEquities { get; set; }
+        public IEnumerable<Disbursement>? Disbursements { get; set; }
 
     }
 }
