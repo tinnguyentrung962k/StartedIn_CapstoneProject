@@ -142,13 +142,10 @@ namespace StartedIn.Service.Services
             {
                 EntityId = documentId,
                 Action = "callback",
-                Event = "document.complete",
+                Event = "user.document.freeform.signed",
                 WebhookAttribute = new WebhookAttribute
                 {
                     CallBack = callBackUrl,
-                    UseTls12 = true,
-                    DocIdQueryParam = false,
-                    IncludeMetaData = true,
                     SecretKey = _signNowSettings.ClientSecret
                 }
             };
