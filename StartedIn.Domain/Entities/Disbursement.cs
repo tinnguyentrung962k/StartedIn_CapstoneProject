@@ -32,6 +32,8 @@ namespace StartedIn.Domain.Entities
         public string? DeclineReason { get; set; }
         public DateTimeOffset? ExecutedTime { get; set; }    
         public long OrderCode { get; set; }
+
+        public bool IsValidWithContract { get; set; }
         
         [MaxLength(50)]
         public string? DisbursementMethod { get; set; }

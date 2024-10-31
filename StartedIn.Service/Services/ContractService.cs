@@ -121,7 +121,8 @@ namespace StartedIn.Service.Services
                         Title = disbursementTime.Title,
                         Investor = investor,
                         InvestorId = investor.Id,
-                        OrderCode = GenerateUniqueBookingCode()
+                        OrderCode = GenerateUniqueBookingCode(),
+                        IsValidWithContract = false
                     };
                     var disbursementEntity = _disbursementRepository.Add(disbursement);
                 }
@@ -222,8 +223,8 @@ namespace StartedIn.Service.Services
 
             catch (Exception ex) {
                 _logger.LogError($"An error occurred while upload the contract file: {ex.Message}");
-                _unitOfWork.RollbackAsync();
-                throw ex;
+                await _unitOfWork.RollbackAsync();
+                throw;
             }   
         }
         public async Task<Contract> ValidateContractOnSignedAsync(string id)
@@ -236,6 +237,11 @@ namespace StartedIn.Service.Services
             {
                 chosenContract.ValidDate = DateOnly.FromDateTime(DateTime.Now);
                 chosenContract.ContractStatus = ContractStatusConstant.Completed;
+                foreach (var equityShare in chosenContract.ShareEquities)
+                {
+                    equityShare.DateAssigned = DateOnly.FromDateTime(DateTime.Now);
+                    _shareEquityRepository.Update(equityShare);
+                }
                 _contractRepository.Update(chosenContract);
                 await _unitOfWork.SaveChangesAsync();
                 return chosenContract;
@@ -243,7 +249,7 @@ namespace StartedIn.Service.Services
             catch (Exception ex)
             {
                 _logger.LogError($"An error occurred while update the contract: {ex.Message}");
-                _unitOfWork.RollbackAsync();
+                await _unitOfWork.RollbackAsync();
                 throw;
             }
         }
