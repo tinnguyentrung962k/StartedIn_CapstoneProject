@@ -221,7 +221,7 @@ namespace StartedIn.Service.Services
             catch (Exception ex) {
                 _logger.LogError($"An error occurred while upload the contract file: {ex.Message}");
                 _unitOfWork.RollbackAsync();
-                throw;
+                throw ex;
             }   
         }
         public async Task<Contract> ValidateContractOnSignedAsync(string id)

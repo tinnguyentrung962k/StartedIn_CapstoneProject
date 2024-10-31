@@ -6,10 +6,12 @@ using System.Threading.Tasks;
 
 namespace StartedIn.CrossCutting.Enum
 {
-    public enum DealStatusEnum
+    public enum ContractStatusEnum
     {
-        Waiting,
-        Accepted,
-        Rejected
+        DRAFT,
+        SENT,
+        COMPLETED,
+        DECLINED,
+        EXPIRED
     }
 }
