@@ -142,7 +142,7 @@ namespace StartedIn.Service.Services
             {
                 EntityId = documentId,
                 Action = "callback",
-                Event = "document.freeform.signed",
+                Event = "document.complete",
                 WebhookAttribute = new WebhookAttribute
                 {
                     CallBack = callBackUrl,
