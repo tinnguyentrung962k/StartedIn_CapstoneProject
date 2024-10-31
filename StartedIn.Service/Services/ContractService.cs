@@ -78,6 +78,7 @@ namespace StartedIn.Service.Services
                     ContractType = ContractTypeConstant.Investment,
                     CreatedBy = user.FullName,
                     ProjectId = investmentContractCreateDTO.Contract.ProjectId,
+                    ContractStatus = ContractStatusConstant.Draft,
                 };
                 var leader = user;
                 List<UserContract> usersInContract = new List<UserContract>();
@@ -212,6 +213,7 @@ namespace StartedIn.Service.Services
                 chosenContract.SignNowDocumentId = signNowDocumentId;
                 chosenContract.LastUpdatedBy = user.FullName;
                 chosenContract.LastUpdatedTime = DateTimeOffset.UtcNow;
+                chosenContract.ContractStatus = ContractStatusConstant.Sent;
                 var inviteResposne = await _signNowService.CreateFreeFormInvite(chosenContract.SignNowDocumentId, userEmails);
                 _contractRepository.Update(chosenContract);
                 await _unitOfWork.SaveChangesAsync();
@@ -233,6 +235,7 @@ namespace StartedIn.Service.Services
             try
             {
                 chosenContract.ValidDate = DateOnly.FromDateTime(DateTime.Now);
+                chosenContract.ContractStatus = ContractStatusConstant.Completed;
                 _contractRepository.Update(chosenContract);
                 await _unitOfWork.SaveChangesAsync();
                 return chosenContract;
