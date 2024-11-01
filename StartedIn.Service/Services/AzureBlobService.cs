@@ -12,7 +12,7 @@ namespace StartedIn.Service.Services
     {
         private readonly IConfiguration _configuration;
         private readonly BlobContainerClient _pictureContainerClient;
-        private readonly BlobContainerClient _documentContainerClient;
+        private readonly BlobContainerClient _postImgContainerClient;
         private readonly string _azureBlobStorageKey;
 
         public AzureBlobService(IConfiguration configuration)
@@ -23,7 +23,7 @@ namespace StartedIn.Service.Services
             BlobServiceClient blobServiceClient = new BlobServiceClient(_azureBlobStorageKey);
 
             _pictureContainerClient = blobServiceClient.GetBlobContainerClient("avatars");
-            _documentContainerClient = blobServiceClient.GetBlobContainerClient("post-images");
+            _postImgContainerClient = blobServiceClient.GetBlobContainerClient("post-images");
         }
         public async Task<string> UploadAvatarOrCover(IFormFile image)
         {

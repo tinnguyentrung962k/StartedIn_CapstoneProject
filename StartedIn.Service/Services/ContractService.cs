@@ -11,6 +11,8 @@ using StartedIn.CrossCutting.Exceptions;
 using StartedIn.Domain.Entities;
 using StartedIn.Repository.Repositories.Interface;
 using StartedIn.Service.Services.Interface;
+using System.Collections.Generic;
+using System.Net;
 
 namespace StartedIn.Service.Services
 {
@@ -25,6 +27,7 @@ namespace StartedIn.Service.Services
         private readonly IProjectRepository _projectRepository;
         private readonly IShareEquityRepository _shareEquityRepository;
         private readonly IDisbursementRepository _disbursementRepository;
+        private readonly IAzureBlobService _azureBlobService;
 
         public ContractService(IContractRepository contractRepository, 
             IUnitOfWork unitOfWork, 
@@ -34,7 +37,7 @@ namespace StartedIn.Service.Services
             IEmailService emailService, 
             IProjectRepository projectRepository,
             IShareEquityRepository shareEquityRepository,
-            IDisbursementRepository disbursementRepository)
+            IDisbursementRepository disbursementRepository, IAzureBlobService azureBlobService)
         {
             _contractRepository = contractRepository;
             _unitOfWork = unitOfWork;
@@ -45,6 +48,7 @@ namespace StartedIn.Service.Services
             _projectRepository = projectRepository;
             _shareEquityRepository = shareEquityRepository;
             _disbursementRepository = disbursementRepository;
+            _azureBlobService = azureBlobService;
         }
 
         public async Task<Contract> CreateInvestmentContract(string userId, InvestmentContractCreateDTO investmentContractCreateDTO)
@@ -106,6 +110,7 @@ namespace StartedIn.Service.Services
                 };
                 var contractEntity = _contractRepository.Add(contract);
                 var shareEquityEntity = _shareEquityRepository.Add(shareEquity);
+                var disbursementList = new List<Disbursement>();
                 foreach (var disbursementTime in investmentContractCreateDTO.Disbursements)
                 {
                     Disbursement disbursement = new Disbursement
@@ -124,8 +129,10 @@ namespace StartedIn.Service.Services
                         OrderCode = GenerateUniqueBookingCode(),
                         IsValidWithContract = false
                     };
+                    disbursementList.Add(disbursement);
                     var disbursementEntity = _disbursementRepository.Add(disbursement);
                 }
+                ReplacePlaceHolder(contract, investor, leader, project, shareEquity, disbursementList);
                 await _unitOfWork.SaveChangesAsync();
                 await _unitOfWork.CommitAsync();
                 return contractEntity;
@@ -257,6 +264,63 @@ namespace StartedIn.Service.Services
                 await _unitOfWork.RollbackAsync();
                 throw;
             }
+        }
+        public void ReplacePlaceHolder(Contract contract, User investor, User leader, Project project, ShareEquity shareEquity,List<Disbursement> disbursements)
+        {
+            string templatePath = @"C:\Users\Admin\Downloads\Mau-Hop-dong-mua-ban-co-phan.docx";
+
+            string disbursementsText = string.Join("\n\n", disbursements.Select(d =>
+                    $"{d.Title}:\n" +
+                    $"    Số tiền: {d.Amount:N0}\n" + // Sử dụng định dạng số với dấu phân cách
+                    $"    Từ ngày: {d.StartDate:dd-MM-yyyy}\n" +
+                    $"    Đến ngày: {d.EndDate:dd-MM-yyyy}\n" +
+                    $"    Điều kiện: {d.Condition}."
+            ));
+
+            var replacements = new Dictionary<string, string>
+            {
+                { "CREATEDDATE",DateOnly.FromDateTime(DateTime.Now).ToString("dd-MM-yyyy")},
+                { "NHADAUTU",investor.FullName},
+                { "MAILNHADAUTU",investor.Email},
+                { "SDTNDT",investor.PhoneNumber},
+                { "CMNDNDT",""},
+                { "DCNDT",""},
+                { "TENDUAN",project.ProjectName},
+                { "MASOTHUE",""},
+                { "SDTCDA",leader.PhoneNumber},
+                { "CHUDUAN",leader.FullName},
+                { "CMNDCDA",""},
+                { "MAIL",leader.Email},
+                { "DCCDU",""},
+                { "PHANTRAMCOPHAN",shareEquity.Percentage.ToString()},
+                { "GIAMUA",""},
+                { "CACMOCGIAINGAN",disbursementsText},
+                { "DIEUKHOANDUAN",contract.ContractPolicy},
+            };
+            string outputFilePath = Path.Combine(Path.GetDirectoryName(templatePath), "UpdatedContract.docx");
+            // Tạo file mới với nội dung đã được thay thế
+            File.Copy(templatePath, outputFilePath);
+
+            using (WordprocessingDocument doc = WordprocessingDocument.Open(outputFilePath, true))
+            {
+                var body = doc.MainDocumentPart.Document.Body;
+                foreach (var text in body.Descendants<Text>())
+                {
+                    Console.WriteLine(text.InnerText);
+                    foreach (var placeholder in replacements)
+                    {
+                        if (text.Text.Equals(placeholder.Key))
+                        {
+                            
+                            Console.WriteLine($"Replacing '{placeholder.Key}' with '{placeholder.Value}'"); // Ghi lại quá trình thay thế
+                            text.Text = text.Text.Replace(placeholder.Key, placeholder.Value);
+                        }
+                    }
+                }
+                doc.MainDocumentPart.Document.Save();
+            }
+
+            Console.WriteLine($"Document saved to: {outputFilePath}");
         }
     }
 }
