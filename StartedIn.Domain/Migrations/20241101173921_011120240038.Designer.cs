@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using StartedIn.Domain.Context;
@@ -11,9 +12,11 @@ using StartedIn.Domain.Context;
 namespace StartedIn.Domain.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20241101173921_011120240038")]
+    partial class _011120240038
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -119,10 +122,6 @@ namespace StartedIn.Domain.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("text");
 
-                    b.Property<string>("ContractIdNumber")
-                        .IsRequired()
-                        .HasColumnType("text");
-
                     b.Property<string>("ContractName")
                         .IsRequired()
                         .HasMaxLength(50)
@@ -170,9 +169,6 @@ namespace StartedIn.Domain.Migrations
                         .HasColumnType("date");
 
                     b.HasKey("Id");
-
-                    b.HasIndex("ContractIdNumber")
-                        .IsUnique();
 
                     b.HasIndex("ProjectId");
 
@@ -470,9 +466,6 @@ namespace StartedIn.Domain.Migrations
                 {
                     b.Property<string>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("text");
-
-                    b.Property<string>("CompanyIdNumber")
                         .HasColumnType("text");
 
                     b.Property<string>("CreatedBy")

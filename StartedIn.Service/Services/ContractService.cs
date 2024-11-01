@@ -29,12 +29,12 @@ namespace StartedIn.Service.Services
         private readonly IDisbursementRepository _disbursementRepository;
         private readonly IAzureBlobService _azureBlobService;
 
-        public ContractService(IContractRepository contractRepository, 
-            IUnitOfWork unitOfWork, 
+        public ContractService(IContractRepository contractRepository,
+            IUnitOfWork unitOfWork,
             ILogger<Contract> logger,
             UserManager<User> userManager,
             ISignNowService signNowService,
-            IEmailService emailService, 
+            IEmailService emailService,
             IProjectRepository projectRepository,
             IShareEquityRepository shareEquityRepository,
             IDisbursementRepository disbursementRepository, IAzureBlobService azureBlobService)
@@ -54,7 +54,7 @@ namespace StartedIn.Service.Services
         public async Task<Contract> CreateInvestmentContract(string userId, InvestmentContractCreateDTO investmentContractCreateDTO)
         {
             var user = await _userManager.FindByIdAsync(userId);
-            if (user == null) 
+            if (user == null)
             {
                 throw new NotFoundException("Không tìm thấy người dùng");
             }
@@ -63,12 +63,13 @@ namespace StartedIn.Service.Services
             {
                 throw new NotFoundException("Không tìm thấy dự án");
             }
-            var projectRole = await _projectRepository.GetUserRoleInProject(userId,investmentContractCreateDTO.Contract.ProjectId);
+            var projectRole = await _projectRepository.GetUserRoleInProject(userId, investmentContractCreateDTO.Contract.ProjectId);
             if (projectRole != CrossCutting.Enum.RoleInTeam.Leader)
             {
                 throw new UnauthorizedProjectRoleException("Bạn không phải nhóm trưởng");
             }
-            try {
+            try
+            {
                 _unitOfWork.BeginTransaction();
                 var investor = await _userManager.FindByIdAsync(investmentContractCreateDTO.InvestorInfo.UserId);
                 if (investor == null)
@@ -83,6 +84,7 @@ namespace StartedIn.Service.Services
                     CreatedBy = user.FullName,
                     ProjectId = investmentContractCreateDTO.Contract.ProjectId,
                     ContractStatus = ContractStatusConstant.Draft,
+                    ContractIdNumber = investmentContractCreateDTO.Contract.ContractIdNumber
                 };
                 var leader = user;
                 List<UserContract> usersInContract = new List<UserContract>();
@@ -132,7 +134,7 @@ namespace StartedIn.Service.Services
                     disbursementList.Add(disbursement);
                     var disbursementEntity = _disbursementRepository.Add(disbursement);
                 }
-                ReplacePlaceHolder(contract, investor, leader, project, shareEquity, disbursementList);
+                ReplacePlaceHolder(contract, investor, leader, project, shareEquity, disbursementList,investmentContractCreateDTO.InvestorInfo.BuyPrice);
                 await _unitOfWork.SaveChangesAsync();
                 await _unitOfWork.CommitAsync();
                 return contractEntity;
@@ -164,7 +166,7 @@ namespace StartedIn.Service.Services
         public async Task<Contract> GetContractByContractId(string id)
         {
             var chosenContract = await _contractRepository.GetContractById(id);
-            if (chosenContract == null) 
+            if (chosenContract == null)
             {
                 throw new NotFoundException("Không có hợp đồng");
             }
@@ -174,7 +176,7 @@ namespace StartedIn.Service.Services
         public async Task<IEnumerable<Contract>> GetContractsByUserIdInAProject(string userId, string projectId, int pageIndex, int pageSize)
         {
             var user = await _userManager.FindByIdAsync(userId);
-            if (user == null) 
+            if (user == null)
             {
                 throw new NotFoundException("Không tìm thấy người dùng");
             }
@@ -183,8 +185,8 @@ namespace StartedIn.Service.Services
             {
                 throw new NotFoundException("Không tìm thấy dự án");
             }
-            var contracts = await _contractRepository.GetContractsByUserIdInAProject(userId,projectId,pageIndex,pageSize);
-            if (contracts is null) 
+            var contracts = await _contractRepository.GetContractsByUserIdInAProject(userId, projectId, pageIndex, pageSize);
+            if (contracts is null)
             {
                 throw new NotFoundException("Không có hợp đồng nào trong danh sách");
             }
@@ -228,16 +230,18 @@ namespace StartedIn.Service.Services
                 return chosenContract;
             }
 
-            catch (Exception ex) {
+            catch (Exception ex)
+            {
                 _logger.LogError($"An error occurred while upload the contract file: {ex.Message}");
                 await _unitOfWork.RollbackAsync();
                 throw;
-            }   
+            }
         }
         public async Task<Contract> ValidateContractOnSignedAsync(string id)
         {
             var chosenContract = await _contractRepository.GetContractById(id);
-            if (chosenContract == null) {
+            if (chosenContract == null)
+            {
                 throw new NotFoundException("Không tìm thấy hợp đồng");
             }
             try
@@ -265,62 +269,136 @@ namespace StartedIn.Service.Services
                 throw;
             }
         }
-        public void ReplacePlaceHolder(Contract contract, User investor, User leader, Project project, ShareEquity shareEquity,List<Disbursement> disbursements)
+        public void ReplacePlaceHolder(Contract contract, User investor, User leader, Project project, ShareEquity shareEquity, List<Disbursement> disbursements, decimal? buyPrice)
         {
+            // Path to your Word template
             string templatePath = @"C:\Users\Admin\Downloads\Mau-Hop-dong-mua-ban-co-phan.docx";
 
-            string disbursementsText = string.Join("\n\n", disbursements.Select(d =>
-                    $"{d.Title}:\n" +
-                    $"    Số tiền: {d.Amount:N0}\n" + // Sử dụng định dạng số với dấu phân cách
-                    $"    Từ ngày: {d.StartDate:dd-MM-yyyy}\n" +
-                    $"    Đến ngày: {d.EndDate:dd-MM-yyyy}\n" +
-                    $"    Điều kiện: {d.Condition}."
-            ));
-
+            // Dictionary of placeholders and their replacement values (excluding the table for now)
             var replacements = new Dictionary<string, string>
             {
-                { "CREATEDDATE",DateOnly.FromDateTime(DateTime.Now).ToString("dd-MM-yyyy")},
-                { "NHADAUTU",investor.FullName},
-                { "MAILNHADAUTU",investor.Email},
-                { "SDTNDT",investor.PhoneNumber},
-                { "CMNDNDT",""},
-                { "DCNDT",""},
-                { "TENDUAN",project.ProjectName},
-                { "MASOTHUE",""},
-                { "SDTCDA",leader.PhoneNumber},
-                { "CHUDUAN",leader.FullName},
-                { "CMNDCDA",""},
-                { "MAIL",leader.Email},
-                { "DCCDU",""},
-                { "PHANTRAMCOPHAN",shareEquity.Percentage.ToString()},
-                { "GIAMUA",""},
-                { "CACMOCGIAINGAN",disbursementsText},
-                { "DIEUKHOANDUAN",contract.ContractPolicy},
+                { "SOHOPDONG", contract.ContractIdNumber },
+                { "CREATEDDATE", DateOnly.FromDateTime(DateTime.Now).ToString("dd-MM-yyyy") },
+                { "NHADAUTU", investor.FullName },
+                { "MAILNHADAUTU", investor.Email },
+                { "SDTNDT", investor.PhoneNumber },
+                { "CMNDNDT", investor.IdCardNumber },
+                { "DCNDT", investor.Address },
+                { "TENDUAN", project.ProjectName },
+                { "MASOTHUE", project.CompanyIdNumber },
+                { "SDTCDA", leader.PhoneNumber },
+                { "CHUDUAN", leader.FullName },
+                { "CMNDCDA", leader.IdCardNumber },
+                { "MAIL", leader.Email },
+                { "DCCDU", leader.Address },
+                { "PHANTRAMCOPHAN", shareEquity.Percentage.ToString() },
+                { "GIAMUA", buyPrice.ToString()},
+                { "DIEUKHOANDUAN", contract.ContractPolicy },
             };
-            string outputFilePath = Path.Combine(Path.GetDirectoryName(templatePath), "UpdatedContract.docx");
-            // Tạo file mới với nội dung đã được thay thế
-            File.Copy(templatePath, outputFilePath);
 
+            // Define the output file path
+            string outputFilePath = Path.Combine(Path.GetDirectoryName(templatePath), $"UpdateContract.docx");
+            File.Copy(templatePath, outputFilePath, overwrite: true);
+
+            // Open the document and perform the replacements
             using (WordprocessingDocument doc = WordprocessingDocument.Open(outputFilePath, true))
             {
                 var body = doc.MainDocumentPart.Document.Body;
-                foreach (var text in body.Descendants<Text>())
+
+                // Replace text placeholders
+                foreach (var paragraph in body.Descendants<Paragraph>())
                 {
-                    Console.WriteLine(text.InnerText);
-                    foreach (var placeholder in replacements)
+                    foreach (var run in paragraph.Descendants<Run>())
                     {
-                        if (text.Text.Equals(placeholder.Key))
+                        foreach (var text in run.Descendants<Text>())
                         {
-                            
-                            Console.WriteLine($"Replacing '{placeholder.Key}' with '{placeholder.Value}'"); // Ghi lại quá trình thay thế
-                            text.Text = text.Text.Replace(placeholder.Key, placeholder.Value);
+                            foreach (var placeholder in replacements)
+                            {
+                                if (text.Text.Contains(placeholder.Key))
+                                {
+                                    text.Text = text.Text.Replace(placeholder.Key, placeholder.Value);
+                                }
+                            }
                         }
                     }
                 }
+
+                // Find the paragraph with "CACMOCGIAINGAN" placeholder
+                var placeholderParagraph = body.Elements<Paragraph>().FirstOrDefault(p => p.InnerText.Contains("CACMOCGIAINGAN"));
+                if (placeholderParagraph != null)
+                {
+                    // Insert the disbursement table after removing the placeholder paragraph
+                    Table disbursementTable = CreateDisbursementTable(disbursements);
+                    placeholderParagraph.InsertAfterSelf(disbursementTable);
+                    placeholderParagraph.Remove();
+                }
+
                 doc.MainDocumentPart.Document.Save();
             }
 
             Console.WriteLine($"Document saved to: {outputFilePath}");
+        }
+
+        // Helper method to create a table for disbursements
+        private Table CreateDisbursementTable(List<Disbursement> disbursements)
+        {
+            Table table = new Table();
+
+            // Define table properties
+            TableProperties tblProperties = new TableProperties(
+                new TableBorders(
+                    new TopBorder { Val = new EnumValue<BorderValues>(BorderValues.Single), Size = 6 },
+                    new BottomBorder { Val = new EnumValue<BorderValues>(BorderValues.Single), Size = 6 },
+                    new LeftBorder { Val = new EnumValue<BorderValues>(BorderValues.Single), Size = 6 },
+                    new RightBorder { Val = new EnumValue<BorderValues>(BorderValues.Single), Size = 6 },
+                    new InsideHorizontalBorder { Val = new EnumValue<BorderValues>(BorderValues.Single), Size = 6 },
+                    new InsideVerticalBorder { Val = new EnumValue<BorderValues>(BorderValues.Single), Size = 6 }
+                ));
+            table.AppendChild(tblProperties);
+
+            // Header row
+            TableRow headerRow = new TableRow();
+            headerRow.Append(
+                CreateTableCell("Tên cột mốc giải ngân", true),
+                CreateTableCell("Số tiền", true),
+                CreateTableCell("Ngày bắt đầu", true),
+                CreateTableCell("Ngày hạn chót", true),
+                CreateTableCell("Điều kiện", true)
+            );
+            table.AppendChild(headerRow);
+
+            // Data rows
+            foreach (var d in disbursements)
+            {
+                TableRow row = new TableRow();
+                row.Append(
+                    CreateTableCell(d.Title),
+                    CreateTableCell(d.Amount.ToString("N3")),
+                    CreateTableCell(d.StartDate.ToString("dd-MM-yyyy")),
+                    CreateTableCell(d.EndDate.ToString("dd-MM-yyyy")),
+                    CreateTableCell(d.Condition)
+                );
+                table.AppendChild(row);
+            }
+
+            return table;
+        }
+
+        // Helper method to create a table cell with text
+        private TableCell CreateTableCell(string text, bool isHeader = false)
+        {
+            TableCell cell = new TableCell();
+            var paragraph = new Paragraph(new Run(new Text(text)));
+
+            // Set header style if it’s a header cell
+            if (isHeader)
+            {
+                RunProperties runProperties = new RunProperties(new Bold());
+                paragraph.Descendants<Run>().First().PrependChild(runProperties);
+            }
+
+            cell.Append(paragraph);
+            return cell;
         }
     }
 }

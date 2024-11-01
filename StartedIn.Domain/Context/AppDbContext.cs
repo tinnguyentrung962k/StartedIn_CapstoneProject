@@ -101,6 +101,9 @@ namespace StartedIn.Domain.Context
                 .HasForeignKey(up => up.ContractId);
             modelBuilder.Entity<Contract>()
                 .ToTable("Contract");
+            modelBuilder.Entity<Contract>()
+                .HasIndex(c => c.ContractIdNumber)
+                .IsUnique();
             modelBuilder.Entity<UserContract>()
                 .HasOne(up => up.User)
                 .WithMany(u => u.UserContracts)
