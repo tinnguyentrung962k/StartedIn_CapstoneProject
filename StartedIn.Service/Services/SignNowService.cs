@@ -15,6 +15,9 @@ using StartedIn.CrossCutting.DTOs.ResponseDTO.SignNowResponseDTO;
 using StartedIn.CrossCutting.DTOs.RequestDTO.SignNowWebhookRequestDTO;
 using Azure.Storage.Blobs;
 using StartedIn.CrossCutting.Enum;
+using StartedIn.CrossCutting.Constants;
+using DocumentFormat.OpenXml.Bibliography;
+using StartedIn.Domain.Entities;
 
 namespace StartedIn.Service.Services
 {
@@ -24,8 +27,9 @@ namespace StartedIn.Service.Services
         private string _accessToken;
         private readonly SignNowSettings _signNowSettings;
         private readonly IAzureBlobService _azureBlobService;
+        private readonly IDocumentFormatService _documentFormatService;
 
-        public SignNowService(IConfiguration configuration, IAzureBlobService azureBlobService)
+        public SignNowService(IConfiguration configuration, IAzureBlobService azureBlobService,IDocumentFormatService documentFormatService)
         {
             _httpClient = new HttpClient();
             _signNowSettings = new SignNowSettings
@@ -37,6 +41,7 @@ namespace StartedIn.Service.Services
                 Password = configuration.GetValue<string>("SignNowPassword"),
             };
             _azureBlobService = azureBlobService;
+            _documentFormatService = documentFormatService;
         }
         public async Task AuthenticateAsync()
         {
@@ -99,38 +104,38 @@ namespace StartedIn.Service.Services
                 }
             }
         }
-        public async Task<string> UploadDocumentFromBlobAsync(string blobUri)
+        public async Task<string> UploadInvestmentContractToSignNowAsync(
+        Contract contract, User investor, User leader, Project project,
+        ShareEquity shareEquity, List<Disbursement> disbursements, decimal? buyPrice)
         {
-            if (string.IsNullOrEmpty(blobUri))
-                throw new ArgumentException("Blob URI is empty or null.");
+            // Bước 1: Thay thế placeholders trong mẫu hợp đồng
+            var modifiedMemoryStream = await _documentFormatService.ReplacePlaceHolderForInvestmentDocumentAsync(contract, investor, leader, project, shareEquity, disbursements, buyPrice);
 
-            Uri uri = new Uri(blobUri);
-            string blobName = uri.Segments.Last();
-            BlobClient blobClient = await _azureBlobService.GetBlobClientAsync(blobName, BlobContainerEnum.Documents);
+            // Đặt lại vị trí của memoryStream về 0 trước khi upload
+            modifiedMemoryStream.Position = 0;
 
-            // Download the blob to a memory stream
-            using (var memoryStream = new MemoryStream())
+            // Bước 2: Chuẩn bị MultipartFormDataContent cho việc upload
+            var content = new MultipartFormDataContent();
+            content.Add(new StreamContent(modifiedMemoryStream), "file", $"{Guid.NewGuid()}.docx");
+
+            // Đường dẫn để upload lên SignNow
+            var uploadUrl = $"{_signNowSettings.ApiBaseUrl}/document";
+
+            // Bước 3: Gửi yêu cầu POST để upload lên SignNow
+            var response = await _httpClient.PostAsync(uploadUrl, content);
+
+            if (response.IsSuccessStatusCode)
             {
-                await blobClient.DownloadToAsync(memoryStream);
-                memoryStream.Position = 0;
-
-                var content = new MultipartFormDataContent();
-                content.Add(new StreamContent(memoryStream), "file", blobName);
-
-                var uploadUrl = $"{_signNowSettings.ApiBaseUrl}/document";
-                var response = await _httpClient.PostAsync(uploadUrl, content);
-
-                if (response.IsSuccessStatusCode)
-                {
-                    var responseContent = await response.Content.ReadAsStringAsync();
-                    var documentResponse = JsonConvert.DeserializeObject<SignNowDocumentResponseDTO>(responseContent);
-                    return documentResponse.Id; // Return the document ID
-                }
-                else
-                {
-                    var errorContent = await response.Content.ReadAsStringAsync();
-                    throw new Exception($"Failed to upload document. Status Code: {response.StatusCode}, Error: {errorContent}");
-                }
+                // Xử lý phản hồi thành công
+                var responseContent = await response.Content.ReadAsStringAsync();
+                var documentResponse = JsonConvert.DeserializeObject<SignNowDocumentResponseDTO>(responseContent);
+                return documentResponse.Id; // Trả về document ID
+            }
+            else
+            {
+                // Xử lý lỗi nếu upload thất bại
+                var errorContent = await response.Content.ReadAsStringAsync();
+                throw new Exception($"Failed to upload document. Status Code: {response.StatusCode}, Error: {errorContent}");
             }
         }
 
@@ -169,7 +174,7 @@ namespace StartedIn.Service.Services
 
             return invitationResponses;
         }
-        public async Task<bool> RegisterWebhookAsync(string documentId, string callBackUrl)
+        public async Task<bool> RegisterWebhookAsync(SignNowWebhookCreateDTO signNowWebhookCreateDTO)
         {
             if (string.IsNullOrEmpty(_accessToken))
             {
@@ -178,12 +183,12 @@ namespace StartedIn.Service.Services
             var webhookUrl = $"{_signNowSettings.ApiBaseUrl}/v2/event-subscriptions";
             var webHookRegister = new WebhookRegisterRequestDTO
             {
-                EntityId = documentId,
-                Action = "callback",
-                Event = "document.complete",
+                EntityId = signNowWebhookCreateDTO.EntityId,
+                Action = signNowWebhookCreateDTO.Action,
+                Event = signNowWebhookCreateDTO.Event,
                 WebhookAttribute = new WebhookAttribute
                 {
-                    CallBack = callBackUrl,
+                    CallBack = signNowWebhookCreateDTO.CallBackUrl,
                     SecretKey = _signNowSettings.ClientSecret
                 }
             };

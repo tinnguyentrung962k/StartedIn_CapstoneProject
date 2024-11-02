@@ -53,14 +53,14 @@ namespace StartedIn.API.Controllers
             }
         }
 
-        [HttpPost("/contract/upload-contract/{contractId}")]
+        [HttpPost("/contract/send-invite/{contractId}")]
         [Authorize]
-        public async Task<ActionResult<ContractResponseDTO>> UploadContractFile([FromRoute] string contractId, IFormFile uploadFile)
+        public async Task<ActionResult<ContractResponseDTO>> SendInviteForContract([FromRoute] string contractId)
         {
             var userId = User.FindFirst(ClaimTypes.NameIdentifier).Value;
             try
             {
-                var contract = await _contractService.UploadContractFile(userId, contractId, uploadFile);
+                var contract = await _contractService.SendSigningInvitationForContract(userId, contractId);
                 var responseContract = _mapper.Map<ContractResponseDTO>(contract);
 
                 return Ok(responseContract);
@@ -112,20 +112,20 @@ namespace StartedIn.API.Controllers
             }
         }
 
-        [HttpPost("/api/contract/signnow-webhook")]
-        public async Task<IActionResult> RegisterWebhookForContract([FromBody] RegisterContractWebhookDTO registerContractWebhookDTO)
-        {
-            try
-            {
-                var contract = await _contractService.GetContractByContractId(registerContractWebhookDTO.ContractId);
-                var success = await _signNowService.RegisterWebhookAsync(contract.SignNowDocumentId, registerContractWebhookDTO.CallBack);
-                return Ok("Webhook registered successfully.");
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(500, "Lỗi không đăng ký được webhook");
-            }
-        }
+        //[HttpPost("/api/contract/signnow-webhook")]
+        //public async Task<IActionResult> RegisterWebhookForContract([FromBody] RegisterContractWebhookDTO registerContractWebhookDTO)
+        //{
+        //    try
+        //    {
+        //        var contract = await _contractService.GetContractByContractId(registerContractWebhookDTO.ContractId);
+        //        var success = await _signNowService.RegisterWebhookAsync(contract.SignNowDocumentId, registerContractWebhookDTO.CallBack);
+        //        return Ok("Webhook registered successfully.");
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        return StatusCode(500, "Lỗi không đăng ký được webhook");
+        //    }
+        //}
         [HttpPost("/api/contract/valid-contract/{contractId}")]
         public async Task<IActionResult> ValidAcontract([FromRoute] string contractId)
         {

@@ -19,6 +19,7 @@ namespace StartedIn.API.Configuration
             services.AddScoped<IContractService, ContractService>();
             services.AddScoped<IProjectCharterService, ProjectCharterService>();
             services.AddScoped<IDealOfferService, DealOfferService>();
+            services.AddScoped<IDocumentFormatService, DocumentFormatService>();
             return services;
         }
     }

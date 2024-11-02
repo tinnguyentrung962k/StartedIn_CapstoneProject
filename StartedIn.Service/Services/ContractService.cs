@@ -4,9 +4,11 @@ using DocumentFormat.OpenXml.Wordprocessing;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using StartedIn.CrossCutting.Constants;
 using StartedIn.CrossCutting.DTOs.RequestDTO;
+using StartedIn.CrossCutting.DTOs.RequestDTO.SignNowWebhookRequestDTO;
 using StartedIn.CrossCutting.Exceptions;
 using StartedIn.Domain.Entities;
 using StartedIn.Repository.Repositories.Interface;
@@ -28,6 +30,9 @@ namespace StartedIn.Service.Services
         private readonly IShareEquityRepository _shareEquityRepository;
         private readonly IDisbursementRepository _disbursementRepository;
         private readonly IAzureBlobService _azureBlobService;
+        private readonly IDocumentFormatService _documentFormatService;
+        private readonly IConfiguration _configuration;
+        private readonly string _webDomain;
 
         public ContractService(IContractRepository contractRepository,
             IUnitOfWork unitOfWork,
@@ -37,7 +42,7 @@ namespace StartedIn.Service.Services
             IEmailService emailService,
             IProjectRepository projectRepository,
             IShareEquityRepository shareEquityRepository,
-            IDisbursementRepository disbursementRepository, IAzureBlobService azureBlobService)
+            IDisbursementRepository disbursementRepository, IAzureBlobService azureBlobService, IDocumentFormatService documentFormatService,IConfiguration configuration)
         {
             _contractRepository = contractRepository;
             _unitOfWork = unitOfWork;
@@ -49,6 +54,9 @@ namespace StartedIn.Service.Services
             _shareEquityRepository = shareEquityRepository;
             _disbursementRepository = disbursementRepository;
             _azureBlobService = azureBlobService;
+            _documentFormatService = documentFormatService;
+            _configuration = configuration;
+            _webDomain = _configuration.GetValue<string>("WEB_DOMAIN") ?? _configuration["Local_domain"];
         }
 
         public async Task<Contract> CreateInvestmentContract(string userId, InvestmentContractCreateDTO investmentContractCreateDTO)
@@ -134,9 +142,8 @@ namespace StartedIn.Service.Services
                     disbursementList.Add(disbursement);
                     var disbursementEntity = _disbursementRepository.Add(disbursement);
                 }
-                string uri = await ReplacePlaceHolderForInvestmentDocumentAsync(contract, investor, leader, project, shareEquity, disbursementList,investmentContractCreateDTO.InvestorInfo.BuyPrice);
                 await _signNowService.AuthenticateAsync();
-                var DocumentId = await _signNowService.UploadDocumentFromBlobAsync(uri);
+                contract.SignNowDocumentId = await _signNowService.UploadInvestmentContractToSignNowAsync(contract,investor,leader,project,shareEquity,disbursementList,investmentContractCreateDTO.InvestorInfo.BuyPrice);
                 await _unitOfWork.SaveChangesAsync();
                 await _unitOfWork.CommitAsync();
                 return contractEntity;
@@ -195,7 +202,7 @@ namespace StartedIn.Service.Services
             return contracts;
         }
 
-        public async Task<Contract> UploadContractFile(string userId, string contractId, IFormFile file)
+        public async Task<Contract> SendSigningInvitationForContract(string userId, string contractId)
         {
             var user = await _userManager.FindByIdAsync(userId);
             if (user == null)
@@ -210,7 +217,6 @@ namespace StartedIn.Service.Services
             try
             {
                 await _signNowService.AuthenticateAsync();
-                var signNowDocumentId = await _signNowService.UploadDocumentAsync(file);
                 var userPartys = new List<User>();
                 foreach (var userInContract in chosenContract.UserContracts)
                 {
@@ -222,11 +228,18 @@ namespace StartedIn.Service.Services
                 {
                     userEmails.Add(userParty.Email);
                 }
-                chosenContract.SignNowDocumentId = signNowDocumentId;
                 chosenContract.LastUpdatedBy = user.FullName;
                 chosenContract.LastUpdatedTime = DateTimeOffset.UtcNow;
                 chosenContract.ContractStatus = ContractStatusConstant.Sent;
                 var inviteResposne = await _signNowService.CreateFreeFormInvite(chosenContract.SignNowDocumentId, userEmails);
+                SignNowWebhookCreateDTO signNowWebhookForValidContract = new SignNowWebhookCreateDTO
+                {
+                    Action = SignNowServiceConstant.CallBackAction,
+                    CallBackUrl = $"{_webDomain}/api/contract/valid-contract/{contractId}",
+                    EntityId = chosenContract.SignNowDocumentId,
+                    Event = SignNowServiceConstant.DocumentCompleteEvent
+                };
+                await _signNowService.RegisterWebhookAsync(signNowWebhookForValidContract);
                 _contractRepository.Update(chosenContract);
                 await _unitOfWork.SaveChangesAsync();
                 return chosenContract;
@@ -270,143 +283,6 @@ namespace StartedIn.Service.Services
                 await _unitOfWork.RollbackAsync();
                 throw;
             }
-        }
-        public async Task<string> ReplacePlaceHolderForInvestmentDocumentAsync(Contract contract, User investor, User leader, Project project, ShareEquity shareEquity, List<Disbursement> disbursements, decimal? buyPrice)
-        {
-            string blobName = "Mau-Hop-dong-mua-ban-co-phan.docx";
-            // Step 1: Download the template from Azure Blob Storage
-            using var memoryStream = await _azureBlobService.DownloadDocumentToMemoryStreamAsync(blobName);
-
-            // Dictionary of placeholders and their replacement values
-            var replacements = new Dictionary<string, string>
-            {
-                { "SOHOPDONG", contract.ContractIdNumber },
-                { "CREATEDDATE", DateOnly.FromDateTime(DateTime.Now).ToString("dd-MM-yyyy") },
-                { "NHADAUTU", investor.FullName },
-                { "MAILNHADAUTU", investor.Email },
-                { "SDTNDT", investor.PhoneNumber },
-                { "CMNDNDT", investor.IdCardNumber },
-                { "DCNDT", investor.Address },
-                { "TENDUAN", project.ProjectName },
-                { "MASOTHUE", project.CompanyIdNumber },
-                { "SDTCDA", leader.PhoneNumber },
-                { "CHUDUAN", leader.FullName },
-                { "CMNDCDA", leader.IdCardNumber },
-                { "MAIL", leader.Email },
-                { "DCCDU", leader.Address },
-                { "PHANTRAMCOPHAN", shareEquity.Percentage.ToString() },
-                { "GIAMUA", buyPrice.ToString() },
-                { "DIEUKHOANDUAN", contract.ContractPolicy },
-            };
-
-            // Step 2: Open the downloaded template as a WordprocessingDocument
-            using (WordprocessingDocument doc = WordprocessingDocument.Open(memoryStream, true))
-            {
-                var body = doc.MainDocumentPart.Document.Body;
-
-                // Replace text placeholders
-                foreach (var paragraph in body.Descendants<Paragraph>())
-                {
-                    foreach (var run in paragraph.Descendants<Run>())
-                    {
-                        foreach (var text in run.Descendants<Text>())
-                        {
-                            foreach (var placeholder in replacements)
-                            {
-                                if (text.Text.Contains(placeholder.Key))
-                                {
-                                    text.Text = text.Text.Replace(placeholder.Key, placeholder.Value);
-                                }
-                            }
-                        }
-                    }
-                }
-
-                // Find and replace "CACMOCGIAINGAN" with the disbursement table
-                var placeholderParagraph = body.Elements<Paragraph>().FirstOrDefault(p => p.InnerText.Contains("CACMOCGIAINGAN"));
-                if (placeholderParagraph != null)
-                {
-                    Table disbursementTable = CreateDisbursementTable(disbursements);
-                    placeholderParagraph.InsertAfterSelf(disbursementTable);
-                    placeholderParagraph.Remove();
-                }
-
-                // Save changes to the document in the memory stream
-                doc.MainDocumentPart.Document.Save();
-            }
-
-            // Reset the position of the memory stream for re-upload
-            memoryStream.Position = 0;
-
-            // Step 3: Upload the modified document back to Azure Blob Storage
-            var newBlobName = $"DraftContract-{contract.Id}-{Guid.NewGuid()}.docx";
-            string newBlobNameUri = await _azureBlobService.UploadDocumentFromMemoryStreamAsync(memoryStream, newBlobName);
-
-            Console.WriteLine($"Document saved to: {newBlobNameUri}");
-            // Return the URI of the uploaded document
-            return newBlobNameUri;
-        }
-
-        // Helper method to create a table for disbursements
-        private Table CreateDisbursementTable(List<Disbursement> disbursements)
-        {
-            Table table = new Table();
-
-            // Define table properties
-            TableProperties tblProperties = new TableProperties(
-                new TableBorders(
-                    new TopBorder { Val = new EnumValue<BorderValues>(BorderValues.Single), Size = 6 },
-                    new BottomBorder { Val = new EnumValue<BorderValues>(BorderValues.Single), Size = 6 },
-                    new LeftBorder { Val = new EnumValue<BorderValues>(BorderValues.Single), Size = 6 },
-                    new RightBorder { Val = new EnumValue<BorderValues>(BorderValues.Single), Size = 6 },
-                    new InsideHorizontalBorder { Val = new EnumValue<BorderValues>(BorderValues.Single), Size = 6 },
-                    new InsideVerticalBorder { Val = new EnumValue<BorderValues>(BorderValues.Single), Size = 6 }
-                ));
-            table.AppendChild(tblProperties);
-
-            // Header row
-            TableRow headerRow = new TableRow();
-            headerRow.Append(
-                CreateTableCell("Tên cột mốc giải ngân", true),
-                CreateTableCell("Số tiền", true),
-                CreateTableCell("Ngày bắt đầu", true),
-                CreateTableCell("Ngày hạn chót", true),
-                CreateTableCell("Điều kiện", true)
-            );
-            table.AppendChild(headerRow);
-
-            // Data rows
-            foreach (var d in disbursements)
-            {
-                TableRow row = new TableRow();
-                row.Append(
-                    CreateTableCell(d.Title),
-                    CreateTableCell(d.Amount.ToString("N3")),
-                    CreateTableCell(d.StartDate.ToString("dd-MM-yyyy")),
-                    CreateTableCell(d.EndDate.ToString("dd-MM-yyyy")),
-                    CreateTableCell(d.Condition)
-                );
-                table.AppendChild(row);
-            }
-
-            return table;
-        }
-
-        // Helper method to create a table cell with text
-        private TableCell CreateTableCell(string text, bool isHeader = false)
-        {
-            TableCell cell = new TableCell();
-            var paragraph = new Paragraph(new Run(new Text(text)));
-
-            // Set header style if it’s a header cell
-            if (isHeader)
-            {
-                RunProperties runProperties = new RunProperties(new Bold());
-                paragraph.Descendants<Run>().First().PrependChild(runProperties);
-            }
-
-            cell.Append(paragraph);
-            return cell;
-        }
+        }   
     }
 }
