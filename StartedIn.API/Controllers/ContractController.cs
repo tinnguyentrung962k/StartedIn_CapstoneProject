@@ -112,20 +112,6 @@ namespace StartedIn.API.Controllers
             }
         }
 
-        //[HttpPost("/api/contract/signnow-webhook")]
-        //public async Task<IActionResult> RegisterWebhookForContract([FromBody] RegisterContractWebhookDTO registerContractWebhookDTO)
-        //{
-        //    try
-        //    {
-        //        var contract = await _contractService.GetContractByContractId(registerContractWebhookDTO.ContractId);
-        //        var success = await _signNowService.RegisterWebhookAsync(contract.SignNowDocumentId, registerContractWebhookDTO.CallBack);
-        //        return Ok("Webhook registered successfully.");
-        //    }
-        //    catch (Exception ex)
-        //    {
-        //        return StatusCode(500, "Lỗi không đăng ký được webhook");
-        //    }
-        //}
         [HttpPost("/api/contract/valid-contract/{contractId}")]
         public async Task<IActionResult> ValidAcontract([FromRoute] string contractId)
         {
