@@ -16,5 +16,6 @@ namespace StartedIn.Service.Services.Interface
         Task<string> UploadDocumentAsync(IFormFile file);
         Task<List<FreeFormInvitationResponseDTO>> CreateFreeFormInvite(string documentId, List<string> inviteEmails);
         Task<bool> RegisterWebhookAsync(string documentId, string callBackUrl);
+        Task<string> UploadDocumentFromBlobAsync(string blobUri);
     }
 }

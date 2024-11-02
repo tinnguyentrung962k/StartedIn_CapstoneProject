@@ -134,7 +134,9 @@ namespace StartedIn.Service.Services
                     disbursementList.Add(disbursement);
                     var disbursementEntity = _disbursementRepository.Add(disbursement);
                 }
-                ReplacePlaceHolder(contract, investor, leader, project, shareEquity, disbursementList,investmentContractCreateDTO.InvestorInfo.BuyPrice);
+                string uri = await ReplacePlaceHolderForInvestmentDocumentAsync(contract, investor, leader, project, shareEquity, disbursementList,investmentContractCreateDTO.InvestorInfo.BuyPrice);
+                await _signNowService.AuthenticateAsync();
+                var DocumentId = await _signNowService.UploadDocumentFromBlobAsync(uri);
                 await _unitOfWork.SaveChangesAsync();
                 await _unitOfWork.CommitAsync();
                 return contractEntity;
@@ -269,12 +271,13 @@ namespace StartedIn.Service.Services
                 throw;
             }
         }
-        public void ReplacePlaceHolder(Contract contract, User investor, User leader, Project project, ShareEquity shareEquity, List<Disbursement> disbursements, decimal? buyPrice)
+        public async Task<string> ReplacePlaceHolderForInvestmentDocumentAsync(Contract contract, User investor, User leader, Project project, ShareEquity shareEquity, List<Disbursement> disbursements, decimal? buyPrice)
         {
-            // Path to your Word template
-            string templatePath = @"C:\Users\Admin\Downloads\Mau-Hop-dong-mua-ban-co-phan.docx";
+            string blobName = "Mau-Hop-dong-mua-ban-co-phan.docx";
+            // Step 1: Download the template from Azure Blob Storage
+            using var memoryStream = await _azureBlobService.DownloadDocumentToMemoryStreamAsync(blobName);
 
-            // Dictionary of placeholders and their replacement values (excluding the table for now)
+            // Dictionary of placeholders and their replacement values
             var replacements = new Dictionary<string, string>
             {
                 { "SOHOPDONG", contract.ContractIdNumber },
@@ -292,16 +295,12 @@ namespace StartedIn.Service.Services
                 { "MAIL", leader.Email },
                 { "DCCDU", leader.Address },
                 { "PHANTRAMCOPHAN", shareEquity.Percentage.ToString() },
-                { "GIAMUA", buyPrice.ToString()},
+                { "GIAMUA", buyPrice.ToString() },
                 { "DIEUKHOANDUAN", contract.ContractPolicy },
             };
 
-            // Define the output file path
-            string outputFilePath = Path.Combine(Path.GetDirectoryName(templatePath), $"UpdateContract.docx");
-            File.Copy(templatePath, outputFilePath, overwrite: true);
-
-            // Open the document and perform the replacements
-            using (WordprocessingDocument doc = WordprocessingDocument.Open(outputFilePath, true))
+            // Step 2: Open the downloaded template as a WordprocessingDocument
+            using (WordprocessingDocument doc = WordprocessingDocument.Open(memoryStream, true))
             {
                 var body = doc.MainDocumentPart.Document.Body;
 
@@ -323,20 +322,29 @@ namespace StartedIn.Service.Services
                     }
                 }
 
-                // Find the paragraph with "CACMOCGIAINGAN" placeholder
+                // Find and replace "CACMOCGIAINGAN" with the disbursement table
                 var placeholderParagraph = body.Elements<Paragraph>().FirstOrDefault(p => p.InnerText.Contains("CACMOCGIAINGAN"));
                 if (placeholderParagraph != null)
                 {
-                    // Insert the disbursement table after removing the placeholder paragraph
                     Table disbursementTable = CreateDisbursementTable(disbursements);
                     placeholderParagraph.InsertAfterSelf(disbursementTable);
                     placeholderParagraph.Remove();
                 }
 
+                // Save changes to the document in the memory stream
                 doc.MainDocumentPart.Document.Save();
             }
 
-            Console.WriteLine($"Document saved to: {outputFilePath}");
+            // Reset the position of the memory stream for re-upload
+            memoryStream.Position = 0;
+
+            // Step 3: Upload the modified document back to Azure Blob Storage
+            var newBlobName = $"DraftContract-{contract.Id}-{Guid.NewGuid()}.docx";
+            string newBlobNameUri = await _azureBlobService.UploadDocumentFromMemoryStreamAsync(memoryStream, newBlobName);
+
+            Console.WriteLine($"Document saved to: {newBlobNameUri}");
+            // Return the URI of the uploaded document
+            return newBlobNameUri;
         }
 
         // Helper method to create a table for disbursements

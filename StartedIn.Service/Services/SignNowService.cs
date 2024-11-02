@@ -13,6 +13,8 @@ using Newtonsoft.Json;
 using System.Net.Http.Headers;
 using StartedIn.CrossCutting.DTOs.ResponseDTO.SignNowResponseDTO;
 using StartedIn.CrossCutting.DTOs.RequestDTO.SignNowWebhookRequestDTO;
+using Azure.Storage.Blobs;
+using StartedIn.CrossCutting.Enum;
 
 namespace StartedIn.Service.Services
 {
@@ -21,8 +23,9 @@ namespace StartedIn.Service.Services
         private readonly HttpClient _httpClient;
         private string _accessToken;
         private readonly SignNowSettings _signNowSettings;
+        private readonly IAzureBlobService _azureBlobService;
 
-        public SignNowService(IConfiguration configuration)
+        public SignNowService(IConfiguration configuration, IAzureBlobService azureBlobService)
         {
             _httpClient = new HttpClient();
             _signNowSettings = new SignNowSettings
@@ -33,6 +36,7 @@ namespace StartedIn.Service.Services
                 Username = configuration.GetValue<string>("SignNowUsername"),
                 Password = configuration.GetValue<string>("SignNowPassword"),
             };
+            _azureBlobService = azureBlobService;
         }
         public async Task AuthenticateAsync()
         {
@@ -80,6 +84,40 @@ namespace StartedIn.Service.Services
                 var content = new MultipartFormDataContent();
                 content.Add(new StreamContent(memoryStream), "file", file.FileName);
 
+                var response = await _httpClient.PostAsync(uploadUrl, content);
+
+                if (response.IsSuccessStatusCode)
+                {
+                    var responseContent = await response.Content.ReadAsStringAsync();
+                    var documentResponse = JsonConvert.DeserializeObject<SignNowDocumentResponseDTO>(responseContent);
+                    return documentResponse.Id; // Return the document ID
+                }
+                else
+                {
+                    var errorContent = await response.Content.ReadAsStringAsync();
+                    throw new Exception($"Failed to upload document. Status Code: {response.StatusCode}, Error: {errorContent}");
+                }
+            }
+        }
+        public async Task<string> UploadDocumentFromBlobAsync(string blobUri)
+        {
+            if (string.IsNullOrEmpty(blobUri))
+                throw new ArgumentException("Blob URI is empty or null.");
+
+            Uri uri = new Uri(blobUri);
+            string blobName = uri.Segments.Last();
+            BlobClient blobClient = await _azureBlobService.GetBlobClientAsync(blobName, BlobContainerEnum.Documents);
+
+            // Download the blob to a memory stream
+            using (var memoryStream = new MemoryStream())
+            {
+                await blobClient.DownloadToAsync(memoryStream);
+                memoryStream.Position = 0;
+
+                var content = new MultipartFormDataContent();
+                content.Add(new StreamContent(memoryStream), "file", blobName);
+
+                var uploadUrl = $"{_signNowSettings.ApiBaseUrl}/document";
                 var response = await _httpClient.PostAsync(uploadUrl, content);
 
                 if (response.IsSuccessStatusCode)

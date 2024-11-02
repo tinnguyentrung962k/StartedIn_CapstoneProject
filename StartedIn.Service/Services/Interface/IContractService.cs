@@ -17,5 +17,6 @@ namespace StartedIn.Service.Services.Interface
         Task<Contract> GetContractByContractId(string id);
         long GenerateUniqueBookingCode();
         Task<Contract> ValidateContractOnSignedAsync(string id);
+        Task<string> ReplacePlaceHolderForInvestmentDocumentAsync(Contract contract, User investor, User leader, Project project, ShareEquity shareEquity, List<Disbursement> disbursements, decimal? buyPrice);
     }
 }
