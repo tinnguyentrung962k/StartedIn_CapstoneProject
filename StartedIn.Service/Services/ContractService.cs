@@ -406,40 +406,40 @@ namespace StartedIn.Service.Services
             int pageSize)
         {
             var searchResult = _contractRepository.QueryHelper().Include(c => c.UserContracts);
-            if (!string.IsNullOrEmpty(search.contractName))
+            if (!string.IsNullOrEmpty(search.ContractName))
             {
-                searchResult = searchResult.Filter(c => c.ContractName.Contains(search.contractName.ToLower()));
+                searchResult = searchResult.Filter(c => c.ContractName.Contains(search.ContractName.ToLower()));
             }
 
-            if (search.contractTypeEnum != null)
+            if (search.ContractTypeEnum != null)
             {
-                searchResult = searchResult.Filter(c => c.ContractType.Equals(GetContractTypeName(search.contractTypeEnum)));
+                searchResult = searchResult.Filter(c => c.ContractType.Equals(GetContractTypeName(search.ContractTypeEnum)));
             }
 
-            if (search.parties?.Any() == true)
+            if (search.Parties?.Any() == true)
             {
-                foreach (var party in search.parties)
+                foreach (var party in search.Parties)
                 {
                     searchResult = searchResult.Filter(c => c.UserContracts.Any(uc => uc.UserId.Equals(party)));
                 }
             }
 
-            if (search.lastUpdatedStartDate != default || search.lastUpdatedEndDate != default)
+            if (search.LastUpdatedStartDate != default || search.LastUpdatedEndDate != default)
             {
-                if (search.lastUpdatedStartDate != default)
+                if (search.LastUpdatedStartDate != default)
                 {
-                    searchResult = searchResult.Filter(c => c.LastUpdatedTime >= search.lastUpdatedStartDate);
+                    searchResult = searchResult.Filter(c => c.LastUpdatedTime >= search.LastUpdatedStartDate);
                 }
 
-                if (search.lastUpdatedEndDate != default)
+                if (search.LastUpdatedEndDate != default)
                 {
-                    searchResult = searchResult.Filter(c => c.LastUpdatedTime <= search.lastUpdatedEndDate);
+                    searchResult = searchResult.Filter(c => c.LastUpdatedTime <= search.LastUpdatedEndDate);
                 }
             }
             
-            if (search.contractStatusEnum != null)
+            if (search.ContractStatusEnum != null)
             {
-                searchResult = searchResult.Filter(c => c.ContractStatus.Equals(GetContractStatusName(search.contractStatusEnum)));
+                searchResult = searchResult.Filter(c => c.ContractStatus.Equals(GetContractStatusName(search.ContractStatusEnum)));
             }
 
             return await searchResult.GetPagingAsync(pageIndex, pageSize);

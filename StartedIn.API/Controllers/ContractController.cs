@@ -30,6 +30,7 @@ namespace StartedIn.API.Controllers
             _logger = logger;
             _signNowService = signNowService;
         }
+        
         [HttpPost("/investment-contract")]
         [Authorize]
         public async Task<ActionResult<ContractResponseDTO>> CreateAnInvestmentContract([FromBody] InvestmentContractCreateDTO investmentContractCreateDTO)
@@ -71,6 +72,7 @@ namespace StartedIn.API.Controllers
                 return StatusCode(500, "Lỗi server");
             }
         }
+        
         [HttpGet("/contract/user-contract/project/{projectId}")]
         [Authorize]
         public async Task<ActionResult<List<ContractResponseDTO>>> GetPersonalContractsInAProject([FromRoute] string projectId, [FromQuery] int pageIndex, int pageSize)
@@ -84,7 +86,7 @@ namespace StartedIn.API.Controllers
             }
             catch (NotFoundException ex)
             {
-                return NotFound(ex.Message);
+                return BadRequest(ex.Message);
             }
             catch (Exception ex)
             {
@@ -92,6 +94,7 @@ namespace StartedIn.API.Controllers
                 return StatusCode(500, "Lỗi server");
             }
         }
+        
         [HttpGet("/contract/{contractId}")]
         [Authorize]
         public async Task<ActionResult<ContractResponseDTO>> GetContractById([FromRoute] string contractId)
@@ -104,7 +107,7 @@ namespace StartedIn.API.Controllers
             }
             catch (NotFoundException ex)
             {
-                return NotFound(ex.Message);
+                return BadRequest(ex.Message);
             }
             catch (Exception ex)
             {
@@ -126,6 +129,7 @@ namespace StartedIn.API.Controllers
                 return StatusCode(500, "Lỗi không đăng ký được webhook");
             }
         }
+        
         [HttpPost("/api/contract/valid-contract/{contractId}")]
         public async Task<IActionResult> ValidAcontract([FromRoute] string contractId)
         {
@@ -140,6 +144,21 @@ namespace StartedIn.API.Controllers
             }
         }
 
+        [HttpGet("/api/contract/search")]
+        [Authorize]
+        public async Task<ActionResult<ContractSearchResponseDTO>> SearchContractWithFilters(
+            [FromQuery] ContractSearchDTO search, int pageSize, int pageIndex)
+        {
+            try
+            {
+                var result = await _contractService.SearchContractWithFilters(search, pageIndex, pageSize);
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
+        }
     }
         
 }
