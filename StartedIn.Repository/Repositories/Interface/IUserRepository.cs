@@ -14,7 +14,9 @@ namespace StartedIn.Repository.Repositories.Interface
         Task AddUserToProject(string userId, string projectId, RoleInTeam roleInTeam);
 
         Task<UserProject> GetAUserInProject(string projectId, string userId);
+        Task<List<UserContract>> GetUsersListRelevantToContractsInAProject(string projectId);
 
-        
+
+
     }
 }

@@ -14,4 +14,5 @@ public interface IProjectService
     Task<Project> GetProjectAndMemberById(string id);
     Task<List<Project>> GetListOwnProjects(string userId);
     Task<List<Project>> GetListParticipatedProjects(string userId);
+    Task<List<User>> GetListUserRelevantToContractsInAProject(string projectId);
 }

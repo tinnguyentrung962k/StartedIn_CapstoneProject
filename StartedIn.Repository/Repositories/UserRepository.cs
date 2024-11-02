@@ -35,5 +35,9 @@ namespace StartedIn.Repository.Repositories
         {
             return await _appDbContext.Set<UserProject>().Where(x => x.ProjectId.Equals(projectId) && x.UserId.Equals(userId)).FirstOrDefaultAsync();
         }
+        public async Task<List<UserContract>> GetUsersListRelevantToContractsInAProject(string projectId)
+        {
+            return await _appDbContext.Set<UserContract>().Where(x=>x.Contract.ProjectId.Equals(projectId)).Include(x=>x.User).ToListAsync();   
+        }
     }
 }

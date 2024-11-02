@@ -45,6 +45,11 @@ namespace StartedIn.Service.Services
                 {
                     throw new NotFoundException("Người dùng không tồn tại");
                 }
+                var project = await _projectRepository.GetProjectById(projectCharter.ProjectId);
+                if (project is null)
+                {
+                    throw new NotFoundException("Không tìm thấy dự án");
+                }
                 var projectRole = await _projectRepository.GetUserRoleInProject(userId, projectCharter.ProjectId);
                 if (projectRole != CrossCutting.Enum.RoleInTeam.Leader)
                 {

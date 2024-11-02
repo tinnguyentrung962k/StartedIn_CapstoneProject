@@ -36,6 +36,7 @@ namespace StartedIn.API.Configuration.AutoMapper
 
         private void UserMappingProfile()
         {
+            CreateMap<UserInContractResponseDTO, User>().ReverseMap();
             CreateMap<User, RegisterDTO>().ReverseMap();
             CreateMap<User, HeaderProfileDTO>()
                 .ForMember(userDto => userDto.UserRoles,
@@ -74,9 +75,9 @@ namespace StartedIn.API.Configuration.AutoMapper
                     src => src.UserContracts.Select(uc => new UserInContractResponseDTO
                     {
                         Id = uc.UserId,
-                        PartyFullName = uc.User.FullName,
-                        PartyEmail = uc.User.Email,
-                        PartyPhoneNumber = uc.User.PhoneNumber
+                        FullName = uc.User.FullName,
+                        Email = uc.User.Email,
+                        PhoneNumber = uc.User.PhoneNumber
                     }).ToList()));
         }
         private void ProjectCharterMappingProfile()
