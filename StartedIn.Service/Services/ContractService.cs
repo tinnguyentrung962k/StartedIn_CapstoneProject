@@ -32,7 +32,7 @@ namespace StartedIn.Service.Services
         private readonly IAzureBlobService _azureBlobService;
         private readonly IDocumentFormatService _documentFormatService;
         private readonly IConfiguration _configuration;
-        private readonly string _webDomain;
+        private readonly string _apiDomain;
 
         public ContractService(IContractRepository contractRepository,
             IUnitOfWork unitOfWork,
@@ -56,7 +56,7 @@ namespace StartedIn.Service.Services
             _azureBlobService = azureBlobService;
             _documentFormatService = documentFormatService;
             _configuration = configuration;
-            _webDomain = _configuration.GetValue<string>("WEB_DOMAIN") ?? _configuration["Local_domain"];
+            _apiDomain = _configuration.GetValue<string>("API_DOMAIN") ?? _configuration["Local_domain"];
         }
 
         public async Task<Contract> CreateInvestmentContract(string userId, InvestmentContractCreateDTO investmentContractCreateDTO)
@@ -235,7 +235,7 @@ namespace StartedIn.Service.Services
                 SignNowWebhookCreateDTO signNowWebhookForValidContract = new SignNowWebhookCreateDTO
                 {
                     Action = SignNowServiceConstant.CallBackAction,
-                    CallBackUrl = $"{_webDomain}/api/contract/valid-contract/{contractId}",
+                    CallBackUrl = $"{_apiDomain}/api/contract/valid-contract/{contractId}",
                     EntityId = chosenContract.SignNowDocumentId,
                     Event = SignNowServiceConstant.DocumentCompleteEvent
                 };
