@@ -18,6 +18,8 @@ namespace StartedIn.Domain.Entities
         public string? ProfilePicture { get; set; }
         public string? CoverPhoto { get; set; }
         public string? StudentCode { get; set; }
+        public string? IdCardNumber { get; set; }
+        public string? Address { get; set; }
 
         [StringLength(120)]
         public string? Bio { get; set; }

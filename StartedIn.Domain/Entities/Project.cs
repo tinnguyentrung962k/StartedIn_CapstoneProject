@@ -17,6 +17,7 @@ public class Project : BaseAuditEntity<string>
     public int? RemainingShares { get; set; }
     public DateOnly StartDate { get; set; }
     public DateOnly? EndDate { get; set; }
+    public string? CompanyIdNumber { get; set; }
 
     public IEnumerable<UserProject>? UserProjects { get; set; }
     public IEnumerable<Milestone>? Milestones { get; set; }

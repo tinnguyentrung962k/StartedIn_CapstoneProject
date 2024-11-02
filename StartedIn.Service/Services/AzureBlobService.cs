@@ -1,9 +1,11 @@
-﻿using Azure.Storage.Blobs;
+﻿using Azure;
+using Azure.Storage.Blobs;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Configuration;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.Formats.Jpeg;
 using SixLabors.ImageSharp.Processing;
+using StartedIn.CrossCutting.Enum;
 using StartedIn.Service.Services.Interface;
 
 namespace StartedIn.Service.Services
@@ -12,6 +14,7 @@ namespace StartedIn.Service.Services
     {
         private readonly IConfiguration _configuration;
         private readonly BlobContainerClient _pictureContainerClient;
+        private readonly BlobContainerClient _postImgContainerClient;
         private readonly BlobContainerClient _documentContainerClient;
         private readonly string _azureBlobStorageKey;
 
@@ -23,7 +26,8 @@ namespace StartedIn.Service.Services
             BlobServiceClient blobServiceClient = new BlobServiceClient(_azureBlobStorageKey);
 
             _pictureContainerClient = blobServiceClient.GetBlobContainerClient("avatars");
-            _documentContainerClient = blobServiceClient.GetBlobContainerClient("post-images");
+            _postImgContainerClient = blobServiceClient.GetBlobContainerClient("post-images");
+            _documentContainerClient = blobServiceClient.GetBlobContainerClient("documents");
         }
         public async Task<string> UploadAvatarOrCover(IFormFile image)
         {
@@ -50,42 +54,42 @@ namespace StartedIn.Service.Services
                 return blobClient.Uri.AbsoluteUri;
         }
 
-        //public async Task<string> UploadPostImage(IFormFile image)
-        //{
-        //    if (!IsValidImageFile(image))
-        //    {
-        //        throw new ArgumentException("The uploaded file is not a valid image.");
-        //    }
-        //    var fileName = Guid.NewGuid().ToString() + Path.GetExtension(image.FileName);
-        //    var blobClient = _postImagesContainerClient.GetBlobClient(fileName);
+        public async Task<string> UploadPostImage(IFormFile image)
+        {
+            if (!IsValidImageFile(image))
+            {
+                throw new ArgumentException("The uploaded file is not a valid image.");
+            }
+            var fileName = Guid.NewGuid().ToString() + Path.GetExtension(image.FileName);
+            var blobClient = _postImgContainerClient.GetBlobClient(fileName);
 
-        //    using (var stream = image.OpenReadStream())
-        //    using (var imageSharp = await Image.LoadAsync(stream))
-        //    {
-        //        imageSharp.Mutate(x => x.Resize(1400, 1400));
-        //        var encoder = new JpegEncoder { Quality = 80 };
-        //        using (var memoryStream = new MemoryStream())
-        //        {
-        //            imageSharp.Save(memoryStream, encoder);
-        //            memoryStream.Position = 0;
-        //            await blobClient.UploadAsync(memoryStream);
-        //        }
-        //    }
-        //    return blobClient.Uri.AbsoluteUri;
-        //}
+            using (var stream = image.OpenReadStream())
+            using (var imageSharp = await Image.LoadAsync(stream))
+            {
+                imageSharp.Mutate(x => x.Resize(1400, 1400));
+                var encoder = new JpegEncoder { Quality = 80 };
+                using (var memoryStream = new MemoryStream())
+                {
+                    imageSharp.Save(memoryStream, encoder);
+                    memoryStream.Position = 0;
+                    await blobClient.UploadAsync(memoryStream);
+                }
+            }
+            return blobClient.Uri.AbsoluteUri;
+        }
 
-        //public async Task<IList<string>> UploadPostImages(IList<IFormFile> image)
-        //{
-        //    var imageUrls = new List<string>();
-        //    if (image != null && image.Count > 0)
-        //    {
-        //        foreach (var img in image)
-        //        {
-        //            imageUrls.Add(await UploadPostImage(img));
-        //        }
-        //    }
-        //    return imageUrls;
-        //}
+        public async Task<IList<string>> UploadPostImages(IList<IFormFile> image)
+        {
+            var imageUrls = new List<string>();
+            if (image != null && image.Count > 0)
+            {
+                foreach (var img in image)
+                {
+                    imageUrls.Add(await UploadPostImage(img));
+                }
+            }
+            return imageUrls;
+        }
 
         private bool IsValidImageFile(IFormFile file)
         {
@@ -94,6 +98,83 @@ namespace StartedIn.Service.Services
 
             // Check if the content type is a valid image type
             return contentType.StartsWith("image/");
+        }
+        public async Task<MemoryStream> DownloadDocumentToMemoryStreamAsync(string blobName)
+        {
+            // Get the blob client for the specified blob in the "documents" container
+            BlobClient blobClient = _documentContainerClient.GetBlobClient(blobName);
+
+            // Initialize a new memory stream to hold the downloaded blob data
+            var memoryStream = new MemoryStream();
+
+            try
+            {
+                // Download the blob to the memory stream
+                await blobClient.DownloadToAsync(memoryStream);
+
+                // Reset the position of the memory stream to the beginning
+                memoryStream.Position = 0;
+
+                return memoryStream;
+            }
+            catch (RequestFailedException ex)
+            {
+                // Handle the exception as necessary (e.g., log the error, return null, rethrow, etc.)
+                Console.WriteLine($"Error downloading document blob: {ex.Message}");
+                memoryStream.Dispose();
+                throw;
+            }
+        }
+
+        public async Task<string> UploadDocumentFromMemoryStreamAsync(MemoryStream memoryStream, string blobName)
+        {
+            if (memoryStream == null || memoryStream.Length == 0)
+            {
+                throw new ArgumentException("The provided memory stream is empty.");
+            }
+
+            // Reset the memory stream position to ensure it reads from the start
+            memoryStream.Position = 0;
+
+            // Get a blob client for the documents container
+            var blobClient = _documentContainerClient.GetBlobClient(blobName);
+
+            // Upload the memory stream to the blob
+            await blobClient.UploadAsync(memoryStream, overwrite: true);
+
+            // Return the URL of the uploaded blob
+            return blobClient.Uri.AbsoluteUri;
+        }
+        public async Task<BlobClient> GetBlobClientAsync(string blobName, BlobContainerEnum blobContainer)
+        {
+            if (string.IsNullOrEmpty(blobName))
+            {
+                throw new ArgumentException("Blob name cannot be null or empty.", nameof(blobName));
+            }
+
+            BlobContainerClient containerClient;
+
+            // Determine the appropriate container client based on the enum
+            switch (blobContainer)
+            {
+                case BlobContainerEnum.Avatars:
+                    containerClient = _pictureContainerClient;
+                    break;
+                case BlobContainerEnum.PostImgs:
+                    containerClient = _postImgContainerClient;
+                    break;
+                case BlobContainerEnum.Documents:
+                    containerClient = _documentContainerClient;
+                    break;
+                default:
+                    throw new ArgumentOutOfRangeException(nameof(blobContainer), "Invalid blob container specified.");
+            }
+            var blobClient = containerClient.GetBlobClient(blobName);
+            if (blobClient == null)
+            {
+                throw new ArgumentException(nameof(blobContainer), "Invalid blob client.");
+            }
+            return blobClient;
         }
     }
 }

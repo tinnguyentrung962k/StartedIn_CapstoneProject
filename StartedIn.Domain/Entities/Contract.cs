@@ -1,4 +1,5 @@
-﻿using StartedIn.CrossCutting.Enum;
+﻿using Microsoft.EntityFrameworkCore;
+using StartedIn.CrossCutting.Enum;
 using StartedIn.Domain.Entities.BaseEntities;
 using System;
 using System.Collections.Generic;
@@ -23,6 +24,7 @@ namespace StartedIn.Domain.Entities
         
         [MaxLength(4500)]
         public string ContractPolicy { get; set; }
+        public string ContractIdNumber { get; set; }
 
         public DateOnly? ValidDate { get; set; }
         public DateOnly? ExpiredDate { get; set; }
