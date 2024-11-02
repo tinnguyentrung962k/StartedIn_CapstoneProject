@@ -97,7 +97,7 @@ namespace StartedIn.Service.Services
                 { "SOHOPDONG", contract.ContractIdNumber },
                 { "CREATEDDATE", DateOnly.FromDateTime(DateTime.Now).ToString("dd-MM-yyyy") },
                 { "NHADAUTU", investor.FullName },
-                { "MAILNHADAUTU", investor.Email },
+                { "EMAIL", investor.Email },
                 { "SDTNDT", investor.PhoneNumber },
                 { "CMNDNDT", investor.IdCardNumber },
                 { "DCNDT", investor.Address },
