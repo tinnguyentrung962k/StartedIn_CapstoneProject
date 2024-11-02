@@ -8,8 +8,8 @@ namespace StartedIn.CrossCutting.DTOs.ResponseDTO
 {
     public class UserInContractResponseDTO : IdentityResponseDTO
     {
-        public string PartyFullName { get; set; }
-        public string PartyEmail { get; set; }
-        public string PartyPhoneNumber { get; set; }
+        public string FullName { get; set; }
+        public string Email { get; set; }
+        public string PhoneNumber { get; set; }
     }
 }

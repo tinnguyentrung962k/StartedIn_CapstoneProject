@@ -20,7 +20,7 @@ public class ProjectController : ControllerBase
     private readonly ILogger<ProjectController> _logger;
     private readonly IProjectService _projectService;
 
-    public ProjectController(IProjectService projectService,IMapper mapper, ILogger<ProjectController> logger)
+    public ProjectController(IProjectService projectService, IMapper mapper, ILogger<ProjectController> logger)
     {
         _projectService = projectService;
         _mapper = mapper;
@@ -29,7 +29,7 @@ public class ProjectController : ControllerBase
 
     [HttpPost("projects")]
     [Authorize]
-    public async Task<ActionResult<ProjectResponseDTO>> CreateANewProject([FromForm]ProjectCreateDTO projectCreatedto) 
+    public async Task<ActionResult<ProjectResponseDTO>> CreateANewProject([FromForm] ProjectCreateDTO projectCreatedto)
     {
         try
         {
@@ -48,7 +48,7 @@ public class ProjectController : ControllerBase
             return BadRequest("Tạo dự án thất bại.");
         }
     }
-    
+
     [HttpGet("projects/{projectId}")]
     [Authorize]
     public async Task<ActionResult<ProjectResponseDTO>> GetProjectById(string projectId)
@@ -68,7 +68,7 @@ public class ProjectController : ControllerBase
             return BadRequest(ex.Message);
         }
     }
-    
+
     [HttpPost("projects/{projectId}/project-invitation")]
     [Authorize]
     public async Task<IActionResult> SendInvitationToTeam([FromBody] List<string> emails, [FromRoute] string projectId)
@@ -155,6 +155,24 @@ public class ProjectController : ControllerBase
         catch (ArgumentException ex)
         {
             return BadRequest(ex.Message);
+        }
+    }
+    [HttpGet("project/{id}/contract-parties")]
+    public async Task<ActionResult<UserInContractResponseDTO>> GetListUsersRelevantToContractInAProject([FromRoute] string id)
+    {
+        try
+        {
+            var userList = await _projectService.GetListUserRelevantToContractsInAProject(id);
+            var responseUserList = _mapper.Map<List<UserInContractResponseDTO>>(userList);
+            return Ok(responseUserList);
+        }
+        catch (NotFoundException ex)
+        {
+            return NotFound(ex.Message);
+        }
+        catch (Exception ex)
+        {
+            return StatusCode(500, "Lỗi server");
         }
     }
 }

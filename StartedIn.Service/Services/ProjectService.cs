@@ -35,6 +35,7 @@ public class ProjectService : IProjectService
     }
     public async Task CreateNewProject(string userId, Project project, IFormFile avatar)
     {
+
         try {
             _unitOfWork.BeginTransaction();
             var user = await _userManager.FindByIdAsync(userId);
@@ -135,5 +136,28 @@ public class ProjectService : IProjectService
             .Filter(p => p.UserProjects.Any(up => up.UserId == userId && up.RoleInTeam != RoleInTeam.Leader)).GetAllAsync();
         var listProject = projects.ToList();
         return listProject;
+    }
+    public async Task<List<User>> GetListUserRelevantToContractsInAProject(string projectId)
+    {
+        var project = await _projectRepository.GetOneAsync(projectId);
+        if (project is null)
+        {
+            throw new NotFoundException("Không tìm thấy dự án");
+        }
+
+        var userContractsList = await _userRepository.GetUsersListRelevantToContractsInAProject(projectId);
+        var uniqueUsers = new HashSet<string>(); // To track unique user IDs
+        var listUser = new List<User>();
+
+        foreach (var userContract in userContractsList)
+        {
+            var user = userContract.User;
+            if (user != null && uniqueUsers.Add(user.Id)) // Add only if ID is unique
+            {
+                listUser.Add(user);
+            }
+        }
+
+        return listUser;
     }
 }
