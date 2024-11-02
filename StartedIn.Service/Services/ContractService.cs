@@ -13,6 +13,7 @@ using StartedIn.Repository.Repositories.Interface;
 using StartedIn.Service.Services.Interface;
 using System.Collections.Generic;
 using System.Net;
+using StartedIn.CrossCutting.Enum;
 
 namespace StartedIn.Service.Services
 {
@@ -399,6 +400,83 @@ namespace StartedIn.Service.Services
 
             cell.Append(paragraph);
             return cell;
+        }
+
+        public async Task<IEnumerable<Contract>> SearchContractWithFilters(ContractSearchDTO search, int pageIndex,
+            int pageSize)
+        {
+            var searchResult = _contractRepository.QueryHelper().Include(c => c.UserContracts);
+            if (!string.IsNullOrEmpty(search.contractName))
+            {
+                searchResult = searchResult.Filter(c => c.ContractName.Contains(search.contractName.ToLower()));
+            }
+
+            if (search.contractTypeEnum != null)
+            {
+                searchResult = searchResult.Filter(c => c.ContractType.Equals(GetContractTypeName(search.contractTypeEnum)));
+            }
+
+            if (search.parties?.Any() == true)
+            {
+                foreach (var party in search.parties)
+                {
+                    searchResult = searchResult.Filter(c => c.UserContracts.Any(uc => uc.UserId.Equals(party)));
+                }
+            }
+
+            if (search.lastUpdatedStartDate != default || search.lastUpdatedEndDate != default)
+            {
+                if (search.lastUpdatedStartDate != default)
+                {
+                    searchResult = searchResult.Filter(c => c.LastUpdatedTime >= search.lastUpdatedStartDate);
+                }
+
+                if (search.lastUpdatedEndDate != default)
+                {
+                    searchResult = searchResult.Filter(c => c.LastUpdatedTime <= search.lastUpdatedEndDate);
+                }
+            }
+            
+            if (search.contractStatusEnum != null)
+            {
+                searchResult = searchResult.Filter(c => c.ContractStatus.Equals(GetContractStatusName(search.contractStatusEnum)));
+            }
+
+            return await searchResult.GetPagingAsync(pageIndex, pageSize);
+        }
+
+        private string GetContractStatusName(ContractStatusEnum? contractStatusEnum)
+        {
+            if (contractStatusEnum == null)
+            {
+                return "";
+            }
+            return contractStatusEnum switch
+            {
+                ContractStatusEnum.DRAFT => ContractStatusConstant.Draft,
+                ContractStatusEnum.SENT => ContractStatusConstant.Sent,
+                ContractStatusEnum.COMPLETED => ContractStatusConstant.Completed,
+                ContractStatusEnum.DECLINED => ContractStatusConstant.Declined,
+                ContractStatusEnum.EXPIRED => ContractStatusConstant.Expired,
+                
+                _ => throw new ArgumentOutOfRangeException(nameof(contractStatusEnum), $"Trạng thái hợp đồng không hợp lệ: {contractStatusEnum}")
+            };
+        }
+
+        private string GetContractTypeName(ContractTypeEnum? contractTypeEnum)
+        {
+            if (contractTypeEnum == null)
+            {
+                return "";
+            }
+            return contractTypeEnum switch
+            {
+                ContractTypeEnum.INVESTMENT => ContractTypeConstant.Investment,
+                ContractTypeEnum.INTERNAL => ContractTypeConstant.Internal,
+                ContractTypeEnum.TRADING => ContractTypeConstant.Trading,
+                
+                _ => throw new ArgumentOutOfRangeException(nameof(contractTypeEnum), $"Loại hợp đồng không hợp lệ: {contractTypeEnum}")
+            };
         }
     }
 }

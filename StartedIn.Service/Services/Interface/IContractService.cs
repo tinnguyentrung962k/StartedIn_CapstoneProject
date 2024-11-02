@@ -17,5 +17,8 @@ namespace StartedIn.Service.Services.Interface
         Task<Contract> GetContractByContractId(string id);
         long GenerateUniqueBookingCode();
         Task<Contract> ValidateContractOnSignedAsync(string id);
+
+        Task<IEnumerable<Contract>> SearchContractWithFilters(ContractSearchDTO search, int pageIndex,
+            int pageSize);
     }
 }
