@@ -232,25 +232,23 @@ namespace StartedIn.Service.Services
                 chosenContract.LastUpdatedBy = user.FullName;
                 chosenContract.LastUpdatedTime = DateTimeOffset.UtcNow;
                 chosenContract.ContractStatus = ContractStatusConstant.Sent;
-                var inviteResposne = await _signNowService.CreateFreeFormInvite(chosenContract.SignNowDocumentId, userEmails);
-                var listWebhook = new List<SignNowWebhookCreateDTO>
+                var inviteResponse = await _signNowService.CreateFreeFormInvite(chosenContract.SignNowDocumentId, userEmails);
+                var webhookCompleteSign = new SignNowWebhookCreateDTO
                 {
-                    new SignNowWebhookCreateDTO
-                    {
-                        Action = SignNowServiceConstant.CallBackAction,
-                        CallBackUrl = $"{_apiDomain}/api/contract/valid-contract/{contractId}",
-                        EntityId = chosenContract.SignNowDocumentId,
-                        Event = SignNowServiceConstant.DocumentCompleteEvent
-                    },
-                    new SignNowWebhookCreateDTO
-                    {
-                        Action = SignNowServiceConstant.CallBackAction,
-                        CallBackUrl = $"{_apiDomain}/api/contract/update-user-sign/{contractId}", 
-                        EntityId = chosenContract.SignNowDocumentId,
-                        Event = SignNowServiceConstant.DocumentUpdateEvent
-                    }
+                    Action = SignNowServiceConstant.CallBackAction,
+                    CallBackUrl = $"{_apiDomain}/api/contract/valid-contract/{contractId}",
+                    EntityId = chosenContract.SignNowDocumentId,
+                    Event = SignNowServiceConstant.DocumentCompleteEvent
                 };
-                await _signNowService.RegisterManyWebhookAsync(listWebhook);
+                await _signNowService.RegisterWebhookAsync(webhookCompleteSign);
+                var webhookUpdate = new SignNowWebhookCreateDTO
+                {
+                    Action = SignNowServiceConstant.CallBackAction,
+                    CallBackUrl = $"{_apiDomain}/api/contract/update-user-sign/{contractId}",
+                    EntityId = chosenContract.SignNowDocumentId,
+                    Event = SignNowServiceConstant.DocumentUpdateEvent
+                };
+                await _signNowService.RegisterWebhookAsync(webhookUpdate);
                 _contractRepository.Update(chosenContract);
                 await _unitOfWork.SaveChangesAsync();
                 return chosenContract;
