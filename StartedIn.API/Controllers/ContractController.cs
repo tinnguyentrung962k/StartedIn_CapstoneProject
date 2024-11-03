@@ -125,6 +125,19 @@ namespace StartedIn.API.Controllers
                 return StatusCode(500, "Lỗi Cập nhật");
             }
         }
+        [HttpPost("/contract/update-user-sign/{contractId}")]
+        public async Task<IActionResult> UpdateUserSignedStatus([FromRoute] string contractId)
+        {
+            try
+            {
+                await _contractService.UpdateSignedStatusForUserInContract(contractId);
+                return Ok("Cập nhật hợp đồng thành công");
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, "Lỗi Cập nhật");
+            }
+        }
         [HttpGet("/contract/download-contract/{contractId}")]
         public async Task<IActionResult> DownLoadContract([FromRoute] string contractId)
         {

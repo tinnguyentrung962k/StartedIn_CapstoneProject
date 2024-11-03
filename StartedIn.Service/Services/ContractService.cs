@@ -1,4 +1,5 @@
 ﻿using DocumentFormat.OpenXml;
+using DocumentFormat.OpenXml.InkML;
 using DocumentFormat.OpenXml.Packaging;
 using DocumentFormat.OpenXml.Wordprocessing;
 using Microsoft.AspNetCore.Http;
@@ -232,14 +233,24 @@ namespace StartedIn.Service.Services
                 chosenContract.LastUpdatedTime = DateTimeOffset.UtcNow;
                 chosenContract.ContractStatus = ContractStatusConstant.Sent;
                 var inviteResposne = await _signNowService.CreateFreeFormInvite(chosenContract.SignNowDocumentId, userEmails);
-                SignNowWebhookCreateDTO signNowWebhookForValidContract = new SignNowWebhookCreateDTO
+                var listWebhook = new List<SignNowWebhookCreateDTO>
                 {
-                    Action = SignNowServiceConstant.CallBackAction,
-                    CallBackUrl = $"{_apiDomain}/api/contract/valid-contract/{contractId}",
-                    EntityId = chosenContract.SignNowDocumentId,
-                    Event = SignNowServiceConstant.DocumentCompleteEvent
+                    new SignNowWebhookCreateDTO
+                    {
+                        Action = SignNowServiceConstant.CallBackAction,
+                        CallBackUrl = $"{_apiDomain}/api/contract/valid-contract/{contractId}",
+                        EntityId = chosenContract.SignNowDocumentId,
+                        Event = SignNowServiceConstant.DocumentCompleteEvent
+                    },
+                    new SignNowWebhookCreateDTO
+                    {
+                        Action = SignNowServiceConstant.CallBackAction,
+                        CallBackUrl = $"{_apiDomain}/api/contract/update-user-sign/{contractId}", 
+                        EntityId = chosenContract.SignNowDocumentId,
+                        Event = SignNowServiceConstant.DocumentUpdateEvent
+                    }
                 };
-                await _signNowService.RegisterWebhookAsync(signNowWebhookForValidContract);
+                await _signNowService.RegisterManyWebhookAsync(listWebhook);
                 _contractRepository.Update(chosenContract);
                 await _unitOfWork.SaveChangesAsync();
                 return chosenContract;
@@ -251,6 +262,46 @@ namespace StartedIn.Service.Services
                 await _unitOfWork.RollbackAsync();
                 throw;
             }
+        }
+        public async Task UpdateSignedStatusForUserInContract(string contractId) 
+        {
+            var contract = await _contractRepository.GetContractById(contractId);
+            if (contract == null)
+            {
+                throw new NotFoundException(MessageConstant.NotFoundError);
+            }
+
+            // Get the SignNow document invite data
+            var contractInvite = await _signNowService.GetDocumentFreeFormInvite(contract.SignNowDocumentId);
+
+            // Check if the contractInvite has data
+            if (contractInvite?.Data == null || !contractInvite.Data.Any())
+            {
+                throw new InvalidOperationException("No signing data available from SignNow.");
+            }
+
+            // Loop through the signing data to find fulfilled users
+            foreach (var signedData in contractInvite.Data)
+            {
+                if (signedData.Status.Equals("fulfilled", StringComparison.OrdinalIgnoreCase))
+                {
+                    // Find the corresponding UserContract entry for the signed user
+                    var existingUserContract = contract.UserContracts
+                        .FirstOrDefault(x => x.User.Email.Equals(signedData.Email, StringComparison.OrdinalIgnoreCase));
+
+                    if (existingUserContract == null)
+                    {
+                        throw new InvalidOperationException($"UserContract not found for the user with email: {signedData.Email}");
+                    }
+
+                    if (!existingUserContract.SignedDate.HasValue)
+                    {
+                        // Update the signed date
+                        existingUserContract.SignedDate = DateOnly.FromDateTime(DateTime.UtcNow);
+                    }
+                }
+            }
+            await _unitOfWork.SaveChangesAsync();
         }
         public async Task<Contract> ValidateContractOnSignedAsync(string id)
         {

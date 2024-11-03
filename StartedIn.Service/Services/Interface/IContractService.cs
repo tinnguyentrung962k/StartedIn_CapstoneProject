@@ -18,5 +18,6 @@ namespace StartedIn.Service.Services.Interface
         long GenerateUniqueBookingCode();
         Task<Contract> ValidateContractOnSignedAsync(string id);
         Task DownLoadFileContract(string contractId);
+        Task UpdateSignedStatusForUserInContract(string contractId);
     }
 }

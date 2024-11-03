@@ -1,6 +1,7 @@
 ﻿using DocumentFormat.OpenXml;
 using DocumentFormat.OpenXml.Packaging;
 using DocumentFormat.OpenXml.Wordprocessing;
+using StartedIn.CrossCutting.Constants;
 using StartedIn.Domain.Entities;
 using StartedIn.Service.Services.Interface;
 using System;
@@ -81,7 +82,7 @@ namespace StartedIn.Service.Services
             Contract contract, User investor, User leader, Project project,
             ShareEquity shareEquity, List<Disbursement> disbursements, decimal? buyPrice)
         {
-            string blobName = "Mau-Hop-dong-mua-ban-co-phan.docx";
+            string blobName = BlobServiceConstant.InvesmentContractTemplate;
 
             // Bước 1: Tải mẫu hợp đồng từ Azure Blob Storage
             using var originalMemoryStream = await _azureBlobService.DownloadDocumentToMemoryStreamAsync(blobName);

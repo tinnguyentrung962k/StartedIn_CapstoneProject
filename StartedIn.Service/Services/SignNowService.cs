@@ -21,6 +21,7 @@ using StartedIn.Domain.Entities;
 using StartedIn.CrossCutting.Exceptions;
 using Microsoft.Extensions.Logging;
 using StartedIn.CrossCutting.DTOs.ResponseDTO;
+using Azure;
 
 namespace StartedIn.Service.Services
 {
@@ -308,6 +309,54 @@ namespace StartedIn.Service.Services
                 // Handle other potential errors here.
                 _logger.LogError($"Error: {e.Message}");
                 throw;
+            }
+        }
+
+        public async Task<bool> RegisterManyWebhookAsync(List<SignNowWebhookCreateDTO> signNowWebhooksCreateList)
+        {
+            // Ensure the access token is available; if not, authenticate.
+            if (string.IsNullOrEmpty(_accessToken))
+            {
+                await AuthenticateAsync(); // Authenticate if token is missing
+            }
+
+            // Use a list to track the results of each registration attempt
+            var registrationTasks = new List<Task<bool>>();
+
+            foreach (var signNowWebhookCreateDTO in signNowWebhooksCreateList)
+            {
+                // Register each webhook asynchronously and add the task to the list
+                registrationTasks.Add(RegisterWebhookAsync(signNowWebhookCreateDTO));
+            }
+
+            // Await all registration tasks
+            var results = await Task.WhenAll(registrationTasks);
+
+            // Return true if all registrations were successful
+            return results.All(result => result);
+        }
+
+        public async Task<SignInviteFreeFormResponseDTO> GetDocumentFreeFormInvite(string documentId)
+        {
+            if (string.IsNullOrEmpty(_accessToken))
+            {
+                await AuthenticateAsync(); // Authenticate if token is missing
+            }
+
+            // Construct the request URL for the free form invite
+            var requestUrl = $"{_signNowSettings.ApiBaseUrl}/v2/documents/{documentId}/free-form-invites";
+            try
+            {
+                // Send the GET request to retrieve the free form invite details
+                var response = await _httpClient.GetAsync(requestUrl);
+                response.EnsureSuccessStatusCode();
+                var jsonResponse = await response.Content.ReadAsStringAsync();
+                var signInviteFreeFormResponse = JsonConvert.DeserializeObject<SignInviteFreeFormResponseDTO>(jsonResponse);
+                return signInviteFreeFormResponse; // Return the deserialized object
+            }
+            catch (Exception ex)
+            {
+                throw new Exception($"Error retrieving free form invite: {ex.Message}", ex);
             }
         }
     }
