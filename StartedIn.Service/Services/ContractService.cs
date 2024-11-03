@@ -16,6 +16,7 @@ using StartedIn.CrossCutting.Exceptions;
 using StartedIn.Domain.Entities;
 using StartedIn.Repository.Repositories.Interface;
 using StartedIn.Service.Services.Interface;
+using StartedIn.CrossCutting.Enum;
 using System.Collections.Generic;
 using System.Net;
 
@@ -36,6 +37,7 @@ namespace StartedIn.Service.Services
         private readonly IDocumentFormatService _documentFormatService;
         private readonly IConfiguration _configuration;
         private readonly string _apiDomain;
+        private readonly IUserService _userService;
 
         public ContractService(IContractRepository contractRepository,
             IUnitOfWork unitOfWork,
@@ -45,7 +47,9 @@ namespace StartedIn.Service.Services
             IEmailService emailService,
             IProjectRepository projectRepository,
             IShareEquityRepository shareEquityRepository,
-            IDisbursementRepository disbursementRepository, IAzureBlobService azureBlobService, IDocumentFormatService documentFormatService,IConfiguration configuration)
+            IDisbursementRepository disbursementRepository, IAzureBlobService azureBlobService, 
+            IDocumentFormatService documentFormatService,IConfiguration configuration,
+            IUserService userService)
         {
             _contractRepository = contractRepository;
             _unitOfWork = unitOfWork;
@@ -59,25 +63,18 @@ namespace StartedIn.Service.Services
             _azureBlobService = azureBlobService;
             _documentFormatService = documentFormatService;
             _configuration = configuration;
+            _userService = userService;
             _apiDomain = _configuration.GetValue<string>("API_DOMAIN") ?? _configuration["Local_domain"];
         }
+        
 
         public async Task<Contract> CreateInvestmentContract(string userId, InvestmentContractCreateDTO investmentContractCreateDTO)
         {
-            var user = await _userManager.FindByIdAsync(userId);
-            if (user == null)
-            {
-                throw new NotFoundException("Không tìm thấy người dùng");
-            }
-            var project = await _projectRepository.GetProjectById(investmentContractCreateDTO.Contract.ProjectId);
-            if (project == null)
-            {
-                throw new NotFoundException("Không tìm thấy dự án");
-            }
+            var userInProject = await _userService.CheckIfUserInProject(userId, investmentContractCreateDTO.Contract.ProjectId);
             var projectRole = await _projectRepository.GetUserRoleInProject(userId, investmentContractCreateDTO.Contract.ProjectId);
-            if (projectRole != CrossCutting.Enum.RoleInTeam.Leader)
+            if (projectRole != RoleInTeam.Leader)
             {
-                throw new UnauthorizedProjectRoleException("Bạn không phải nhóm trưởng");
+                throw new UnauthorizedProjectRoleException(MessageConstant.RolePermissionError);
             }
             try
             {
@@ -92,12 +89,12 @@ namespace StartedIn.Service.Services
                     ContractName = investmentContractCreateDTO.Contract.ContractName,
                     ContractPolicy = investmentContractCreateDTO.Contract.ContractPolicy,
                     ContractType = ContractTypeConstant.Investment,
-                    CreatedBy = user.FullName,
+                    CreatedBy = userInProject.User.FullName,
                     ProjectId = investmentContractCreateDTO.Contract.ProjectId,
                     ContractStatus = ContractStatusConstant.Draft,
                     ContractIdNumber = investmentContractCreateDTO.Contract.ContractIdNumber
                 };
-                var leader = user;
+                var leader = userInProject.User;
                 List<UserContract> usersInContract = new List<UserContract>();
                 List<User> chosenUsersList = new List<User> { investor, leader };
                 foreach (var chosenUser in chosenUsersList)
@@ -114,12 +111,12 @@ namespace StartedIn.Service.Services
                 {
                     ContractId = contract.Id,
                     Contract = contract,
-                    CreatedBy = user.FullName,
+                    CreatedBy = userInProject.User.FullName,
                     Percentage = investmentContractCreateDTO.InvestorInfo.Percentage,
                     StakeHolderType = RoleInTeamConstant.INVESTOR,
                     User = investor,
                     UserId = investor.Id,
-                    ShareQuantity = project.TotalShares * investmentContractCreateDTO.InvestorInfo.ShareQuantity,
+                    ShareQuantity = investmentContractCreateDTO.InvestorInfo.ShareQuantity,
                 };
                 var contractEntity = _contractRepository.Add(contract);
                 var shareEquityEntity = _shareEquityRepository.Add(shareEquity);
@@ -132,7 +129,7 @@ namespace StartedIn.Service.Services
                         Condition = disbursementTime.Condition,
                         Contract = contract,
                         ContractId = contract.Id,
-                        CreatedBy = user.FullName,
+                        CreatedBy = userInProject.User.FullName,
                         DisbursementStatus = DisbursementStatusConstant.Pending,
                         StartDate = disbursementTime.StartDate,
                         EndDate = disbursementTime.EndDate,
@@ -146,7 +143,7 @@ namespace StartedIn.Service.Services
                     var disbursementEntity = _disbursementRepository.Add(disbursement);
                 }
                 await _signNowService.AuthenticateAsync();
-                contract.SignNowDocumentId = await _signNowService.UploadInvestmentContractToSignNowAsync(contract,investor,leader,project,shareEquity,disbursementList,investmentContractCreateDTO.InvestorInfo.BuyPrice);
+                contract.SignNowDocumentId = await _signNowService.UploadInvestmentContractToSignNowAsync(contract,investor,leader,userInProject.Project,shareEquity,disbursementList,investmentContractCreateDTO.InvestorInfo.BuyPrice);
                 await _unitOfWork.SaveChangesAsync();
                 await _unitOfWork.CommitAsync();
                 return contractEntity;
@@ -187,41 +184,20 @@ namespace StartedIn.Service.Services
 
         public async Task<IEnumerable<Contract>> GetContractsByUserIdInAProject(string userId, string projectId, int pageIndex, int pageSize)
         {
-            var user = await _userManager.FindByIdAsync(userId);
-            if (user == null)
-            {
-                throw new NotFoundException("Không tìm thấy người dùng");
-            }
-            var chosenProject = await _projectRepository.GetOneAsync(projectId);
-            if (chosenProject == null)
-            {
-                throw new NotFoundException("Không tìm thấy dự án");
-            }
+            await _userService.CheckIfUserInProject(userId, projectId);
             var contracts = await _contractRepository.GetContractsByUserIdInAProject(userId, projectId, pageIndex, pageSize);
-            if (contracts is null)
-            {
-                throw new NotFoundException("Không có hợp đồng nào trong danh sách");
-            }
             return contracts;
         }
+        
 
         public async Task<Contract> SendSigningInvitationForContract(string userId, string contractId)
         {
-            var user = await _userManager.FindByIdAsync(userId);
-            if (user == null)
-            {
-                throw new NotFoundException("Không tìm thấy người dùng");
-            }
-            var chosenContract = await _contractRepository.GetContractById(contractId);
-            if (chosenContract is null)
-            {
-                throw new NotFoundException("Hợp đồng không tìm thấy");
-            }
+            var userInChosenContract = await _userService.CheckIfUserBelongToContract(userId, contractId);
             try
             {
                 await _signNowService.AuthenticateAsync();
                 var userPartys = new List<User>();
-                foreach (var userInContract in chosenContract.UserContracts)
+                foreach (var userInContract in userInChosenContract.Contract.UserContracts)
                 {
                     User userParty = await _userManager.FindByIdAsync(userInContract.UserId);
                     userPartys.Add(userParty);
@@ -231,15 +207,15 @@ namespace StartedIn.Service.Services
                 {
                     userEmails.Add(userParty.Email);
                 }
-                chosenContract.LastUpdatedBy = user.FullName;
-                chosenContract.LastUpdatedTime = DateTimeOffset.UtcNow;
-                chosenContract.ContractStatus = ContractStatusConstant.Sent;
-                var inviteResponse = await _signNowService.CreateFreeFormInvite(chosenContract.SignNowDocumentId, userEmails);
+                userInChosenContract.Contract.LastUpdatedBy = userInChosenContract.User.FullName;
+                userInChosenContract.Contract.LastUpdatedTime = DateTimeOffset.UtcNow;
+                userInChosenContract.Contract.ContractStatus = ContractStatusConstant.Sent;
+                var inviteResponse = await _signNowService.CreateFreeFormInvite(userInChosenContract.Contract.SignNowDocumentId, userEmails);
                 var webhookCompleteSign = new SignNowWebhookCreateDTO
                 {
                     Action = SignNowServiceConstant.CallBackAction,
                     CallBackUrl = $"{_apiDomain}/api/contract/valid-contract/{contractId}",
-                    EntityId = chosenContract.SignNowDocumentId,
+                    EntityId = userInChosenContract.Contract.SignNowDocumentId,
                     Event = SignNowServiceConstant.DocumentCompleteEvent
                 };
                 await _signNowService.RegisterWebhookAsync(webhookCompleteSign);
@@ -247,13 +223,14 @@ namespace StartedIn.Service.Services
                 {
                     Action = SignNowServiceConstant.CallBackAction,
                     CallBackUrl = $"{_apiDomain}/api/contract/update-user-sign/{contractId}",
-                    EntityId = chosenContract.SignNowDocumentId,
+                    EntityId = userInChosenContract.Contract.SignNowDocumentId,
                     Event = SignNowServiceConstant.DocumentUpdateEvent
                 };
-                await _signNowService.RegisterWebhookAsync(webhookUpdate);
-                _contractRepository.Update(chosenContract);
+                var webHookCreateList = new List<SignNowWebhookCreateDTO> { webhookCompleteSign, webhookUpdate };
+                await _signNowService.RegisterManyWebhookAsync(webHookCreateList);
+                _contractRepository.Update(userInChosenContract.Contract);
                 await _unitOfWork.SaveChangesAsync();
-                return chosenContract;
+                return userInChosenContract.Contract;
             }
 
             catch (Exception ex)
@@ -268,7 +245,7 @@ namespace StartedIn.Service.Services
             var contract = await _contractRepository.GetContractById(contractId);
             if (contract == null)
             {
-                throw new NotFoundException(MessageConstant.NotFoundError);
+                throw new NotFoundException(MessageConstant.NotFoundContractError);
             }
 
             // Get the SignNow document invite data
@@ -283,7 +260,7 @@ namespace StartedIn.Service.Services
             // Loop through the signing data to find fulfilled users
             foreach (var signedData in contractInvite.Data)
             {
-                if (signedData.Status.Equals("fulfilled", StringComparison.OrdinalIgnoreCase))
+                if (signedData.Status.Equals(SignNowServiceConstant.FulfilledStatus))
                 {
                     // Find the corresponding UserContract entry for the signed user
                     var existingUserContract = contract.UserContracts
@@ -335,15 +312,11 @@ namespace StartedIn.Service.Services
                 throw;
             }
         }
-        public async Task<DocumentDownLoadResponseDTO> DownLoadFileContract(string contractId)
+        public async Task<DocumentDownLoadResponseDTO> DownLoadFileContract(string userId, string contractId)
         {
-            var contract = await _contractRepository.GetOneAsync(contractId);
-            if (contract == null)
-            {
-                throw new NotFoundException(MessageConstant.NotFoundError);
-            }
+            var userInContract = await _userService.CheckIfUserBelongToContract(userId, contractId);
             await _signNowService.AuthenticateAsync();
-            DocumentDownLoadResponseDTO documentDownloadinfo = await _signNowService.DownLoadDocument(contract.SignNowDocumentId);
+            var documentDownloadinfo = await _signNowService.DownLoadDocument(userInContract.Contract.SignNowDocumentId);
             return documentDownloadinfo;
         }
     }

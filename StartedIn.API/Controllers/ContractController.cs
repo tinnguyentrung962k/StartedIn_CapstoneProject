@@ -45,7 +45,7 @@ namespace StartedIn.API.Controllers
             }
             catch (UnauthorizedProjectRoleException ex)
             {
-                return Forbid(ex.Message);
+                return StatusCode(403,ex.Message);
             }
             catch (Exception ex)
             {
@@ -66,6 +66,10 @@ namespace StartedIn.API.Controllers
 
                 return Ok(responseContract);
             }
+            catch (UnauthorizedProjectRoleException ex)
+            {
+                return StatusCode(403, ex.Message);
+            }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error while creating contract");
@@ -85,7 +89,11 @@ namespace StartedIn.API.Controllers
             }
             catch (NotFoundException ex)
             {
-                return NotFound(ex.Message);
+                return BadRequest(ex.Message);
+            }
+            catch (UnauthorizedProjectRoleException ex)
+            {
+                return StatusCode(403, ex.Message);
             }
             catch (Exception ex)
             {
@@ -105,11 +113,11 @@ namespace StartedIn.API.Controllers
             }
             catch (NotFoundException ex)
             {
-                return NotFound(ex.Message);
+                return BadRequest(ex.Message);
             }
             catch (Exception ex)
             {
-                return BadRequest(ex.Message);
+                return StatusCode(500, "Lỗi truy xuất"); ;
             }
         }
 
@@ -140,20 +148,22 @@ namespace StartedIn.API.Controllers
             }
         }
         [HttpPost("contract/download-contract/{contractId}")]
+        [Authorize]
         public async Task<ActionResult<DocumentDownLoadResponseDTO>> DownLoadContract([FromRoute] string contractId)
         {
+            var userId = User.FindFirst(ClaimTypes.NameIdentifier).Value;
             try
             {
-                var downloadLink = await _contractService.DownLoadFileContract(contractId);
+                var downloadLink = await _contractService.DownLoadFileContract(userId,contractId);
                 return Ok(downloadLink);
             }
             catch (NotFoundException ex)
             {
                 return BadRequest(ex.Message);
             }
-            catch (UnauthorizedAccessException ex)
+            catch (UnauthorizedProjectRoleException ex)
             {
-                return Unauthorized(ex.Message);
+                return StatusCode(403, ex.Message);
             }
             catch (Exception ex)
             {

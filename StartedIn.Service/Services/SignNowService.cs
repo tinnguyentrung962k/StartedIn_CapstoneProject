@@ -20,7 +20,6 @@ using DocumentFormat.OpenXml.Bibliography;
 using StartedIn.Domain.Entities;
 using StartedIn.CrossCutting.Exceptions;
 using Microsoft.Extensions.Logging;
-using StartedIn.CrossCutting.DTOs.ResponseDTO;
 using Azure;
 
 namespace StartedIn.Service.Services
@@ -259,11 +258,11 @@ namespace StartedIn.Service.Services
             return null; // Return null if there was an error
         }
 
-        public async Task<DocumentResponseDTO> GetDocumentAllInfoAsync(string documentId)
+        public async Task<SignNowDocumentFullResponseDTO> GetDocumentAllInfoAsync(string documentId)
         {
             if (string.IsNullOrEmpty(documentId))
             {
-                throw new NotFoundException(MessageConstant.NotFoundError);
+                throw new NotFoundException(MessageConstant.NotFoundDocumentError);
             }
 
             try
@@ -281,7 +280,7 @@ namespace StartedIn.Service.Services
                 var responseContent = await response.Content.ReadAsStringAsync();
 
                 // Deserialize the JSON response to DocumentResponseDto.
-                var documentInfo = JsonConvert.DeserializeObject<DocumentResponseDTO>(responseContent);
+                var documentInfo = JsonConvert.DeserializeObject<SignNowDocumentFullResponseDTO>(responseContent);
 
                 return documentInfo;
             }

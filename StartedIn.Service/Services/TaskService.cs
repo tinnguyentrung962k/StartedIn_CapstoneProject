@@ -23,27 +23,39 @@ namespace StartedIn.Service.Services
         private readonly ILogger<TaskEntity> _logger;
         private readonly ITaskHistoryRepository _taskHistoryRepository;
         private readonly UserManager<User> _userManager;
+        private readonly IProjectRepository _projectRepository;
+        private readonly IMilestoneRepository _milestoneRepository;
+        private readonly IUserService _userService;
 
         public TaskService(
             IUnitOfWork unitOfWork,
             ITaskRepository taskRepository,
             ILogger<TaskEntity> logger,
             ITaskHistoryRepository taskHistoryRepository,
-            UserManager<User> userManager)
+            UserManager<User> userManager,
+            IProjectRepository projectRepository,
+            IMilestoneRepository milestoneRepository,
+            IUserService userService)
         {
             _unitOfWork = unitOfWork;
             _taskRepository = taskRepository;
             _logger = logger;
             _taskHistoryRepository = taskHistoryRepository;
             _userManager = userManager;
+            _projectRepository = projectRepository;
+            _milestoneRepository = milestoneRepository;
+            _userService = userService;
         }
         public async Task<TaskEntity> CreateTask(TaskCreateDTO taskCreateDto, string userId)
         {
-            var user = await _userManager.FindByIdAsync(userId);
-            if (user == null)
-            {
-                throw new NotFoundException("Người dùng không tồn tại");
+            var mileStone = await _milestoneRepository.QueryHelper()
+                .Include(x=>x.Project)
+                .Filter(x=>x.Id.Equals(taskCreateDto.MilestoneId))
+                .GetOneAsync();
+            if (mileStone is null) {
+                throw new NotFoundException(MessageConstant.NotFoundMilestoneError);
             }
+            var logInUser = await _userService.CheckIfUserInProject(userId, mileStone.Project.Id);
             try
             {
                 _unitOfWork.BeginTransaction();
@@ -56,11 +68,11 @@ namespace StartedIn.Service.Services
                     Status = TaskStatusConstant.Pending
                 };
                 var taskEntity = _taskRepository.Add(task);
-                string notification = user.FullName + " đã tạo ra công việc: " + task.Title;
+                string notification = logInUser.User.FullName + " đã tạo ra công việc: " + task.Title;
                 TaskHistory history = new TaskHistory
                 {
                     Content = notification,
-                    CreatedBy = user.FullName,
+                    CreatedBy = logInUser.User.FullName,
                     TaskId = task.Id
                 };
                 var taskHistory = _taskHistoryRepository.Add(history);
@@ -86,13 +98,17 @@ namespace StartedIn.Service.Services
             };
         }
 
-        public async Task<TaskEntity> UpdateTaskInfo(string id, UpdateTaskInfoDTO updateTaskInfoDTO)
+        public async Task<TaskEntity> UpdateTaskInfo(string userId, string id, UpdateTaskInfoDTO updateTaskInfoDTO)
         {
-            var chosenTask = await _taskRepository.GetOneAsync(id);
+            var chosenTask = await _taskRepository.QueryHelper()
+                .Include(x=>x.Milestone)
+                .Filter(x=>x.Id.Equals(id)).
+                GetOneAsync();
             if (chosenTask == null)
             {
                 throw new NotFoundException("Không tìm thấy công việc");
             }
+            var userInProject = await _userService.CheckIfUserInProject(userId,chosenTask.Milestone.ProjectId);
             try
             {
                 string taskStatus = GetTaskStatusName(updateTaskInfoDTO.Status);
@@ -101,6 +117,7 @@ namespace StartedIn.Service.Services
                 chosenTask.Status = taskStatus;
                 chosenTask.Deadline = updateTaskInfoDTO.Deadline;
                 chosenTask.LastUpdatedTime = DateTimeOffset.UtcNow;
+                chosenTask.LastUpdatedBy = userInProject.User.FullName;
                 _taskRepository.Update(chosenTask);
                 await _unitOfWork.SaveChangesAsync();
                 return chosenTask;

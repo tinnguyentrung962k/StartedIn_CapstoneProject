@@ -5,9 +5,9 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace StartedIn.CrossCutting.DTOs.ResponseDTO
+namespace StartedIn.CrossCutting.DTOs.ResponseDTO.SignNowResponseDTO
 {
-    public class DocumentResponseDTO
+    public class SignNowDocumentFullResponseDTO
     {
         [JsonProperty("id")]
         public string Id { get; set; }

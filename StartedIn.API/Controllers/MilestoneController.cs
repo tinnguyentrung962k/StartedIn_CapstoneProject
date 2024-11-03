@@ -75,8 +75,14 @@ namespace StartedIn.API.Controllers
         {
             try
             {
-                var responseMilestone = _mapper.Map<MilestoneResponseDTO>(await _milestoneService.UpdateMilestoneInfo(milestoneId, milestoneInfoUpdateDTO));
+                var userId = User.FindFirst(ClaimTypes.NameIdentifier).Value;
+                var responseMilestone = _mapper.Map<MilestoneResponseDTO>(await _milestoneService.UpdateMilestoneInfo(userId,milestoneId, milestoneInfoUpdateDTO));
                 return Ok(responseMilestone);
+            }
+            catch (UnauthorizedProjectRoleException ex)
+            {
+                _logger.LogError(ex, "Unauthorized Role");
+                return StatusCode(403, ex.Message);
             }
             catch (NotFoundException ex)
             {

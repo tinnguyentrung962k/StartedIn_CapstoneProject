@@ -39,5 +39,15 @@ namespace StartedIn.Repository.Repositories
         {
             return await _appDbContext.Set<UserContract>().Where(x=>x.Contract.ProjectId.Equals(projectId)).Include(x=>x.User).ToListAsync();   
         }
+        public async Task<bool> CheckIfUserInProject(string userId, string projectId)
+        {
+            var isUserInProject = await _appDbContext.UserProjects.AnyAsync(x => x.UserId.Equals(userId) && x.ProjectId.Equals(projectId));
+            return isUserInProject;
+        }
+        public async Task<bool> IsUserBelongToAContract(string userId, string contractId)
+        {
+            var isUserBelongContract = await _appDbContext.UserContracts.AnyAsync(x => x.UserId.Equals(userId) && x.ContractId.Equals(contractId));
+            return isUserBelongContract;
+        }
     }
 }

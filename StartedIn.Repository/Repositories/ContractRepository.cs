@@ -41,5 +41,6 @@ namespace StartedIn.Repository.Repositories
                 .ToListAsync();
             return contract;
         }
+        
     }
 }

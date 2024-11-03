@@ -3,7 +3,6 @@ using Microsoft.AspNetCore.Http;
 using Newtonsoft.Json;
 using StartedIn.CrossCutting.DTOs.RequestDTO;
 using StartedIn.CrossCutting.DTOs.RequestDTO.SignNowWebhookRequestDTO;
-using StartedIn.CrossCutting.DTOs.ResponseDTO;
 using StartedIn.CrossCutting.DTOs.ResponseDTO.SignNowResponseDTO;
 using StartedIn.Domain.Entities;
 using System.Net.Http;
@@ -22,7 +21,7 @@ namespace StartedIn.Service.Services.Interface
         Task<bool> RegisterManyWebhookAsync(List<SignNowWebhookCreateDTO> signNowWebhooksCreateList);
         Task<string> UploadInvestmentContractToSignNowAsync(Contract contract, User investor, User leader, Project project,ShareEquity shareEquity, List<Disbursement> disbursements, decimal? buyPrice);
         Task<DocumentDownLoadResponseDTO> DownLoadDocument(string documentId);
-        Task<DocumentResponseDTO> GetDocumentAllInfoAsync(string documentId);
+        Task<SignNowDocumentFullResponseDTO> GetDocumentAllInfoAsync(string documentId);
         Task<SignInviteFreeFormResponseDTO> GetDocumentFreeFormInvite(string documentId);
     }
 }

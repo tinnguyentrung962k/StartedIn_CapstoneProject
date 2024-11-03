@@ -11,6 +11,7 @@ namespace StartedIn.CrossCutting.Constants
         public const string DocumentCompleteEvent = "document.complete";
         public const string CallBackAction = "callback";
         public const string DocumentUpdateEvent = "document.update";
+        public const string FulfilledStatus = "fulfilled";
 
     }
 }
