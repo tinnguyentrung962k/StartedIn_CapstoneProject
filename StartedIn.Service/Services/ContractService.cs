@@ -10,6 +10,8 @@ using Microsoft.Extensions.Logging;
 using StartedIn.CrossCutting.Constants;
 using StartedIn.CrossCutting.DTOs.RequestDTO;
 using StartedIn.CrossCutting.DTOs.RequestDTO.SignNowWebhookRequestDTO;
+using StartedIn.CrossCutting.DTOs.ResponseDTO;
+using StartedIn.CrossCutting.DTOs.ResponseDTO.SignNowResponseDTO;
 using StartedIn.CrossCutting.Exceptions;
 using StartedIn.Domain.Entities;
 using StartedIn.Repository.Repositories.Interface;
@@ -333,7 +335,7 @@ namespace StartedIn.Service.Services
                 throw;
             }
         }
-        public async Task DownLoadFileContract(string contractId)
+        public async Task<DocumentDownLoadResponseDTO> DownLoadFileContract(string contractId)
         {
             var contract = await _contractRepository.GetOneAsync(contractId);
             if (contract == null)
@@ -341,7 +343,8 @@ namespace StartedIn.Service.Services
                 throw new NotFoundException(MessageConstant.NotFoundError);
             }
             await _signNowService.AuthenticateAsync();
-            await _signNowService.DownLoadDocument(contract.SignNowDocumentId);
+            DocumentDownLoadResponseDTO documentDownloadinfo = await _signNowService.DownLoadDocument(contract.SignNowDocumentId);
+            return documentDownloadinfo;
         }
     }
 }

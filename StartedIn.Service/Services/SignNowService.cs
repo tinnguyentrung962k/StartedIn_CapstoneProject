@@ -219,57 +219,44 @@ namespace StartedIn.Service.Services
             }
         }
 
-        public async Task DownLoadDocument(string documentId)
+        public async Task<DocumentDownLoadResponseDTO> DownLoadDocument(string documentId)
         {
-            string downloadsFolder = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);
-            var document = await GetDocumentAllInfoAsync(documentId);
-
-            // Ensure the document name has a .pdf extension
-            string fileName = document.DocumentName;
-            if (!fileName.EndsWith(".pdf", StringComparison.OrdinalIgnoreCase))
-            {
-                fileName += ".pdf"; // Append the .pdf extension
-            }
-
-            string filePath = Path.Combine(downloadsFolder, "Downloads", fileName);
-
-            // Check if the file already exists and modify the file name if necessary
-            int fileIndex = 1;
-            while (File.Exists(filePath))
-            {
-                // Generate a new file name with a suffix, e.g., "downloadedDocument(1).pdf"
-                string baseName = Path.GetFileNameWithoutExtension(fileName);
-                string extension = Path.GetExtension(fileName);
-                fileName = $"{baseName}({fileIndex}){extension}"; // Keep the correct extension
-                filePath = Path.Combine(downloadsFolder, "Downloads", fileName);
-                fileIndex++;
-            }
-
             try
             {
-                var downLoadSignNowUrl = $"{_signNowSettings.ApiBaseUrl}/document/{documentId}/download?type=collapsed";
-                var response = await _httpClient.GetAsync(downLoadSignNowUrl);
+                var downloadSignNowUrl = $"{_signNowSettings.ApiBaseUrl}/document/{documentId}/download/link";
+
+                // Send the POST request without a request body
+                var response = await _httpClient.PostAsync(downloadSignNowUrl, null);
+
                 if (response.IsSuccessStatusCode)
                 {
-                    using (var fileStream = new FileStream(filePath, FileMode.Create, FileAccess.Write))
-                    {
-                        await response.Content.CopyToAsync(fileStream);
-                    }
-                    Console.WriteLine($"Document downloaded successfully as {fileName}");
+                    // Assuming the API response is JSON and contains the download link as a URL
+                    var responseContent = await response.Content.ReadAsStringAsync();
+
+                    // Deserialize the JSON content into the DocumentDownLoadResponseDTO
+                    var downloadInfo = JsonConvert.DeserializeObject<DocumentDownLoadResponseDTO>(responseContent);
+                    return downloadInfo;
+                }
+                else if (response.StatusCode == System.Net.HttpStatusCode.NotFound)
+                {
+                    Console.WriteLine("Document not found.");
+                    return null;
                 }
                 else
                 {
                     throw new DownloadErrorException(MessageConstant.DownLoadError);
                 }
             }
-            catch (UnauthorizedAccessException ex)
+            catch (DownloadErrorException ex)
             {
-                Console.WriteLine("Access to the path is denied. Try running as administrator or choosing a different path.");
+                Console.WriteLine($"Download error: {ex.Message}");
             }
             catch (Exception ex)
             {
                 Console.WriteLine($"An error occurred: {ex.Message}");
             }
+
+            return null; // Return null if there was an error
         }
 
         public async Task<DocumentResponseDTO> GetDocumentAllInfoAsync(string documentId)

@@ -7,6 +7,7 @@ using Newtonsoft.Json;
 using StartedIn.CrossCutting.DTOs.RequestDTO;
 using StartedIn.CrossCutting.DTOs.RequestDTO.SignNowWebhookRequestDTO;
 using StartedIn.CrossCutting.DTOs.ResponseDTO;
+using StartedIn.CrossCutting.DTOs.ResponseDTO.SignNowResponseDTO;
 using StartedIn.CrossCutting.Exceptions;
 using StartedIn.Domain.Entities;
 using StartedIn.Service.Services.Interface;
@@ -138,13 +139,13 @@ namespace StartedIn.API.Controllers
                 return StatusCode(500, "Lỗi Cập nhật");
             }
         }
-        [HttpGet("/contract/download-contract/{contractId}")]
-        public async Task<IActionResult> DownLoadContract([FromRoute] string contractId)
+        [HttpPost("/contract/download-contract/{contractId}")]
+        public async Task<ActionResult<DocumentDownLoadResponseDTO>> DownLoadContract([FromRoute] string contractId)
         {
             try
             {
-                await _contractService.DownLoadFileContract(contractId);
-                return Ok("Tải tập tin thành công");
+                var downloadLink = await _contractService.DownLoadFileContract(contractId);
+                return Ok(downloadLink);
             }
             catch (NotFoundException ex)
             {

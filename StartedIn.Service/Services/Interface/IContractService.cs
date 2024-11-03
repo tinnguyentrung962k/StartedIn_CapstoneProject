@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Http;
 using StartedIn.CrossCutting.DTOs.RequestDTO;
+using StartedIn.CrossCutting.DTOs.ResponseDTO.SignNowResponseDTO;
 using StartedIn.Domain.Entities;
 using System;
 using System.Collections.Generic;
@@ -17,7 +18,7 @@ namespace StartedIn.Service.Services.Interface
         Task<Contract> GetContractByContractId(string id);
         long GenerateUniqueBookingCode();
         Task<Contract> ValidateContractOnSignedAsync(string id);
-        Task DownLoadFileContract(string contractId);
+        Task<DocumentDownLoadResponseDTO> DownLoadFileContract(string contractId);
         Task UpdateSignedStatusForUserInContract(string contractId);
     }
 }
