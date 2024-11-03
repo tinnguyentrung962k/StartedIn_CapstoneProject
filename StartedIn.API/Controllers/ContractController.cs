@@ -31,7 +31,7 @@ namespace StartedIn.API.Controllers
             _logger = logger;
             _signNowService = signNowService;
         }
-        [HttpPost("/investment-contract")]
+        [HttpPost("investment-contract")]
         [Authorize]
         public async Task<ActionResult<ContractResponseDTO>> CreateAnInvestmentContract([FromBody] InvestmentContractCreateDTO investmentContractCreateDTO)
         {
@@ -54,7 +54,7 @@ namespace StartedIn.API.Controllers
             }
         }
 
-        [HttpPost("/contract/send-invite/{contractId}")]
+        [HttpPost("contract/send-invite/{contractId}")]
         [Authorize]
         public async Task<ActionResult<ContractResponseDTO>> SendInviteForContract([FromRoute] string contractId)
         {
@@ -72,7 +72,7 @@ namespace StartedIn.API.Controllers
                 return StatusCode(500, "Lỗi server");
             }
         }
-        [HttpGet("/contract/user-contract/project/{projectId}")]
+        [HttpGet("contract/user-contract/project/{projectId}")]
         [Authorize]
         public async Task<ActionResult<List<ContractResponseDTO>>> GetPersonalContractsInAProject([FromRoute] string projectId, [FromQuery] int pageIndex, int pageSize)
         {
@@ -93,7 +93,7 @@ namespace StartedIn.API.Controllers
                 return StatusCode(500, "Lỗi server");
             }
         }
-        [HttpGet("/contract/{contractId}")]
+        [HttpGet("contract/{contractId}")]
         [Authorize]
         public async Task<ActionResult<ContractResponseDTO>> GetContractById([FromRoute] string contractId)
         {
@@ -113,7 +113,7 @@ namespace StartedIn.API.Controllers
             }
         }
 
-        [HttpPost("/contract/valid-contract/{contractId}")]
+        [HttpPost("contract/valid-contract/{contractId}")]
         public async Task<IActionResult> ValidAcontract([FromRoute] string contractId)
         {
             try
@@ -126,7 +126,7 @@ namespace StartedIn.API.Controllers
                 return StatusCode(500, "Lỗi Cập nhật");
             }
         }
-        [HttpPost("/contract/update-user-sign/{contractId}")]
+        [HttpPost("contract/update-user-sign/{contractId}")]
         public async Task<IActionResult> UpdateUserSignedStatus([FromRoute] string contractId)
         {
             try
@@ -139,7 +139,7 @@ namespace StartedIn.API.Controllers
                 return StatusCode(500, "Lỗi Cập nhật");
             }
         }
-        [HttpPost("/contract/download-contract/{contractId}")]
+        [HttpPost("contract/download-contract/{contractId}")]
         public async Task<ActionResult<DocumentDownLoadResponseDTO>> DownLoadContract([FromRoute] string contractId)
         {
             try
