@@ -283,6 +283,16 @@ namespace StartedIn.Service.Services
                 await _unitOfWork.RollbackAsync();
                 throw;
             }
-        }   
+        }
+        public async Task DownLoadFileContract(string contractId)
+        {
+            var contract = await _contractRepository.GetOneAsync(contractId);
+            if (contract == null)
+            {
+                throw new NotFoundException(MessageConstant.NotFoundError);
+            }
+            await _signNowService.AuthenticateAsync();
+            await _signNowService.DownLoadDocument(contract.SignNowDocumentId);
+        }
     }
 }

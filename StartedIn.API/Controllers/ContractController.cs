@@ -112,7 +112,7 @@ namespace StartedIn.API.Controllers
             }
         }
 
-        [HttpPost("/api/contract/valid-contract/{contractId}")]
+        [HttpPost("/contract/valid-contract/{contractId}")]
         public async Task<IActionResult> ValidAcontract([FromRoute] string contractId)
         {
             try
@@ -123,6 +123,27 @@ namespace StartedIn.API.Controllers
             catch (Exception ex)
             {
                 return StatusCode(500, "Lỗi Cập nhật");
+            }
+        }
+        [HttpGet("/contract/download-contract/{contractId}")]
+        public async Task<IActionResult> DownLoadContract([FromRoute] string contractId)
+        {
+            try
+            {
+                await _contractService.DownLoadFileContract(contractId);
+                return Ok("Tải tập tin thành công");
+            }
+            catch (NotFoundException ex)
+            {
+                return BadRequest(ex.Message);
+            }
+            catch (UnauthorizedAccessException ex)
+            {
+                return Unauthorized(ex.Message);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, "Lỗi tải tập tin");
             }
         }
 

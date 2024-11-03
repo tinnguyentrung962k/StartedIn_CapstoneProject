@@ -20,5 +20,7 @@ namespace StartedIn.Service.Services.Interface
         Task<List<FreeFormInvitationResponseDTO>> CreateFreeFormInvite(string documentId, List<string> inviteEmails);
         Task<bool> RegisterWebhookAsync(SignNowWebhookCreateDTO signNowWebhookCreateDTO);
         Task<string> UploadInvestmentContractToSignNowAsync(Contract contract, User investor, User leader, Project project,ShareEquity shareEquity, List<Disbursement> disbursements, decimal? buyPrice);
+        Task DownLoadDocument(string documentId);
+        Task<DocumentResponseDTO> GetDocumentAllInfoAsync(string documentId); 
     }
 }

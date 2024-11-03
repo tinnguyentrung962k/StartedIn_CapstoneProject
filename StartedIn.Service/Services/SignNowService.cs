@@ -18,6 +18,9 @@ using StartedIn.CrossCutting.Enum;
 using StartedIn.CrossCutting.Constants;
 using DocumentFormat.OpenXml.Bibliography;
 using StartedIn.Domain.Entities;
+using StartedIn.CrossCutting.Exceptions;
+using Microsoft.Extensions.Logging;
+using StartedIn.CrossCutting.DTOs.ResponseDTO;
 
 namespace StartedIn.Service.Services
 {
@@ -28,8 +31,9 @@ namespace StartedIn.Service.Services
         private readonly SignNowSettings _signNowSettings;
         private readonly IAzureBlobService _azureBlobService;
         private readonly IDocumentFormatService _documentFormatService;
+        private readonly ILogger<SignNowService> _logger;
 
-        public SignNowService(IConfiguration configuration, IAzureBlobService azureBlobService,IDocumentFormatService documentFormatService)
+        public SignNowService(IConfiguration configuration, IAzureBlobService azureBlobService,IDocumentFormatService documentFormatService, ILogger<SignNowService> logger)
         {
             _httpClient = new HttpClient();
             _signNowSettings = new SignNowSettings
@@ -42,6 +46,7 @@ namespace StartedIn.Service.Services
             };
             _azureBlobService = azureBlobService;
             _documentFormatService = documentFormatService;
+            _logger = logger;
         }
         public async Task AuthenticateAsync()
         {
@@ -210,6 +215,99 @@ namespace StartedIn.Service.Services
             catch (Exception ex)
             {
                 throw new Exception($"Error registering webhook: {ex.Message}");
+            }
+        }
+
+        public async Task DownLoadDocument(string documentId)
+        {
+            string downloadsFolder = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);
+            var document = await GetDocumentAllInfoAsync(documentId);
+
+            // Ensure the document name has a .pdf extension
+            string fileName = document.DocumentName;
+            if (!fileName.EndsWith(".pdf", StringComparison.OrdinalIgnoreCase))
+            {
+                fileName += ".pdf"; // Append the .pdf extension
+            }
+
+            string filePath = Path.Combine(downloadsFolder, "Downloads", fileName);
+
+            // Check if the file already exists and modify the file name if necessary
+            int fileIndex = 1;
+            while (File.Exists(filePath))
+            {
+                // Generate a new file name with a suffix, e.g., "downloadedDocument(1).pdf"
+                string baseName = Path.GetFileNameWithoutExtension(fileName);
+                string extension = Path.GetExtension(fileName);
+                fileName = $"{baseName}({fileIndex}){extension}"; // Keep the correct extension
+                filePath = Path.Combine(downloadsFolder, "Downloads", fileName);
+                fileIndex++;
+            }
+
+            try
+            {
+                var downLoadSignNowUrl = $"{_signNowSettings.ApiBaseUrl}/document/{documentId}/download?type=collapsed";
+                var response = await _httpClient.GetAsync(downLoadSignNowUrl);
+                if (response.IsSuccessStatusCode)
+                {
+                    using (var fileStream = new FileStream(filePath, FileMode.Create, FileAccess.Write))
+                    {
+                        await response.Content.CopyToAsync(fileStream);
+                    }
+                    Console.WriteLine($"Document downloaded successfully as {fileName}");
+                }
+                else
+                {
+                    throw new DownloadErrorException(MessageConstant.DownLoadError);
+                }
+            }
+            catch (UnauthorizedAccessException ex)
+            {
+                Console.WriteLine("Access to the path is denied. Try running as administrator or choosing a different path.");
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"An error occurred: {ex.Message}");
+            }
+        }
+
+        public async Task<DocumentResponseDTO> GetDocumentAllInfoAsync(string documentId)
+        {
+            if (string.IsNullOrEmpty(documentId))
+            {
+                throw new NotFoundException(MessageConstant.NotFoundError);
+            }
+
+            try
+            {
+                // Define the API endpoint with the document ID.
+                var requestUri = $"{_signNowSettings.ApiBaseUrl}/document/{documentId}";
+
+                // Send GET request to the API.
+                HttpResponseMessage response = await _httpClient.GetAsync(requestUri);
+
+                // Ensure success status code.
+                response.EnsureSuccessStatusCode();
+
+                // Read the response content as a string.
+                var responseContent = await response.Content.ReadAsStringAsync();
+
+                // Deserialize the JSON response to DocumentResponseDto.
+                var documentInfo = JsonConvert.DeserializeObject<DocumentResponseDTO>(responseContent);
+
+                return documentInfo;
+            }
+            catch (HttpRequestException e)
+            {
+                // Handle network-related errors here.
+                _logger.LogError($"Request error: {e.Message}");
+                throw;
+            }
+            catch (Exception e)
+            {
+                // Handle other potential errors here.
+                _logger.LogError($"Error: {e.Message}");
+                throw;
             }
         }
     }
