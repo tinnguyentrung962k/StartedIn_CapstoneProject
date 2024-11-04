@@ -53,7 +53,6 @@ namespace StartedIn.Service.Services
             }
             try
             {  
-                string phaseName = GetPhaseName(milestoneCreateDto.PhaseEnum);
                 _unitOfWork.BeginTransaction();
                 Milestone milestone = new Milestone
                 {
@@ -62,7 +61,7 @@ namespace StartedIn.Service.Services
                     Description = milestoneCreateDto.Description,
                     DueDate = milestoneCreateDto.DueDate,
                     ExtendedCount = 0,
-                    PhaseName = phaseName
+                    PhaseName = milestoneCreateDto.PhaseEnum
                 };
                 var milestoneEntity = _milestoneRepository.Add(milestone);
                 string notification = loginUser.User.FullName + " đã tạo ra cột mốc: " + milestone.Title;

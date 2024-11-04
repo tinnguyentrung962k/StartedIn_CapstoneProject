@@ -65,7 +65,7 @@ namespace StartedIn.Service.Services
                     Title = taskCreateDto.TaskTitle,
                     Description = taskCreateDto.Description,
                     Deadline = taskCreateDto.Deadline,
-                    Status = TaskStatusConstant.Pending
+                    Status = TaskEntityStatus.Pending
                 };
                 var taskEntity = _taskRepository.Add(task);
                 string notification = logInUser.User.FullName + " đã tạo ra công việc: " + task.Title;
@@ -114,7 +114,7 @@ namespace StartedIn.Service.Services
                 string taskStatus = GetTaskStatusName(updateTaskInfoDTO.Status);
                 chosenTask.Title = updateTaskInfoDTO.TaskTitle;
                 chosenTask.Description = updateTaskInfoDTO.Description;
-                chosenTask.Status = taskStatus;
+                chosenTask.Status = updateTaskInfoDTO.Status;
                 chosenTask.Deadline = updateTaskInfoDTO.Deadline;
                 chosenTask.LastUpdatedTime = DateTimeOffset.UtcNow;
                 chosenTask.LastUpdatedBy = userInProject.User.FullName;

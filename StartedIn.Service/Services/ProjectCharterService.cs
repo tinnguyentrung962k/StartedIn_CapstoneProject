@@ -73,12 +73,11 @@ namespace StartedIn.Service.Services
                 {
                     foreach (var milestoneDto in projectCharter.ListMilestoneCreateDto)
                     {
-                        string phaseName = _milestoneService.GetPhaseName(milestoneDto.PhaseEnum);
                         var newMilestone = new Milestone
                         {
                             ProjectId = projectCharter.ProjectId,
                             CharterId = newProjectCharter.Id,
-                            PhaseName = phaseName,
+                            PhaseName = milestoneDto.PhaseEnum,
                             Title = milestoneDto.MilstoneTitle,
                             Description = milestoneDto.Description,
                             DueDate = milestoneDto.DueDate,
