@@ -1,4 +1,6 @@
-﻿using Microsoft.AspNetCore.Http;
+﻿using Azure.Storage.Blobs;
+using Microsoft.AspNetCore.Http;
+using StartedIn.CrossCutting.Enum;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -10,7 +12,10 @@ namespace StartedIn.Service.Services.Interface
     public interface IAzureBlobService
     {
         Task<string> UploadAvatarOrCover(IFormFile image);
-        //Task<string> UploadPostImage(IFormFile image);
-        //Task<IList<string>> UploadPostImages(IList<IFormFile> image);
+        Task<MemoryStream> DownloadDocumentToMemoryStreamAsync(string blobName);
+        Task<string> UploadDocumentFromMemoryStreamAsync(MemoryStream memoryStream, string blobName);
+        Task<string> UploadPostImage(IFormFile image);
+        Task<IList<string>> UploadPostImages(IList<IFormFile> image);
+        Task<BlobClient> GetBlobClientAsync(string blobName, BlobContainerEnum blobContainer);
     }
 }

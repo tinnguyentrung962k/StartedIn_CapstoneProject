@@ -33,7 +33,7 @@ public class ProjectRepository : GenericRepository<Project, string>, IProjectRep
 
     public async Task<RoleInTeam> GetUserRoleInProject(string userId, string projectId)
     {
-        var userProject = await _appDbContext.Set<UserProject>().Where(x => x.ProjectId.Equals(projectId) && x.UserId.Equals(userId)).FirstOrDefaultAsync();
+        var userProject = await _appDbContext.UserProjects.Where(x => x.ProjectId.Equals(projectId) && x.UserId.Equals(userId)).FirstOrDefaultAsync();
         return userProject.RoleInTeam;
     }
 

@@ -24,6 +24,7 @@ namespace StartedIn.Service.Services
         private readonly UserManager<User> _userManager;
         private readonly IMilestoneHistoryRepository _milestoneHistoryRepository;
         private readonly IProjectRepository _projectRepository;
+        private readonly IUserService _userService;
 
         public MilestoneService(
             IUnitOfWork unitOfWork,
@@ -31,7 +32,7 @@ namespace StartedIn.Service.Services
             ILogger<Milestone> logger,
             ITaskRepository taskRepository, UserManager<User> userManager, 
             IMilestoneHistoryRepository milestoneHistoryRepository, 
-            IProjectRepository projectRepository)
+            IProjectRepository projectRepository, IUserService userService)
         {
             _unitOfWork = unitOfWork;
             _milestoneRepository = milestoneRepository;
@@ -40,18 +41,15 @@ namespace StartedIn.Service.Services
             _userManager = userManager;
             _milestoneHistoryRepository = milestoneHistoryRepository;
             _projectRepository = projectRepository;
+            _userService = userService;
         }
         public async Task<Milestone> CreateNewMilestone(string userId, MilestoneCreateDTO milestoneCreateDto)
         {
-            var user = await _userManager.FindByIdAsync(userId);
-            if (user == null)
-            {
-                throw new NotFoundException("Người dùng không tồn tại");
-            }
+            var loginUser = await _userService.CheckIfUserInProject(userId, milestoneCreateDto.ProjectId);
             var projectRole = await _projectRepository.GetUserRoleInProject(userId, milestoneCreateDto.ProjectId);
             if (projectRole != CrossCutting.Enum.RoleInTeam.Leader)
             {
-                throw new UnauthorizedProjectRoleException("Bạn không phải nhóm trưởng");
+                throw new UnauthorizedProjectRoleException(MessageConstant.RolePermissionError);
             }
             try
             {  
@@ -67,11 +65,11 @@ namespace StartedIn.Service.Services
                     PhaseName = phaseName
                 };
                 var milestoneEntity = _milestoneRepository.Add(milestone);
-                string notification = user.FullName + " đã tạo ra cột mốc: " + milestone.Title;
+                string notification = loginUser.User.FullName + " đã tạo ra cột mốc: " + milestone.Title;
                 MilestoneHistory history = new MilestoneHistory
                 {
                     Content = notification,
-                    CreatedBy = user.FullName,
+                    CreatedBy = loginUser.User.FullName,
                     MilestoneId = milestone.Id
                 };
                 var milestoneHistoryEntity = _milestoneHistoryRepository.Add(history);
@@ -104,24 +102,29 @@ namespace StartedIn.Service.Services
             var milestone = await _milestoneRepository.GetMilestoneDetailById(id);
             if (milestone == null)
             {
-                throw new NotFoundException("Không tìm thấy cột mốc");
+                throw new NotFoundException(MessageConstant.NotFoundMilestoneError);
             }
             return milestone;
         }
 
-        public async Task<Milestone> UpdateMilestoneInfo(string id, MilestoneInfoUpdateDTO updateMilestoneInfoDTO)
+        public async Task<Milestone> UpdateMilestoneInfo(string userId, string id, MilestoneInfoUpdateDTO updateMilestoneInfoDTO)
         {
-            var chosenMilestone = await _milestoneRepository.GetOneAsync(id);
+            var chosenMilestone = await _milestoneRepository.QueryHelper()
+                .Include(x=>x.Project)
+                .Filter(x=>x.Id.Equals(id))
+                .GetOneAsync();
             if (chosenMilestone == null)
             {
-                throw new NotFoundException("Không tìm thấy cột mốc");
+                throw new NotFoundException(MessageConstant.NotFoundMilestoneError);
             }
+            var loginUser = await _userService.CheckIfUserInProject(userId, chosenMilestone.Project.Id);
             try
             {
                 chosenMilestone.Title = updateMilestoneInfoDTO.MilestoneTitle;
                 chosenMilestone.Description = updateMilestoneInfoDTO.Description;
                 chosenMilestone.DueDate = updateMilestoneInfoDTO.DueDate;
                 chosenMilestone.LastUpdatedTime = DateTimeOffset.UtcNow;
+                chosenMilestone.LastUpdatedBy = loginUser.User.FullName;
                 _milestoneRepository.Update(chosenMilestone);
                 await _unitOfWork.SaveChangesAsync();
                 return chosenMilestone;

@@ -12,7 +12,7 @@ namespace StartedIn.Service.Services.Interface
     public interface ITaskService
     {
         Task<TaskEntity> CreateTask(TaskCreateDTO taskCreateDto, string userId);
-        Task<TaskEntity> UpdateTaskInfo(string id, UpdateTaskInfoDTO updateTaskInfoDTO);
+        Task<TaskEntity> UpdateTaskInfo(string userId, string id, UpdateTaskInfoDTO updateTaskInfoDTO);
         string GetTaskStatusName(TaskEntityStatus taskStatus);
     }
 }

@@ -36,6 +36,10 @@ namespace StartedIn.API.Controllers
                 var response = _mapper.Map<TaskResponseDTO>(task);
                 return Ok(response);
             }
+            catch (UnauthorizedProjectRoleException ex)
+            {
+                return StatusCode(403, ex.Message);
+            }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error while creating new task.");
@@ -49,8 +53,13 @@ namespace StartedIn.API.Controllers
         {
             try
             {
-                var responseTask = _mapper.Map<TaskResponseDTO>(await _taskService.UpdateTaskInfo(taskId, updateTaskInfoDTO));
+                var userId = User.FindFirst(ClaimTypes.NameIdentifier).Value;
+                var responseTask = _mapper.Map<TaskResponseDTO>(await _taskService.UpdateTaskInfo(userId,taskId, updateTaskInfoDTO));
                 return Ok(responseTask);
+            }
+            catch (UnauthorizedProjectRoleException ex)
+            {
+                return StatusCode(403, ex.Message);
             }
             catch (NotFoundException ex)
             {

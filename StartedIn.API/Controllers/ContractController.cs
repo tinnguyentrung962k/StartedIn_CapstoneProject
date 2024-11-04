@@ -7,6 +7,7 @@ using Newtonsoft.Json;
 using StartedIn.CrossCutting.DTOs.RequestDTO;
 using StartedIn.CrossCutting.DTOs.RequestDTO.SignNowWebhookRequestDTO;
 using StartedIn.CrossCutting.DTOs.ResponseDTO;
+using StartedIn.CrossCutting.DTOs.ResponseDTO.SignNowResponseDTO;
 using StartedIn.CrossCutting.Exceptions;
 using StartedIn.Domain.Entities;
 using StartedIn.Service.Services.Interface;
@@ -31,7 +32,7 @@ namespace StartedIn.API.Controllers
             _signNowService = signNowService;
         }
         
-        [HttpPost("/investment-contract")]
+        [HttpPost("investment-contract")]
         [Authorize]
         public async Task<ActionResult<ContractResponseDTO>> CreateAnInvestmentContract([FromBody] InvestmentContractCreateDTO investmentContractCreateDTO)
         {
@@ -45,7 +46,7 @@ namespace StartedIn.API.Controllers
             }
             catch (UnauthorizedProjectRoleException ex)
             {
-                return Forbid(ex.Message);
+                return StatusCode(403,ex.Message);
             }
             catch (Exception ex)
             {
@@ -54,17 +55,21 @@ namespace StartedIn.API.Controllers
             }
         }
 
-        [HttpPost("/contract/upload-contract/{contractId}")]
+        [HttpPost("contract/send-invite/{contractId}")]
         [Authorize]
-        public async Task<ActionResult<ContractResponseDTO>> UploadContractFile([FromRoute] string contractId, IFormFile uploadFile)
+        public async Task<ActionResult<ContractResponseDTO>> SendInviteForContract([FromRoute] string contractId)
         {
             var userId = User.FindFirst(ClaimTypes.NameIdentifier).Value;
             try
             {
-                var contract = await _contractService.UploadContractFile(userId, contractId, uploadFile);
+                var contract = await _contractService.SendSigningInvitationForContract(userId, contractId);
                 var responseContract = _mapper.Map<ContractResponseDTO>(contract);
 
                 return Ok(responseContract);
+            }
+            catch (UnauthorizedProjectRoleException ex)
+            {
+                return StatusCode(403, ex.Message);
             }
             catch (Exception ex)
             {
@@ -73,7 +78,7 @@ namespace StartedIn.API.Controllers
             }
         }
         
-        [HttpGet("/contract/user-contract/project/{projectId}")]
+        [HttpGet("contract/user-contract/project/{projectId}")]
         [Authorize]
         public async Task<ActionResult<List<ContractResponseDTO>>> GetPersonalContractsInAProject([FromRoute] string projectId, [FromQuery] int pageIndex, int pageSize)
         {
@@ -88,14 +93,18 @@ namespace StartedIn.API.Controllers
             {
                 return BadRequest(ex.Message);
             }
+            catch (UnauthorizedProjectRoleException ex)
+            {
+                return StatusCode(403, ex.Message);
+            }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error while creating contract");
                 return StatusCode(500, "Lỗi server");
             }
         }
-        
-        [HttpGet("/contract/{contractId}")]
+
+        [HttpGet("contract/{contractId}")]
         [Authorize]
         public async Task<ActionResult<ContractResponseDTO>> GetContractById([FromRoute] string contractId)
         {
@@ -111,26 +120,11 @@ namespace StartedIn.API.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(ex.Message);
+                return StatusCode(500, "Lỗi truy xuất"); ;
             }
         }
 
-        [HttpPost("/api/contract/signnow-webhook")]
-        public async Task<IActionResult> RegisterWebhookForContract([FromBody] RegisterContractWebhookDTO registerContractWebhookDTO)
-        {
-            try
-            {
-                var contract = await _contractService.GetContractByContractId(registerContractWebhookDTO.ContractId);
-                var success = await _signNowService.RegisterWebhookAsync(contract.SignNowDocumentId, registerContractWebhookDTO.CallBack);
-                return Ok("Webhook registered successfully.");
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(500, "Lỗi không đăng ký được webhook");
-            }
-        }
-        
-        [HttpPost("/api/contract/valid-contract/{contractId}")]
+        [HttpPost("contract/valid-contract/{contractId}")]
         public async Task<IActionResult> ValidAcontract([FromRoute] string contractId)
         {
             try
@@ -144,7 +138,45 @@ namespace StartedIn.API.Controllers
             }
         }
 
-        [HttpGet("/api/contract/search")]
+        [HttpPost("contract/update-user-sign/{contractId}")]
+        public async Task<IActionResult> UpdateUserSignedStatus([FromRoute] string contractId)
+        {
+            try
+            {
+                await _contractService.UpdateSignedStatusForUserInContract(contractId);
+                return Ok("Cập nhật hợp đồng thành công");
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, "Lỗi Cập nhật");
+            }
+        }
+        
+        [HttpPost("contract/download-contract/{contractId}")]
+        [Authorize]
+        public async Task<ActionResult<DocumentDownLoadResponseDTO>> DownLoadContract([FromRoute] string contractId)
+        {
+            var userId = User.FindFirst(ClaimTypes.NameIdentifier).Value;
+            try
+            {
+                var downloadLink = await _contractService.DownLoadFileContract(userId,contractId);
+                return Ok(downloadLink);
+            }
+            catch (NotFoundException ex)
+            {
+                return BadRequest(ex.Message);
+            }
+            catch (UnauthorizedProjectRoleException ex)
+            {
+                return StatusCode(403, ex.Message);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, "Lỗi tải tập tin");
+            }
+        }
+
+        [HttpGet("contract/search")]
         [Authorize]
         public async Task<ActionResult<ContractSearchResponseDTO>> SearchContractWithFilters(
             [FromQuery] ContractSearchDTO search, int pageSize, int pageIndex)

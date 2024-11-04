@@ -1,16 +1,22 @@
 ﻿using DocumentFormat.OpenXml;
+using DocumentFormat.OpenXml.InkML;
 using DocumentFormat.OpenXml.Packaging;
 using DocumentFormat.OpenXml.Wordprocessing;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using StartedIn.CrossCutting.Constants;
 using StartedIn.CrossCutting.DTOs.RequestDTO;
+using StartedIn.CrossCutting.DTOs.RequestDTO.SignNowWebhookRequestDTO;
+using StartedIn.CrossCutting.DTOs.ResponseDTO;
+using StartedIn.CrossCutting.DTOs.ResponseDTO.SignNowResponseDTO;
 using StartedIn.CrossCutting.Exceptions;
 using StartedIn.Domain.Entities;
 using StartedIn.Repository.Repositories.Interface;
 using StartedIn.Service.Services.Interface;
+using StartedIn.CrossCutting.Enum;
 using System.Collections.Generic;
 using System.Net;
 using StartedIn.CrossCutting.Enum;
@@ -29,6 +35,10 @@ namespace StartedIn.Service.Services
         private readonly IShareEquityRepository _shareEquityRepository;
         private readonly IDisbursementRepository _disbursementRepository;
         private readonly IAzureBlobService _azureBlobService;
+        private readonly IDocumentFormatService _documentFormatService;
+        private readonly IConfiguration _configuration;
+        private readonly string _apiDomain;
+        private readonly IUserService _userService;
 
         public ContractService(IContractRepository contractRepository,
             IUnitOfWork unitOfWork,
@@ -38,7 +48,9 @@ namespace StartedIn.Service.Services
             IEmailService emailService,
             IProjectRepository projectRepository,
             IShareEquityRepository shareEquityRepository,
-            IDisbursementRepository disbursementRepository, IAzureBlobService azureBlobService)
+            IDisbursementRepository disbursementRepository, IAzureBlobService azureBlobService, 
+            IDocumentFormatService documentFormatService,IConfiguration configuration,
+            IUserService userService)
         {
             _contractRepository = contractRepository;
             _unitOfWork = unitOfWork;
@@ -50,24 +62,20 @@ namespace StartedIn.Service.Services
             _shareEquityRepository = shareEquityRepository;
             _disbursementRepository = disbursementRepository;
             _azureBlobService = azureBlobService;
+            _documentFormatService = documentFormatService;
+            _configuration = configuration;
+            _userService = userService;
+            _apiDomain = _configuration.GetValue<string>("API_DOMAIN") ?? _configuration["Local_domain"];
         }
+        
 
         public async Task<Contract> CreateInvestmentContract(string userId, InvestmentContractCreateDTO investmentContractCreateDTO)
         {
-            var user = await _userManager.FindByIdAsync(userId);
-            if (user == null)
-            {
-                throw new NotFoundException("Không tìm thấy người dùng");
-            }
-            var project = await _projectRepository.GetProjectById(investmentContractCreateDTO.Contract.ProjectId);
-            if (project == null)
-            {
-                throw new NotFoundException("Không tìm thấy dự án");
-            }
+            var userInProject = await _userService.CheckIfUserInProject(userId, investmentContractCreateDTO.Contract.ProjectId);
             var projectRole = await _projectRepository.GetUserRoleInProject(userId, investmentContractCreateDTO.Contract.ProjectId);
-            if (projectRole != CrossCutting.Enum.RoleInTeam.Leader)
+            if (projectRole != RoleInTeam.Leader)
             {
-                throw new UnauthorizedProjectRoleException("Bạn không phải nhóm trưởng");
+                throw new UnauthorizedProjectRoleException(MessageConstant.RolePermissionError);
             }
             try
             {
@@ -82,12 +90,12 @@ namespace StartedIn.Service.Services
                     ContractName = investmentContractCreateDTO.Contract.ContractName,
                     ContractPolicy = investmentContractCreateDTO.Contract.ContractPolicy,
                     ContractType = ContractTypeConstant.Investment,
-                    CreatedBy = user.FullName,
+                    CreatedBy = userInProject.User.FullName,
                     ProjectId = investmentContractCreateDTO.Contract.ProjectId,
                     ContractStatus = ContractStatusConstant.Draft,
                     ContractIdNumber = investmentContractCreateDTO.Contract.ContractIdNumber
                 };
-                var leader = user;
+                var leader = userInProject.User;
                 List<UserContract> usersInContract = new List<UserContract>();
                 List<User> chosenUsersList = new List<User> { investor, leader };
                 foreach (var chosenUser in chosenUsersList)
@@ -104,12 +112,12 @@ namespace StartedIn.Service.Services
                 {
                     ContractId = contract.Id,
                     Contract = contract,
-                    CreatedBy = user.FullName,
+                    CreatedBy = userInProject.User.FullName,
                     Percentage = investmentContractCreateDTO.InvestorInfo.Percentage,
                     StakeHolderType = RoleInTeamConstant.INVESTOR,
                     User = investor,
                     UserId = investor.Id,
-                    ShareQuantity = project.TotalShares * investmentContractCreateDTO.InvestorInfo.ShareQuantity,
+                    ShareQuantity = investmentContractCreateDTO.InvestorInfo.ShareQuantity,
                 };
                 var contractEntity = _contractRepository.Add(contract);
                 var shareEquityEntity = _shareEquityRepository.Add(shareEquity);
@@ -122,7 +130,7 @@ namespace StartedIn.Service.Services
                         Condition = disbursementTime.Condition,
                         Contract = contract,
                         ContractId = contract.Id,
-                        CreatedBy = user.FullName,
+                        CreatedBy = userInProject.User.FullName,
                         DisbursementStatus = DisbursementStatusConstant.Pending,
                         StartDate = disbursementTime.StartDate,
                         EndDate = disbursementTime.EndDate,
@@ -135,7 +143,8 @@ namespace StartedIn.Service.Services
                     disbursementList.Add(disbursement);
                     var disbursementEntity = _disbursementRepository.Add(disbursement);
                 }
-                ReplacePlaceHolder(contract, investor, leader, project, shareEquity, disbursementList,investmentContractCreateDTO.InvestorInfo.BuyPrice);
+                await _signNowService.AuthenticateAsync();
+                contract.SignNowDocumentId = await _signNowService.UploadInvestmentContractToSignNowAsync(contract,investor,leader,userInProject.Project,shareEquity,disbursementList,investmentContractCreateDTO.InvestorInfo.BuyPrice);
                 await _unitOfWork.SaveChangesAsync();
                 await _unitOfWork.CommitAsync();
                 return contractEntity;
@@ -176,42 +185,20 @@ namespace StartedIn.Service.Services
 
         public async Task<IEnumerable<Contract>> GetContractsByUserIdInAProject(string userId, string projectId, int pageIndex, int pageSize)
         {
-            var user = await _userManager.FindByIdAsync(userId);
-            if (user == null)
-            {
-                throw new NotFoundException("Không tìm thấy người dùng");
-            }
-            var chosenProject = await _projectRepository.GetOneAsync(projectId);
-            if (chosenProject == null)
-            {
-                throw new NotFoundException("Không tìm thấy dự án");
-            }
+            await _userService.CheckIfUserInProject(userId, projectId);
             var contracts = await _contractRepository.GetContractsByUserIdInAProject(userId, projectId, pageIndex, pageSize);
-            if (contracts is null)
-            {
-                throw new NotFoundException("Không có hợp đồng nào trong danh sách");
-            }
             return contracts;
         }
+        
 
-        public async Task<Contract> UploadContractFile(string userId, string contractId, IFormFile file)
+        public async Task<Contract> SendSigningInvitationForContract(string userId, string contractId)
         {
-            var user = await _userManager.FindByIdAsync(userId);
-            if (user == null)
-            {
-                throw new NotFoundException("Không tìm thấy người dùng");
-            }
-            var chosenContract = await _contractRepository.GetContractById(contractId);
-            if (chosenContract is null)
-            {
-                throw new NotFoundException("Hợp đồng không tìm thấy");
-            }
+            var userInChosenContract = await _userService.CheckIfUserBelongToContract(userId, contractId);
             try
             {
                 await _signNowService.AuthenticateAsync();
-                var signNowDocumentId = await _signNowService.UploadDocumentAsync(file);
                 var userPartys = new List<User>();
-                foreach (var userInContract in chosenContract.UserContracts)
+                foreach (var userInContract in userInChosenContract.Contract.UserContracts)
                 {
                     User userParty = await _userManager.FindByIdAsync(userInContract.UserId);
                     userPartys.Add(userParty);
@@ -221,14 +208,30 @@ namespace StartedIn.Service.Services
                 {
                     userEmails.Add(userParty.Email);
                 }
-                chosenContract.SignNowDocumentId = signNowDocumentId;
-                chosenContract.LastUpdatedBy = user.FullName;
-                chosenContract.LastUpdatedTime = DateTimeOffset.UtcNow;
-                chosenContract.ContractStatus = ContractStatusConstant.Sent;
-                var inviteResposne = await _signNowService.CreateFreeFormInvite(chosenContract.SignNowDocumentId, userEmails);
-                _contractRepository.Update(chosenContract);
+                userInChosenContract.Contract.LastUpdatedBy = userInChosenContract.User.FullName;
+                userInChosenContract.Contract.LastUpdatedTime = DateTimeOffset.UtcNow;
+                userInChosenContract.Contract.ContractStatus = ContractStatusConstant.Sent;
+                var inviteResponse = await _signNowService.CreateFreeFormInvite(userInChosenContract.Contract.SignNowDocumentId, userEmails);
+                var webhookCompleteSign = new SignNowWebhookCreateDTO
+                {
+                    Action = SignNowServiceConstant.CallBackAction,
+                    CallBackUrl = $"{_apiDomain}/api/contract/valid-contract/{contractId}",
+                    EntityId = userInChosenContract.Contract.SignNowDocumentId,
+                    Event = SignNowServiceConstant.DocumentCompleteEvent
+                };
+                await _signNowService.RegisterWebhookAsync(webhookCompleteSign);
+                var webhookUpdate = new SignNowWebhookCreateDTO
+                {
+                    Action = SignNowServiceConstant.CallBackAction,
+                    CallBackUrl = $"{_apiDomain}/api/contract/update-user-sign/{contractId}",
+                    EntityId = userInChosenContract.Contract.SignNowDocumentId,
+                    Event = SignNowServiceConstant.DocumentUpdateEvent
+                };
+                var webHookCreateList = new List<SignNowWebhookCreateDTO> { webhookCompleteSign, webhookUpdate };
+                await _signNowService.RegisterManyWebhookAsync(webHookCreateList);
+                _contractRepository.Update(userInChosenContract.Contract);
                 await _unitOfWork.SaveChangesAsync();
-                return chosenContract;
+                return userInChosenContract.Contract;
             }
 
             catch (Exception ex)
@@ -237,6 +240,46 @@ namespace StartedIn.Service.Services
                 await _unitOfWork.RollbackAsync();
                 throw;
             }
+        }
+        public async Task UpdateSignedStatusForUserInContract(string contractId) 
+        {
+            var contract = await _contractRepository.GetContractById(contractId);
+            if (contract == null)
+            {
+                throw new NotFoundException(MessageConstant.NotFoundContractError);
+            }
+
+            // Get the SignNow document invite data
+            var contractInvite = await _signNowService.GetDocumentFreeFormInvite(contract.SignNowDocumentId);
+
+            // Check if the contractInvite has data
+            if (contractInvite?.Data == null || !contractInvite.Data.Any())
+            {
+                throw new InvalidOperationException("No signing data available from SignNow.");
+            }
+
+            // Loop through the signing data to find fulfilled users
+            foreach (var signedData in contractInvite.Data)
+            {
+                if (signedData.Status.Equals(SignNowServiceConstant.FulfilledStatus))
+                {
+                    // Find the corresponding UserContract entry for the signed user
+                    var existingUserContract = contract.UserContracts
+                        .FirstOrDefault(x => x.User.Email.Equals(signedData.Email, StringComparison.OrdinalIgnoreCase));
+
+                    if (existingUserContract == null)
+                    {
+                        throw new InvalidOperationException($"UserContract not found for the user with email: {signedData.Email}");
+                    }
+
+                    if (!existingUserContract.SignedDate.HasValue)
+                    {
+                        // Update the signed date
+                        existingUserContract.SignedDate = DateOnly.FromDateTime(DateTime.UtcNow);
+                    }
+                }
+            }
+            await _unitOfWork.SaveChangesAsync();
         }
         public async Task<Contract> ValidateContractOnSignedAsync(string id)
         {
@@ -270,136 +313,12 @@ namespace StartedIn.Service.Services
                 throw;
             }
         }
-        public void ReplacePlaceHolder(Contract contract, User investor, User leader, Project project, ShareEquity shareEquity, List<Disbursement> disbursements, decimal? buyPrice)
+        public async Task<DocumentDownLoadResponseDTO> DownLoadFileContract(string userId, string contractId)
         {
-            // Path to your Word template
-            string templatePath = @"C:\Users\Admin\Downloads\Mau-Hop-dong-mua-ban-co-phan.docx";
-
-            // Dictionary of placeholders and their replacement values (excluding the table for now)
-            var replacements = new Dictionary<string, string>
-            {
-                { "SOHOPDONG", contract.ContractIdNumber },
-                { "CREATEDDATE", DateOnly.FromDateTime(DateTime.Now).ToString("dd-MM-yyyy") },
-                { "NHADAUTU", investor.FullName },
-                { "MAILNHADAUTU", investor.Email },
-                { "SDTNDT", investor.PhoneNumber },
-                { "CMNDNDT", investor.IdCardNumber },
-                { "DCNDT", investor.Address },
-                { "TENDUAN", project.ProjectName },
-                { "MASOTHUE", project.CompanyIdNumber },
-                { "SDTCDA", leader.PhoneNumber },
-                { "CHUDUAN", leader.FullName },
-                { "CMNDCDA", leader.IdCardNumber },
-                { "MAIL", leader.Email },
-                { "DCCDU", leader.Address },
-                { "PHANTRAMCOPHAN", shareEquity.Percentage.ToString() },
-                { "GIAMUA", buyPrice.ToString()},
-                { "DIEUKHOANDUAN", contract.ContractPolicy },
-            };
-
-            // Define the output file path
-            string outputFilePath = Path.Combine(Path.GetDirectoryName(templatePath), $"UpdateContract.docx");
-            File.Copy(templatePath, outputFilePath, overwrite: true);
-
-            // Open the document and perform the replacements
-            using (WordprocessingDocument doc = WordprocessingDocument.Open(outputFilePath, true))
-            {
-                var body = doc.MainDocumentPart.Document.Body;
-
-                // Replace text placeholders
-                foreach (var paragraph in body.Descendants<Paragraph>())
-                {
-                    foreach (var run in paragraph.Descendants<Run>())
-                    {
-                        foreach (var text in run.Descendants<Text>())
-                        {
-                            foreach (var placeholder in replacements)
-                            {
-                                if (text.Text.Contains(placeholder.Key))
-                                {
-                                    text.Text = text.Text.Replace(placeholder.Key, placeholder.Value);
-                                }
-                            }
-                        }
-                    }
-                }
-
-                // Find the paragraph with "CACMOCGIAINGAN" placeholder
-                var placeholderParagraph = body.Elements<Paragraph>().FirstOrDefault(p => p.InnerText.Contains("CACMOCGIAINGAN"));
-                if (placeholderParagraph != null)
-                {
-                    // Insert the disbursement table after removing the placeholder paragraph
-                    Table disbursementTable = CreateDisbursementTable(disbursements);
-                    placeholderParagraph.InsertAfterSelf(disbursementTable);
-                    placeholderParagraph.Remove();
-                }
-
-                doc.MainDocumentPart.Document.Save();
-            }
-
-            Console.WriteLine($"Document saved to: {outputFilePath}");
-        }
-
-        // Helper method to create a table for disbursements
-        private Table CreateDisbursementTable(List<Disbursement> disbursements)
-        {
-            Table table = new Table();
-
-            // Define table properties
-            TableProperties tblProperties = new TableProperties(
-                new TableBorders(
-                    new TopBorder { Val = new EnumValue<BorderValues>(BorderValues.Single), Size = 6 },
-                    new BottomBorder { Val = new EnumValue<BorderValues>(BorderValues.Single), Size = 6 },
-                    new LeftBorder { Val = new EnumValue<BorderValues>(BorderValues.Single), Size = 6 },
-                    new RightBorder { Val = new EnumValue<BorderValues>(BorderValues.Single), Size = 6 },
-                    new InsideHorizontalBorder { Val = new EnumValue<BorderValues>(BorderValues.Single), Size = 6 },
-                    new InsideVerticalBorder { Val = new EnumValue<BorderValues>(BorderValues.Single), Size = 6 }
-                ));
-            table.AppendChild(tblProperties);
-
-            // Header row
-            TableRow headerRow = new TableRow();
-            headerRow.Append(
-                CreateTableCell("Tên cột mốc giải ngân", true),
-                CreateTableCell("Số tiền", true),
-                CreateTableCell("Ngày bắt đầu", true),
-                CreateTableCell("Ngày hạn chót", true),
-                CreateTableCell("Điều kiện", true)
-            );
-            table.AppendChild(headerRow);
-
-            // Data rows
-            foreach (var d in disbursements)
-            {
-                TableRow row = new TableRow();
-                row.Append(
-                    CreateTableCell(d.Title),
-                    CreateTableCell(d.Amount.ToString("N3")),
-                    CreateTableCell(d.StartDate.ToString("dd-MM-yyyy")),
-                    CreateTableCell(d.EndDate.ToString("dd-MM-yyyy")),
-                    CreateTableCell(d.Condition)
-                );
-                table.AppendChild(row);
-            }
-
-            return table;
-        }
-
-        // Helper method to create a table cell with text
-        private TableCell CreateTableCell(string text, bool isHeader = false)
-        {
-            TableCell cell = new TableCell();
-            var paragraph = new Paragraph(new Run(new Text(text)));
-
-            // Set header style if it’s a header cell
-            if (isHeader)
-            {
-                RunProperties runProperties = new RunProperties(new Bold());
-                paragraph.Descendants<Run>().First().PrependChild(runProperties);
-            }
-
-            cell.Append(paragraph);
-            return cell;
+            var userInContract = await _userService.CheckIfUserBelongToContract(userId, contractId);
+            await _signNowService.AuthenticateAsync();
+            var documentDownloadinfo = await _signNowService.DownLoadDocument(userInContract.Contract.SignNowDocumentId);
+            return documentDownloadinfo;
         }
 
         public async Task<IEnumerable<Contract>> SearchContractWithFilters(ContractSearchDTO search, int pageIndex,

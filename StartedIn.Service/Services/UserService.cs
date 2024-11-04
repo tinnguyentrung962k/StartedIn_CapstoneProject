@@ -13,6 +13,7 @@ using StartedIn.Repository.Repositories.Extensions;
 using OfficeOpenXml;
 using System;
 using StartedIn.CrossCutting.DTOs.RequestDTO;
+using StartedIn.Repository.Repositories;
 
 namespace StartedIn.Service.Services
 {
@@ -25,11 +26,16 @@ namespace StartedIn.Service.Services
         private readonly ILogger<UserService> _logger;
         private readonly RoleManager<Role> _roleManager;
         private readonly IConfiguration _configuration;
+        private readonly IProjectRepository _projectRepository;
+        private readonly IContractRepository _contractRepository;
+        private readonly IUserRepository _userRepository;
         public UserService(ITokenService tokenService,
             UserManager<User> userManager, IUnitOfWork unitOfWork,
             IConfiguration configuration, IEmailService emailService,
             ILogger<UserService> logger, IHttpContextAccessor httpContextAccessor,
-            RoleManager<Role> roleManager
+            RoleManager<Role> roleManager,
+            IProjectRepository projectRepository,IContractRepository contractRepository,
+            IUserRepository userRepository
         )
         {
             _tokenService = tokenService;
@@ -39,6 +45,9 @@ namespace StartedIn.Service.Services
             _logger = logger;
             _roleManager = roleManager;
             _configuration = configuration;
+            _projectRepository = projectRepository;
+            _contractRepository = contractRepository;
+            _userRepository = userRepository;
         }
 
         public async Task<LoginResponseDTO> Login(string email, string password)
@@ -325,7 +334,7 @@ namespace StartedIn.Service.Services
         public async Task RequestResetPassword(string email)
         {
             var user = await _userManager.FindByEmailAsync(email);
-            if (user == null)
+            if (user is null)
             {
                 throw new NotFoundException("Người dùng không tồn tại");
             }
@@ -346,7 +355,7 @@ namespace StartedIn.Service.Services
         public async Task ResetPassword(ResetPasswordDTO resetPasswordDTO)
         {
             var user = await _userManager.FindByEmailAsync(resetPasswordDTO.Email);
-            if (user == null)
+            if (user is null)
             {
                 throw new NotFoundException("Người dùng không tồn tại");
             }
@@ -359,6 +368,58 @@ namespace StartedIn.Service.Services
                     throw new Exception("Lỗi reset");
                 }
             }
+        }
+        public async Task<UserProject> CheckIfUserInProject(string userId, string projectId)
+        {
+            var user = await _userManager.FindByIdAsync(userId);
+            if (user is null)
+            {
+                throw new NotFoundException(MessageConstant.NotFoundUserError);
+            }
+            var project = await _projectRepository.GetProjectById(projectId);
+            if (project is null)
+            {
+                throw new NotFoundException(MessageConstant.NotFoundProjectError);
+            }
+            var isUserInProject = await _userRepository.CheckIfUserInProject(userId, project.Id);
+            if (isUserInProject is false)
+            {
+                throw new UnauthorizedProjectRoleException(MessageConstant.UserNotInProjectError);
+            }
+            var userProject = new UserProject
+            {
+                UserId = userId,
+                ProjectId = projectId,
+                User = user,
+                Project = project
+            };
+            return userProject;
+        }
+        public async Task<UserContract> CheckIfUserBelongToContract(string userId, string contractId)
+        {
+            var user = await _userManager.FindByIdAsync(userId);
+            if (user is null)
+            {
+                throw new NotFoundException(MessageConstant.NotFoundUserError);
+            }
+            var chosenContract = await _contractRepository.GetContractById(contractId);
+            if (chosenContract is null)
+            {
+                throw new NotFoundException(MessageConstant.NotFoundContractError);
+            }
+            var isUserBelongToContract = await _userRepository.IsUserBelongToAContract(userId, contractId);
+            if (isUserBelongToContract is false)
+            {
+                throw new UnauthorizedProjectRoleException(MessageConstant.UserNotBelongContractError);
+            }
+            var userInContract = new UserContract
+            {
+                UserId = userId,
+                ContractId = contractId,
+                User = user,
+                Contract = chosenContract,
+            };
+            return userInContract;
         }
     }
 }
