@@ -49,10 +49,11 @@ namespace StartedIn.Service.Services
         public async Task<TaskEntity> CreateTask(TaskCreateDTO taskCreateDto, string userId)
         {
             var mileStone = await _milestoneRepository.QueryHelper()
-                .Include(x=>x.Project)
-                .Filter(x=>x.Id.Equals(taskCreateDto.MilestoneId))
+                .Include(x => x.Project)
+                .Filter(x => x.Id.Equals(taskCreateDto.MilestoneId))
                 .GetOneAsync();
-            if (mileStone is null) {
+            if (mileStone is null)
+            {
                 throw new NotFoundException(MessageConstant.NotFoundMilestoneError);
             }
             var logInUser = await _userService.CheckIfUserInProject(userId, mileStone.Project.Id);
@@ -65,7 +66,7 @@ namespace StartedIn.Service.Services
                     Title = taskCreateDto.TaskTitle,
                     Description = taskCreateDto.Description,
                     Deadline = taskCreateDto.Deadline,
-                    Status = TaskEntityStatus.Pending
+                    Status = TaskEntityStatus.PENDING
                 };
                 var taskEntity = _taskRepository.Add(task);
                 string notification = logInUser.User.FullName + " đã tạo ra công việc: " + task.Title;
@@ -87,16 +88,6 @@ namespace StartedIn.Service.Services
                 throw;
             }
         }
-        public string GetTaskStatusName(TaskEntityStatus taskStatus)
-        {
-            return taskStatus switch
-            {
-                TaskEntityStatus.Pending => TaskStatusConstant.Pending,
-                TaskEntityStatus.InProgress => TaskStatusConstant.InProgress,
-                TaskEntityStatus.Done => TaskStatusConstant.Done,
-                _ => throw new ArgumentOutOfRangeException(nameof(taskStatus), $"Giai đoạn không hợp lệ: {taskStatus}")
-            };
-        }
 
         public async Task<TaskEntity> UpdateTaskInfo(string userId, string id, UpdateTaskInfoDTO updateTaskInfoDTO)
         {
@@ -111,7 +102,6 @@ namespace StartedIn.Service.Services
             var userInProject = await _userService.CheckIfUserInProject(userId,chosenTask.Milestone.ProjectId);
             try
             {
-                string taskStatus = GetTaskStatusName(updateTaskInfoDTO.Status);
                 chosenTask.Title = updateTaskInfoDTO.TaskTitle;
                 chosenTask.Description = updateTaskInfoDTO.Description;
                 chosenTask.Status = updateTaskInfoDTO.Status;

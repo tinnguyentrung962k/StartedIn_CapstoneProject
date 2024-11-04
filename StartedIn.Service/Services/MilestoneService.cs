@@ -84,18 +84,6 @@ namespace StartedIn.Service.Services
             }
         }
 
-        public string GetPhaseName(PhaseEnum phaseEnum)
-        {
-            return phaseEnum switch
-            {
-                PhaseEnum.Initializing => PhaseConstant.Initialzing,
-                PhaseEnum.Planning => PhaseConstant.Planning,
-                PhaseEnum.Executing => PhaseConstant.Executing,
-                PhaseEnum.Closing => PhaseConstant.Closing,
-                _ => throw new ArgumentOutOfRangeException(nameof(phaseEnum), $"Giai đoạn không hợp lệ: {phaseEnum}")
-            };
-        }
-
         public async Task<Milestone> GetMilestoneById(string id)
         {
             var milestone = await _milestoneRepository.GetMilestoneDetailById(id);

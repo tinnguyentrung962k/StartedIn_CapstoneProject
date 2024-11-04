@@ -182,6 +182,7 @@ namespace StartedIn.API.Controllers
         public async Task<ActionResult<SearchResponseDTO<ContractSearchResponseDTO>>> SearchContractWithFilters(
     [FromRoute] string projectId, [FromQuery] ContractSearchDTO search, int pageSize, int pageIndex)
         {
+
             try
             {
                 pageIndex = pageIndex < 1 ? 1 : pageIndex;
@@ -208,6 +209,10 @@ namespace StartedIn.API.Controllers
                 };
 
                 return Ok(response);
+            }
+            catch (UnauthorizedProjectRoleException ex)
+            {
+                return StatusCode(403, ex.Message);
             }
             catch (Exception ex)
             {
