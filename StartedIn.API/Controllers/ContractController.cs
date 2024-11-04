@@ -31,6 +31,7 @@ namespace StartedIn.API.Controllers
             _logger = logger;
             _signNowService = signNowService;
         }
+        
         [HttpPost("investment-contract")]
         [Authorize]
         public async Task<ActionResult<ContractResponseDTO>> CreateAnInvestmentContract([FromBody] InvestmentContractCreateDTO investmentContractCreateDTO)
@@ -76,6 +77,7 @@ namespace StartedIn.API.Controllers
                 return StatusCode(500, "Lỗi server");
             }
         }
+        
         [HttpGet("contract/user-contract/project/{projectId}")]
         [Authorize]
         public async Task<ActionResult<List<ContractResponseDTO>>> GetPersonalContractsInAProject([FromRoute] string projectId, [FromQuery] int pageIndex, int pageSize)
@@ -101,6 +103,7 @@ namespace StartedIn.API.Controllers
                 return StatusCode(500, "Lỗi server");
             }
         }
+
         [HttpGet("contract/{contractId}")]
         [Authorize]
         public async Task<ActionResult<ContractResponseDTO>> GetContractById([FromRoute] string contractId)
@@ -134,6 +137,7 @@ namespace StartedIn.API.Controllers
                 return StatusCode(500, "Lỗi Cập nhật");
             }
         }
+
         [HttpPost("contract/update-user-sign/{contractId}")]
         public async Task<IActionResult> UpdateUserSignedStatus([FromRoute] string contractId)
         {
@@ -147,6 +151,7 @@ namespace StartedIn.API.Controllers
                 return StatusCode(500, "Lỗi Cập nhật");
             }
         }
+        
         [HttpPost("contract/download-contract/{contractId}")]
         [Authorize]
         public async Task<ActionResult<DocumentDownLoadResponseDTO>> DownLoadContract([FromRoute] string contractId)
@@ -171,6 +176,21 @@ namespace StartedIn.API.Controllers
             }
         }
 
+        [HttpGet("contract/search")]
+        [Authorize]
+        public async Task<ActionResult<ContractSearchResponseDTO>> SearchContractWithFilters(
+            [FromQuery] ContractSearchDTO search, int pageSize, int pageIndex)
+        {
+            try
+            {
+                var result = await _contractService.SearchContractWithFilters(search, pageIndex, pageSize);
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
+        }
     }
         
 }

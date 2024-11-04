@@ -6,10 +6,10 @@ using System.Threading.Tasks;
 
 namespace StartedIn.CrossCutting.Enum
 {
-    public enum ContractType
+    public enum ContractTypeEnum
     {
         INVESTMENT,
         INTERNAL,
-        TRADING
+        TRADING 
     }
 }
