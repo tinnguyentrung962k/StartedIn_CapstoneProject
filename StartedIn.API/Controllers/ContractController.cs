@@ -54,7 +54,7 @@ namespace StartedIn.API.Controllers
             }
         }
 
-        [HttpPost("contract/send-invite/{contractId}")]
+        [HttpPost("contracts/send-invite/{contractId}")]
         [Authorize]
         public async Task<ActionResult<ContractResponseDTO>> SendInviteForContract([FromRoute] string contractId)
         {
@@ -77,7 +77,7 @@ namespace StartedIn.API.Controllers
             }
         }
         
-        [HttpGet("contract/user-contract/project/{projectId}")]
+        [HttpGet("contracts/user-contract/project/{projectId}")]
         [Authorize]
         public async Task<ActionResult<List<ContractResponseDTO>>> GetPersonalContractsInAProject([FromRoute] string projectId, [FromQuery] int pageIndex, int pageSize)
         {
@@ -104,7 +104,7 @@ namespace StartedIn.API.Controllers
             }
         }
 
-        [HttpGet("contract/{contractId}")]
+        [HttpGet("contracts/{contractId}")]
         [Authorize]
         public async Task<ActionResult<ContractResponseDTO>> GetContractById([FromRoute] string contractId)
         {
@@ -124,7 +124,7 @@ namespace StartedIn.API.Controllers
             }
         }
 
-        [HttpPost("contract/valid-contract/{contractId}")]
+        [HttpPost("contracts/valid-contract/{contractId}")]
         public async Task<IActionResult> ValidAcontract([FromRoute] string contractId)
         {
             try
@@ -138,7 +138,7 @@ namespace StartedIn.API.Controllers
             }
         }
 
-        [HttpPost("contract/update-user-sign/{contractId}")]
+        [HttpPost("contracts/update-user-sign/{contractId}")]
         public async Task<IActionResult> UpdateUserSignedStatus([FromRoute] string contractId)
         {
             try
@@ -152,7 +152,7 @@ namespace StartedIn.API.Controllers
             }
         }
         
-        [HttpPost("contract/download-contract/{contractId}")]
+        [HttpPost("contracts/download-contract/{contractId}")]
         [Authorize]
         public async Task<ActionResult<DocumentDownLoadResponseDTO>> DownLoadContract([FromRoute] string contractId)
         {
@@ -177,7 +177,7 @@ namespace StartedIn.API.Controllers
             }
         }
 
-        [HttpGet("contract/project-contracts/{projectId}/search")]
+        [HttpGet("contracts/project-contracts/{projectId}/search")]
         [Authorize]
         public async Task<ActionResult<SearchResponseDTO<ContractSearchResponseDTO>>> SearchContractWithFilters(
     [FromRoute] string projectId, [FromQuery] ContractSearchDTO search, int pageSize, int pageIndex)

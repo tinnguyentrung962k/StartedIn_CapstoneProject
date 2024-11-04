@@ -215,7 +215,7 @@ namespace StartedIn.Service.Services
                 var webhookCompleteSign = new SignNowWebhookCreateDTO
                 {
                     Action = SignNowServiceConstant.CallBackAction,
-                    CallBackUrl = $"{_apiDomain}/api/contract/valid-contract/{contractId}",
+                    CallBackUrl = $"{_apiDomain}/api/contracts/valid-contract/{contractId}",
                     EntityId = userInChosenContract.Contract.SignNowDocumentId,
                     Event = SignNowServiceConstant.DocumentCompleteEvent
                 };
@@ -223,7 +223,7 @@ namespace StartedIn.Service.Services
                 var webhookUpdate = new SignNowWebhookCreateDTO
                 {
                     Action = SignNowServiceConstant.CallBackAction,
-                    CallBackUrl = $"{_apiDomain}/api/contract/update-user-sign/{contractId}",
+                    CallBackUrl = $"{_apiDomain}/api/contracts/update-user-sign/{contractId}",
                     EntityId = userInChosenContract.Contract.SignNowDocumentId,
                     Event = SignNowServiceConstant.DocumentUpdateEvent
                 };
