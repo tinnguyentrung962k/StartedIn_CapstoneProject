@@ -15,4 +15,5 @@ public interface IProjectService
     Task<List<Project>> GetListOwnProjects(string userId);
     Task<List<Project>> GetListParticipatedProjects(string userId);
     Task<List<User>> GetListUserRelevantToContractsInAProject(string projectId);
+    Task<IEnumerable<Project>> GetProjectsForInvestor(string userId, int pageIndex, int pageSize);
 }

@@ -157,6 +157,7 @@ public class ProjectController : ControllerBase
             return BadRequest(ex.Message);
         }
     }
+    
     [HttpGet("project/{id}/contract-parties")]
     public async Task<ActionResult<UserInContractResponseDTO>> GetListUsersRelevantToContractInAProject([FromRoute] string id)
     {
@@ -174,5 +175,15 @@ public class ProjectController : ControllerBase
         {
             return StatusCode(500, "Lỗi server");
         }
+    }
+
+    [HttpGet("projects/explore")]
+    [Authorize]
+    public async Task<ActionResult<IEnumerable<ExploreProjectDTO>>> ExploreProjects([FromQuery] int pageIndex, int pageSize)
+    {
+        var userId = User.FindFirst(ClaimTypes.NameIdentifier).Value;
+        var result = await _projectService.GetProjectsForInvestor(userId, pageIndex, pageSize);
+        var mappedResult = _mapper.Map<IEnumerable<ExploreProjectDTO>>(result);
+        return Ok(mappedResult);
     }
 }

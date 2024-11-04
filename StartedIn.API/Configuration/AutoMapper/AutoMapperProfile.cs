@@ -2,6 +2,7 @@
 using Microsoft.Extensions.Hosting;
 using StartedIn.CrossCutting.DTOs.RequestDTO;
 using StartedIn.CrossCutting.DTOs.ResponseDTO;
+using StartedIn.CrossCutting.Enum;
 using StartedIn.Domain.Entities;
 using static Microsoft.EntityFrameworkCore.DbLoggerCategory.Database;
 
@@ -66,7 +67,14 @@ namespace StartedIn.API.Configuration.AutoMapper
                         FullName = tu.User.FullName,
                         RoleInTeam = tu.RoleInTeam.ToString()
                     }).ToList()));
-            
+            CreateMap<Project, ExploreProjectDTO>()
+                .ForMember(dest => dest.LeaderId,
+                    opt => opt.MapFrom(src =>
+                        src.UserProjects.FirstOrDefault(up => up.RoleInTeam == RoleInTeam.Leader).UserId))
+                .ForMember(dest => dest.LeaderFullName,
+                    opt => opt.MapFrom(src =>
+                        src.UserProjects.FirstOrDefault(up => up.RoleInTeam == RoleInTeam.Leader).User.FullName))
+                .ReverseMap();
         }
         private void ContractMappingProfile() 
         {
