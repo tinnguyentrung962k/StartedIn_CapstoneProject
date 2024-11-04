@@ -342,7 +342,10 @@ namespace StartedIn.Service.Services
             if (search.Parties?.Any() == true)
             {
                 var partyIds = search.Parties;
-                searchResult = searchResult.Filter(c => c.UserContracts.Any(uc => partyIds.Contains(uc.UserId)));
+
+                // Filter contracts that contain all the specified parties
+                searchResult = searchResult.Filter(c =>
+                    partyIds.All(partyId => c.UserContracts.Any(uc => uc.UserId == partyId)));
             }
 
             // Filter by Last Updated Date Range
