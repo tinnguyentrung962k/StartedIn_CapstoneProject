@@ -13,6 +13,7 @@ using System.Text;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Identity;
 using StartedIn.CrossCutting.Constants;
+using DocumentFormat.OpenXml.Drawing.Diagrams;
 
 namespace StartedIn.Service.Services
 {
@@ -45,6 +46,16 @@ namespace StartedIn.Service.Services
             _projectRepository = projectRepository;
             _milestoneRepository = milestoneRepository;
             _userService = userService;
+        }
+        public async Task<TaskEntity> GetATaskDetail(string userId, string taskId)
+        {
+            var chosenTask = await _taskRepository.QueryHelper().Include(t=>t.Milestone).Filter(t=>t.Id.Equals(taskId)).GetOneAsync();
+            if (chosenTask == null)
+            {
+                throw new NotFoundException(MessageConstant.NotFoundTaskError);
+            }
+            var userInProject = await _userService.CheckIfUserInProject(userId, chosenTask.Milestone.ProjectId);
+            return chosenTask;
         }
         public async Task<TaskEntity> CreateTask(TaskCreateDTO taskCreateDto, string userId)
         {

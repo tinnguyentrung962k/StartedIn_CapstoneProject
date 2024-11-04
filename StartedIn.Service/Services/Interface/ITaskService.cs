@@ -13,5 +13,6 @@ namespace StartedIn.Service.Services.Interface
     {
         Task<TaskEntity> CreateTask(TaskCreateDTO taskCreateDto, string userId);
         Task<TaskEntity> UpdateTaskInfo(string userId, string id, UpdateTaskInfoDTO updateTaskInfoDTO);
+        Task<TaskEntity> GetATaskDetail(string userId, string taskId);
     }
 }
