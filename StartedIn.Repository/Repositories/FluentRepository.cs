@@ -50,9 +50,9 @@ namespace StartedIn.Repository.Repositories
         public async Task<IEnumerable<TEntity>> GetPagingAsync(int pageIndex = 1, int pageSize = 1)
         {
             IQueryable<TEntity> query = BuildQuery();
-            pageIndex = pageIndex < 1 ? 0 : pageIndex - 1;
+            pageIndex = pageIndex < 1 ? 1 : pageIndex;
             pageSize = pageSize < 1 ? 10 : pageSize;
-            return await query.Skip(pageIndex * pageSize).Take(pageSize).ToListAsync();
+            return await query.Skip((pageIndex-1) * pageSize).Take(pageSize).ToListAsync();
         }
 
         public IFluentRepository<TEntity> Include(Expression<Func<TEntity, object>> expression)

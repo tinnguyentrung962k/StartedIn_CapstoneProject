@@ -1,4 +1,5 @@
-﻿using StartedIn.Domain.Entities.BaseEntities;
+﻿using StartedIn.CrossCutting.Enum;
+using StartedIn.Domain.Entities.BaseEntities;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
@@ -25,9 +26,7 @@ namespace StartedIn.Domain.Entities
 
         [MaxLength(500)]
         public string? TermCondition { get; set; }
-        
-        [MaxLength(50)]
-        public string DealStatus { get; set; }
+        public DealStatusEnum DealStatus { get; set; }
         public Project Project { get; set; }
         public User Investor { get; set; }
     }

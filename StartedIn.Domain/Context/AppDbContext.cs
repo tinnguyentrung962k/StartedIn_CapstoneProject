@@ -120,6 +120,11 @@ namespace StartedIn.Domain.Context
                 .HasForeignKey(up => up.UserId);
             modelBuilder.Entity<DealOffer>()
                 .ToTable("DealOffer");
+            modelBuilder.Entity<DealOffer>()
+            .Property(u => u.DealStatus)
+            .HasConversion(
+            v => v.ToString(),
+                v => (DealStatusEnum)Enum.Parse(typeof(DealStatusEnum), v));
             modelBuilder.Entity<Disbursement>()
                 .ToTable("Disbursement");
             modelBuilder.Entity<DisbursementAttachment>()

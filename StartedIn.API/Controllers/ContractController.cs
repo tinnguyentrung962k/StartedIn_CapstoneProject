@@ -179,15 +179,35 @@ namespace StartedIn.API.Controllers
 
         [HttpGet("contract/project-contracts/{projectId}/search")]
         [Authorize]
-        public async Task<ActionResult<List<ContractSearchResponseDTO>>> SearchContractWithFilters(
-            [FromRoute] string projectId, [FromQuery]ContractSearchDTO search, int pageSize, int pageIndex)
+        public async Task<ActionResult<SearchResponseDTO<ContractSearchResponseDTO>>> SearchContractWithFilters(
+    [FromRoute] string projectId, [FromQuery] ContractSearchDTO search, int pageSize, int pageIndex)
         {
             try
             {
+                pageIndex = pageIndex < 1 ? 1 : pageIndex;
+                pageSize = pageSize < 1 ? 10 : pageSize;
+
                 var userId = User.FindFirst(ClaimTypes.NameIdentifier).Value;
-                var contract = await _contractService.SearchContractWithFilters(userId,projectId, search, pageIndex, pageSize);
-                var result = _mapper.Map<List<ContractSearchResponseDTO>>(contract);
-                return Ok(result);
+
+                // Call the service to perform the search
+                var contracts = await _contractService.SearchContractWithFilters(userId, projectId, search, pageIndex, pageSize);
+
+                // Prepare the response with pagination and mapping to DTO
+                var contractResponseList = contracts.Select(c => _mapper.Map<ContractSearchResponseDTO>(c)).ToList();
+
+                var totalRecords = contracts.Count(); // Assuming a count method exists
+                var totalPages = (int)Math.Ceiling((double)totalRecords / pageSize);
+
+                var response = new SearchResponseDTO<ContractSearchResponseDTO>
+                {
+                    ResponseList = contractResponseList,
+                    PageIndex = pageIndex,
+                    PageSize = pageSize,
+                    TotalRecord = totalRecords,
+                    TotalPage = totalPages
+                };
+
+                return Ok(response);
             }
             catch (Exception ex)
             {

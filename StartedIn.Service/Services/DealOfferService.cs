@@ -2,6 +2,7 @@
 using Microsoft.Extensions.Logging;
 using StartedIn.CrossCutting.Constants;
 using StartedIn.CrossCutting.DTOs.RequestDTO;
+using StartedIn.CrossCutting.Enum;
 using StartedIn.CrossCutting.Exceptions;
 using StartedIn.Domain.Entities;
 using StartedIn.Repository.Repositories.Interface;
@@ -55,7 +56,7 @@ namespace StartedIn.Service.Services
                 {
                     InvestorId = userId,
                     Amount = dealOfferCreateDTO.Amount,
-                    DealStatus = DealStatusConstant.Waiting,
+                    DealStatus = DealStatusEnum.Waiting,
                     ProjectId = dealOfferCreateDTO.ProjectId,
                     EquityShareOffer = dealOfferCreateDTO.EquityShareOffer,
                     Investor = user,
