@@ -79,6 +79,15 @@ namespace StartedIn.API.Configuration.AutoMapper
                         Email = uc.User.Email,
                         PhoneNumber = uc.User.PhoneNumber
                     }).ToList()));
+            CreateMap<Contract, ContractSearchResponseDTO>()
+                .ForMember(dest => dest.Parties, opt => opt.MapFrom(
+                    src => src.UserContracts.Select(uc => new UserInContractResponseDTO
+                    {
+                        Id = uc.UserId,
+                        FullName = uc.User.FullName,
+                        Email = uc.User.Email,
+                        PhoneNumber = uc.User.PhoneNumber
+                    }).ToList()));
         }
         private void ProjectCharterMappingProfile()
         {

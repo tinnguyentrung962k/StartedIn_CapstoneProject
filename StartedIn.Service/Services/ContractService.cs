@@ -89,10 +89,10 @@ namespace StartedIn.Service.Services
                 {
                     ContractName = investmentContractCreateDTO.Contract.ContractName,
                     ContractPolicy = investmentContractCreateDTO.Contract.ContractPolicy,
-                    ContractType = ContractTypeConstant.Investment,
+                    ContractType = ContractTypeEnum.INVESTMENT,
                     CreatedBy = userInProject.User.FullName,
                     ProjectId = investmentContractCreateDTO.Contract.ProjectId,
-                    ContractStatus = ContractStatusConstant.Draft,
+                    ContractStatus = ContractStatusEnum.DRAFT,
                     ContractIdNumber = investmentContractCreateDTO.Contract.ContractIdNumber
                 };
                 var leader = userInProject.User;
@@ -210,7 +210,7 @@ namespace StartedIn.Service.Services
                 }
                 userInChosenContract.Contract.LastUpdatedBy = userInChosenContract.User.FullName;
                 userInChosenContract.Contract.LastUpdatedTime = DateTimeOffset.UtcNow;
-                userInChosenContract.Contract.ContractStatus = ContractStatusConstant.Sent;
+                userInChosenContract.Contract.ContractStatus = ContractStatusEnum.SENT;
                 var inviteResponse = await _signNowService.CreateFreeFormInvite(userInChosenContract.Contract.SignNowDocumentId, userEmails);
                 var webhookCompleteSign = new SignNowWebhookCreateDTO
                 {
@@ -291,7 +291,7 @@ namespace StartedIn.Service.Services
             try
             {
                 chosenContract.ValidDate = DateOnly.FromDateTime(DateTime.Now);
-                chosenContract.ContractStatus = ContractStatusConstant.Completed;
+                chosenContract.ContractStatus = ContractStatusEnum.COMPLETED;
                 foreach (var equityShare in chosenContract.ShareEquities)
                 {
                     equityShare.DateAssigned = DateOnly.FromDateTime(DateTime.Now);
@@ -321,10 +321,10 @@ namespace StartedIn.Service.Services
             return documentDownloadinfo;
         }
 
-        public async Task<IEnumerable<Contract>> SearchContractWithFilters(ContractSearchDTO search, int pageIndex,
-            int pageSize)
+        public async Task<IEnumerable<Contract>> SearchContractWithFilters(string userId, string projectId, ContractSearchDTO search, int pageIndex, int pageSize)
         {
-            var searchResult = _contractRepository.QueryHelper().Include(c => c.UserContracts);
+            var userProject = await _userService.CheckIfUserInProject(userId, projectId);
+            var searchResult = _contractRepository.QueryHelper().Include(c => c.UserContracts).Filter(x=>x.ProjectId.Equals(projectId) && x.UserContracts.Any(us => us.UserId.Equals(userId)));
             if (!string.IsNullOrEmpty(search.ContractName))
             {
                 searchResult = searchResult.Filter(c => c.ContractName.Contains(search.ContractName.ToLower()));
@@ -332,7 +332,7 @@ namespace StartedIn.Service.Services
 
             if (search.ContractTypeEnum != null)
             {
-                searchResult = searchResult.Filter(c => c.ContractType.Equals(GetContractTypeName(search.ContractTypeEnum)));
+                searchResult = searchResult.Filter(c => c.ContractType.Equals(search.ContractTypeEnum));
             }
 
             if (search.Parties?.Any() == true)
@@ -358,44 +358,21 @@ namespace StartedIn.Service.Services
             
             if (search.ContractStatusEnum != null)
             {
-                searchResult = searchResult.Filter(c => c.ContractStatus.Equals(GetContractStatusName(search.ContractStatusEnum)));
+                searchResult = searchResult.Filter(c => c.ContractStatus.Equals(search.ContractStatusEnum));
             }
 
-            return await searchResult.GetPagingAsync(pageIndex, pageSize);
-        }
+            var searchResultList = await searchResult.GetPagingAsync(pageIndex, pageSize);
 
-        private string GetContractStatusName(ContractStatusEnum? contractStatusEnum)
-        {
-            if (contractStatusEnum == null)
+            // Mapping contracts and their users to the DTOs
+            foreach (var contract in searchResultList)
             {
-                return "";
-            }
-            return contractStatusEnum switch
-            {
-                ContractStatusEnum.DRAFT => ContractStatusConstant.Draft,
-                ContractStatusEnum.SENT => ContractStatusConstant.Sent,
-                ContractStatusEnum.COMPLETED => ContractStatusConstant.Completed,
-                ContractStatusEnum.DECLINED => ContractStatusConstant.Declined,
-                ContractStatusEnum.EXPIRED => ContractStatusConstant.Expired,
-                
-                _ => throw new ArgumentOutOfRangeException(nameof(contractStatusEnum), $"Trạng thái hợp đồng không hợp lệ: {contractStatusEnum}")
+                foreach (var userConstract in contract.UserContracts) {
+                    var userParty = await _userManager.FindByIdAsync(userConstract.UserId);
+                    userConstract.User = userParty;
+                }
             };
-        }
 
-        private string GetContractTypeName(ContractTypeEnum? contractTypeEnum)
-        {
-            if (contractTypeEnum == null)
-            {
-                return "";
-            }
-            return contractTypeEnum switch
-            {
-                ContractTypeEnum.INVESTMENT => ContractTypeConstant.Investment,
-                ContractTypeEnum.INTERNAL => ContractTypeConstant.Internal,
-                ContractTypeEnum.TRADING => ContractTypeConstant.Trading,
-                
-                _ => throw new ArgumentOutOfRangeException(nameof(contractTypeEnum), $"Loại hợp đồng không hợp lệ: {contractTypeEnum}")
-            };
+            return searchResultList;
         }
     }
 }

@@ -104,6 +104,16 @@ namespace StartedIn.Domain.Context
             modelBuilder.Entity<Contract>()
                 .HasIndex(c => c.ContractIdNumber)
                 .IsUnique();
+            modelBuilder.Entity<Contract>()
+            .Property(u => u.ContractStatus)
+            .HasConversion(
+            v => v.ToString(),
+                v => (ContractStatusEnum)Enum.Parse(typeof(ContractStatusEnum), v));
+            modelBuilder.Entity<Contract>()
+            .Property(u => u.ContractType)
+            .HasConversion(
+            v => v.ToString(),
+                v => (ContractTypeEnum)Enum.Parse(typeof(ContractTypeEnum), v));
             modelBuilder.Entity<UserContract>()
                 .HasOne(up => up.User)
                 .WithMany(u => u.UserContracts)

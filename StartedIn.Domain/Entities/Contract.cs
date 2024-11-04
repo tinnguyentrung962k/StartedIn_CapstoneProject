@@ -18,9 +18,9 @@ namespace StartedIn.Domain.Entities
 
         [MaxLength(50)]
         public string ContractName { get; set; }
-        public string ContractType { get; set; }
+        public ContractTypeEnum ContractType { get; set; }
         public string? SignNowDocumentId { get; set; }
-        public string ContractStatus { get; set; }
+        public ContractStatusEnum ContractStatus { get; set; }
         
         [MaxLength(4500)]
         public string ContractPolicy { get; set; }
@@ -29,9 +29,9 @@ namespace StartedIn.Domain.Entities
         public DateOnly? ValidDate { get; set; }
         public DateOnly? ExpiredDate { get; set; }
         public Project Project { get; set; }
-        public IEnumerable<UserContract> UserContracts { get; set; }
-        public IEnumerable<ShareEquity>? ShareEquities { get; set; }
-        public IEnumerable<Disbursement>? Disbursements { get; set; }
+        public ICollection<UserContract> UserContracts { get; set; }
+        public ICollection<ShareEquity>? ShareEquities { get; set; }
+        public ICollection<Disbursement>? Disbursements { get; set; }
 
     }
 }

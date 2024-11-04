@@ -36,10 +36,9 @@ namespace StartedIn.API.Controllers
         [Authorize]
         public async Task<ActionResult<ContractResponseDTO>> CreateAnInvestmentContract([FromBody] InvestmentContractCreateDTO investmentContractCreateDTO)
         {
-            var userId = User.FindFirst(ClaimTypes.NameIdentifier).Value;
-
             try
             {
+                var userId = User.FindFirst(ClaimTypes.NameIdentifier).Value;
                 var contract = await _contractService.CreateInvestmentContract(userId, investmentContractCreateDTO);
                 var responseContract = _mapper.Map<ContractResponseDTO>(contract);
                 return CreatedAtAction(nameof(GetContractById), new { contractId = responseContract.Id }, responseContract);
@@ -59,9 +58,9 @@ namespace StartedIn.API.Controllers
         [Authorize]
         public async Task<ActionResult<ContractResponseDTO>> SendInviteForContract([FromRoute] string contractId)
         {
-            var userId = User.FindFirst(ClaimTypes.NameIdentifier).Value;
             try
             {
+                var userId = User.FindFirst(ClaimTypes.NameIdentifier).Value;
                 var contract = await _contractService.SendSigningInvitationForContract(userId, contractId);
                 var responseContract = _mapper.Map<ContractResponseDTO>(contract);
 
@@ -82,9 +81,10 @@ namespace StartedIn.API.Controllers
         [Authorize]
         public async Task<ActionResult<List<ContractResponseDTO>>> GetPersonalContractsInAProject([FromRoute] string projectId, [FromQuery] int pageIndex, int pageSize)
         {
-            var userId = User.FindFirst(ClaimTypes.NameIdentifier).Value;
+            
             try
             {
+                var userId = User.FindFirst(ClaimTypes.NameIdentifier).Value;
                 var contracts = await _contractService.GetContractsByUserIdInAProject(userId, projectId, pageIndex, pageSize);
                 var responseContract = _mapper.Map<List<ContractResponseDTO>>(contracts);
                 return Ok(responseContract);
@@ -156,9 +156,10 @@ namespace StartedIn.API.Controllers
         [Authorize]
         public async Task<ActionResult<DocumentDownLoadResponseDTO>> DownLoadContract([FromRoute] string contractId)
         {
-            var userId = User.FindFirst(ClaimTypes.NameIdentifier).Value;
+            
             try
             {
+                var userId = User.FindFirst(ClaimTypes.NameIdentifier).Value;
                 var downloadLink = await _contractService.DownLoadFileContract(userId,contractId);
                 return Ok(downloadLink);
             }
@@ -176,14 +177,16 @@ namespace StartedIn.API.Controllers
             }
         }
 
-        [HttpGet("contract/search")]
+        [HttpGet("contract/project-contracts/{projectId}/search")]
         [Authorize]
-        public async Task<ActionResult<ContractSearchResponseDTO>> SearchContractWithFilters(
-            [FromQuery] ContractSearchDTO search, int pageSize, int pageIndex)
+        public async Task<ActionResult<List<ContractSearchResponseDTO>>> SearchContractWithFilters(
+            [FromRoute] string projectId, [FromQuery]ContractSearchDTO search, int pageSize, int pageIndex)
         {
             try
             {
-                var result = await _contractService.SearchContractWithFilters(search, pageIndex, pageSize);
+                var userId = User.FindFirst(ClaimTypes.NameIdentifier).Value;
+                var contract = await _contractService.SearchContractWithFilters(userId,projectId, search, pageIndex, pageSize);
+                var result = _mapper.Map<List<ContractSearchResponseDTO>>(contract);
                 return Ok(result);
             }
             catch (Exception ex)
