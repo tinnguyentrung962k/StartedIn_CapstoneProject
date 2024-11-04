@@ -160,4 +160,12 @@ public class ProjectService : IProjectService
 
         return listUser;
     }
+
+    public async Task<IEnumerable<Project>> GetProjectsForInvestor(string userId, int pageIndex, int pageSize)
+    {
+        var projects = _projectRepository.QueryHelper().Include(p => p.UserProjects)
+            .Filter(p => !p.UserProjects.Any(up => up.UserId.Contains(userId)));
+        var result = await projects.GetPagingAsync(pageIndex, pageSize);
+        return result; 
+    }
 }

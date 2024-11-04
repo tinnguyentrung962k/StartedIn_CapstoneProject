@@ -15,6 +15,7 @@ namespace StartedIn.CrossCutting.DTOs.RequestDTO
 
         [Required(ErrorMessage = "Vui lòng nhập mô tả dự án")]
         public string Description { get; set; }
+        [Required]
         public IFormFile? LogoFile { get; set; }
         public int? TotalShares { get; set; }
 
