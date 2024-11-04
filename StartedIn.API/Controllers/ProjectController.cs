@@ -157,7 +157,7 @@ public class ProjectController : ControllerBase
             return BadRequest(ex.Message);
         }
     }
-    [HttpGet("project/{id}/contract-parties")]
+    [HttpGet("projects/{id}/contract-parties")]
     public async Task<ActionResult<UserInContractResponseDTO>> GetListUsersRelevantToContractInAProject([FromRoute] string id)
     {
         try
