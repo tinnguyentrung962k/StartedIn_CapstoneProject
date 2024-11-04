@@ -39,7 +39,7 @@ public class ProjectService : IProjectService
         try {
             _unitOfWork.BeginTransaction();
             var user = await _userManager.FindByIdAsync(userId);
-            project.ProjectStatus = ProjectStatusConstant.Constructing;
+            project.ProjectStatus = ProjectStatusEnum.CONSTRUCTING;
             var imgUrl = await _azureBlobService.UploadAvatarOrCover(avatar);
             project.LogoUrl = imgUrl;
             project.CreatedBy = user.FullName;

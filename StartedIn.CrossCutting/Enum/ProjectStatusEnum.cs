@@ -6,11 +6,10 @@ using System.Threading.Tasks;
 
 namespace StartedIn.CrossCutting.Enum
 {
-    public enum PhaseEnum
+    public enum ProjectStatusEnum
     {
-        INITIALIZING,
-        PLANNING,
-        EXECUTING,
-        CLOSING
+        CONSTRUCTING,
+        ACTIVE,
+        CLOSED
     }
 }

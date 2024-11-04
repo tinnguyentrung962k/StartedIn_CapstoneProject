@@ -127,12 +127,22 @@ namespace StartedIn.Domain.Context
                 v => (DealStatusEnum)Enum.Parse(typeof(DealStatusEnum), v));
             modelBuilder.Entity<Disbursement>()
                 .ToTable("Disbursement");
+            modelBuilder.Entity<Disbursement>()
+            .Property(u => u.DisbursementStatus)
+            .HasConversion(
+            v => v.ToString(),
+                v => (DisbursementStatusEnum)Enum.Parse(typeof(DisbursementStatusEnum), v));
             modelBuilder.Entity<DisbursementAttachment>()
                 .ToTable("DisbursementAttachment");
             modelBuilder.Entity<DealOfferHistory>()
                 .ToTable("DealOfferHistory");
             modelBuilder.Entity<ShareEquity>()
                 .ToTable("ShareEquity");
+            modelBuilder.Entity<ShareEquity>()
+            .Property(u => u.StakeHolderType)
+            .HasConversion(
+            v => v.ToString(),
+                v => (RoleInTeam)Enum.Parse(typeof(RoleInTeam), v));
             modelBuilder.Entity<ProjectCharter>()
                 .ToTable("ProjectCharter");
             modelBuilder.Entity<ShareEquity>()
@@ -142,16 +152,31 @@ namespace StartedIn.Domain.Context
                 .ToTable("UserProject");
             modelBuilder.Entity<Milestone>()
                 .ToTable("Milestone");
+            modelBuilder.Entity<Milestone>()
+            .Property(u => u.PhaseName)
+            .HasConversion(
+            v => v.ToString(),
+                v => (PhaseEnum)Enum.Parse(typeof(PhaseEnum), v));
             modelBuilder.Entity<MilestoneHistory>()
                 .ToTable("MilestoneHistory");
             modelBuilder.Entity<Project>()
                 .ToTable("Project");
+            modelBuilder.Entity<Project>()
+            .Property(u => u.ProjectStatus)
+            .HasConversion(
+            v => v.ToString(),
+                v => (ProjectStatusEnum)Enum.Parse(typeof(ProjectStatusEnum), v));
             modelBuilder.Entity<TaskAttachment>()
                 .ToTable("TaskAttachment");
             modelBuilder.Entity<TaskHistory>()
                 .ToTable("TaskHistory");
             modelBuilder.Entity<TaskEntity>()
                 .ToTable("Task");
+            modelBuilder.Entity<TaskEntity>()
+            .Property(u => u.Status)
+            .HasConversion(
+            v => v.ToString(),
+                v => (TaskEntityStatus)Enum.Parse(typeof(TaskEntityStatus), v));
             modelBuilder.Entity<TaskComment>()
                 .ToTable("TaskComment");
             modelBuilder.Entity<Project>()

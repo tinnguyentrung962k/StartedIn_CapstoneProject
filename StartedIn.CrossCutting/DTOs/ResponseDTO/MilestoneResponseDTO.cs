@@ -1,4 +1,5 @@
-﻿using System;
+﻿using StartedIn.CrossCutting.Enum;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -13,6 +14,6 @@ namespace StartedIn.CrossCutting.DTOs.ResponseDTO
         public DateOnly DueDate { get; set; }
         public DateOnly? ExtendedDate { get; set; }
         public int? ExtendedCount { get; set; }
-        public string PhaseName { get; set; }
+        public PhaseEnum PhaseName { get; set; }
     }
 }

@@ -7,7 +7,7 @@ public class ProjectResponseDTO : IdentityResponseDTO
 {
     public string ProjectName { get; set; }
     public string Description { get; set; }
-    public string ProjectStatus { get; set; }
+    public ProjectStatusEnum ProjectStatus { get; set; }
     public string? LogoUrl { get; set; }
     public int? TotalShares { get; set; }
     public decimal RemainingPercentOfShares { get; set; }

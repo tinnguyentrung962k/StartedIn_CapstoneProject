@@ -114,7 +114,7 @@ namespace StartedIn.Service.Services
                     Contract = contract,
                     CreatedBy = userInProject.User.FullName,
                     Percentage = investmentContractCreateDTO.InvestorInfo.Percentage,
-                    StakeHolderType = RoleInTeamConstant.INVESTOR,
+                    StakeHolderType = RoleInTeam.Investor,
                     User = investor,
                     UserId = investor.Id,
                     ShareQuantity = investmentContractCreateDTO.InvestorInfo.ShareQuantity,
@@ -131,7 +131,7 @@ namespace StartedIn.Service.Services
                         Contract = contract,
                         ContractId = contract.Id,
                         CreatedBy = userInProject.User.FullName,
-                        DisbursementStatus = DisbursementStatusConstant.Pending,
+                        DisbursementStatus = DisbursementStatusEnum.PENDING,
                         StartDate = disbursementTime.StartDate,
                         EndDate = disbursementTime.EndDate,
                         Title = disbursementTime.Title,
@@ -325,24 +325,30 @@ namespace StartedIn.Service.Services
         {
             var userProject = await _userService.CheckIfUserInProject(userId, projectId);
             var searchResult = _contractRepository.QueryHelper().Include(c => c.UserContracts).Filter(x=>x.ProjectId.Equals(projectId) && x.UserContracts.Any(us => us.UserId.Equals(userId)));
-            if (!string.IsNullOrEmpty(search.ContractName))
+            // Filter by Contract Name
+            if (!string.IsNullOrWhiteSpace(search.ContractName))
             {
-                searchResult = searchResult.Filter(c => c.ContractName.Contains(search.ContractName.ToLower()));
+                string contractNameLower = search.ContractName.ToLower();
+                searchResult = searchResult.Filter(c => c.ContractName.ToLower().Contains(contractNameLower));
             }
 
-            if (search.ContractTypeEnum != null)
+            // Filter by Contract Type Enum
+            if (search.ContractTypeEnum.HasValue)
             {
-                searchResult = searchResult.Filter(c => c.ContractType.Equals(search.ContractTypeEnum));
+                searchResult = searchResult.Filter(c => c.ContractType == search.ContractTypeEnum.Value);
             }
 
+            // Filter by Parties (User IDs)
             if (search.Parties?.Any() == true)
             {
-                foreach (var party in search.Parties)
-                {
-                    searchResult = searchResult.Filter(c => c.UserContracts.Any(uc => uc.UserId.Equals(party)));
-                }
+                var partyIds = search.Parties;
+
+                // Filter contracts that contain all the specified parties
+                searchResult = searchResult.Filter(c =>
+                    partyIds.All(partyId => c.UserContracts.Any(uc => uc.UserId == partyId)));
             }
 
+            // Filter by Last Updated Date Range
             if (search.LastUpdatedStartDate != default || search.LastUpdatedEndDate != default)
             {
                 if (search.LastUpdatedStartDate != default)
@@ -355,10 +361,11 @@ namespace StartedIn.Service.Services
                     searchResult = searchResult.Filter(c => c.LastUpdatedTime <= search.LastUpdatedEndDate);
                 }
             }
-            
-            if (search.ContractStatusEnum != null)
+
+            // Filter by Contract Status Enum
+            if (search.ContractStatusEnum.HasValue)
             {
-                searchResult = searchResult.Filter(c => c.ContractStatus.Equals(search.ContractStatusEnum));
+                searchResult = searchResult.Filter(c => c.ContractStatus == search.ContractStatusEnum.Value);
             }
 
             var searchResultList = await searchResult.GetPagingAsync(pageIndex, pageSize);

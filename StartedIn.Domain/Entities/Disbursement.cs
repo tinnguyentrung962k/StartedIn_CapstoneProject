@@ -1,4 +1,5 @@
-﻿using StartedIn.Domain.Entities.BaseEntities;
+﻿using StartedIn.CrossCutting.Enum;
+using StartedIn.Domain.Entities.BaseEntities;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
@@ -24,9 +25,7 @@ namespace StartedIn.Domain.Entities
         public decimal Amount { get; set; }
         [MaxLength(500)]
         public string Condition { get; set; }
-        
-        [MaxLength(50)]
-        public string DisbursementStatus { get; set; }
+        public DisbursementStatusEnum DisbursementStatus { get; set; }
         
         [MaxLength(500)]
         public string? DeclineReason { get; set; }

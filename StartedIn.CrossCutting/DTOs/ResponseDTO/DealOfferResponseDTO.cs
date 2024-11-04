@@ -1,4 +1,5 @@
-﻿using System;
+﻿using StartedIn.CrossCutting.Enum;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -13,6 +14,6 @@ namespace StartedIn.CrossCutting.DTOs.ResponseDTO
         public string Amount { get; set; }
         public string EquityShareOffer { get; set; }
         public string TermCondition { get; set; }
-        public string DealStatus { get; set; }
+        public DealStatusEnum DealStatus { get; set; }
     }
 }

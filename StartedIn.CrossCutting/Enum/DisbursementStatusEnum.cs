@@ -6,11 +6,13 @@ using System.Threading.Tasks;
 
 namespace StartedIn.CrossCutting.Enum
 {
-    public enum PhaseEnum
+    public enum DisbursementStatusEnum
     {
-        INITIALIZING,
-        PLANNING,
-        EXECUTING,
-        CLOSING
+        PENDING,
+        ACCEPTED,
+        REJECTED,
+        FINISHED,
+        OVERDUE,
+        ERROR
     }
 }

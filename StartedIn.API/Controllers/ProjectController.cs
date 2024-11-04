@@ -158,7 +158,7 @@ public class ProjectController : ControllerBase
         }
     }
     
-    [HttpGet("project/{id}/contract-parties")]
+    [HttpGet("projects/{id}/contract-parties")]
     public async Task<ActionResult<UserInContractResponseDTO>> GetListUsersRelevantToContractInAProject([FromRoute] string id)
     {
         try

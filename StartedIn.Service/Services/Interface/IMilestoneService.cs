@@ -14,6 +14,5 @@ namespace StartedIn.Service.Services.Interface
         Task<Milestone> CreateNewMilestone(string userId, MilestoneCreateDTO milestoneCreateDto);
         Task<Milestone> GetMilestoneById(string id);
         Task<Milestone> UpdateMilestoneInfo(string userId, string id, MilestoneInfoUpdateDTO milestoneInfoUpdateDTO);
-        string GetPhaseName(PhaseEnum phaseEnum);
     }
 }

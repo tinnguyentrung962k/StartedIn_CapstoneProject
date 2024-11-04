@@ -53,7 +53,6 @@ namespace StartedIn.Service.Services
             }
             try
             {  
-                string phaseName = GetPhaseName(milestoneCreateDto.PhaseEnum);
                 _unitOfWork.BeginTransaction();
                 Milestone milestone = new Milestone
                 {
@@ -62,7 +61,7 @@ namespace StartedIn.Service.Services
                     Description = milestoneCreateDto.Description,
                     DueDate = milestoneCreateDto.DueDate,
                     ExtendedCount = 0,
-                    PhaseName = phaseName
+                    PhaseName = milestoneCreateDto.PhaseEnum
                 };
                 var milestoneEntity = _milestoneRepository.Add(milestone);
                 string notification = loginUser.User.FullName + " đã tạo ra cột mốc: " + milestone.Title;
@@ -83,18 +82,6 @@ namespace StartedIn.Service.Services
                 await _unitOfWork.RollbackAsync();
                 throw;
             }
-        }
-
-        public string GetPhaseName(PhaseEnum phaseEnum)
-        {
-            return phaseEnum switch
-            {
-                PhaseEnum.Initializing => PhaseConstant.Initialzing,
-                PhaseEnum.Planning => PhaseConstant.Planning,
-                PhaseEnum.Executing => PhaseConstant.Executing,
-                PhaseEnum.Closing => PhaseConstant.Closing,
-                _ => throw new ArgumentOutOfRangeException(nameof(phaseEnum), $"Giai đoạn không hợp lệ: {phaseEnum}")
-            };
         }
 
         public async Task<Milestone> GetMilestoneById(string id)

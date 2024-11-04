@@ -1,6 +1,7 @@
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using System.Text.Json.Serialization;
+using StartedIn.CrossCutting.Enum;
 using StartedIn.Domain.Entities.BaseEntities;
 
 namespace StartedIn.Domain.Entities;
@@ -12,9 +13,7 @@ public class Milestone : BaseAuditEntity<string>
 
     [ForeignKey(nameof(ProjectCharter))]
     public string? CharterId { get; set; }
-    
-    [MaxLength(50)]
-    public string PhaseName { get; set; }
+    public PhaseEnum PhaseName { get; set; }
     
     [MaxLength(50)]
     public string Title { get; set; }

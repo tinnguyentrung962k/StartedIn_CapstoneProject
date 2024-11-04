@@ -3,6 +3,7 @@ using AutoMapper;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using StartedIn.CrossCutting.Constants;
 using StartedIn.CrossCutting.DTOs.RequestDTO;
 using StartedIn.CrossCutting.DTOs.ResponseDTO;
 using StartedIn.CrossCutting.Exceptions;
@@ -63,11 +64,34 @@ namespace StartedIn.API.Controllers
             }
             catch (NotFoundException ex)
             {
-                return NotFound(ex.Message);
+                return BadRequest(ex.Message);
             }
             catch (Exception ex)
             {
                 return BadRequest("Cập nhật thất bại");
+            }
+        }
+        [HttpGet("tasks/{taskId}")]
+        [Authorize(Roles = RoleConstants.USER)]
+        public async Task<ActionResult<TaskResponseDTO>> GetTaskDetail([FromRoute] string taskId)
+        {
+            try
+            {
+                var userId = User.FindFirst(ClaimTypes.NameIdentifier).Value;
+                var responseTask = _mapper.Map<TaskResponseDTO>(await _taskService.GetATaskDetail(userId,taskId));
+                return Ok(responseTask);
+            }
+            catch (UnauthorizedProjectRoleException ex)
+            {
+                return StatusCode(403, ex.Message);
+            }
+            catch (NotFoundException ex)
+            {
+                return BadRequest(ex.Message);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest("Truy xuất thất bại");
             }
         }
 

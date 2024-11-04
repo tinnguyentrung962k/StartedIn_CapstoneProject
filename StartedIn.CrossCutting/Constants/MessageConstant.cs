@@ -17,5 +17,6 @@ namespace StartedIn.CrossCutting.Constants
         public const string UserNotInProjectError = "Người dùng không thuộc dự án";
         public const string UserNotBelongContractError = "Người dùng không thuộc hợp đồng";
         public const string NotFoundMilestoneError = "Không tìm thấy cột mốc";
+        public const string NotFoundTaskError = "Không tìm thấy công việc";
     }
 }
