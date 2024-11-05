@@ -10,7 +10,7 @@ namespace StartedIn.Service.Services.Interface
 {
     public interface IProjectCharterService
     {
-        Task<ProjectCharter> CreateNewProjectCharter(string userId, ProjectCharterCreateDTO projectCharter);
+        Task<ProjectCharter> CreateNewProjectCharter(string userId, string projectId, ProjectCharterCreateDTO projectCharter);
 
         Task<ProjectCharter> GetProjectCharterByCharterId(string id);
         Task<ProjectCharter> GetProjectCharterByProjectId(string projectId);

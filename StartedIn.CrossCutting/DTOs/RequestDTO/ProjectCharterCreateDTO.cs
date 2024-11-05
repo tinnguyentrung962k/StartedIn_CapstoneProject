@@ -8,7 +8,6 @@ namespace StartedIn.CrossCutting.DTOs.RequestDTO
 {
     public class ProjectCharterCreateDTO
     {
-        public string ProjectId { get; set; }
         public string? BusinessCase { get; set; }
         public string? Goal { get; set; }
         public string? Objective { get; set; }

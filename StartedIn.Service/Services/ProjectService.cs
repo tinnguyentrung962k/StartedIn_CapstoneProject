@@ -67,7 +67,7 @@ public class ProjectService : IProjectService
         return project;
     }
 
-    public async Task SendJoinProjectInvitation(string userId, List<string> inviteEmails, string projectId)
+    public async Task SendJoinProjectInvitation(string userId, List<ProjectInviteEmailAndRoleDTO> inviteUsers, string projectId)
     {
         var user = await _userManager.FindByIdAsync(userId);
         if (user == null)
@@ -88,24 +88,34 @@ public class ProjectService : IProjectService
         {
             throw new InviteException("Bạn không có quyền mời thành viên");
         }
-        foreach (var inviteEmail in inviteEmails)
+        foreach (var inviteUser in inviteUsers)
         {
-            _emailService.SendInvitationToProjectAsync(inviteEmail, projectId, user.FullName, project.ProjectName);
+            await _emailService.SendInvitationToProjectAsync(inviteUser.Email, projectId, user.FullName, project.ProjectName,inviteUser.RoleInTeam);
         }
     }
-    public async Task AddUserToProject(string projectId, string userId)
+    public async Task AddUserToProject(string projectId, string userId, RoleInTeam roleInTeam)
     {
         var user = await _userManager.FindByIdAsync(userId);
         if (user == null)
         {
-            throw new NotFoundException("Không tìm thấy người dùng");
+            throw new NotFoundException(MessageConstant.NotFoundUserError);
+        }
+        var project = await _projectRepository.QueryHelper().Include(x=>x.UserProjects).Filter(x=>x.Id.Equals(projectId)).GetOneAsync();
+        if (project == null)
+        {
+            throw new NotFoundException(MessageConstant.NotFoundProjectError);
+        }
+        var existingLeader = project.UserProjects.FirstOrDefault(x => x.RoleInTeam == RoleInTeam.Leader);
+        if (existingLeader != null)
+        {
+            throw new InviteException(MessageConstant.JoinGroupWithLeaderRoleError);
         }
         var userInTeam = await _userRepository.GetAUserInProject(projectId, user.Id);
         if (userInTeam != null)
         {
             throw new InviteException("Người dùng đã có trong nhóm");
         }
-        await _userRepository.AddUserToProject(userId, projectId, RoleInTeam.Member);
+        await _userRepository.AddUserToProject(userId, projectId, roleInTeam);
         await _unitOfWork.SaveChangesAsync();
     }
 

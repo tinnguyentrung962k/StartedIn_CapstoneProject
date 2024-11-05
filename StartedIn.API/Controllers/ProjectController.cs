@@ -2,8 +2,10 @@ using AutoMapper;
 using CrossCutting.Exceptions;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using StartedIn.CrossCutting.Constants;
 using StartedIn.CrossCutting.DTOs.RequestDTO;
 using StartedIn.CrossCutting.DTOs.ResponseDTO;
+using StartedIn.CrossCutting.Enum;
 using StartedIn.CrossCutting.Exceptions;
 using StartedIn.Domain.Entities;
 using StartedIn.Service.Services;
@@ -72,12 +74,12 @@ public class ProjectController : ControllerBase
 
     [HttpPost("projects/{projectId}/project-invitation")]
     [Authorize]
-    public async Task<IActionResult> SendInvitationToTeam([FromBody] List<string> emails, [FromRoute] string projectId)
+    public async Task<IActionResult> SendInvitationToTeam([FromBody] List<ProjectInviteEmailAndRoleDTO> inviteUsers, [FromRoute] string projectId)
     {
         try
         {
             var userId = User.FindFirst(ClaimTypes.NameIdentifier).Value;
-            await _projectService.SendJoinProjectInvitation(userId, emails, projectId);
+            await _projectService.SendJoinProjectInvitation(userId, inviteUsers, projectId);
             return Ok("Gửi lời mời gia nhập thành công");
         }
         catch (InviteException ex)
@@ -94,14 +96,14 @@ public class ProjectController : ControllerBase
         }
     }
 
-    [HttpPost("projects/{projectId}/invite")]
+    [HttpPost("projects/{projectId}/join")]
     [Authorize]
-    public async Task<IActionResult> AddUserToProject([FromRoute] string projectId)
+    public async Task<IActionResult> AddUserToProject([FromRoute] string projectId, RoleInTeam roleInTeam)
     {
         try
         {
             var userId = User.FindFirst(ClaimTypes.NameIdentifier).Value;
-            await _projectService.AddUserToProject(projectId, userId);
+            await _projectService.AddUserToProject(projectId, userId, roleInTeam);
             return Ok("Bạn đã được tham gia dự án!");
         }
         catch (NotFoundException ex)
