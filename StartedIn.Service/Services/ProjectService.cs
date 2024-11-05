@@ -164,7 +164,7 @@ public class ProjectService : IProjectService
     public async Task<IEnumerable<Project>> GetProjectsForInvestor(string userId, int pageIndex, int pageSize)
     {
         var projects = _projectRepository.QueryHelper().Include(p => p.UserProjects)
-            .Filter(p => !p.UserProjects.Any(up => up.UserId.Contains(userId)));
+            .Filter(p => !p.UserProjects.Any(up => up.UserId.Contains(userId))).OrderBy(x=>x.OrderByDescending(x=>x.StartDate));
         var result = await projects.GetPagingAsync(pageIndex, pageSize);
         foreach (var project in result)
         {
