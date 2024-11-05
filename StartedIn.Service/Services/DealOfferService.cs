@@ -93,6 +93,17 @@ namespace StartedIn.Service.Services
             List<DealOfferForInvestorResponseDTO> dealofInvestorResponse = new List<DealOfferForInvestorResponseDTO>();
             foreach (var deal in deallistPaging)
             {
+                var project = await _projectRepository.QueryHelper().Filter(x => x.Id.Equals(deal.ProjectId)).Include(x => x.UserProjects).GetOneAsync();
+                User leader = null;
+                foreach (var userProject in project.UserProjects)
+                {
+                    if (userProject.RoleInTeam == RoleInTeam.Leader)
+                    {
+                        var user = await _userManager.FindByIdAsync(userProject.UserId);
+                        leader = user;
+                    }
+                }
+
                 DealOfferForInvestorResponseDTO dealOfferForInvestorResponseDTO = new DealOfferForInvestorResponseDTO
                 {
                     Id = deal.Id,
@@ -101,7 +112,9 @@ namespace StartedIn.Service.Services
                     EquityShareOffer = deal.EquityShareOffer.ToString(),
                     TermCondition = deal.TermCondition,
                     ProjectId = deal.ProjectId,
-                    ProjectName = deal.Project.ProjectName
+                    ProjectName = deal.Project.ProjectName,
+                    LeaderId = leader.Id,
+                    LeaderName = leader.FullName
                 };
                 dealofInvestorResponse.Add(dealOfferForInvestorResponseDTO);
             }
