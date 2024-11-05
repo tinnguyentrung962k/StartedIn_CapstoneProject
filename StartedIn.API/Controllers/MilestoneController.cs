@@ -12,7 +12,7 @@ using StartedIn.CrossCutting.Constants;
 namespace StartedIn.API.Controllers
 {
     [ApiController]
-    [Route("api")]
+    [Route("api/projects/{projectId}")]
     public class MilestoneController : ControllerBase
     {
         private readonly IMilestoneService _milestoneService;
@@ -28,12 +28,12 @@ namespace StartedIn.API.Controllers
 
         [HttpPost("milestones")]
         [Authorize(Roles = RoleConstants.USER)]
-        public async Task<ActionResult<MilestoneResponseDTO>> CreateNewMileStone(MilestoneCreateDTO milestoneCreateDto)
+        public async Task<ActionResult<MilestoneResponseDTO>> CreateNewMileStone([FromRoute]string projectId, [FromBody] MilestoneCreateDTO milestoneCreateDto)
         {
             try
             {
                 var userId = User.FindFirst(ClaimTypes.NameIdentifier).Value;
-                var milestone = await _milestoneService.CreateNewMilestone(userId, milestoneCreateDto);
+                var milestone = await _milestoneService.CreateNewMilestone(userId,projectId,milestoneCreateDto);
                 var responseMilestone = _mapper.Map<MilestoneResponseDTO>(milestone);
                 return CreatedAtAction(nameof(GetMilestoneById), new { milestoneId = responseMilestone.Id }, responseMilestone);
 
@@ -45,23 +45,33 @@ namespace StartedIn.API.Controllers
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error while creating new major task.");
+                _logger.LogError(ex, "Error while creating new task.");
                 return StatusCode(500, "Lỗi server");
             }
         }
 
         [HttpGet("milestones/{milestoneId}")]
         [Authorize]
-        public async Task<ActionResult<MilestoneAndTaskResponseDTO>> GetMilestoneById([FromRoute] string milestoneId)
+        public async Task<ActionResult<MilestoneAndTaskResponseDTO>> GetMilestoneById([FromRoute]string projectId, [FromRoute] string milestoneId)
         {
             try
             {
-                var responseMilestone = _mapper.Map<MilestoneAndTaskResponseDTO>(await _milestoneService.GetMilestoneById(milestoneId));
+                var userId = User.FindFirst(ClaimTypes.NameIdentifier).Value;
+                var responseMilestone = _mapper.Map<MilestoneAndTaskResponseDTO>(await _milestoneService.GetMilestoneById(userId, projectId, milestoneId));
                 return Ok(responseMilestone);
             }
             catch (NotFoundException ex)
             {
-                return NotFound(ex.Message);
+                return BadRequest(ex.Message);
+            }
+            catch (UnmatchedException ex)
+            {
+                return BadRequest(ex.Message);
+            }
+            catch (UnauthorizedProjectRoleException ex)
+            {
+                _logger.LogError(ex, "Unauthorized Role");
+                return StatusCode(403, ex.Message);
             }
             catch (Exception ex)
             {
@@ -71,12 +81,12 @@ namespace StartedIn.API.Controllers
 
         [HttpPut("milestones/{milestoneId}")]
         [Authorize]
-        public async Task<ActionResult<MilestoneResponseDTO>> EditInfoMilestone(string milestoneId, [FromBody] MilestoneInfoUpdateDTO milestoneInfoUpdateDTO)
+        public async Task<ActionResult<MilestoneResponseDTO>> EditInfoMilestone([FromRoute] string milestoneId, [FromRoute] string projectId, [FromBody] MilestoneInfoUpdateDTO milestoneInfoUpdateDTO)
         {
             try
             {
                 var userId = User.FindFirst(ClaimTypes.NameIdentifier).Value;
-                var responseMilestone = _mapper.Map<MilestoneResponseDTO>(await _milestoneService.UpdateMilestoneInfo(userId,milestoneId, milestoneInfoUpdateDTO));
+                var responseMilestone = _mapper.Map<MilestoneResponseDTO>(await _milestoneService.UpdateMilestoneInfo(userId,projectId,milestoneId,milestoneInfoUpdateDTO));
                 return Ok(responseMilestone);
             }
             catch (UnauthorizedProjectRoleException ex)
@@ -86,7 +96,11 @@ namespace StartedIn.API.Controllers
             }
             catch (NotFoundException ex)
             {
-                return NotFound(ex.Message);
+                return BadRequest(ex.Message);
+            }
+            catch (UnmatchedException ex)
+            {
+                return BadRequest(ex.Message);
             }
             catch (Exception ex)
             {

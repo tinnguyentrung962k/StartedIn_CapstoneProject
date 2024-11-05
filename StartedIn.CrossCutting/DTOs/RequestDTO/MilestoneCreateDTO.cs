@@ -10,9 +10,6 @@ namespace StartedIn.CrossCutting.DTOs.RequestDTO
 {
     public class MilestoneCreateDTO
     {
-        [Required(ErrorMessage = "Vui lòng chọn dự án")]
-        public string ProjectId { get; set; }
-
         [Required(ErrorMessage = "Vui lòng nhập tên cột mốc")]
         public string MilstoneTitle { get; set; }
 

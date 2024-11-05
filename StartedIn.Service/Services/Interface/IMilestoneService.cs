@@ -11,8 +11,8 @@ namespace StartedIn.Service.Services.Interface
 {
     public interface IMilestoneService
     {
-        Task<Milestone> CreateNewMilestone(string userId, MilestoneCreateDTO milestoneCreateDto);
-        Task<Milestone> GetMilestoneById(string id);
-        Task<Milestone> UpdateMilestoneInfo(string userId, string id, MilestoneInfoUpdateDTO milestoneInfoUpdateDTO);
+        Task<Milestone> CreateNewMilestone(string userId, string projectId, MilestoneCreateDTO milestoneCreateDto);
+        Task<Milestone> GetMilestoneById(string userId, string projectId, string id);
+        Task<Milestone> UpdateMilestoneInfo(string userId, string projectId, string id, MilestoneInfoUpdateDTO updateMilestoneInfoDTO);
     }
 }
