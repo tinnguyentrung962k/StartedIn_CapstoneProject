@@ -13,8 +13,8 @@ public interface IProjectService
     Task SendJoinProjectInvitation(string userId, List<string> inviteEmails, string projectId);
     Task AddUserToProject(string projectId, string userId);
     Task<Project> GetProjectAndMemberById(string id);
-    Task<List<Project>> GetListOwnProjects(string userId);
-    Task<List<Project>> GetListParticipatedProjects(string userId);
+    Task<List<ProjectResponseDTO>> GetListOwnProjects(string userId);
+    Task<List<ProjectResponseDTO>> GetListParticipatedProjects(string userId);
     Task<List<User>> GetListUserRelevantToContractsInAProject(string projectId);
     Task<SearchResponseDTO<ExploreProjectDTO>> GetProjectsForInvestor(string userId, int pageIndex, int pageSize);
 }

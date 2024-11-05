@@ -144,8 +144,8 @@ public class ProjectController : ControllerBase
         var userId = User.FindFirst(ClaimTypes.NameIdentifier).Value;
         try
         {
-            var ownedProjects = _mapper.Map<List<ProjectResponseDTO>>(await _projectService.GetListOwnProjects(userId));
-            var participatedProjects = _mapper.Map<List<ProjectResponseDTO>>(await _projectService.GetListParticipatedProjects(userId));
+            var ownedProjects = await _projectService.GetListOwnProjects(userId);
+            var participatedProjects = await _projectService.GetListParticipatedProjects(userId);
             var response = new ProjectListDTO
             {
                 listOwnProject = ownedProjects,

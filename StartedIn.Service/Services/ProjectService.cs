@@ -120,22 +120,74 @@ public class ProjectService : IProjectService
 
     }
 
-    public async Task<List<Project>> GetListOwnProjects(string userId)
+    public async Task<List<ProjectResponseDTO>> GetListOwnProjects(string userId)
     {
-        var projects = await _projectRepository.QueryHelper()
+        var projects = _projectRepository.QueryHelper()
             .Include(x => x.UserProjects)
-            .Filter(p => p.UserProjects.Any(up => up.UserId == userId && up.RoleInTeam == RoleInTeam.Leader)).GetAllAsync();
-        var listProject = projects.ToList();
-        return listProject;
+            .Filter(p => p.UserProjects.Any(up => up.UserId == userId && up.RoleInTeam == RoleInTeam.Leader));
+        var records = await projects.GetAllAsync();
+        var totalRecord = records.Count();
+        List<ProjectResponseDTO> listProjects = new List<ProjectResponseDTO>();
+        foreach (var project in records)
+        {
+            foreach (var userProject in project.UserProjects)
+            {
+                var user = await _userManager.FindByIdAsync(userProject.UserId);
+                userProject.User = user;
+            }
+            ProjectResponseDTO responseDto = new ProjectResponseDTO
+            {
+                Description = project.Description,
+                Id = project.Id,
+                LeaderFullName = project.UserProjects.FirstOrDefault(x => x.RoleInTeam == RoleInTeam.Leader).User.FullName,
+                LeaderId = project.UserProjects.FirstOrDefault(x => x.RoleInTeam == RoleInTeam.Leader).User.Id,
+                LogoUrl = project.LogoUrl,
+                ProjectName = project.ProjectName,
+                ProjectStatus = project.ProjectStatus,
+                TotalShares = project.TotalShares,
+                RemainingPercentOfShares = project.RemainingPercentOfShares,
+                RemainingShares = project.RemainingShares,
+                StartDate = project.StartDate,
+                EndDate = project.EndDate
+            };
+            listProjects.Add(responseDto);
+        }
+        return listProjects;
     }
 
-    public async Task<List<Project>> GetListParticipatedProjects(string userId)
+    public async Task<List<ProjectResponseDTO>> GetListParticipatedProjects(string userId)
     {
-        var projects = await _projectRepository.QueryHelper()
+        var projects = _projectRepository.QueryHelper()
             .Include(x => x.UserProjects)
-            .Filter(p => p.UserProjects.Any(up => up.UserId == userId && up.RoleInTeam != RoleInTeam.Leader)).GetAllAsync();
-        var listProject = projects.ToList();
-        return listProject;
+            .Filter(p => p.UserProjects.Any(up => up.UserId == userId && up.RoleInTeam != RoleInTeam.Leader));
+        var records = await projects.GetAllAsync();
+        var totalRecord = records.Count();
+        List<ProjectResponseDTO> listProjects = new List<ProjectResponseDTO>();
+        foreach (var project in records)
+        {
+            foreach (var userProject in project.UserProjects)
+            {
+                var user = await _userManager.FindByIdAsync(userProject.UserId);
+                userProject.User = user;
+            }
+            ProjectResponseDTO responseDto = new ProjectResponseDTO
+            {
+                Description = project.Description,
+                Id = project.Id,
+                LeaderFullName = project.UserProjects.FirstOrDefault(x => x.RoleInTeam == RoleInTeam.Leader).User.FullName,
+                LeaderId = project.UserProjects.FirstOrDefault(x => x.RoleInTeam == RoleInTeam.Leader).User.Id,
+                LogoUrl = project.LogoUrl,
+                ProjectName = project.ProjectName,
+                ProjectStatus = project.ProjectStatus,
+                TotalShares = project.TotalShares,
+                RemainingPercentOfShares = project.RemainingPercentOfShares,
+                RemainingShares = project.RemainingShares,
+                StartDate = project.StartDate,
+                EndDate = project.EndDate
+            };
+            listProjects.Add(responseDto);
+        }
+        return listProjects;
     }
     public async Task<List<User>> GetListUserRelevantToContractsInAProject(string projectId)
     {
