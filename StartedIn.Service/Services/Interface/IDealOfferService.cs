@@ -1,4 +1,6 @@
-﻿using StartedIn.CrossCutting.DTOs.RequestDTO;
+﻿using DocumentFormat.OpenXml.Spreadsheet;
+using StartedIn.CrossCutting.DTOs.RequestDTO;
+using StartedIn.CrossCutting.DTOs.ResponseDTO;
 using StartedIn.Domain.Entities;
 using System;
 using System.Collections.Generic;
@@ -11,5 +13,7 @@ namespace StartedIn.Service.Services.Interface
     public interface IDealOfferService
     {
         Task<DealOffer> SendADealOffer(string userId, DealOfferCreateDTO dealOfferCreateDTO);
+        Task <SearchResponseDTO<DealOfferForProjectResponseDTO>> GetDealOfferForAProject(string userId, string projectId,int pageIndex, int pageSize);
+        Task<SearchResponseDTO<DealOfferForInvestorResponseDTO>> GetDealOfferForAnInvestor(string userId, int pageIndex, int pageSize);
     }
 }

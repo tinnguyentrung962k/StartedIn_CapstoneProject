@@ -7,10 +7,10 @@ using System.Threading.Tasks;
 
 namespace StartedIn.CrossCutting.DTOs.ResponseDTO
 {
-    public class DealOfferResponseDTO : IdentityResponseDTO
+    public class DealOfferForInvestorResponseDTO : IdentityResponseDTO
     {
+        public string ProjectId { get; set; }
         public string ProjectName { get; set; }
-        public string InvestorName { get; set; }
         public string Amount { get; set; }
         public string EquityShareOffer { get; set; }
         public string TermCondition { get; set; }

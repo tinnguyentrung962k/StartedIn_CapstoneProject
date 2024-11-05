@@ -1,4 +1,5 @@
 ﻿using AutoMapper;
+using CrossCutting.Exceptions;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -45,12 +46,60 @@ namespace StartedIn.API.Controllers
             }
             catch (UnauthorizedProjectRoleException ex)
             {
-                return StatusCode(403,ex.Message);
+                return StatusCode(403, ex.Message);
+            }
+            catch (ExistedRecordException ex)
+            {
+                return BadRequest(ex.Message);
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error while creating contract");
                 return StatusCode(500, "Lỗi server");
+            }
+        }
+        [HttpPut("investment-contract/{contractId}")]
+        [Authorize]
+        public async Task<ActionResult<ContractResponseDTO>> UpdateInvestmentContract([FromRoute] string contractId, [FromBody] InvestmentContractUpdateDTO investmentContractUpdateDTO)
+        {
+            try
+            {
+                var userId = User.FindFirst(ClaimTypes.NameIdentifier).Value;
+                var contract = await _contractService.UpdateInvestmentContract(userId, contractId, investmentContractUpdateDTO);
+                var responseContract = _mapper.Map<ContractResponseDTO>(contract);
+                return Ok(responseContract);
+            }
+            catch (UnauthorizedProjectRoleException ex)
+            {
+                return StatusCode(403, ex.Message);
+            }
+            catch (UpdateException ex)
+            {
+                return BadRequest(ex.Message);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error while creating contract");
+                return StatusCode(500, "Lỗi server");
+            }
+        }
+        [HttpGet("investment-contracts/contract-detail/{contractId}")]
+        [Authorize]
+        public async Task<ActionResult<ContractDetailResponseDTO>> GetInvestmentContractDetail(string contractId)
+        {
+            try
+            {
+                var contract = await _contractService.GetContractByContractId(contractId);
+                var responseContract = _mapper.Map<ContractDetailResponseDTO>(contract);
+                return Ok(responseContract);
+            }
+            catch (NotFoundException ex)
+            {
+                return BadRequest(ex.Message);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, "Lỗi truy xuất"); ;
             }
         }
 
@@ -182,33 +231,13 @@ namespace StartedIn.API.Controllers
         public async Task<ActionResult<SearchResponseDTO<ContractSearchResponseDTO>>> SearchContractWithFilters(
     [FromRoute] string projectId, [FromQuery] ContractSearchDTO search, int pageSize, int pageIndex)
         {
-
+            pageIndex = pageIndex < 1 ? 1 : pageIndex;
+            pageSize = pageSize < 1 ? 10 : pageSize;
             try
             {
-                pageIndex = pageIndex < 1 ? 1 : pageIndex;
-                pageSize = pageSize < 1 ? 10 : pageSize;
-
                 var userId = User.FindFirst(ClaimTypes.NameIdentifier).Value;
-
-                // Call the service to perform the search
                 var contracts = await _contractService.SearchContractWithFilters(userId, projectId, search, pageIndex, pageSize);
-
-                // Prepare the response with pagination and mapping to DTO
-                var contractResponseList = contracts.Select(c => _mapper.Map<ContractSearchResponseDTO>(c)).ToList();
-
-                var totalRecords = contracts.Count(); // Assuming a count method exists
-                var totalPages = (int)Math.Ceiling((double)totalRecords / pageSize);
-
-                var response = new SearchResponseDTO<ContractSearchResponseDTO>
-                {
-                    ResponseList = contractResponseList,
-                    PageIndex = pageIndex,
-                    PageSize = pageSize,
-                    TotalRecord = totalRecords,
-                    TotalPage = totalPages
-                };
-
-                return Ok(response);
+                return Ok(contracts);
             }
             catch (UnauthorizedProjectRoleException ex)
             {

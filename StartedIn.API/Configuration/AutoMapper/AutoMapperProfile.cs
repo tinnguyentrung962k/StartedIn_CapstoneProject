@@ -19,6 +19,7 @@ namespace StartedIn.API.Configuration.AutoMapper
             ContractMappingProfile();
             ProjectCharterMappingProfile();
             DealOfferMappingProfile();
+            DisbursementMappingProfile();
         }
 
 
@@ -96,6 +97,9 @@ namespace StartedIn.API.Configuration.AutoMapper
                         Email = uc.User.Email,
                         PhoneNumber = uc.User.PhoneNumber
                     }).ToList()));
+            CreateMap<Contract, ContractDetailResponseDTO>()
+                .ForMember(dest => dest.Disbursements, opt => opt.MapFrom(
+                    src => src.Disbursements.OrderBy(x=>x.StartDate)));
         }
         private void ProjectCharterMappingProfile()
         {
@@ -105,12 +109,16 @@ namespace StartedIn.API.Configuration.AutoMapper
         }
         private void DealOfferMappingProfile()
         {
-            CreateMap<DealOffer, DealOfferResponseDTO>()
+            CreateMap<DealOffer, DealOfferForProjectResponseDTO>()
+                .ForMember(dr => dr.InvestorId, opt => opt.MapFrom(de => de.Investor.Id))
                 .ForMember(dr => dr.InvestorName, opt => opt.MapFrom(de => de.Investor.FullName))
-                .ForMember(dr => dr.ProjectName, opt => opt.MapFrom(de => de.Project.ProjectName))
                 .ForMember(dr => dr.EquityShareOffer, opt => opt.MapFrom(de => de.EquityShareOffer.ToString()))
                 .ForMember(dr => dr.Amount, opt => opt.MapFrom(de => de.Amount.ToString()))
                 .ReverseMap();
+        }
+        private void DisbursementMappingProfile()
+        {
+            CreateMap<Disbursement, DisbursementInContractResponseDTO>().ReverseMap();
         }
     }
 }

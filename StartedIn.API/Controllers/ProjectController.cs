@@ -188,20 +188,7 @@ public class ProjectController : ControllerBase
             pageSize = pageSize < 1 ? 10 : pageSize;
             var userId = User.FindFirst(ClaimTypes.NameIdentifier).Value;
             var result = await _projectService.GetProjectsForInvestor(userId, pageIndex, pageSize);
-            var projectResponseList = _mapper.Map<List<ExploreProjectDTO>>(result);
-            var totalRecords = result.Count(); // Assuming a count method exists
-            var totalPages = (int)Math.Ceiling((double)totalRecords / pageSize);
-
-            var response = new SearchResponseDTO<ExploreProjectDTO>
-            {
-                ResponseList = projectResponseList,
-                PageIndex = pageIndex,
-                PageSize = pageSize,
-                TotalRecord = totalRecords,
-                TotalPage = totalPages
-            };
-
-            return Ok(response);
+            return Ok(result);
         }
         catch (Exception ex)
         {

@@ -102,9 +102,6 @@ namespace StartedIn.Domain.Context
             modelBuilder.Entity<Contract>()
                 .ToTable("Contract");
             modelBuilder.Entity<Contract>()
-                .HasIndex(c => c.ContractIdNumber)
-                .IsUnique();
-            modelBuilder.Entity<Contract>()
             .Property(u => u.ContractStatus)
             .HasConversion(
             v => v.ToString(),

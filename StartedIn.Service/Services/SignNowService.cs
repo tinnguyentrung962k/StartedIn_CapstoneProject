@@ -21,6 +21,7 @@ using StartedIn.Domain.Entities;
 using StartedIn.CrossCutting.Exceptions;
 using Microsoft.Extensions.Logging;
 using Azure;
+using System.Runtime.InteropServices;
 
 namespace StartedIn.Service.Services
 {
@@ -345,6 +346,7 @@ namespace StartedIn.Service.Services
                 throw new Exception($"Error retrieving free form invite: {ex.Message}", ex);
             }
         }
+        
     }
 }
 

@@ -2,6 +2,7 @@
 using Microsoft.Extensions.Logging;
 using StartedIn.CrossCutting.Constants;
 using StartedIn.CrossCutting.DTOs.RequestDTO;
+using StartedIn.CrossCutting.DTOs.ResponseDTO;
 using StartedIn.CrossCutting.Enum;
 using StartedIn.CrossCutting.Exceptions;
 using StartedIn.Domain.Entities;
@@ -23,12 +24,14 @@ namespace StartedIn.Service.Services
         private readonly ILogger<DealOffer> _logger;
         private readonly IUnitOfWork _unitOfWork;
         private readonly IProjectRepository _projectRepository;
+        private readonly IUserService _userService;
         public DealOfferService(IDealOfferRepository dealOfferRepository, 
             IDealOfferHistoryRepository dealOfferHistoryRepository, 
             UserManager<User> userManager,
             ILogger<DealOffer> logger,
             IUnitOfWork unitOfWork,
-            IProjectRepository projectRepository)
+            IProjectRepository projectRepository,
+            IUserService userService)
         {
             _dealOfferRepository = dealOfferRepository;
             _dealOfferHistoryRepository = dealOfferHistoryRepository;
@@ -36,7 +39,84 @@ namespace StartedIn.Service.Services
             _logger = logger;
             _unitOfWork = unitOfWork;
             _projectRepository = projectRepository;
+            _userService = userService;
         }
+
+        public async Task<SearchResponseDTO<DealOfferForProjectResponseDTO>> GetDealOfferForAProject(string userId,string projectId, int pageIndex, int pageSize)
+        {
+            var userInProject = await _userService.CheckIfUserInProject(userId, projectId);
+            var project = await _projectRepository.GetProjectById(projectId);
+            if (project == null)
+            {
+                throw new NotFoundException(MessageConstant.NotFoundProjectError);
+            }
+            var dealList = _dealOfferRepository.QueryHelper()
+                .Include(x => x.Investor)
+                .Filter(x => x.ProjectId.Equals(projectId));
+            var record = await dealList.GetAllAsync();
+            var totalRecord = record.Count();
+            var deallistPaging = await dealList.GetPagingAsync(pageIndex, pageSize);
+            List<DealOfferForProjectResponseDTO> dealInProjectResponse = new List<DealOfferForProjectResponseDTO>();
+            foreach (var deal in deallistPaging)
+            {
+                DealOfferForProjectResponseDTO dealOfferForProjectResponseDTO = new DealOfferForProjectResponseDTO
+                {
+                    Id = deal.Id,
+                    Amount = deal.Amount.ToString(),
+                    DealStatus = deal.DealStatus,
+                    EquityShareOffer = deal.EquityShareOffer.ToString(),
+                    InvestorId = deal.InvestorId,
+                    InvestorName = deal.Investor.FullName,
+                    TermCondition = deal.TermCondition
+                };
+                dealInProjectResponse.Add(dealOfferForProjectResponseDTO);
+            }
+            var response = new SearchResponseDTO<DealOfferForProjectResponseDTO>
+            {
+                TotalRecord = totalRecord,
+                PageIndex = pageIndex,
+                PageSize = pageSize,
+                ResponseList = dealInProjectResponse,
+                TotalPage = (int)Math.Ceiling((double)totalRecord / pageSize)
+            };
+            return response;
+            
+        }
+        public async Task<SearchResponseDTO<DealOfferForInvestorResponseDTO>> GetDealOfferForAnInvestor(string userId, int pageIndex, int pageSize)
+        {
+            var dealList = _dealOfferRepository.QueryHelper()
+                .Include(x => x.Project)
+                .Filter(x => x.InvestorId.Equals(userId));
+            var record = await dealList.GetAllAsync();
+            var totalRecord = record.Count();
+            var deallistPaging = await dealList.GetPagingAsync(pageIndex, pageSize);
+            List<DealOfferForInvestorResponseDTO> dealofInvestorResponse = new List<DealOfferForInvestorResponseDTO>();
+            foreach (var deal in deallistPaging)
+            {
+                DealOfferForInvestorResponseDTO dealOfferForInvestorResponseDTO = new DealOfferForInvestorResponseDTO
+                {
+                    Id = deal.Id,
+                    Amount = deal.Amount.ToString(),
+                    DealStatus = deal.DealStatus,
+                    EquityShareOffer = deal.EquityShareOffer.ToString(),
+                    TermCondition = deal.TermCondition,
+                    ProjectId = deal.ProjectId,
+                    ProjectName = deal.Project.ProjectName
+                };
+                dealofInvestorResponse.Add(dealOfferForInvestorResponseDTO);
+            }
+            var response = new SearchResponseDTO<DealOfferForInvestorResponseDTO>
+            {
+                TotalRecord = totalRecord,
+                PageIndex = pageIndex,
+                PageSize = pageSize,
+                ResponseList = dealofInvestorResponse,
+                TotalPage = (int)Math.Ceiling((double)totalRecord / pageSize)
+            };
+            return response;
+
+        }
+
         public async Task<DealOffer> SendADealOffer(string userId, DealOfferCreateDTO dealOfferCreateDTO)
         {
             var user = await _userManager.FindByIdAsync(userId);

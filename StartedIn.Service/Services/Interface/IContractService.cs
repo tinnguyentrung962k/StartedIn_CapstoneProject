@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Http;
 using StartedIn.CrossCutting.DTOs.RequestDTO;
+using StartedIn.CrossCutting.DTOs.ResponseDTO;
 using StartedIn.CrossCutting.DTOs.ResponseDTO.SignNowResponseDTO;
 using StartedIn.Domain.Entities;
 using System;
@@ -20,6 +21,7 @@ namespace StartedIn.Service.Services.Interface
         Task<Contract> ValidateContractOnSignedAsync(string id);
         Task UpdateSignedStatusForUserInContract(string contractId);
         Task<DocumentDownLoadResponseDTO> DownLoadFileContract(string userId, string contractId);
-        Task<IEnumerable<Contract>> SearchContractWithFilters(string userId, string projectId, ContractSearchDTO search, int pageIndex, int pageSize);
+        Task<SearchResponseDTO<ContractSearchResponseDTO>> SearchContractWithFilters(string userId, string projectId, ContractSearchDTO search, int pageIndex, int pageSize);
+        Task<Contract> UpdateInvestmentContract(string userId, string contractId, InvestmentContractUpdateDTO investmentContractUpdateDTO);
     }
 }

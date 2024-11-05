@@ -20,6 +20,8 @@ using StartedIn.CrossCutting.Enum;
 using System.Collections.Generic;
 using System.Net;
 using StartedIn.CrossCutting.Enum;
+using DocumentFormat.OpenXml.Spreadsheet;
+using CrossCutting.Exceptions;
 
 namespace StartedIn.Service.Services
 {
@@ -76,6 +78,11 @@ namespace StartedIn.Service.Services
             if (projectRole != RoleInTeam.Leader)
             {
                 throw new UnauthorizedProjectRoleException(MessageConstant.RolePermissionError);
+            }
+            var existedContract = await _contractRepository.QueryHelper().Filter(x => x.ContractIdNumber.Equals(investmentContractCreateDTO.Contract.ContractIdNumber) && x.ProjectId.Equals(investmentContractCreateDTO.Contract.ProjectId)).GetOneAsync();
+            if (existedContract != null)
+            {
+                throw new ExistedRecordException(MessageConstant.ContractNumberExistedError);
             }
             try
             {
@@ -321,7 +328,7 @@ namespace StartedIn.Service.Services
             return documentDownloadinfo;
         }
 
-        public async Task<IEnumerable<Contract>> SearchContractWithFilters(string userId, string projectId, ContractSearchDTO search, int pageIndex, int pageSize)
+        public async Task<SearchResponseDTO<ContractSearchResponseDTO>> SearchContractWithFilters(string userId, string projectId, ContractSearchDTO search, int pageIndex, int pageSize)
         {
             var userProject = await _userService.CheckIfUserInProject(userId, projectId);
             var searchResult = _contractRepository.QueryHelper().Include(c => c.UserContracts).Filter(x=>x.ProjectId.Equals(projectId) && x.UserContracts.Any(us => us.UserId.Equals(userId)));
@@ -367,19 +374,188 @@ namespace StartedIn.Service.Services
             {
                 searchResult = searchResult.Filter(c => c.ContractStatus == search.ContractStatusEnum.Value);
             }
+            var records = await searchResult.GetAllAsync();
+            var totalRecord = records.Count();
 
             var searchResultList = await searchResult.GetPagingAsync(pageIndex, pageSize);
-
+            
             // Mapping contracts and their users to the DTOs
             foreach (var contract in searchResultList)
             {
                 foreach (var userConstract in contract.UserContracts) {
                     var userParty = await _userManager.FindByIdAsync(userConstract.UserId);
-                    userConstract.User = userParty;
+                    userConstract.User = userParty;   
                 }
             };
+            List<ContractSearchResponseDTO> contractSearchResponseDTOs = new List<ContractSearchResponseDTO>();
+            foreach (var contract in searchResultList) 
+            {
+                var usersInContractResponse = new List<UserInContractResponseDTO>();
+                foreach (var userConstract in contract.UserContracts)
+                {
+                    UserInContractResponseDTO user = new UserInContractResponseDTO
+                    {
+                        Id = userConstract.User.Id,
+                        Email = userConstract.User.Email,
+                        FullName = userConstract.User.FullName,
+                        PhoneNumber = userConstract.User.PhoneNumber
+                    };
+                    usersInContractResponse.Add(user);
 
-            return searchResultList;
+                }
+
+                ContractSearchResponseDTO contractResponseDTO = new ContractSearchResponseDTO
+                {
+                    Id = contract.Id,
+                    ContractName = contract.ContractName,
+                    ContractStatus = contract.ContractStatus,
+                    ContractType = contract.ContractType,
+                    LastUpdatedTime = contract.LastUpdatedTime,
+                    Parties = usersInContractResponse
+                };
+                contractSearchResponseDTOs.Add(contractResponseDTO);
+            }
+
+            var response = new SearchResponseDTO<ContractSearchResponseDTO>
+            {
+                ResponseList = contractSearchResponseDTOs,
+                PageIndex = pageIndex,
+                PageSize = pageSize,
+                TotalRecord = totalRecord,
+                TotalPage = (int)Math.Ceiling((double)totalRecord / pageSize)
+            };
+            return response;
         }
+
+        public async Task<Contract> UpdateInvestmentContract(string userId, string contractId, InvestmentContractUpdateDTO investmentContractUpdateDTO)
+        {
+            var userInProject = await _userService.CheckIfUserInProject(userId, investmentContractUpdateDTO.Contract.ProjectId);
+            var projectRole = await _projectRepository.GetUserRoleInProject(userId, investmentContractUpdateDTO.Contract.ProjectId);
+            var leader = await _userManager.FindByIdAsync(userId);
+
+            if (projectRole != RoleInTeam.Leader)
+            {
+                throw new UnauthorizedProjectRoleException("User does not have permission to update this contract.");
+            }
+
+            var contract = await _contractRepository.GetContractById(contractId);
+            if (contract == null)
+            {
+                throw new NotFoundException(MessageConstant.NotFoundContractError);
+            }
+            if (contract.ContractStatus != ContractStatusEnum.DRAFT)
+            {
+                throw new UpdateException(MessageConstant.CannotUpdateContractError);
+            }
+
+            try
+            {
+                _unitOfWork.BeginTransaction();
+
+                // Update contract details
+                contract.ContractName = investmentContractUpdateDTO.Contract.ContractName;
+                contract.ContractPolicy = investmentContractUpdateDTO.Contract.ContractPolicy;
+                contract.ContractIdNumber = investmentContractUpdateDTO.Contract.ContractIdNumber;
+
+                // Update or add ShareEquity details
+                var investor = await _userManager.FindByIdAsync(investmentContractUpdateDTO.InvestorInfo.UserId);
+                if (investor == null)
+                {
+                    throw new NotFoundException("Investor not found.");
+                }
+
+                ShareEquity shareEquity;
+                var existingShareEquity = contract.ShareEquities.FirstOrDefault(se => se.UserId == investor.Id);
+
+                if (existingShareEquity != null)
+                {
+                    // Update existing ShareEquity
+                    existingShareEquity.Percentage = investmentContractUpdateDTO.InvestorInfo.Percentage;
+                    existingShareEquity.ShareQuantity = investmentContractUpdateDTO.InvestorInfo.ShareQuantity;
+                    existingShareEquity.LastUpdatedBy = leader.FullName;
+                    _shareEquityRepository.Update(existingShareEquity);
+                    shareEquity = existingShareEquity;
+                }
+                else
+                {
+                    // Add a new ShareEquity if none exists for this investor
+                    shareEquity = new ShareEquity
+                    {
+                        ContractId = contract.Id,
+                        UserId = investor.Id,
+                        Percentage = investmentContractUpdateDTO.InvestorInfo.Percentage,
+                        ShareQuantity = investmentContractUpdateDTO.InvestorInfo.ShareQuantity,
+                        StakeHolderType = RoleInTeam.Investor,
+                        CreatedBy = leader.FullName,
+                    };
+                    _shareEquityRepository.Add(shareEquity);
+                }
+
+                // Update disbursements
+                var disbursementList = new List<Disbursement>();
+                foreach (var updatedDisbursement in investmentContractUpdateDTO.Disbursements)
+                {
+                    var existingDisbursement = contract.Disbursements.FirstOrDefault(d => d.Id == updatedDisbursement.Id);
+
+                    if (existingDisbursement != null)
+                    {
+                        // Update fields of the existing disbursement
+                        existingDisbursement.Amount = updatedDisbursement.Amount;
+                        existingDisbursement.Condition = updatedDisbursement.Condition;
+                        existingDisbursement.StartDate = updatedDisbursement.StartDate;
+                        existingDisbursement.EndDate = updatedDisbursement.EndDate;
+                        existingDisbursement.Title = updatedDisbursement.Title;
+                        existingDisbursement.LastUpdatedBy = leader.FullName;
+                        existingDisbursement.DisbursementStatus = DisbursementStatusEnum.PENDING;
+                        _disbursementRepository.Update(existingDisbursement);
+                        disbursementList.Add(existingDisbursement); // Add to list for further processing
+                    }
+                    else
+                    {
+                        // If no matching disbursement exists, add a new one
+                        var newDisbursement = new Disbursement
+                        {
+                            ContractId = contract.Id,
+                            Amount = updatedDisbursement.Amount,
+                            Condition = updatedDisbursement.Condition,
+                            StartDate = updatedDisbursement.StartDate,
+                            EndDate = updatedDisbursement.EndDate,
+                            Title = updatedDisbursement.Title,
+                            CreatedBy = userId,
+                            DisbursementStatus = DisbursementStatusEnum.PENDING,
+                            InvestorId = investor.Id,
+                            OrderCode = GenerateUniqueBookingCode(),
+                            IsValidWithContract = false
+                        };
+                        _disbursementRepository.Add(newDisbursement);
+                        disbursementList.Add(newDisbursement); // Add to list for further processing
+                    }
+                }
+
+                // Upload updated contract to SignNow
+                await _signNowService.AuthenticateAsync();
+                contract.SignNowDocumentId = await _signNowService.UploadInvestmentContractToSignNowAsync(
+                    contract,
+                    investor,
+                    leader,
+                    userInProject.Project,
+                    shareEquity,
+                    disbursementList,
+                    investmentContractUpdateDTO.InvestorInfo.BuyPrice
+                );
+
+                await _unitOfWork.SaveChangesAsync();
+                await _unitOfWork.CommitAsync();
+                return contract;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "An error occurred while updating the contract.");
+                await _unitOfWork.RollbackAsync();
+                throw;
+            }
+        }
+
+
     }
 }

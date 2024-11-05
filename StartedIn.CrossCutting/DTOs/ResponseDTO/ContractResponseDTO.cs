@@ -12,7 +12,7 @@ namespace StartedIn.CrossCutting.DTOs.ResponseDTO
     {
         public string ProjectId { get; set; }
         public string ContractName { get; set; }
-        public string ContractType { get; set; }
+        public ContractTypeEnum ContractType { get; set; }
         public ContractStatusEnum ContractStatus { get; set; }
         public string? SignNowDocumentId { get; set; }
         public string ContractPolicy { get; set; }

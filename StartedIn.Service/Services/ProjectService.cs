@@ -161,11 +161,14 @@ public class ProjectService : IProjectService
         return listUser;
     }
 
-    public async Task<IEnumerable<Project>> GetProjectsForInvestor(string userId, int pageIndex, int pageSize)
+    public async Task<SearchResponseDTO<ExploreProjectDTO>> GetProjectsForInvestor(string userId, int pageIndex, int pageSize)
     {
         var projects = _projectRepository.QueryHelper().Include(p => p.UserProjects)
             .Filter(p => !p.UserProjects.Any(up => up.UserId.Contains(userId))).OrderBy(x=>x.OrderByDescending(x=>x.StartDate));
+        var records = await projects.GetAllAsync();
         var result = await projects.GetPagingAsync(pageIndex, pageSize);
+        var totalRecord = records.Count();
+        List<ExploreProjectDTO> exploreProjects = new List<ExploreProjectDTO>();
         foreach (var project in result)
         {
             foreach (var userProject in project.UserProjects)
@@ -173,7 +176,25 @@ public class ProjectService : IProjectService
                 var user = await _userManager.FindByIdAsync(userProject.UserId);
                 userProject.User = user;
             }
+            ExploreProjectDTO exploreProjectDTO = new ExploreProjectDTO
+            {
+                Description = project.Description,
+                Id = project.Id,
+                LeaderFullName = project.UserProjects.FirstOrDefault(x => x.RoleInTeam == RoleInTeam.Leader).User.FullName,
+                LeaderId = project.UserProjects.FirstOrDefault(x => x.RoleInTeam == RoleInTeam.Leader).User.Id,
+                LogoUrl = project.LogoUrl,
+                ProjectName = project.ProjectName,
+            };
+            exploreProjects.Add(exploreProjectDTO);
         }
-        return result; 
+        var response = new SearchResponseDTO<ExploreProjectDTO>
+        {
+            PageIndex = pageIndex,
+            PageSize = pageSize,
+            ResponseList = exploreProjects,
+            TotalPage = (int)Math.Ceiling((double)totalRecord / pageSize),
+            TotalRecord = totalRecord
+        };
+        return response;
     }
 }
