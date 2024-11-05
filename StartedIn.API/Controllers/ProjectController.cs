@@ -8,6 +8,7 @@ using StartedIn.CrossCutting.Exceptions;
 using StartedIn.Domain.Entities;
 using StartedIn.Service.Services;
 using StartedIn.Service.Services.Interface;
+using System.Diagnostics.Contracts;
 using System.Security.Claims;
 
 namespace StartedIn.API.Controllers;
@@ -179,11 +180,33 @@ public class ProjectController : ControllerBase
 
     [HttpGet("projects/explore")]
     [Authorize]
-    public async Task<ActionResult<IEnumerable<ExploreProjectDTO>>> ExploreProjects([FromQuery] int pageIndex, int pageSize)
+    public async Task<ActionResult<SearchResponseDTO<ExploreProjectDTO>>> ExploreProjects([FromQuery] int pageIndex, int pageSize)
     {
-        var userId = User.FindFirst(ClaimTypes.NameIdentifier).Value;
-        var result = await _projectService.GetProjectsForInvestor(userId, pageIndex, pageSize);
-        var mappedResult = _mapper.Map<IEnumerable<ExploreProjectDTO>>(result);
-        return Ok(mappedResult);
+        try
+        {
+            pageIndex = pageIndex < 1 ? 1 : pageIndex;
+            pageSize = pageSize < 1 ? 10 : pageSize;
+            var userId = User.FindFirst(ClaimTypes.NameIdentifier).Value;
+            var result = await _projectService.GetProjectsForInvestor(userId, pageIndex, pageSize);
+            var projectResponseList = _mapper.Map<List<ExploreProjectDTO>>(result);
+            var totalRecords = result.Count(); // Assuming a count method exists
+            var totalPages = (int)Math.Ceiling((double)totalRecords / pageSize);
+
+            var response = new SearchResponseDTO<ExploreProjectDTO>
+            {
+                ResponseList = projectResponseList,
+                PageIndex = pageIndex,
+                PageSize = pageSize,
+                TotalRecord = totalRecords,
+                TotalPage = totalPages
+            };
+
+            return Ok(response);
+        }
+        catch (Exception ex)
+        {
+            return StatusCode(500, ex.Message);
+        }
+            
     }
 }

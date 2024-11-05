@@ -166,6 +166,14 @@ public class ProjectService : IProjectService
         var projects = _projectRepository.QueryHelper().Include(p => p.UserProjects)
             .Filter(p => !p.UserProjects.Any(up => up.UserId.Contains(userId)));
         var result = await projects.GetPagingAsync(pageIndex, pageSize);
+        foreach (var project in result)
+        {
+            foreach (var userProject in project.UserProjects)
+            {
+                var user = await _userManager.FindByIdAsync(userProject.UserId);
+                userProject.User = user;
+            }
+        }
         return result; 
     }
 }
