@@ -15,6 +15,6 @@ namespace StartedIn.CrossCutting.DTOs.RequestDTO
         public string? Constraints { get; set; }
         public string? Assumptions { get; set; }
         public string? Deliverables { get; set; }
-        public List<MilestoneInCharterCreateDTO> ListMilestoneCreateDto { get; set; }
+        public List<MilestoneInCharterCreateDTO>? ListMilestoneCreateDto { get; set; }
     }
 }

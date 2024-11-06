@@ -11,6 +11,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using CrossCutting.Exceptions;
+using StartedIn.CrossCutting.Enum;
 
 namespace StartedIn.Service.Services
 {
@@ -58,6 +60,12 @@ namespace StartedIn.Service.Services
                 if (projectRole != CrossCutting.Enum.RoleInTeam.Leader)
                 {
                     throw new UnauthorizedProjectRoleException(MessageConstant.RolePermissionError);
+                }
+
+                var existing = await _projectCharterRepository.GetProjectCharterByProjectId(projectId);
+                if (existing != null)
+                {
+                    throw new ExistedRecordException(MessageConstant.CharterExistedError);
                 }
                 _unitOfWork.BeginTransaction();
                 ProjectCharter newProjectCharter = new ProjectCharter
@@ -126,6 +134,53 @@ namespace StartedIn.Service.Services
                 throw new NotFoundException(MessageConstant.NotFoundCharterError);
             }
             return projectCharter;
+        }
+        
+        public async Task<ProjectCharter> UpdateProjectCharterInfo(string userId, string projectId, EditProjectCharterDTO editProjectCharterDto)
+        {
+            var loginUser = await _userService.CheckIfUserInProject(userId, projectId);
+            
+            var chosenProjectCharter = await _projectCharterRepository.QueryHelper()
+                .Include(x=>x.Project)
+                .Filter(x=>x.ProjectId.Equals(projectId))
+                .GetOneAsync();
+            
+            var projectRole = await _projectRepository.GetUserRoleInProject(userId, projectId);
+            
+            if (chosenProjectCharter == null)
+            {
+                throw new NotFoundException(MessageConstant.NotFoundCharterError);
+            }
+            
+            if (chosenProjectCharter.ProjectId != projectId)
+            {
+                throw new UnmatchedException(MessageConstant.CharterNotBelongToProjectError);
+            }
+           
+            if (projectRole != RoleInTeam.Leader)
+            {
+                throw new UnauthorizedProjectRoleException(MessageConstant.RolePermissionError);
+            }
+            try
+            {
+                chosenProjectCharter.BusinessCase = editProjectCharterDto.BusinessCase;
+                chosenProjectCharter.Goal = editProjectCharterDto.Goal;
+                chosenProjectCharter.Objective = editProjectCharterDto.Objective;
+                chosenProjectCharter.Scope = editProjectCharterDto.Scope;
+                chosenProjectCharter.Constraints = editProjectCharterDto.Constraints;
+                chosenProjectCharter.Assumptions = editProjectCharterDto.Assumptions;
+                chosenProjectCharter.Deliverables = editProjectCharterDto.Deliverables;
+                chosenProjectCharter.LastUpdatedTime = DateTimeOffset.UtcNow;
+                chosenProjectCharter.LastUpdatedBy = loginUser.User.FullName;
+                _projectCharterRepository.Update(chosenProjectCharter);
+                await _unitOfWork.SaveChangesAsync();
+                return chosenProjectCharter;
+            }
+            catch (Exception ex)
+            {
+                await _unitOfWork.RollbackAsync();
+                throw new Exception("Failed while update project charter");
+            }
         }
     }
 }
