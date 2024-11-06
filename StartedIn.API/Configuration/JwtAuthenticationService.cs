@@ -29,8 +29,7 @@ namespace StartedIn.API.Configuration
                         ValidateIssuer = false,
                         ValidateAudience = false,
                         ValidateLifetime = true,
-                        IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes
-                        (configuration.GetValue<string>("SECRET_KEY") ?? (configuration["jwt:secret"]))),
+                        IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(configuration.GetValue<string>("SECRET_KEY") ?? (configuration["jwt:secret"]))),
                         ClockSkew = TimeSpan.Zero,
                         ValidIssuer = configuration.GetValue<string>("SECRET_ISSUER") ?? configuration["jwt:issuer"],
                         ValidAudience = configuration.GetValue<string>("SECRET_AUDIENCE") ?? configuration["jwt:audience"]

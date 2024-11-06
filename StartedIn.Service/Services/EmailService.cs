@@ -24,17 +24,9 @@ namespace StartedIn.Service.Services
 
         public async Task SendInvitationToProjectAsync(string receiveEmail, string projectId, string senderName, string projectName, RoleInTeam roleInTeam)
         {
-            int roleInt = 0;
-            switch (roleInTeam)
-            {
-                case RoleInTeam.Leader: roleInt = 0; break;
-                case RoleInTeam.Member: roleInt = 1; break;
-                case RoleInTeam.Investor: roleInt = 2; break;
-                case RoleInTeam.Mentor: roleInt = 3; break;
-            }
             var webDomain = _configuration.GetValue<string>("WEB_DOMAIN") ?? _configuration["Local_domain"];
             var subject = "Lời mời tham gia nhóm";
-            var body = $"{senderName} đã gửi lời mời tham gia dự án {projectName} cho bạn \n\n Bạn vui lòng bấm vào đường link sau để tham gia vào dự án:\n{webDomain}/invite/{projectId}/{roleInt} \n\n Xin chân thành cảm ơn vì đã đồng hành cùng StartedIn!";
+            var body = $"{senderName} đã gửi lời mời tham gia dự án {projectName} cho bạn \n\n Bạn vui lòng bấm vào đường link sau để tham gia vào dự án:\n{webDomain}/invite/{projectId}/{roleInTeam} \n\n Xin chân thành cảm ơn vì đã đồng hành cùng StartedIn!";
             await SendEmailAsync(receiveEmail, subject, body);
         }
 
