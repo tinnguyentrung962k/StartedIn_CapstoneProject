@@ -33,19 +33,26 @@ namespace StartedIn.API.Controllers
             try
             {
                 var userId = User.FindFirst(ClaimTypes.NameIdentifier).Value;
-                var projectCharter = await _projectCharterService.CreateNewProjectCharter(userId,projectId,projectCharterCreateDto);
+                var projectCharter =
+                    await _projectCharterService.CreateNewProjectCharter(userId, projectId, projectCharterCreateDto);
                 var projectCharterResponse = _mapper.Map<ProjectCharterResponseDTO>(projectCharter);
-                return CreatedAtAction(nameof(GetProjectCharterByCharterId), new { id = projectCharterResponse.Id }, projectCharterResponse);
+                return CreatedAtAction(nameof(GetProjectCharterByCharterId), new { id = projectCharterResponse.Id },
+                    projectCharterResponse);
             }
             catch (UnauthorizedProjectRoleException ex)
             {
                 _logger.LogError(ex, "Unauthorized Role");
                 return StatusCode(403, ex.Message);
             }
+            catch (NotFoundException ex)
+            {
+                _logger.LogError(ex, "User or project is not found");
+                return BadRequest(ex);
+            }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error while creating new project charter.");
-                return StatusCode(500, "Lỗi server");
+                return StatusCode(500, MessageConstant.InternalServerError);
             }
         }
 
@@ -60,11 +67,11 @@ namespace StartedIn.API.Controllers
             }
             catch (NotFoundException ex)
             {
-                return NotFound(ex.Message);
+                return BadRequest(ex.Message);
             }
             catch (Exception ex)
             {
-                return StatusCode(500, "Lỗi Server");
+                return StatusCode(500, MessageConstant.InternalServerError);
             }
         }
 
@@ -79,11 +86,11 @@ namespace StartedIn.API.Controllers
             }
             catch (NotFoundException ex)
             {
-                return NotFound(ex.Message);
+                return BadRequest(ex.Message);
             }
             catch (Exception ex)
             {
-                return StatusCode(500, "Lỗi Server");
+                return StatusCode(500, MessageConstant.InternalServerError);
             }
         }
 

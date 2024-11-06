@@ -42,12 +42,12 @@ namespace StartedIn.API.Controllers
             }
             catch (NotFoundException ex)
             {
-                return NotFound(ex.Message);
+                return BadRequest(ex.Message);
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error while creating a deal");
-                return StatusCode(500, "Lỗi server");
+                return StatusCode(500, MessageConstant.InternalServerError);
             }
         }
         [HttpGet("deal-offers")]

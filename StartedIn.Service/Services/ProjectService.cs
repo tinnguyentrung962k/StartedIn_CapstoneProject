@@ -113,7 +113,7 @@ public class ProjectService : IProjectService
         var userInTeam = await _userRepository.GetAUserInProject(projectId, user.Id);
         if (userInTeam != null)
         {
-            throw new InviteException("Người dùng đã có trong nhóm");
+            throw new InviteException(MessageConstant.UserExistedInProject);
         }
         await _userRepository.AddUserToProject(userId, projectId, roleInTeam);
         await _unitOfWork.SaveChangesAsync();
