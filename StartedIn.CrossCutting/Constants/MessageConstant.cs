@@ -31,7 +31,8 @@ namespace StartedIn.CrossCutting.Constants
         public const string CreateFailed = "Tạo dữ liệu mới thất bại.";
         public const string UserExistedInProject = "Người dùng đã tồn tại trong dự án.";
         public const string NotFoundDealError = "Không tìm thấy yêu cầu thương lượng.";
-        public const string DealNotBelongToProjectError = "Yêu cầu thương lượng này không thuộc vào dự án";
+        public const string DealNotBelongToProjectError = "Yêu cầu thương lượng này không thuộc vào dự án.";
+        public const string CreateMoreProjectError = "Bạn không thể tạo thêm nhóm.";
 
     }
 }

@@ -1,3 +1,4 @@
+using CrossCutting.Exceptions;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Logging;
@@ -35,10 +36,19 @@ public class ProjectService : IProjectService
     }
     public async Task CreateNewProject(string userId, Project project, IFormFile avatar)
     {
-
+        var user = await _userManager.FindByIdAsync(userId);
+        var createdProject = await _projectRepository
+             .QueryHelper()
+             .Include(x => x.UserProjects)
+             .Filter(p => p.UserProjects.Any(up => up.UserId == userId && up.RoleInTeam == RoleInTeam.Leader))
+             .GetOneAsync();
+        if (createdProject is not null)
+        {
+            throw new ExistedRecordException(MessageConstant.CreateMoreProjectError);
+        }
         try {
             _unitOfWork.BeginTransaction();
-            var user = await _userManager.FindByIdAsync(userId);
+            
             project.ProjectStatus = ProjectStatusEnum.CONSTRUCTING;
             var imgUrl = await _azureBlobService.UploadAvatarOrCover(avatar);
             project.LogoUrl = imgUrl;
