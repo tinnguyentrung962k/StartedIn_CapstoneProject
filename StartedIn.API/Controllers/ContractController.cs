@@ -18,7 +18,7 @@ using System.Security.Claims;
 namespace StartedIn.API.Controllers
 {
     [ApiController]
-    [Route("api")]
+    [Route("api/projects/{projectId}/")]
     public class ContractController : ControllerBase
     {
         private readonly IContractService _contractService;
@@ -33,16 +33,16 @@ namespace StartedIn.API.Controllers
             _signNowService = signNowService;
         }
         
-        [HttpPost("investment-contract")]
+        [HttpPost("contracts/investment-contract")]
         [Authorize]
-        public async Task<ActionResult<ContractResponseDTO>> CreateAnInvestmentContract([FromBody] InvestmentContractCreateDTO investmentContractCreateDTO)
+        public async Task<ActionResult<ContractResponseDTO>> CreateAnInvestmentContract([FromRoute] string projectId, [FromBody] InvestmentContractCreateDTO investmentContractCreateDTO)
         {
             try
             {
                 var userId = User.FindFirst(ClaimTypes.NameIdentifier).Value;
-                var contract = await _contractService.CreateInvestmentContract(userId, investmentContractCreateDTO);
+                var contract = await _contractService.CreateInvestmentContract(userId,projectId,investmentContractCreateDTO);
                 var responseContract = _mapper.Map<ContractResponseDTO>(contract);
-                return CreatedAtAction(nameof(GetContractById), new { contractId = responseContract.Id }, responseContract);
+                return CreatedAtAction(nameof(GetContractById), new { projectId ,contractId = responseContract.Id }, responseContract);
             }
             catch (UnauthorizedProjectRoleException ex)
             {
@@ -58,14 +58,14 @@ namespace StartedIn.API.Controllers
                 return StatusCode(500, "Lỗi server");
             }
         }
-        [HttpPut("investment-contract/{contractId}")]
+        [HttpPut("contracts/investment-contract/{contractId}")]
         [Authorize]
-        public async Task<ActionResult<ContractResponseDTO>> UpdateInvestmentContract([FromRoute] string contractId, [FromBody] InvestmentContractUpdateDTO investmentContractUpdateDTO)
+        public async Task<ActionResult<ContractResponseDTO>> UpdateInvestmentContract([FromRoute] string projectId, [FromRoute] string contractId, [FromBody] InvestmentContractUpdateDTO investmentContractUpdateDTO)
         {
             try
             {
                 var userId = User.FindFirst(ClaimTypes.NameIdentifier).Value;
-                var contract = await _contractService.UpdateInvestmentContract(userId, contractId, investmentContractUpdateDTO);
+                var contract = await _contractService.UpdateInvestmentContract(userId,projectId,contractId,investmentContractUpdateDTO);
                 var responseContract = _mapper.Map<ContractResponseDTO>(contract);
                 return Ok(responseContract);
             }
@@ -83,13 +83,14 @@ namespace StartedIn.API.Controllers
                 return StatusCode(500, "Lỗi server");
             }
         }
-        [HttpGet("investment-contracts/contract-detail/{contractId}")]
+        [HttpGet("contracts/investment-contract/{contractId}")]
         [Authorize]
-        public async Task<ActionResult<ContractDetailResponseDTO>> GetInvestmentContractDetail(string contractId)
+        public async Task<ActionResult<ContractDetailResponseDTO>> GetInvestmentContractDetail([FromRoute]string projectId, [FromRoute]string contractId)
         {
             try
             {
-                var contract = await _contractService.GetContractByContractId(contractId);
+                var userId = User.FindFirst(ClaimTypes.NameIdentifier).Value;
+                var contract = await _contractService.GetContractByContractId(userId,contractId,projectId);
                 var responseContract = _mapper.Map<ContractDetailResponseDTO>(contract);
                 return Ok(responseContract);
             }
@@ -97,20 +98,28 @@ namespace StartedIn.API.Controllers
             {
                 return BadRequest(ex.Message);
             }
+            catch (UnmatchedException ex)
+            {
+                return BadRequest(ex.Message);
+            }
+            catch (UnauthorizedProjectRoleException ex)
+            {
+                return StatusCode(403, ex.Message);
+            }
             catch (Exception ex)
             {
                 return StatusCode(500, "Lỗi truy xuất"); ;
             }
         }
 
-        [HttpPost("contracts/send-invite/{contractId}")]
+        [HttpPost("contracts/send-invite/contract/{contractId}")]
         [Authorize]
-        public async Task<ActionResult<ContractResponseDTO>> SendInviteForContract([FromRoute] string contractId)
+        public async Task<ActionResult<ContractResponseDTO>> SendInviteForContract([FromRoute]string projectId, [FromRoute] string contractId)
         {
             try
             {
                 var userId = User.FindFirst(ClaimTypes.NameIdentifier).Value;
-                var contract = await _contractService.SendSigningInvitationForContract(userId, contractId);
+                var contract = await _contractService.SendSigningInvitationForContract(projectId, userId, contractId);
                 var responseContract = _mapper.Map<ContractResponseDTO>(contract);
 
                 return Ok(responseContract);
@@ -119,32 +128,9 @@ namespace StartedIn.API.Controllers
             {
                 return StatusCode(403, ex.Message);
             }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error while creating contract");
-                return StatusCode(500, "Lỗi server");
-            }
-        }
-        
-        [HttpGet("contracts/user-contract/project/{projectId}")]
-        [Authorize]
-        public async Task<ActionResult<List<ContractResponseDTO>>> GetPersonalContractsInAProject([FromRoute] string projectId, [FromQuery] int pageIndex, int pageSize)
-        {
-            
-            try
-            {
-                var userId = User.FindFirst(ClaimTypes.NameIdentifier).Value;
-                var contracts = await _contractService.GetContractsByUserIdInAProject(userId, projectId, pageIndex, pageSize);
-                var responseContract = _mapper.Map<List<ContractResponseDTO>>(contracts);
-                return Ok(responseContract);
-            }
-            catch (NotFoundException ex)
+            catch (UnmatchedException ex)
             {
                 return BadRequest(ex.Message);
-            }
-            catch (UnauthorizedProjectRoleException ex)
-            {
-                return StatusCode(403, ex.Message);
             }
             catch (Exception ex)
             {
@@ -155,17 +141,26 @@ namespace StartedIn.API.Controllers
 
         [HttpGet("contracts/{contractId}")]
         [Authorize]
-        public async Task<ActionResult<ContractResponseDTO>> GetContractById([FromRoute] string contractId)
+        public async Task<ActionResult<ContractResponseDTO>> GetContractById([FromRoute]string projectId, [FromRoute] string contractId)
         {
             try
             {
-                var contract = await _contractService.GetContractByContractId(contractId);
+                var userId = User.FindFirst(ClaimTypes.NameIdentifier).Value;
+                var contract = await _contractService.GetContractByContractId(userId,contractId,projectId);
                 var responseContract = _mapper.Map<ContractResponseDTO>(contract);
                 return Ok(responseContract);
             }
             catch (NotFoundException ex)
             {
                 return BadRequest(ex.Message);
+            }
+            catch (UnmatchedException ex)
+            {
+                return BadRequest(ex.Message);
+            }
+            catch (UnauthorizedProjectRoleException ex)
+            {
+                return StatusCode(403, ex.Message);
             }
             catch (Exception ex)
             {
@@ -174,11 +169,11 @@ namespace StartedIn.API.Controllers
         }
 
         [HttpPost("contracts/valid-contract/{contractId}")]
-        public async Task<IActionResult> ValidAcontract([FromRoute] string contractId)
+        public async Task<IActionResult> ValidAcontract([FromRoute]string projectId, [FromRoute] string contractId)
         {
             try
             {
-                var contract = await _contractService.ValidateContractOnSignedAsync(contractId);
+                var contract = await _contractService.ValidateContractOnSignedAsync(contractId,projectId);
                 return Ok("Cập nhật hợp đồng thành công");
             }
             catch (Exception ex)
@@ -187,12 +182,12 @@ namespace StartedIn.API.Controllers
             }
         }
 
-        [HttpPost("contracts/update-user-sign/{contractId}")]
-        public async Task<IActionResult> UpdateUserSignedStatus([FromRoute] string contractId)
+        [HttpPost("contracts/sign-confirmation/{contractId}")]
+        public async Task<IActionResult> UpdateUserSignedStatus([FromRoute] string projectId, [FromRoute] string contractId)
         {
             try
             {
-                await _contractService.UpdateSignedStatusForUserInContract(contractId);
+                await _contractService.UpdateSignedStatusForUserInContract(contractId, projectId);
                 return Ok("Cập nhật hợp đồng thành công");
             }
             catch (Exception ex)
@@ -201,15 +196,15 @@ namespace StartedIn.API.Controllers
             }
         }
         
-        [HttpPost("contracts/download-contract/{contractId}")]
+        [HttpPost("contracts/{contractId}/download")]
         [Authorize]
-        public async Task<ActionResult<DocumentDownLoadResponseDTO>> DownLoadContract([FromRoute] string contractId)
+        public async Task<ActionResult<DocumentDownLoadResponseDTO>> DownLoadContract([FromRoute]string projectId, [FromRoute] string contractId)
         {
             
             try
             {
                 var userId = User.FindFirst(ClaimTypes.NameIdentifier).Value;
-                var downloadLink = await _contractService.DownLoadFileContract(userId,contractId);
+                var downloadLink = await _contractService.DownLoadFileContract(userId,projectId,contractId);
                 return Ok(downloadLink);
             }
             catch (NotFoundException ex)
@@ -226,7 +221,7 @@ namespace StartedIn.API.Controllers
             }
         }
 
-        [HttpGet("contracts/project-contracts/{projectId}/search")]
+        [HttpGet("contracts")]
         [Authorize]
         public async Task<ActionResult<SearchResponseDTO<ContractSearchResponseDTO>>> SearchContractWithFilters(
     [FromRoute] string projectId, [FromQuery] ContractSearchDTO search, int pageSize, int pageIndex)

@@ -22,6 +22,7 @@ using System.Net;
 using StartedIn.CrossCutting.Enum;
 using DocumentFormat.OpenXml.Spreadsheet;
 using CrossCutting.Exceptions;
+using DocumentFormat.OpenXml.Office2010.Excel;
 
 namespace StartedIn.Service.Services
 {
@@ -71,15 +72,15 @@ namespace StartedIn.Service.Services
         }
         
 
-        public async Task<Contract> CreateInvestmentContract(string userId, InvestmentContractCreateDTO investmentContractCreateDTO)
+        public async Task<Contract> CreateInvestmentContract(string userId,string projectId ,InvestmentContractCreateDTO investmentContractCreateDTO)
         {
-            var userInProject = await _userService.CheckIfUserInProject(userId, investmentContractCreateDTO.Contract.ProjectId);
-            var projectRole = await _projectRepository.GetUserRoleInProject(userId, investmentContractCreateDTO.Contract.ProjectId);
+            var userInProject = await _userService.CheckIfUserInProject(userId, projectId);
+            var projectRole = await _projectRepository.GetUserRoleInProject(userId, projectId);
             if (projectRole != RoleInTeam.Leader)
             {
                 throw new UnauthorizedProjectRoleException(MessageConstant.RolePermissionError);
             }
-            var existedContract = await _contractRepository.QueryHelper().Filter(x => x.ContractIdNumber.Equals(investmentContractCreateDTO.Contract.ContractIdNumber) && x.ProjectId.Equals(investmentContractCreateDTO.Contract.ProjectId)).GetOneAsync();
+            var existedContract = await _contractRepository.QueryHelper().Filter(x => x.ContractIdNumber.Equals(investmentContractCreateDTO.Contract.ContractIdNumber) && x.ProjectId.Equals(projectId)).GetOneAsync();
             if (existedContract != null)
             {
                 throw new ExistedRecordException(MessageConstant.ContractNumberExistedError);
@@ -98,7 +99,7 @@ namespace StartedIn.Service.Services
                     ContractPolicy = investmentContractCreateDTO.Contract.ContractPolicy,
                     ContractType = ContractTypeEnum.INVESTMENT,
                     CreatedBy = userInProject.User.FullName,
-                    ProjectId = investmentContractCreateDTO.Contract.ProjectId,
+                    ProjectId = projectId,
                     ContractStatus = ContractStatusEnum.DRAFT,
                     ContractIdNumber = investmentContractCreateDTO.Contract.ContractIdNumber
                 };
@@ -180,26 +181,43 @@ namespace StartedIn.Service.Services
             return orderCode;
         }
 
-        public async Task<Contract> GetContractByContractId(string id)
+        public async Task<Contract> GetContractByContractId(string userId, string id, string projectId)
         {
+            var project = await _projectRepository.GetProjectById(projectId);
+            if (project is null)
+            {
+                throw new NotFoundException(MessageConstant.NotFoundProjectError);
+            }
             var chosenContract = await _contractRepository.GetContractById(id);
             if (chosenContract == null)
             {
-                throw new NotFoundException("Không có hợp đồng");
+                throw new NotFoundException(MessageConstant.NotFoundContractError);
             }
+            if (projectId != chosenContract.ProjectId)
+            {
+                throw new UnmatchedException(MessageConstant.ContractNotBelongToProjectError);
+            }
+            var userProject = await _userService.CheckIfUserInProject(userId, projectId);
             return chosenContract;
-        }
-
-        public async Task<IEnumerable<Contract>> GetContractsByUserIdInAProject(string userId, string projectId, int pageIndex, int pageSize)
-        {
-            await _userService.CheckIfUserInProject(userId, projectId);
-            var contracts = await _contractRepository.GetContractsByUserIdInAProject(userId, projectId, pageIndex, pageSize);
-            return contracts;
         }
         
 
-        public async Task<Contract> SendSigningInvitationForContract(string userId, string contractId)
+        public async Task<Contract> SendSigningInvitationForContract(string projectId, string userId, string contractId)
         {
+            var project = await _projectRepository.GetProjectById(projectId);
+            if (project is null)
+            {
+                throw new NotFoundException(MessageConstant.NotFoundProjectError);
+            }
+            var contract = await _contractRepository.GetContractById(contractId);
+            if (contract is null)
+            {
+                throw new NotFoundException(MessageConstant.NotFoundContractError);
+            }
+            if (projectId != contract.ProjectId) 
+            {
+                throw new UnmatchedException(MessageConstant.ContractNotBelongToProjectError);    
+            }
             var userInChosenContract = await _userService.CheckIfUserBelongToContract(userId, contractId);
             try
             {
@@ -222,7 +240,7 @@ namespace StartedIn.Service.Services
                 var webhookCompleteSign = new SignNowWebhookCreateDTO
                 {
                     Action = SignNowServiceConstant.CallBackAction,
-                    CallBackUrl = $"{_apiDomain}/api/contracts/valid-contract/{contractId}",
+                    CallBackUrl = $"{_apiDomain}/api/projects/{projectId}/contracts/valid-contract/{contractId}",
                     EntityId = userInChosenContract.Contract.SignNowDocumentId,
                     Event = SignNowServiceConstant.DocumentCompleteEvent
                 };
@@ -230,7 +248,7 @@ namespace StartedIn.Service.Services
                 var webhookUpdate = new SignNowWebhookCreateDTO
                 {
                     Action = SignNowServiceConstant.CallBackAction,
-                    CallBackUrl = $"{_apiDomain}/api/contracts/update-user-sign/{contractId}",
+                    CallBackUrl = $"{_apiDomain}/api/projects/{projectId}/contracts/sign-confirmation/{contractId}",
                     EntityId = userInChosenContract.Contract.SignNowDocumentId,
                     Event = SignNowServiceConstant.DocumentUpdateEvent
                 };
@@ -248,16 +266,25 @@ namespace StartedIn.Service.Services
                 throw;
             }
         }
-        public async Task UpdateSignedStatusForUserInContract(string contractId) 
+        public async Task UpdateSignedStatusForUserInContract(string contractId, string projectId) 
         {
-            var contract = await _contractRepository.GetContractById(contractId);
-            if (contract == null)
+            var project = await _projectRepository.GetProjectById(projectId);
+            if (project == null)
+            {
+                throw new NotFoundException(MessageConstant.NotFoundProjectError);
+            }
+            var chosenContract = await _contractRepository.GetContractById(contractId);
+            if (chosenContract == null)
             {
                 throw new NotFoundException(MessageConstant.NotFoundContractError);
             }
+            if (projectId != chosenContract.ProjectId)
+            {
+                throw new UnmatchedException(MessageConstant.ContractNotBelongToProjectError);
+            }
 
             // Get the SignNow document invite data
-            var contractInvite = await _signNowService.GetDocumentFreeFormInvite(contract.SignNowDocumentId);
+            var contractInvite = await _signNowService.GetDocumentFreeFormInvite(chosenContract.SignNowDocumentId);
 
             // Check if the contractInvite has data
             if (contractInvite?.Data == null || !contractInvite.Data.Any())
@@ -271,7 +298,7 @@ namespace StartedIn.Service.Services
                 if (signedData.Status.Equals(SignNowServiceConstant.FulfilledStatus))
                 {
                     // Find the corresponding UserContract entry for the signed user
-                    var existingUserContract = contract.UserContracts
+                    var existingUserContract = chosenContract.UserContracts
                         .FirstOrDefault(x => x.User.Email.Equals(signedData.Email, StringComparison.OrdinalIgnoreCase));
 
                     if (existingUserContract == null)
@@ -288,12 +315,21 @@ namespace StartedIn.Service.Services
             }
             await _unitOfWork.SaveChangesAsync();
         }
-        public async Task<Contract> ValidateContractOnSignedAsync(string id)
+        public async Task<Contract> ValidateContractOnSignedAsync(string id,string projectId)
         {
+            var project = await _projectRepository.GetProjectById(projectId);
+            if (project == null)
+            {
+                throw new NotFoundException(MessageConstant.NotFoundProjectError);
+            }
             var chosenContract = await _contractRepository.GetContractById(id);
             if (chosenContract == null)
             {
-                throw new NotFoundException("Không tìm thấy hợp đồng");
+                throw new NotFoundException(MessageConstant.NotFoundContractError);
+            }
+            if (projectId != chosenContract.ProjectId)
+            {
+                throw new UnmatchedException(MessageConstant.ContractNotBelongToProjectError);
             }
             try
             {
@@ -320,8 +356,17 @@ namespace StartedIn.Service.Services
                 throw;
             }
         }
-        public async Task<DocumentDownLoadResponseDTO> DownLoadFileContract(string userId, string contractId)
+        public async Task<DocumentDownLoadResponseDTO> DownLoadFileContract(string userId, string projectId, string contractId)
         {
+            var contract = await _contractRepository.GetContractById(contractId);
+            if (contract == null) {
+                throw new NotFoundException(MessageConstant.NotFoundContractError);
+            }
+            if (projectId != contract.ProjectId)
+            {
+                throw new UnmatchedException(MessageConstant.ContractNotBelongToProjectError);
+            }
+            var userInProject = await _userService.CheckIfUserInProject(userId, projectId);
             var userInContract = await _userService.CheckIfUserBelongToContract(userId, contractId);
             await _signNowService.AuthenticateAsync();
             var documentDownloadinfo = await _signNowService.DownLoadDocument(userInContract.Contract.SignNowDocumentId);
@@ -427,10 +472,10 @@ namespace StartedIn.Service.Services
             return response;
         }
 
-        public async Task<Contract> UpdateInvestmentContract(string userId, string contractId, InvestmentContractUpdateDTO investmentContractUpdateDTO)
+        public async Task<Contract> UpdateInvestmentContract(string userId, string projectId ,string contractId, InvestmentContractUpdateDTO investmentContractUpdateDTO)
         {
-            var userInProject = await _userService.CheckIfUserInProject(userId, investmentContractUpdateDTO.Contract.ProjectId);
-            var projectRole = await _projectRepository.GetUserRoleInProject(userId, investmentContractUpdateDTO.Contract.ProjectId);
+            var userInProject = await _userService.CheckIfUserInProject(userId, projectId);
+            var projectRole = await _projectRepository.GetUserRoleInProject(userId, projectId);
             var leader = await _userManager.FindByIdAsync(userId);
 
             if (projectRole != RoleInTeam.Leader)

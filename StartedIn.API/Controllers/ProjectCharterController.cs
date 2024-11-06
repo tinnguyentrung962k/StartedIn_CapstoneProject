@@ -26,14 +26,14 @@ namespace StartedIn.API.Controllers
             _logger = logger;
         }
 
-        [HttpPost("projectcharter")]
+        [HttpPost("projects/{projectId}/projectcharters")]
         [Authorize(Roles = RoleConstants.USER)]
-        public async Task<ActionResult<ProjectCharterResponseDTO>> CreateNewProjectCharter(ProjectCharterCreateDTO projectCharterCreateDto)
+        public async Task<ActionResult<ProjectCharterResponseDTO>> CreateNewProjectCharter([FromRoute] string projectId, [FromBody]ProjectCharterCreateDTO projectCharterCreateDto)
         {
             try
             {
                 var userId = User.FindFirst(ClaimTypes.NameIdentifier).Value;
-                var projectCharter = await _projectCharterService.CreateNewProjectCharter(userId, projectCharterCreateDto);
+                var projectCharter = await _projectCharterService.CreateNewProjectCharter(userId,projectId,projectCharterCreateDto);
                 var projectCharterResponse = _mapper.Map<ProjectCharterResponseDTO>(projectCharter);
                 return CreatedAtAction(nameof(GetProjectCharterByCharterId), new { id = projectCharterResponse.Id }, projectCharterResponse);
             }
@@ -49,8 +49,8 @@ namespace StartedIn.API.Controllers
             }
         }
 
-        [HttpGet("projectcharter/{id}")]
-        [Authorize(Roles = RoleConstants.USER)]
+        [HttpGet("projectcharters/{id}")]
+        [Authorize(Roles = RoleConstants.USER + "," + RoleConstants.INVESTOR)]
         public async Task<ActionResult<ProjectCharterResponseDTO>> GetProjectCharterByCharterId([FromRoute] string id)
         {
             try
@@ -68,8 +68,8 @@ namespace StartedIn.API.Controllers
             }
         }
 
-        [HttpGet("projectcharter/project/{projectId}")]
-        [Authorize(Roles = RoleConstants.USER)]
+        [HttpGet("projects/{projectId}/projectcharter")]
+        [Authorize(Roles = RoleConstants.USER + "," + RoleConstants.INVESTOR)]
         public async Task<ActionResult<ProjectCharterResponseDTO>> GetProjectCharterByProjectId([FromRoute] string projectId)
         {
             try

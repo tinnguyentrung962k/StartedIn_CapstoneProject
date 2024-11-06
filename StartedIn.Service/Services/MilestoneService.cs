@@ -43,10 +43,10 @@ namespace StartedIn.Service.Services
             _projectRepository = projectRepository;
             _userService = userService;
         }
-        public async Task<Milestone> CreateNewMilestone(string userId, MilestoneCreateDTO milestoneCreateDto)
+        public async Task<Milestone> CreateNewMilestone(string userId, string projectId ,MilestoneCreateDTO milestoneCreateDto)
         {
-            var loginUser = await _userService.CheckIfUserInProject(userId, milestoneCreateDto.ProjectId);
-            var projectRole = await _projectRepository.GetUserRoleInProject(userId, milestoneCreateDto.ProjectId);
+            var loginUser = await _userService.CheckIfUserInProject(userId, projectId);
+            var projectRole = await _projectRepository.GetUserRoleInProject(userId, projectId);
             if (projectRole != CrossCutting.Enum.RoleInTeam.Leader)
             {
                 throw new UnauthorizedProjectRoleException(MessageConstant.RolePermissionError);
@@ -56,7 +56,7 @@ namespace StartedIn.Service.Services
                 _unitOfWork.BeginTransaction();
                 Milestone milestone = new Milestone
                 {
-                    ProjectId = milestoneCreateDto.ProjectId,
+                    ProjectId = projectId,
                     Title = milestoneCreateDto.MilstoneTitle,
                     Description = milestoneCreateDto.Description,
                     DueDate = milestoneCreateDto.DueDate,
@@ -84,18 +84,24 @@ namespace StartedIn.Service.Services
             }
         }
 
-        public async Task<Milestone> GetMilestoneById(string id)
+        public async Task<Milestone> GetMilestoneById(string userId, string projectId, string id)
         {
+            var loginUser = await _userService.CheckIfUserInProject(userId, projectId);
             var milestone = await _milestoneRepository.GetMilestoneDetailById(id);
             if (milestone == null)
             {
                 throw new NotFoundException(MessageConstant.NotFoundMilestoneError);
             }
+            if (milestone.ProjectId != projectId)
+            {
+                throw new UnmatchedException(MessageConstant.MilestoneNotBelongToProjectError);
+            }
             return milestone;
         }
 
-        public async Task<Milestone> UpdateMilestoneInfo(string userId, string id, MilestoneInfoUpdateDTO updateMilestoneInfoDTO)
+        public async Task<Milestone> UpdateMilestoneInfo(string userId, string projectId, string id, MilestoneInfoUpdateDTO updateMilestoneInfoDTO)
         {
+            var loginUser = await _userService.CheckIfUserInProject(userId, projectId);
             var chosenMilestone = await _milestoneRepository.QueryHelper()
                 .Include(x=>x.Project)
                 .Filter(x=>x.Id.Equals(id))
@@ -104,7 +110,10 @@ namespace StartedIn.Service.Services
             {
                 throw new NotFoundException(MessageConstant.NotFoundMilestoneError);
             }
-            var loginUser = await _userService.CheckIfUserInProject(userId, chosenMilestone.Project.Id);
+            if (chosenMilestone.ProjectId != projectId)
+            {
+                throw new UnmatchedException(MessageConstant.MilestoneNotBelongToProjectError);
+            }
             try
             {
                 chosenMilestone.Title = updateMilestoneInfoDTO.MilestoneTitle;

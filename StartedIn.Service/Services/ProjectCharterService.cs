@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Logging;
+using StartedIn.CrossCutting.Constants;
 using StartedIn.CrossCutting.DTOs.RequestDTO;
 using StartedIn.CrossCutting.Exceptions;
 using StartedIn.Domain.Entities;
@@ -22,10 +23,11 @@ namespace StartedIn.Service.Services
         private readonly IMilestoneService _milestoneService;
         private readonly IProjectRepository _projectRepository;
         private readonly UserManager<User> _userManager;
+        private readonly IUserService _userService;
 
         public ProjectCharterService(IUnitOfWork unitOfWork, IProjectCharterRepository projectCharterRepository,
             IMilestoneRepository milestoneRepository, ILogger<ProjectCharterService> logger, IMilestoneService milestoneService,
-            IProjectRepository projectRepository, UserManager<User> userManager)
+            IProjectRepository projectRepository, UserManager<User> userManager, IUserService userService)
         {
             _unitOfWork = unitOfWork;
             _projectCharterRepository = projectCharterRepository;
@@ -34,31 +36,33 @@ namespace StartedIn.Service.Services
             _milestoneService = milestoneService;
             _projectRepository = projectRepository;
             _userManager = userManager;
+            _userService = userService;
         }
 
-        public async Task<ProjectCharter> CreateNewProjectCharter(string userId, ProjectCharterCreateDTO projectCharter)
+        public async Task<ProjectCharter> CreateNewProjectCharter(string userId, string projectId, ProjectCharterCreateDTO projectCharter)
         {
             try
             {
                 var user = await _userManager.FindByIdAsync(userId);
                 if (user == null)
                 {
-                    throw new NotFoundException("Người dùng không tồn tại");
+                    throw new NotFoundException(MessageConstant.NotFoundUserError);
                 }
-                var project = await _projectRepository.GetProjectById(projectCharter.ProjectId);
+                var project = await _projectRepository.GetProjectById(projectId);
                 if (project is null)
                 {
-                    throw new NotFoundException("Không tìm thấy dự án");
+                    throw new NotFoundException(MessageConstant.NotFoundProjectError);
                 }
-                var projectRole = await _projectRepository.GetUserRoleInProject(userId, projectCharter.ProjectId);
+                var userInProject = await _userService.CheckIfUserInProject(userId, projectId);
+                var projectRole = await _projectRepository.GetUserRoleInProject(userId, projectId);
                 if (projectRole != CrossCutting.Enum.RoleInTeam.Leader)
                 {
-                    throw new UnauthorizedProjectRoleException("Bạn không phải nhóm trưởng");
+                    throw new UnauthorizedProjectRoleException(MessageConstant.RolePermissionError);
                 }
                 _unitOfWork.BeginTransaction();
                 ProjectCharter newProjectCharter = new ProjectCharter
                 {
-                    ProjectId = projectCharter.ProjectId,
+                    ProjectId = projectId,
                     BusinessCase = projectCharter.BusinessCase,
                     Goal = projectCharter.Goal,
                     Objective = projectCharter.Objective,
@@ -75,7 +79,7 @@ namespace StartedIn.Service.Services
                     {
                         var newMilestone = new Milestone
                         {
-                            ProjectId = projectCharter.ProjectId,
+                            ProjectId = projectId,
                             CharterId = newProjectCharter.Id,
                             PhaseName = milestoneDto.PhaseEnum,
                             Title = milestoneDto.MilstoneTitle,
@@ -106,7 +110,7 @@ namespace StartedIn.Service.Services
                 .GetOneAsync();
             if (projectCharter == null)
             {
-                throw new NotFoundException("Không tìm thấy cột mốc");
+                throw new NotFoundException(MessageConstant.NotFoundCharterError);
             }
             return projectCharter;
         }
@@ -119,7 +123,7 @@ namespace StartedIn.Service.Services
                 .GetOneAsync(); ;
             if (projectCharter == null)
             {
-                throw new NotFoundException("Không tìm thấy cột mốc");
+                throw new NotFoundException(MessageConstant.NotFoundCharterError);
             }
             return projectCharter;
         }

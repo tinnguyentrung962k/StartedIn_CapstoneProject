@@ -67,7 +67,7 @@ namespace StartedIn.API.Controllers
                 return StatusCode(500, ex.Message);
             }
         }
-        [HttpGet("deal-offers/project-deals/{projectId}/search")]
+        [HttpGet("project/{projectId}/deal-offers")]
         [Authorize]
         public async Task<ActionResult<SearchResponseDTO<DealOfferForProjectResponseDTO>>> GetDealListForAProject([FromRoute] string projectId, [FromQuery] int pageIndex, int pageSize)
         {

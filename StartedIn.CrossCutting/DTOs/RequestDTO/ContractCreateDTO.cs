@@ -13,9 +13,6 @@ namespace StartedIn.CrossCutting.DTOs.RequestDTO
 {
     public class ContractCreateDTO
     {
-        [Required(ErrorMessage = "Vui lòng chọn dự án")]
-        public string ProjectId { get; set; }
-
         [Required(ErrorMessage = "Vui lòng điền tên hợp đồng")]
         [StringLength(50, ErrorMessage = "Tên hợp đồng không được quá 50 ký tự")]
         public string ContractName { get; set; }

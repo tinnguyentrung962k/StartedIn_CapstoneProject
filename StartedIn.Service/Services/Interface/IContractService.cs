@@ -13,15 +13,14 @@ namespace StartedIn.Service.Services.Interface
 {
     public interface IContractService
     {
-        Task<Contract> CreateInvestmentContract(string userId, InvestmentContractCreateDTO investmentContractCreateDTO);
-        Task<Contract> SendSigningInvitationForContract(string userId, string contractId);
-        Task<IEnumerable<Contract>> GetContractsByUserIdInAProject(string userId, string projectId, int pageIndex, int pageSize);
-        Task<Contract> GetContractByContractId(string id);
+        Task<Contract> CreateInvestmentContract(string userId, string projectId, InvestmentContractCreateDTO investmentContractCreateDTO);
+        Task<Contract> SendSigningInvitationForContract(string projectId, string userId, string contractId);
+        Task<Contract> GetContractByContractId(string userId, string id, string projectId);
         long GenerateUniqueBookingCode();
-        Task<Contract> ValidateContractOnSignedAsync(string id);
-        Task UpdateSignedStatusForUserInContract(string contractId);
-        Task<DocumentDownLoadResponseDTO> DownLoadFileContract(string userId, string contractId);
+        Task<Contract> ValidateContractOnSignedAsync(string id,string projectId);
+        Task UpdateSignedStatusForUserInContract(string contractId, string projectId);
+        Task<DocumentDownLoadResponseDTO> DownLoadFileContract(string userId, string projectId,string contractId);
         Task<SearchResponseDTO<ContractSearchResponseDTO>> SearchContractWithFilters(string userId, string projectId, ContractSearchDTO search, int pageIndex, int pageSize);
-        Task<Contract> UpdateInvestmentContract(string userId, string contractId, InvestmentContractUpdateDTO investmentContractUpdateDTO);
+        Task<Contract> UpdateInvestmentContract(string userId, string projectId, string contractId, InvestmentContractUpdateDTO investmentContractUpdateDTO);
     }
 }
