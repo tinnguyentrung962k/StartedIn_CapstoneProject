@@ -76,6 +76,16 @@ namespace StartedIn.Service.Services
             {
                 throw new ExistedRecordException(MessageConstant.ContractNumberExistedError);
             }
+            var project = await _projectRepository.GetProjectById(projectId);
+            if (investmentContractCreateDTO.InvestorInfo.Percentage > project.RemainingPercentOfShares)
+            {
+                throw new InvalidOperationException(MessageConstant.DealPercentageGreaterThanRemainingPercentage);
+            }
+            decimal totalDisbursementAmount = investmentContractCreateDTO.Disbursements.Sum(d => d.Amount);
+            if (totalDisbursementAmount > investmentContractCreateDTO.InvestorInfo.BuyPrice)
+            {
+                throw new InvalidOperationException(MessageConstant.DisbursementGreaterThanBuyPriceError);
+            }
             try
             {
                 _unitOfWork.BeginTransaction();
@@ -507,6 +517,16 @@ namespace StartedIn.Service.Services
             if (contract.ContractStatus != ContractStatusEnum.DRAFT)
             {
                 throw new UpdateException(MessageConstant.CannotUpdateContractError);
+            }
+            var project = await _projectRepository.GetProjectById(projectId);
+            if (investmentContractUpdateDTO.InvestorInfo.Percentage > project.RemainingPercentOfShares)
+            {
+                throw new InvalidOperationException(MessageConstant.DealPercentageGreaterThanRemainingPercentage);
+            }
+            decimal totalDisbursementAmount = investmentContractUpdateDTO.Disbursements.Sum(d => d.Amount);
+            if (totalDisbursementAmount > investmentContractUpdateDTO.InvestorInfo.BuyPrice)
+            {
+                throw new InvalidOperationException(MessageConstant.DisbursementGreaterThanBuyPriceError);
             }
 
             try

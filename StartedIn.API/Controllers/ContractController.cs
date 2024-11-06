@@ -41,15 +41,19 @@ namespace StartedIn.API.Controllers
             try
             {
                 var userId = User.FindFirst(ClaimTypes.NameIdentifier).Value;
-                var contract = await _contractService.CreateInvestmentContract(userId,projectId,investmentContractCreateDTO);
+                var contract = await _contractService.CreateInvestmentContract(userId, projectId, investmentContractCreateDTO);
                 var responseContract = _mapper.Map<ContractResponseDTO>(contract);
-                return CreatedAtAction(nameof(GetContractById), new { projectId ,contractId = responseContract.Id }, responseContract);
+                return CreatedAtAction(nameof(GetContractById), new { projectId, contractId = responseContract.Id }, responseContract);
             }
             catch (UnauthorizedProjectRoleException ex)
             {
                 return StatusCode(403, ex.Message);
             }
             catch (ExistedRecordException ex)
+            {
+                return BadRequest(ex.Message);
+            }
+            catch (InvalidOperationException ex)
             {
                 return BadRequest(ex.Message);
             }
@@ -75,6 +79,10 @@ namespace StartedIn.API.Controllers
             catch (UnauthorizedProjectRoleException ex)
             {
                 return StatusCode(403, ex.Message);
+            }
+            catch (InvalidOperationException ex)
+            {
+                return BadRequest(ex.Message);
             }
             catch (UpdateException ex)
             {

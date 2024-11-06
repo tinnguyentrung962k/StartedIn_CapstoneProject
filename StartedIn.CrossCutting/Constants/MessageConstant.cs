@@ -33,6 +33,8 @@ namespace StartedIn.CrossCutting.Constants
         public const string NotFoundDealError = "Không tìm thấy yêu cầu thương lượng.";
         public const string DealNotBelongToProjectError = "Yêu cầu thương lượng này không thuộc vào dự án.";
         public const string CreateMoreProjectError = "Bạn không thể tạo thêm nhóm.";
+        public const string DisbursementGreaterThanBuyPriceError = "Số tiền giải ngân không thể vượt quá số tiền mua cổ phần";
+        public const string DealPercentageGreaterThanRemainingPercentage = "Số cổ phần thương lượng lớn hơn số cổ phần còn lại của Startup".
 
     }
 }
