@@ -115,8 +115,8 @@ public class ProjectService : IProjectService
         {
             throw new NotFoundException(MessageConstant.NotFoundProjectError);
         }
-        var existingLeader = project.UserProjects.FirstOrDefault(x => x.RoleInTeam == RoleInTeam.Leader && x.UserId.Equals(userId));
-        if (existingLeader != null)
+        var existingLeader = project.UserProjects.FirstOrDefault(x => x.RoleInTeam == RoleInTeam.Leader);
+        if (roleInTeam == RoleInTeam.Leader && existingLeader != null)
         {
             throw new InviteException(MessageConstant.JoinGroupWithLeaderRoleError);
         }
