@@ -14,5 +14,8 @@ namespace StartedIn.Service.Services.Interface
 
         Task<ProjectCharter> GetProjectCharterByCharterId(string id);
         Task<ProjectCharter> GetProjectCharterByProjectId(string projectId);
+
+        Task<ProjectCharter> UpdateProjectCharterInfo(string userId, string projectId,
+            EditProjectCharterDTO editProjectCharterDto);
     }
 }

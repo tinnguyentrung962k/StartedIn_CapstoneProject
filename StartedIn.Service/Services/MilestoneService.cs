@@ -102,17 +102,27 @@ namespace StartedIn.Service.Services
         public async Task<Milestone> UpdateMilestoneInfo(string userId, string projectId, string id, MilestoneInfoUpdateDTO updateMilestoneInfoDTO)
         {
             var loginUser = await _userService.CheckIfUserInProject(userId, projectId);
+            
             var chosenMilestone = await _milestoneRepository.QueryHelper()
                 .Include(x=>x.Project)
                 .Filter(x=>x.Id.Equals(id))
                 .GetOneAsync();
+            
+            var projectRole = await _projectRepository.GetUserRoleInProject(userId, projectId);
+            
             if (chosenMilestone == null)
             {
                 throw new NotFoundException(MessageConstant.NotFoundMilestoneError);
             }
+            
             if (chosenMilestone.ProjectId != projectId)
             {
                 throw new UnmatchedException(MessageConstant.MilestoneNotBelongToProjectError);
+            }
+            
+            if (projectRole != RoleInTeam.Leader)
+            {
+                throw new UnauthorizedProjectRoleException(MessageConstant.RolePermissionError);
             }
             try
             {
@@ -128,7 +138,7 @@ namespace StartedIn.Service.Services
             catch (Exception ex)
             {
                 await _unitOfWork.RollbackAsync();
-                throw new Exception("Failed while update task");
+                throw new Exception("Failed while update milestone");
             }
         }
     }
