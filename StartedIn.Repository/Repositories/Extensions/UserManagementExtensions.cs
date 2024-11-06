@@ -2,6 +2,7 @@
 using Microsoft.EntityFrameworkCore;
 using StartedIn.CrossCutting.Constants;
 using StartedIn.Domain.Entities;
+using System.Diagnostics.Contracts;
 
 namespace StartedIn.Repository.Repositories.Extensions
 {
@@ -19,6 +20,17 @@ namespace StartedIn.Repository.Repositories.Extensions
             pageSize = pageSize < 1 ? 10 : pageSize;
             var pagedUsers = userList.Skip(pageIndex * pageSize).Take(pageSize);
             return pagedUsers;
+        }
+        public static async Task<User>? GetAUserInAContractWithSystemRole(this UserManager<User> userManager, string contractId, string role)
+        {
+            var user = await userManager?.Users
+                    .Include(it => it.UserRoles)
+                    .ThenInclude(r => r.Role)
+                    .Include(it => it.UserContracts)
+                    .Where(it => it.UserRoles.Any(r => r.Role.Name == role) &&
+                    it.UserContracts.Any(uc => uc.ContractId == contractId))
+                    .SingleOrDefaultAsync(it => it.UserContracts.Any(uc => uc.ContractId == contractId));
+            return user;
         }
     }
 }

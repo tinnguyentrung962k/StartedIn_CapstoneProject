@@ -113,7 +113,7 @@ public class ProjectService : IProjectService
         var userInTeam = await _userRepository.GetAUserInProject(projectId, user.Id);
         if (userInTeam != null)
         {
-            throw new InviteException(MessageConstant.UserExistedInProject);
+            return;
         }
         await _userRepository.AddUserToProject(userId, projectId, roleInTeam);
         await _unitOfWork.SaveChangesAsync();

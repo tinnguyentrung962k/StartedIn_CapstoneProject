@@ -13,6 +13,8 @@ using StartedIn.Repository.Repositories.Interface;
 using StartedIn.Service.Services.Interface;
 using StartedIn.CrossCutting.Enum;
 using CrossCutting.Exceptions;
+using Microsoft.EntityFrameworkCore;
+using StartedIn.Repository.Repositories.Extensions;
 
 namespace StartedIn.Service.Services
 {
@@ -226,6 +228,19 @@ namespace StartedIn.Service.Services
                 userInChosenContract.Contract.LastUpdatedTime = DateTimeOffset.UtcNow;
                 userInChosenContract.Contract.ContractStatus = ContractStatusEnum.SENT;
                 var inviteResponse = await _signNowService.CreateFreeFormInvite(userInChosenContract.Contract.SignNowDocumentId, userEmails);
+                var webHookCreateList = new List<SignNowWebhookCreateDTO>();
+                if (contract.ContractType == ContractTypeEnum.INVESTMENT)
+                {
+                    var investor = await GetAUserFromContractWithUserRole(contractId);
+                    var webhookAddInvestorToProject = new SignNowWebhookCreateDTO
+                    {
+                        Action = SignNowServiceConstant.CallBackAction,
+                        CallBackUrl = $"{_apiDomain}/api/projects/{projectId}/add-user/{investor.Id}/{RoleInTeam.Investor}",
+                        EntityId = userInChosenContract.Contract.SignNowDocumentId,
+                        Event = SignNowServiceConstant.DocumentCompleteEvent,
+                    };
+                    webHookCreateList.Add(webhookAddInvestorToProject);
+                }
                 var webhookCompleteSign = new SignNowWebhookCreateDTO
                 {
                     Action = SignNowServiceConstant.CallBackAction,
@@ -233,7 +248,6 @@ namespace StartedIn.Service.Services
                     EntityId = userInChosenContract.Contract.SignNowDocumentId,
                     Event = SignNowServiceConstant.DocumentCompleteEvent
                 };
-                await _signNowService.RegisterWebhookAsync(webhookCompleteSign);
                 var webhookUpdate = new SignNowWebhookCreateDTO
                 {
                     Action = SignNowServiceConstant.CallBackAction,
@@ -241,14 +255,7 @@ namespace StartedIn.Service.Services
                     EntityId = userInChosenContract.Contract.SignNowDocumentId,
                     Event = SignNowServiceConstant.DocumentUpdateEvent
                 };
-                //var webhookAddMemberToGroup = new SignNowWebhookCreateDTO
-                //{
-                //    Action = SignNowServiceConstant.CallBackAction,
-                //    CallBackUrl = $"{_apiDomain}/api/projects/{projectId}/join",
-                //    EntityId = userInChosenContract.Contract.SignNowDocumentId,
-                //    Event = SignNowServiceConstant.DocumentCompleteEvent, 
-                //};
-                var webHookCreateList = new List<SignNowWebhookCreateDTO> { webhookCompleteSign, webhookUpdate };
+                webHookCreateList.AddRange(new List<SignNowWebhookCreateDTO>{webhookCompleteSign, webhookUpdate});
                 await _signNowService.RegisterManyWebhookAsync(webHookCreateList);
                 _contractRepository.Update(userInChosenContract.Contract);
                 await _unitOfWork.SaveChangesAsync();
@@ -261,6 +268,19 @@ namespace StartedIn.Service.Services
                 await _unitOfWork.RollbackAsync();
                 throw;
             }
+        }
+        public async Task<User> GetAUserFromContractWithUserRole(string contractId)
+        {
+            var contract = await _contractRepository.GetContractById(contractId);
+            if (contract == null) {
+                throw new NotFoundException(MessageConstant.NotFoundContractError);
+            }
+            var user = await _userManager.GetAUserInAContractWithSystemRole(contractId, RoleConstants.INVESTOR);
+            if (user == null)
+            {
+                throw new NotFoundException(MessageConstant.NotFoundUserError);
+            }
+            return user;
         }
         public async Task UpdateSignedStatusForUserInContract(string contractId, string projectId) 
         {
