@@ -46,7 +46,9 @@ namespace StartedIn.API.Controllers
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error while login");
+
                 return StatusCode(500, MessageConstant.InternalServerError);
+
             }
         }
 
@@ -65,7 +67,9 @@ namespace StartedIn.API.Controllers
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error while register");
+
                 return StatusCode(500, MessageConstant.InternalServerError);
+
             }
         }
 
@@ -89,7 +93,9 @@ namespace StartedIn.API.Controllers
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Server Error");
+
                 return StatusCode(500, MessageConstant.InternalServerError);
+
             }
 
         }
@@ -160,6 +166,7 @@ namespace StartedIn.API.Controllers
             catch (Exception ex)
             {
                 return StatusCode(500, ex);
+
             }
         }
     }

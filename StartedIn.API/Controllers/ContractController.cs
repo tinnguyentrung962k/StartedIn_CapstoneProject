@@ -56,7 +56,9 @@ namespace StartedIn.API.Controllers
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error while creating contract");
+
                 return StatusCode(500, MessageConstant.InternalServerError);
+
             }
         }
         [HttpPut("investment-contracts/{contractId}")]
@@ -82,6 +84,7 @@ namespace StartedIn.API.Controllers
             {
                 _logger.LogError(ex, "Error while creating contract");
                 return StatusCode(500, MessageConstant.InternalServerError);
+
             }
         }
         [HttpGet("investment-contracts/{contractId}")]
@@ -114,6 +117,7 @@ namespace StartedIn.API.Controllers
         }
 
         [HttpPost("contracts/{contractId}/invite")]
+
         [Authorize]
         public async Task<ActionResult<ContractResponseDTO>> SendInviteForContract([FromRoute]string projectId, [FromRoute] string contractId)
         {
@@ -137,6 +141,7 @@ namespace StartedIn.API.Controllers
             {
                 _logger.LogError(ex, "Error while creating contract");
                 return StatusCode(500, MessageConstant.InternalServerError);
+
             }
         }
 

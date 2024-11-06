@@ -52,7 +52,9 @@ namespace StartedIn.API.Controllers
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error while creating new project charter.");
+
                 return StatusCode(500, MessageConstant.InternalServerError);
+
             }
         }
 

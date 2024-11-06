@@ -48,6 +48,7 @@ namespace StartedIn.API.Controllers
             {
                 _logger.LogError(ex, "Error while creating a deal");
                 return StatusCode(500, MessageConstant.InternalServerError);
+
             }
         }
         [HttpGet("deal-offers")]
