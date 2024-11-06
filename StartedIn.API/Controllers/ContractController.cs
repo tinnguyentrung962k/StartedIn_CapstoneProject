@@ -19,7 +19,7 @@ using StartedIn.CrossCutting.Constants;
 namespace StartedIn.API.Controllers
 {
     [ApiController]
-    [Route("api/projects/{projectId}/")]
+    [Route("api/projects/{projectId}")]
     public class ContractController : ControllerBase
     {
         private readonly IContractService _contractService;
@@ -34,7 +34,7 @@ namespace StartedIn.API.Controllers
             _signNowService = signNowService;
         }
         
-        [HttpPost("contracts/investment-contract")]
+        [HttpPost("investment-contracts")]
         [Authorize]
         public async Task<ActionResult<ContractResponseDTO>> CreateAnInvestmentContract([FromRoute] string projectId, [FromBody] InvestmentContractCreateDTO investmentContractCreateDTO)
         {
@@ -59,7 +59,7 @@ namespace StartedIn.API.Controllers
                 return StatusCode(500, MessageConstant.InternalServerError);
             }
         }
-        [HttpPut("contracts/investment-contract/{contractId}")]
+        [HttpPut("investment-contracts/{contractId}")]
         [Authorize]
         public async Task<ActionResult<ContractResponseDTO>> UpdateInvestmentContract([FromRoute] string projectId, [FromRoute] string contractId, [FromBody] InvestmentContractUpdateDTO investmentContractUpdateDTO)
         {
@@ -84,7 +84,7 @@ namespace StartedIn.API.Controllers
                 return StatusCode(500, MessageConstant.InternalServerError);
             }
         }
-        [HttpGet("contracts/investment-contract/{contractId}")]
+        [HttpGet("investment-contracts/{contractId}")]
         [Authorize]
         public async Task<ActionResult<ContractDetailResponseDTO>> GetInvestmentContractDetail([FromRoute]string projectId, [FromRoute]string contractId)
         {
@@ -113,7 +113,7 @@ namespace StartedIn.API.Controllers
             }
         }
 
-        [HttpPost("contracts/send-invite/contract/{contractId}")]
+        [HttpPost("contracts/{contractId}/invite")]
         [Authorize]
         public async Task<ActionResult<ContractResponseDTO>> SendInviteForContract([FromRoute]string projectId, [FromRoute] string contractId)
         {
@@ -147,7 +147,7 @@ namespace StartedIn.API.Controllers
             try
             {
                 var userId = User.FindFirst(ClaimTypes.NameIdentifier).Value;
-                var contract = await _contractService.GetContractByContractId(userId,contractId,projectId);
+                var contract = await _contractService.GetContractByContractId(userId, contractId, projectId);
                 var responseContract = _mapper.Map<ContractResponseDTO>(contract);
                 return Ok(responseContract);
             }
@@ -169,12 +169,12 @@ namespace StartedIn.API.Controllers
             }
         }
 
-        [HttpPost("contracts/valid-contract/{contractId}")]
+        [HttpPost("contracts/{contractId}/validate")]
         public async Task<IActionResult> ValidAcontract([FromRoute]string projectId, [FromRoute] string contractId)
         {
             try
             {
-                var contract = await _contractService.ValidateContractOnSignedAsync(contractId,projectId);
+                var contract = await _contractService.ValidateContractOnSignedAsync(contractId, projectId);
                 return Ok("Cập nhật hợp đồng thành công");
             }
             catch (Exception ex)
@@ -183,7 +183,7 @@ namespace StartedIn.API.Controllers
             }
         }
 
-        [HttpPost("contracts/sign-confirmation/{contractId}")]
+        [HttpPost("contracts/{contractId}/confirm-sign")]
         public async Task<IActionResult> UpdateUserSignedStatus([FromRoute] string projectId, [FromRoute] string contractId)
         {
             try
@@ -205,7 +205,7 @@ namespace StartedIn.API.Controllers
             try
             {
                 var userId = User.FindFirst(ClaimTypes.NameIdentifier).Value;
-                var downloadLink = await _contractService.DownLoadFileContract(userId,projectId,contractId);
+                var downloadLink = await _contractService.DownLoadFileContract(userId, projectId, contractId);
                 return Ok(downloadLink);
             }
             catch (NotFoundException ex)

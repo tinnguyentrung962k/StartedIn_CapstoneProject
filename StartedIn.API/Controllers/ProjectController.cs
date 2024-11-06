@@ -16,7 +16,7 @@ using System.Security.Claims;
 namespace StartedIn.API.Controllers;
 
 [ApiController]
-[Route("api")]
+[Route("api/projects")]
 public class ProjectController : ControllerBase
 {
     private readonly IMapper _mapper;
@@ -30,7 +30,29 @@ public class ProjectController : ControllerBase
         _logger = logger;
     }
 
-    [HttpPost("projects")]
+    [HttpGet]
+    [Authorize]
+    public async Task<ActionResult<ProjectListDTO>> GetListOfProjectsWithRole()
+    {
+        var userId = User.FindFirst(ClaimTypes.NameIdentifier).Value;
+        try
+        {
+            var ownedProjects = _mapper.Map<List<ProjectResponseDTO>>(await _projectService.GetListOwnProjects(userId));
+            var participatedProjects = _mapper.Map<List<ProjectResponseDTO>>(await _projectService.GetListParticipatedProjects(userId));
+            var response = new ProjectListDTO
+            {
+                listOwnProject = ownedProjects,
+                listParticipatedProject = participatedProjects
+            };
+            return Ok(response);
+        }
+        catch (ArgumentException ex)
+        {
+            return BadRequest(ex.Message);
+        }
+    }
+
+    [HttpPost]
     [Authorize]
     public async Task<ActionResult<ProjectResponseDTO>> CreateANewProject([FromForm] ProjectCreateDTO projectCreatedto)
     {
@@ -52,7 +74,7 @@ public class ProjectController : ControllerBase
         }
     }
 
-    [HttpGet("projects/{projectId}")]
+    [HttpGet("{projectId}")]
     [Authorize]
     public async Task<ActionResult<ProjectResponseDTO>> GetProjectById(string projectId)
     {
@@ -72,7 +94,7 @@ public class ProjectController : ControllerBase
         }
     }
 
-    [HttpPost("projects/{projectId}/project-invitation")]
+    [HttpPost("{projectId}/invite")]
     [Authorize]
     public async Task<IActionResult> SendInvitationToTeam([FromBody] List<ProjectInviteEmailAndRoleDTO> inviteUsers, [FromRoute] string projectId)
     {
@@ -96,7 +118,7 @@ public class ProjectController : ControllerBase
         }
     }
 
-    [HttpPost("projects/{projectId}/join")]
+    [HttpPost("{projectId}/join")]
     [Authorize]
     public async Task<IActionResult> AddUserToProject([FromRoute] string projectId, RoleInTeam roleInTeam)
     {
@@ -119,7 +141,8 @@ public class ProjectController : ControllerBase
             return BadRequest(ex.Message);
         }
     }
-    [HttpGet("projects/{projectId}/project-members")]
+
+    [HttpGet("{projectId}/members")]
     [Authorize]
     public async Task<ActionResult<ProjectWithMembersResponseDTO>> GetProjectWithMembers([FromRoute] string projectId)
     {
@@ -138,6 +161,7 @@ public class ProjectController : ControllerBase
             return BadRequest(ex.Message);
         }
     }
+
 
     [HttpGet("projects/user-projects")]
     [Authorize]
@@ -161,12 +185,12 @@ public class ProjectController : ControllerBase
         }
     }
     
-    [HttpGet("projects/{id}/contract-parties")]
-    public async Task<ActionResult<UserInContractResponseDTO>> GetListUsersRelevantToContractInAProject([FromRoute] string id)
+    [HttpGet("{projectId}/parties")]
+    public async Task<ActionResult<UserInContractResponseDTO>> GetListUsersRelevantToContractInAProject([FromRoute] string projectId)
     {
         try
         {
-            var userList = await _projectService.GetListUserRelevantToContractsInAProject(id);
+            var userList = await _projectService.GetListUserRelevantToContractsInAProject(projectId);
             var responseUserList = _mapper.Map<List<UserInContractResponseDTO>>(userList);
             return Ok(responseUserList);
         }
@@ -180,7 +204,7 @@ public class ProjectController : ControllerBase
         }
     }
 
-    [HttpGet("projects/explore")]
+    [HttpGet("/api/startups")]
     [Authorize]
     public async Task<ActionResult<SearchResponseDTO<ExploreProjectDTO>>> ExploreProjects([FromQuery] int pageIndex, int pageSize)
     {
