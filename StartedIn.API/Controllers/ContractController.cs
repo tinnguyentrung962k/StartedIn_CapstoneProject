@@ -206,7 +206,7 @@ namespace StartedIn.API.Controllers
         [Authorize]
         public async Task<ActionResult<DocumentDownLoadResponseDTO>> DownLoadContract([FromRoute]string projectId, [FromRoute] string contractId)
         {
-            
+
             try
             {
                 var userId = User.FindFirst(ClaimTypes.NameIdentifier).Value;
@@ -250,5 +250,5 @@ namespace StartedIn.API.Controllers
             }
         }
     }
-        
+
 }

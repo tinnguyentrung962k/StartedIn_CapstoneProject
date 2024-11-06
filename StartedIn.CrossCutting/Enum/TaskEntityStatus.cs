@@ -8,8 +8,11 @@ namespace StartedIn.CrossCutting.Enum
 {
     public enum TaskEntityStatus
     {
+        NOT_STARTED,
+        IN_PROGRESS,
         PENDING,
-        INPROGRESS,
+        REVIEW,
+        OPEN,
         DONE
     }
 }
