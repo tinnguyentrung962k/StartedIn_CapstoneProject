@@ -58,25 +58,6 @@ namespace StartedIn.API.Controllers
 
 
 
-        [HttpGet("users/{userId}")]
-        [Authorize]
-        public async Task<ActionResult<FullProfileDTO>> GetUserById(string userId)
-        {
-            try
-            {
-                var user = await _userService.GetUserWithId(userId);
-                return Ok(_mapper.Map<FullProfileDTO>(user));
-            }
-            catch (NotFoundException ex)
-            {
-                _logger.LogError(ex, MessageConstant.NotFoundUserError);
-                return BadRequest(ex.Message);
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error while getting user.");
-                return StatusCode(500, ex.Message);
-            }
-        }
+        
     }
 }

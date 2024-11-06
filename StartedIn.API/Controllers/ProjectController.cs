@@ -161,29 +161,6 @@ public class ProjectController : ControllerBase
             return BadRequest(ex.Message);
         }
     }
-
-
-    [HttpGet("projects/user-projects")]
-    [Authorize]
-    public async Task<ActionResult<ProjectListDTO>> GetListOfProjectsWithRole()
-    {
-        var userId = User.FindFirst(ClaimTypes.NameIdentifier).Value;
-        try
-        {
-            var ownedProjects = await _projectService.GetListOwnProjects(userId);
-            var participatedProjects = await _projectService.GetListParticipatedProjects(userId);
-            var response = new ProjectListDTO
-            {
-                listOwnProject = ownedProjects,
-                listParticipatedProject = participatedProjects
-            };
-            return Ok(response);
-        }
-        catch (ArgumentException ex)
-        {
-            return BadRequest(ex.Message);
-        }
-    }
     
     [HttpGet("{projectId}/parties")]
     public async Task<ActionResult<UserInContractResponseDTO>> GetListUsersRelevantToContractInAProject([FromRoute] string projectId)
