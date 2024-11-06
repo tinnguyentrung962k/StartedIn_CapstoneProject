@@ -12,7 +12,7 @@ using System.Security.Claims;
 namespace StartedIn.API.Controllers
 {
     [ApiController]
-    [Route("api")]
+    [Route("api/projects/{projectId}/project-charters")]
     public class ProjectCharterController : ControllerBase
     {
         private readonly IProjectCharterService _projectCharterService;
@@ -26,7 +26,7 @@ namespace StartedIn.API.Controllers
             _logger = logger;
         }
 
-        [HttpPost("projects/{projectId}/projectcharters")]
+        [HttpPost]
         [Authorize(Roles = RoleConstants.USER)]
         public async Task<ActionResult<ProjectCharterResponseDTO>> CreateNewProjectCharter([FromRoute] string projectId, [FromBody]ProjectCharterCreateDTO projectCharterCreateDto)
         {
@@ -49,7 +49,7 @@ namespace StartedIn.API.Controllers
             }
         }
 
-        [HttpGet("projectcharters/{id}")]
+        [HttpGet("/api/project-charters/{id}")]
         [Authorize(Roles = RoleConstants.USER + "," + RoleConstants.INVESTOR)]
         public async Task<ActionResult<ProjectCharterResponseDTO>> GetProjectCharterByCharterId([FromRoute] string id)
         {
@@ -68,7 +68,7 @@ namespace StartedIn.API.Controllers
             }
         }
 
-        [HttpGet("projects/{projectId}/projectcharter")]
+        [HttpGet]
         [Authorize(Roles = RoleConstants.USER + "," + RoleConstants.INVESTOR)]
         public async Task<ActionResult<ProjectCharterResponseDTO>> GetProjectCharterByProjectId([FromRoute] string projectId)
         {

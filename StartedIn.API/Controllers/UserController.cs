@@ -10,7 +10,7 @@ using System.Security.Claims;
 
 namespace StartedIn.API.Controllers
 {
-    [Route("api")]
+    [Route("api/users")]
     [ApiController]
     public class UserController : ControllerBase
     {
@@ -24,7 +24,8 @@ namespace StartedIn.API.Controllers
             _userService = userService;
             _logger = logger;
         }
-        [HttpGet("users")]
+
+        [HttpGet]
         [Authorize(Roles = RoleConstants.ADMIN)]
         public async Task<ActionResult<IEnumerable<FullProfileDTO>>> GetUserLists([FromQuery] int pageIndex, int pageSize)
         {
@@ -44,9 +45,30 @@ namespace StartedIn.API.Controllers
                 _logger.LogError(ex, "Error while getting users list.");
                 return StatusCode(500, "Lỗi server");
             }
-
         }
-        [HttpPost("users/import-user-excel")]
+
+        [HttpGet("{userId}")]
+        [Authorize]
+        public async Task<ActionResult<FullProfileDTO>> GetUserById(string userId)
+        {
+            try
+            {
+                var user = await _userService.GetUserWithId(userId);
+                return Ok(_mapper.Map<FullProfileDTO>(user));
+            }
+            catch (NotFoundException ex)
+            {
+                _logger.LogError(ex, "No user found.");
+                return NotFound(ex.Message);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error while getting user.");
+                return StatusCode(500, "Lỗi server");
+            }
+        }
+
+        [HttpPost("import")]
         [Authorize(Roles = RoleConstants.ADMIN)]
         public async Task<IActionResult> ImportStudentExcelList(IFormFile formFile)
         {
