@@ -91,7 +91,7 @@ namespace StartedIn.API.Controllers
             }
         }
 
-        [HttpPost("projects/{projectId}/deal-offers/{dealId}/accept")]
+        [HttpPut("projects/{projectId}/deal-offers/{dealId}/accept")]
         [Authorize]
         public async Task<ActionResult<DealOfferForProjectResponseDTO>> AcceptDeal([FromRoute] string projectId, [FromRoute] string dealId)
         {
@@ -122,7 +122,7 @@ namespace StartedIn.API.Controllers
 
         }
 
-        [HttpPost("projects/{projectId}/deal-offers/{dealId}/reject")]
+        [HttpPut("projects/{projectId}/deal-offers/{dealId}/reject")]
         [Authorize]
         public async Task<ActionResult<DealOfferForProjectResponseDTO>> RejectDeal([FromRoute] string projectId, [FromRoute] string dealId)
         {
