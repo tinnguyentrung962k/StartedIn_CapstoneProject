@@ -70,7 +70,7 @@ public class ProjectController : ControllerBase
         }
         catch (Exception ex)
         {
-            return BadRequest("Tạo dự án thất bại.");
+            return BadRequest(MessageConstant.CreateFailed);
         }
     }
 
@@ -86,7 +86,7 @@ public class ProjectController : ControllerBase
         }
         catch (NotFoundException ex)
         {
-            return NotFound(ex.Message);
+            return BadRequest(ex.Message);
         }
         catch (Exception ex)
         {
@@ -110,7 +110,7 @@ public class ProjectController : ControllerBase
         }
         catch (NotFoundException ex)
         {
-            return NotFound(ex.Message);
+            return BadRequest(ex.Message);
         }
         catch (Exception ex)
         {
@@ -130,11 +130,11 @@ public class ProjectController : ControllerBase
         }
         catch (NotFoundException ex)
         {
-            return NotFound(ex.Message);
+            return BadRequest(ex.Message);
         }
         catch (InviteException ex)
         {
-            return BadRequest("Người dùng đã tồn tại trong dự án");
+            return BadRequest(ex.Message);
         }
         catch (Exception ex)
         {
@@ -154,9 +154,32 @@ public class ProjectController : ControllerBase
         }
         catch (NotFoundException ex)
         {
-            return NotFound(ex.Message);
+            return BadRequest(ex.Message);
         }
         catch (Exception ex)
+        {
+            return BadRequest(ex.Message);
+        }
+    }
+
+
+    [HttpGet("projects/user-projects")]
+    [Authorize]
+    public async Task<ActionResult<ProjectListDTO>> GetListOfProjectsWithRole()
+    {
+        var userId = User.FindFirst(ClaimTypes.NameIdentifier).Value;
+        try
+        {
+            var ownedProjects = await _projectService.GetListOwnProjects(userId);
+            var participatedProjects = await _projectService.GetListParticipatedProjects(userId);
+            var response = new ProjectListDTO
+            {
+                listOwnProject = ownedProjects,
+                listParticipatedProject = participatedProjects
+            };
+            return Ok(response);
+        }
+        catch (ArgumentException ex)
         {
             return BadRequest(ex.Message);
         }
@@ -173,11 +196,11 @@ public class ProjectController : ControllerBase
         }
         catch (NotFoundException ex)
         {
-            return NotFound(ex.Message);
+            return BadRequest(ex.Message);
         }
         catch (Exception ex)
         {
-            return StatusCode(500, "Lỗi server");
+            return StatusCode(500, MessageConstant.InternalServerError);
         }
     }
 

@@ -24,5 +24,11 @@ namespace StartedIn.CrossCutting.Constants
         public const string JoinGroupWithLeaderRoleError = "Bạn không thể tham gia với vai trò nhóm trưởng";
         public const string ContractNotBelongToProjectError = "Hợp đồng này không thuộc dự án được chọn";
         public const string MilestoneNotBelongToProjectError = "Cột mốc này không thuộc vào dự án";
+        public const string InternalServerError = "Lỗi server";
+        public const string InvalidToken = "Không tìm thấy refresh token";
+        public const string NotFoundInvestorError = "Không tìm thấy nhà đầu tư";
+        public const string UpdateFailed = "Cập nhật thất bại";
+        public const string CreateFailed = "Tạo dữ liệu mới thất bại";
+        public const string UserExistedInProject = "Người dùng đã tồn tại trong dự án";
     }
 }

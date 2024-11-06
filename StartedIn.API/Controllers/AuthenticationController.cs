@@ -8,6 +8,7 @@ using StartedIn.CrossCutting.Exceptions;
 using StartedIn.Domain.Entities;
 using StartedIn.Service.Services.Interface;
 using System.Security.Claims;
+using StartedIn.CrossCutting.Constants;
 
 namespace StartedIn.API.Controllers
 {
@@ -45,7 +46,7 @@ namespace StartedIn.API.Controllers
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error while login");
-                return StatusCode(500, "Lỗi đăng nhập xảy ra");
+                return StatusCode(500, MessageConstant.InternalServerError);
             }
         }
 
@@ -64,7 +65,7 @@ namespace StartedIn.API.Controllers
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error while register");
-                return StatusCode(500, "Lỗi tạo tài khoản");
+                return StatusCode(500, MessageConstant.InternalServerError);
             }
         }
 
@@ -88,7 +89,7 @@ namespace StartedIn.API.Controllers
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Server Error");
-                return StatusCode(500, "Lỗi server");
+                return StatusCode(500, MessageConstant.InternalServerError);
             }
 
         }
@@ -110,7 +111,7 @@ namespace StartedIn.API.Controllers
 
             catch (Exception ex)
             {
-                return BadRequest("Invalid refresh token");
+                return BadRequest(MessageConstant.InvalidToken);
             }
 
 
@@ -125,7 +126,7 @@ namespace StartedIn.API.Controllers
             }
             catch (Exception ex)
             {
-                return StatusCode(500, "Lỗi kích hoạt");
+                return StatusCode(500, MessageConstant.InternalServerError);
             }
         }
         
@@ -140,7 +141,7 @@ namespace StartedIn.API.Controllers
             }
             catch (Exception ex)
             {
-                return StatusCode(500, "Lỗi server");
+                return StatusCode(500, MessageConstant.InternalServerError);
             }
         }
 
@@ -152,9 +153,13 @@ namespace StartedIn.API.Controllers
                 await _userService.ResetPassword(resetPasswordDTO);
                 return Ok("Reset Password thành công");
             }
+            catch (NotFoundException ex)
+            {
+                return BadRequest(ex);
+            }
             catch (Exception ex)
             {
-                return StatusCode(500, "Lỗi server");
+                return StatusCode(500, ex);
             }
         }
     }
