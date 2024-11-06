@@ -177,5 +177,73 @@ namespace StartedIn.Service.Services
                 throw;
             }
         }
+
+        public async Task<DealOffer> AcceptADeal(string userId, string projectId, string dealId)
+        {
+            var userInProject = await _userService.CheckIfUserInProject(userId,projectId);
+            var projectRole = await _projectRepository.GetUserRoleInProject(userId, projectId);
+            if (projectRole != RoleInTeam.Leader)
+            {
+                throw new UnauthorizedProjectRoleException(MessageConstant.RolePermissionError);
+            }
+            var chosenDeal = await _dealOfferRepository.QueryHelper()
+                .Include(x => x.Investor)
+                .Filter(x => x.Id.Equals(dealId))
+                .GetOneAsync();
+            if (chosenDeal == null) {
+                throw new NotFoundException(MessageConstant.NotFoundDealError);
+            }
+            if (chosenDeal.ProjectId != projectId)
+            {
+                throw new UnmatchedException(MessageConstant.DealNotBelongToProjectError);
+            }
+            try
+            {
+                chosenDeal.DealStatus = DealStatusEnum.Accepted;
+                _dealOfferRepository.Update(chosenDeal);
+                await _unitOfWork.SaveChangesAsync();
+                return chosenDeal;
+            }
+            catch (Exception ex) 
+            {
+                _logger.LogError($"An error occurred while update a deal: {ex.Message}");
+                await _unitOfWork.RollbackAsync();
+                throw;
+            }
+        }
+        public async Task<DealOffer> RejectADeal(string userId, string projectId, string dealId)
+        {
+            var userInProject = await _userService.CheckIfUserInProject(userId, projectId);
+            var projectRole = await _projectRepository.GetUserRoleInProject(userId, projectId);
+            if (projectRole != RoleInTeam.Leader)
+            {
+                throw new UnauthorizedProjectRoleException(MessageConstant.RolePermissionError);
+            }
+            var chosenDeal = await _dealOfferRepository.QueryHelper()
+                .Include(x => x.Investor)
+                .Filter(x=>x.Id.Equals(dealId))
+                .GetOneAsync();
+            if (chosenDeal == null)
+            {
+                throw new NotFoundException(MessageConstant.NotFoundDealError);
+            }
+            if (chosenDeal.ProjectId != projectId)
+            {
+                throw new UnmatchedException(MessageConstant.DealNotBelongToProjectError);
+            }
+            try
+            {
+                chosenDeal.DealStatus = DealStatusEnum.Rejected;
+                _dealOfferRepository.Update(chosenDeal);
+                await _unitOfWork.SaveChangesAsync();
+                return chosenDeal;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError($"An error occurred while update a deal: {ex.Message}");
+                await _unitOfWork.RollbackAsync();
+                throw;
+            }
+        }
     }
 }

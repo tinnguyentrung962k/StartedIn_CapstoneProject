@@ -15,5 +15,7 @@ namespace StartedIn.Service.Services.Interface
         Task<DealOffer> SendADealOffer(string userId, DealOfferCreateDTO dealOfferCreateDTO);
         Task <SearchResponseDTO<DealOfferForProjectResponseDTO>> GetDealOfferForAProject(string userId, string projectId,int pageIndex, int pageSize);
         Task<SearchResponseDTO<DealOfferForInvestorResponseDTO>> GetDealOfferForAnInvestor(string userId, int pageIndex, int pageSize);
+        Task<DealOffer> AcceptADeal(string userId, string projectId, string dealId);
+        Task<DealOffer> RejectADeal(string userId, string projectId, string dealId);
     }
 }

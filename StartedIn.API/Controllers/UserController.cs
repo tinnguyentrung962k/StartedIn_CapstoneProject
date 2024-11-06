@@ -43,7 +43,7 @@ namespace StartedIn.API.Controllers
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error while getting users list.");
-                return StatusCode(500, "Lỗi server");
+                return StatusCode(500, MessageConstant.InternalServerError);
             }
         }
 
@@ -58,13 +58,13 @@ namespace StartedIn.API.Controllers
             }
             catch (NotFoundException ex)
             {
-                _logger.LogError(ex, "No user found.");
-                return NotFound(ex.Message);
+                _logger.LogError(ex, MessageConstant.NotFoundUserError);
+                return BadRequest(ex.Message);
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error while getting user.");
-                return StatusCode(500, "Lỗi server");
+                return StatusCode(500, MessageConstant.InternalServerError);
             }
         }
 
@@ -79,7 +79,7 @@ namespace StartedIn.API.Controllers
             }
             catch (Exception ex)
             {
-                return StatusCode(500, "Lỗi tải file");
+                return StatusCode(500, MessageConstant.InternalServerError);
             }
         }
     }

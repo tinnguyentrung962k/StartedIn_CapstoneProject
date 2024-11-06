@@ -1,3 +1,4 @@
+using CrossCutting.Exceptions;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Logging;
@@ -35,10 +36,19 @@ public class ProjectService : IProjectService
     }
     public async Task CreateNewProject(string userId, Project project, IFormFile avatar)
     {
-
+        var user = await _userManager.FindByIdAsync(userId);
+        var createdProject = await _projectRepository
+             .QueryHelper()
+             .Include(x => x.UserProjects)
+             .Filter(p => p.UserProjects.Any(up => up.UserId == userId && up.RoleInTeam == RoleInTeam.Leader))
+             .GetOneAsync();
+        if (createdProject is not null)
+        {
+            throw new ExistedRecordException(MessageConstant.CreateMoreProjectError);
+        }
         try {
             _unitOfWork.BeginTransaction();
-            var user = await _userManager.FindByIdAsync(userId);
+            
             project.ProjectStatus = ProjectStatusEnum.CONSTRUCTING;
             var imgUrl = await _azureBlobService.UploadAvatarOrCover(avatar);
             project.LogoUrl = imgUrl;
@@ -106,14 +116,14 @@ public class ProjectService : IProjectService
             throw new NotFoundException(MessageConstant.NotFoundProjectError);
         }
         var existingLeader = project.UserProjects.FirstOrDefault(x => x.RoleInTeam == RoleInTeam.Leader);
-        if (existingLeader != null)
+        if (roleInTeam == RoleInTeam.Leader && existingLeader != null)
         {
             throw new InviteException(MessageConstant.JoinGroupWithLeaderRoleError);
         }
         var userInTeam = await _userRepository.GetAUserInProject(projectId, user.Id);
         if (userInTeam != null)
         {
-            throw new InviteException(MessageConstant.UserExistedInProject);
+            return;
         }
         await _userRepository.AddUserToProject(userId, projectId, roleInTeam);
         await _unitOfWork.SaveChangesAsync();
@@ -124,7 +134,7 @@ public class ProjectService : IProjectService
         var project = await _projectRepository.GetProjectAndMemberByProjectId(id);
         if (project == null) 
         {
-            throw new NotFoundException("Không tìm thấy dự án");
+            throw new NotFoundException(MessageConstant.NotFoundProjectError);
         }
         return project;
 
@@ -204,7 +214,7 @@ public class ProjectService : IProjectService
         var project = await _projectRepository.GetOneAsync(projectId);
         if (project is null)
         {
-            throw new NotFoundException("Không tìm thấy dự án");
+            throw new NotFoundException(MessageConstant.NotFoundProjectError);
         }
 
         var userContractsList = await _userRepository.GetUsersListRelevantToContractsInAProject(projectId);

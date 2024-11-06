@@ -44,7 +44,7 @@ namespace StartedIn.API.Controllers
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error while creating new task.");
-                return StatusCode(500, "Lỗi server");
+                return StatusCode(500, MessageConstant.InternalServerError);
             }
         }
 
@@ -68,7 +68,7 @@ namespace StartedIn.API.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest("Cập nhật thất bại");
+                return StatusCode(500, MessageConstant.InternalServerError);
             }
         }
         [HttpGet("tasks/{taskId}")]
@@ -91,7 +91,7 @@ namespace StartedIn.API.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest("Truy xuất thất bại");
+                return StatusCode(500, MessageConstant.InternalServerError);
             }
         }
 

@@ -114,13 +114,35 @@ public class ProjectController : ControllerBase
         }
         catch (Exception ex)
         {
+            return StatusCode(500, MessageConstant.InternalServerError); 
+        }
+    }
+    [HttpPost("{projectId}/add-user/{userId}/{roleInTeam}")]
+    public async Task<IActionResult> AddAUserToProject([FromRoute] string projectId, [FromRoute] string userId, [FromRoute] RoleInTeam roleInTeam)
+    {
+        try
+        {
+            await _projectService.AddUserToProject(projectId, userId, roleInTeam);
+            return Ok("Thành viên đã được thêm vào nhóm.");
+        }
+        catch (NotFoundException ex)
+        {
             return BadRequest(ex.Message);
+        }
+        catch (InviteException ex)
+        {
+            return BadRequest(ex.Message);
+        }
+        catch (Exception ex)
+        {
+            return StatusCode(500, MessageConstant.InternalServerError);
         }
     }
 
+
     [HttpPost("{projectId}/join")]
     [Authorize]
-    public async Task<IActionResult> AddUserToProject([FromRoute] string projectId, RoleInTeam roleInTeam)
+    public async Task<IActionResult> JoinAProject([FromRoute] string projectId, RoleInTeam roleInTeam)
     {
         try
         {
@@ -138,7 +160,7 @@ public class ProjectController : ControllerBase
         }
         catch (Exception ex)
         {
-            return BadRequest(ex.Message);
+            return StatusCode(500, MessageConstant.InternalServerError);
         }
     }
 
@@ -158,30 +180,7 @@ public class ProjectController : ControllerBase
         }
         catch (Exception ex)
         {
-            return BadRequest(ex.Message);
-        }
-    }
-
-
-    [HttpGet("projects/user-projects")]
-    [Authorize]
-    public async Task<ActionResult<ProjectListDTO>> GetListOfProjectsWithRole()
-    {
-        var userId = User.FindFirst(ClaimTypes.NameIdentifier).Value;
-        try
-        {
-            var ownedProjects = await _projectService.GetListOwnProjects(userId);
-            var participatedProjects = await _projectService.GetListParticipatedProjects(userId);
-            var response = new ProjectListDTO
-            {
-                listOwnProject = ownedProjects,
-                listParticipatedProject = participatedProjects
-            };
-            return Ok(response);
-        }
-        catch (ArgumentException ex)
-        {
-            return BadRequest(ex.Message);
+            return StatusCode(500, MessageConstant.InternalServerError);
         }
     }
     
