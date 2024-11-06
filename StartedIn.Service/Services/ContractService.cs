@@ -241,6 +241,13 @@ namespace StartedIn.Service.Services
                     EntityId = userInChosenContract.Contract.SignNowDocumentId,
                     Event = SignNowServiceConstant.DocumentUpdateEvent
                 };
+                //var webhookAddMemberToGroup = new SignNowWebhookCreateDTO
+                //{
+                //    Action = SignNowServiceConstant.CallBackAction,
+                //    CallBackUrl = $"{_apiDomain}/api/projects/{projectId}/join",
+                //    EntityId = userInChosenContract.Contract.SignNowDocumentId,
+                //    Event = SignNowServiceConstant.DocumentCompleteEvent, 
+                //};
                 var webHookCreateList = new List<SignNowWebhookCreateDTO> { webhookCompleteSign, webhookUpdate };
                 await _signNowService.RegisterManyWebhookAsync(webHookCreateList);
                 _contractRepository.Update(userInChosenContract.Contract);
@@ -365,7 +372,7 @@ namespace StartedIn.Service.Services
         public async Task<SearchResponseDTO<ContractSearchResponseDTO>> SearchContractWithFilters(string userId, string projectId, ContractSearchDTO search, int pageIndex, int pageSize)
         {
             var userProject = await _userService.CheckIfUserInProject(userId, projectId);
-            var searchResult = _contractRepository.QueryHelper().Include(c => c.UserContracts).Filter(x=>x.ProjectId.Equals(projectId) && x.UserContracts.Any(us => us.UserId.Equals(userId)));
+            var searchResult = _contractRepository.QueryHelper().Include(c => c.UserContracts).Filter(x=>x.ProjectId.Equals(projectId) && x.UserContracts.Any(us => us.UserId.Equals(userId))).OrderBy(x=>x.OrderByDescending(x=>x.LastUpdatedTime));
             // Filter by Contract Name
             if (!string.IsNullOrWhiteSpace(search.ContractName))
             {
