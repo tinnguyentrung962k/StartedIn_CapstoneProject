@@ -14,6 +14,7 @@ using StartedIn.Domain.Entities;
 using StartedIn.Service.Services.Interface;
 using System.Collections.Generic;
 using System.Security.Claims;
+using StartedIn.CrossCutting.Constants;
 
 namespace StartedIn.API.Controllers
 {
@@ -55,7 +56,7 @@ namespace StartedIn.API.Controllers
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error while creating contract");
-                return StatusCode(500, "Lỗi server");
+                return StatusCode(500, MessageConstant.InternalServerError);
             }
         }
         [HttpPut("contracts/investment-contract/{contractId}")]
@@ -80,7 +81,7 @@ namespace StartedIn.API.Controllers
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error while creating contract");
-                return StatusCode(500, "Lỗi server");
+                return StatusCode(500, MessageConstant.InternalServerError);
             }
         }
         [HttpGet("contracts/investment-contract/{contractId}")]
@@ -108,7 +109,7 @@ namespace StartedIn.API.Controllers
             }
             catch (Exception ex)
             {
-                return StatusCode(500, "Lỗi truy xuất"); ;
+                return StatusCode(500, MessageConstant.InternalServerError); 
             }
         }
 
@@ -135,7 +136,7 @@ namespace StartedIn.API.Controllers
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error while creating contract");
-                return StatusCode(500, "Lỗi server");
+                return StatusCode(500, MessageConstant.InternalServerError);
             }
         }
 
@@ -164,7 +165,7 @@ namespace StartedIn.API.Controllers
             }
             catch (Exception ex)
             {
-                return StatusCode(500, "Lỗi truy xuất"); ;
+                return StatusCode(500, MessageConstant.InternalServerError); ;
             }
         }
 
@@ -178,7 +179,7 @@ namespace StartedIn.API.Controllers
             }
             catch (Exception ex)
             {
-                return StatusCode(500, "Lỗi Cập nhật");
+                return StatusCode(500, MessageConstant.InternalServerError);
             }
         }
 
@@ -192,7 +193,7 @@ namespace StartedIn.API.Controllers
             }
             catch (Exception ex)
             {
-                return StatusCode(500, "Lỗi Cập nhật");
+                return StatusCode(500, MessageConstant.InternalServerError);
             }
         }
         
@@ -217,7 +218,7 @@ namespace StartedIn.API.Controllers
             }
             catch (Exception ex)
             {
-                return StatusCode(500, "Lỗi tải tập tin");
+                return StatusCode(500, MessageConstant.InternalServerError);
             }
         }
 
