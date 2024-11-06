@@ -124,7 +124,7 @@ public class ProjectService : IProjectService
         var project = await _projectRepository.GetProjectAndMemberByProjectId(id);
         if (project == null) 
         {
-            throw new NotFoundException("Không tìm thấy dự án");
+            throw new NotFoundException(MessageConstant.NotFoundProjectError);
         }
         return project;
 
@@ -204,7 +204,7 @@ public class ProjectService : IProjectService
         var project = await _projectRepository.GetOneAsync(projectId);
         if (project is null)
         {
-            throw new NotFoundException("Không tìm thấy dự án");
+            throw new NotFoundException(MessageConstant.NotFoundProjectError);
         }
 
         var userContractsList = await _userRepository.GetUsersListRelevantToContractsInAProject(projectId);
