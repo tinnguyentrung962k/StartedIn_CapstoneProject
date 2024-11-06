@@ -80,7 +80,7 @@ namespace StartedIn.Service.Services
                 var investor = await _userManager.FindByIdAsync(investmentContractCreateDTO.InvestorInfo.UserId);
                 if (investor == null)
                 {
-                    throw new NotFoundException("Không tìm thấy nhà đầu tư");
+                    throw new NotFoundException(MessageConstant.NotFoundInvestorError);
                 }
                 Contract contract = new Contract
                 {
@@ -469,7 +469,7 @@ namespace StartedIn.Service.Services
 
             if (projectRole != RoleInTeam.Leader)
             {
-                throw new UnauthorizedProjectRoleException("User does not have permission to update this contract.");
+                throw new UnauthorizedProjectRoleException(MessageConstant.RolePermissionError);
             }
 
             var contract = await _contractRepository.GetContractById(contractId);
@@ -495,7 +495,7 @@ namespace StartedIn.Service.Services
                 var investor = await _userManager.FindByIdAsync(investmentContractUpdateDTO.InvestorInfo.UserId);
                 if (investor == null)
                 {
-                    throw new NotFoundException("Investor not found.");
+                    throw new NotFoundException(MessageConstant.NotFoundInvestorError);
                 }
 
                 ShareEquity shareEquity;
