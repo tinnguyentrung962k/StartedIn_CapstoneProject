@@ -113,7 +113,7 @@ public class ProjectService : IProjectService
         var userInTeam = await _userRepository.GetAUserInProject(projectId, user.Id);
         if (userInTeam != null)
         {
-            throw new InviteException("Người dùng đã có trong nhóm");
+            throw new InviteException(MessageConstant.UserAlreadyInProjectError);
         }
         await _userRepository.AddUserToProject(userId, projectId, roleInTeam);
         await _unitOfWork.SaveChangesAsync();
@@ -124,7 +124,7 @@ public class ProjectService : IProjectService
         var project = await _projectRepository.GetProjectAndMemberByProjectId(id);
         if (project == null) 
         {
-            throw new NotFoundException("Không tìm thấy dự án");
+            throw new NotFoundException(MessageConstant.NotFoundProjectError);
         }
         return project;
 
@@ -152,7 +152,7 @@ public class ProjectService : IProjectService
         var project = await _projectRepository.GetOneAsync(projectId);
         if (project is null)
         {
-            throw new NotFoundException("Không tìm thấy dự án");
+            throw new NotFoundException(MessageConstant.NotFoundProjectError);
         }
 
         var userContractsList = await _userRepository.GetUsersListRelevantToContractsInAProject(projectId);

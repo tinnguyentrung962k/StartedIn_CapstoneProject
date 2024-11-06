@@ -47,7 +47,7 @@ namespace StartedIn.API.Controllers
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error while creating a deal");
-                return StatusCode(500, "Lỗi server");
+                return StatusCode(500, ex.Message);
             }
         }
         [HttpGet("deal-offers")]

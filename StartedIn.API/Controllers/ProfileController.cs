@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using StartedIn.CrossCutting.Constants;
 using StartedIn.CrossCutting.DTOs.ResponseDTO;
 using StartedIn.CrossCutting.Exceptions;
 using StartedIn.Domain.Entities;
@@ -33,7 +34,7 @@ namespace StartedIn.API.Controllers
             var queryUser = await _userService.GetUserWithUserRolesById(userId);
             if (queryUser == null)
             {
-                return BadRequest("Không tìm thấy người dùng!");
+                return BadRequest(MessageConstant.NotFoundUserError);
             }
             var profileDto = _mapper.Map<HeaderProfileDTO>(queryUser);
             return Ok(profileDto);
@@ -48,7 +49,7 @@ namespace StartedIn.API.Controllers
             var queryUser = await _userService.GetUserWithId(userId);
             if (queryUser == null)
             {
-                return BadRequest("Không tìm thấy người dùng!");
+                return BadRequest(MessageConstant.NotFoundUserError);
             }
 
             var fullProfileDto = _mapper.Map<FullProfileDTO>(queryUser);
@@ -67,13 +68,13 @@ namespace StartedIn.API.Controllers
             }
             catch (NotFoundException ex)
             {
-                _logger.LogError(ex, "No user found.");
-                return NotFound(ex.Message);
+                _logger.LogError(ex, MessageConstant.NotFoundUserError);
+                return BadRequest(ex.Message);
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error while getting user.");
-                return StatusCode(500, "Lỗi server");
+                return StatusCode(500, ex.Message);
             }
         }
     }

@@ -42,7 +42,7 @@ namespace StartedIn.API.Controllers
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error while getting users list.");
-                return StatusCode(500, "Lỗi server");
+                return StatusCode(500, ex.Message);
             }
 
         }
@@ -57,7 +57,7 @@ namespace StartedIn.API.Controllers
             }
             catch (Exception ex)
             {
-                return StatusCode(500, "Lỗi tải file");
+                return StatusCode(500, ex.Message);
             }
         }
     }

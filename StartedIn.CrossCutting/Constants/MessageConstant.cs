@@ -24,5 +24,6 @@ namespace StartedIn.CrossCutting.Constants
         public const string JoinGroupWithLeaderRoleError = "Bạn không thể tham gia với vai trò nhóm trưởng";
         public const string ContractNotBelongToProjectError = "Hợp đồng này không thuộc dự án được chọn";
         public const string MilestoneNotBelongToProjectError = "Cột mốc này không thuộc vào dự án";
+        public const string UserAlreadyInProjectError = "Người dùng đã có trong dự án";
     }
 }

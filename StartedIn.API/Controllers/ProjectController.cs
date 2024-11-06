@@ -48,7 +48,7 @@ public class ProjectController : ControllerBase
         }
         catch (Exception ex)
         {
-            return BadRequest("Tạo dự án thất bại.");
+            return BadRequest(ex.Message);
         }
     }
 
@@ -112,7 +112,7 @@ public class ProjectController : ControllerBase
         }
         catch (InviteException ex)
         {
-            return BadRequest("Người dùng đã tồn tại trong dự án");
+            return BadRequest();
         }
         catch (Exception ex)
         {

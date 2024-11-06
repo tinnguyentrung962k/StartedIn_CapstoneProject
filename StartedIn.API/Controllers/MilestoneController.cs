@@ -104,7 +104,7 @@ namespace StartedIn.API.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest("Cập nhật thất bại");
+                return StatusCode(500,ex.Message);
             }
         }
     }

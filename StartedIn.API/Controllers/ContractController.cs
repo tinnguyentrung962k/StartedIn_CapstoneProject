@@ -55,7 +55,7 @@ namespace StartedIn.API.Controllers
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error while creating contract");
-                return StatusCode(500, "Lỗi server");
+                return StatusCode(500, ex.Message);
             }
         }
         [HttpPut("contracts/investment-contract/{contractId}")]
@@ -80,7 +80,7 @@ namespace StartedIn.API.Controllers
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error while creating contract");
-                return StatusCode(500, "Lỗi server");
+                return StatusCode(500, ex.Message);
             }
         }
         [HttpGet("contracts/investment-contract/{contractId}")]
@@ -108,11 +108,11 @@ namespace StartedIn.API.Controllers
             }
             catch (Exception ex)
             {
-                return StatusCode(500, "Lỗi truy xuất"); ;
+                return StatusCode(500, ex.Message); ;
             }
         }
 
-        [HttpPost("contracts/send-invite/contract/{contractId}")]
+        [HttpPost("contracts/signing-invitation/contract/{contractId}")]
         [Authorize]
         public async Task<ActionResult<ContractResponseDTO>> SendInviteForContract([FromRoute]string projectId, [FromRoute] string contractId)
         {
@@ -135,7 +135,7 @@ namespace StartedIn.API.Controllers
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error while creating contract");
-                return StatusCode(500, "Lỗi server");
+                return StatusCode(500, ex.Message);
             }
         }
 
@@ -164,7 +164,7 @@ namespace StartedIn.API.Controllers
             }
             catch (Exception ex)
             {
-                return StatusCode(500, "Lỗi truy xuất"); ;
+                return StatusCode(500, ex.Message); ;
             }
         }
 
@@ -178,7 +178,7 @@ namespace StartedIn.API.Controllers
             }
             catch (Exception ex)
             {
-                return StatusCode(500, "Lỗi Cập nhật");
+                return StatusCode(500, ex.Message);
             }
         }
 
@@ -192,7 +192,7 @@ namespace StartedIn.API.Controllers
             }
             catch (Exception ex)
             {
-                return StatusCode(500, "Lỗi Cập nhật");
+                return StatusCode(500, ex.Message);
             }
         }
         
@@ -217,7 +217,7 @@ namespace StartedIn.API.Controllers
             }
             catch (Exception ex)
             {
-                return StatusCode(500, "Lỗi tải tập tin");
+                return StatusCode(500, ex.Message);
             }
         }
 

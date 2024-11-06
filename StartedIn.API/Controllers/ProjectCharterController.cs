@@ -45,7 +45,7 @@ namespace StartedIn.API.Controllers
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error while creating new project charter.");
-                return StatusCode(500, "Lỗi server");
+                return StatusCode(500, ex.Message);
             }
         }
 
@@ -60,11 +60,11 @@ namespace StartedIn.API.Controllers
             }
             catch (NotFoundException ex)
             {
-                return NotFound(ex.Message);
+                return BadRequest(ex.Message);
             }
             catch (Exception ex)
             {
-                return StatusCode(500, "Lỗi Server");
+                return StatusCode(500, ex.Message);
             }
         }
 
@@ -79,11 +79,11 @@ namespace StartedIn.API.Controllers
             }
             catch (NotFoundException ex)
             {
-                return NotFound(ex.Message);
+                return BadRequest(ex.Message);
             }
             catch (Exception ex)
             {
-                return StatusCode(500, "Lỗi Server");
+                return StatusCode(500, ex.Message);
             }
         }
 

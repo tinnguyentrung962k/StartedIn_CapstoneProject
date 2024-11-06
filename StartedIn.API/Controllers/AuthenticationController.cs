@@ -45,7 +45,7 @@ namespace StartedIn.API.Controllers
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error while login");
-                return StatusCode(500, "Lỗi đăng nhập xảy ra");
+                return StatusCode(500, ex.Message);
             }
         }
 
@@ -64,7 +64,7 @@ namespace StartedIn.API.Controllers
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error while register");
-                return StatusCode(500, "Lỗi tạo tài khoản");
+                return StatusCode(500, ex.Message);
             }
         }
 
@@ -88,7 +88,7 @@ namespace StartedIn.API.Controllers
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Server Error");
-                return StatusCode(500, "Lỗi server");
+                return StatusCode(500, ex.Message);
             }
 
         }
@@ -110,7 +110,7 @@ namespace StartedIn.API.Controllers
 
             catch (Exception ex)
             {
-                return BadRequest("Invalid refresh token");
+                return BadRequest(ex.Message);
             }
 
 
@@ -125,7 +125,7 @@ namespace StartedIn.API.Controllers
             }
             catch (Exception ex)
             {
-                return StatusCode(500, "Lỗi kích hoạt");
+                return StatusCode(500, ex.Message);
             }
         }
         
@@ -140,7 +140,7 @@ namespace StartedIn.API.Controllers
             }
             catch (Exception ex)
             {
-                return StatusCode(500, "Lỗi server");
+                return StatusCode(500, ex.Message);
             }
         }
 
@@ -154,7 +154,7 @@ namespace StartedIn.API.Controllers
             }
             catch (Exception ex)
             {
-                return StatusCode(500, "Lỗi server");
+                return StatusCode(500, ex.Message);
             }
         }
     }
