@@ -135,12 +135,12 @@ namespace StartedIn.Service.Services
             var user = await _userManager.FindByIdAsync(userId);
             if (user is null)
             {
-                throw new NotFoundException("Không tìm thấy người dùng");
+                throw new NotFoundException(MessageConstant.NotFoundUserError);
             }
             var project = await _projectRepository.GetOneAsync(dealOfferCreateDTO.ProjectId);
             if (project is null)
             {
-                throw new NotFoundException("Không tìm thấy dự án");
+                throw new NotFoundException(MessageConstant.NotFoundProjectError);
             }
             try
             {

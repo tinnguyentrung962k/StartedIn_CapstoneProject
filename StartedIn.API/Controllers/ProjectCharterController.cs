@@ -12,7 +12,7 @@ using System.Security.Claims;
 namespace StartedIn.API.Controllers
 {
     [ApiController]
-    [Route("api")]
+    [Route("api/projects/{projectId}/project-charters")]
     public class ProjectCharterController : ControllerBase
     {
         private readonly IProjectCharterService _projectCharterService;
@@ -26,30 +26,39 @@ namespace StartedIn.API.Controllers
             _logger = logger;
         }
 
-        [HttpPost("projects/{projectId}/projectcharters")]
+        [HttpPost]
         [Authorize(Roles = RoleConstants.USER)]
         public async Task<ActionResult<ProjectCharterResponseDTO>> CreateNewProjectCharter([FromRoute] string projectId, [FromBody]ProjectCharterCreateDTO projectCharterCreateDto)
         {
             try
             {
                 var userId = User.FindFirst(ClaimTypes.NameIdentifier).Value;
-                var projectCharter = await _projectCharterService.CreateNewProjectCharter(userId,projectId,projectCharterCreateDto);
+                var projectCharter =
+                    await _projectCharterService.CreateNewProjectCharter(userId, projectId, projectCharterCreateDto);
                 var projectCharterResponse = _mapper.Map<ProjectCharterResponseDTO>(projectCharter);
-                return CreatedAtAction(nameof(GetProjectCharterByCharterId), new { id = projectCharterResponse.Id }, projectCharterResponse);
+                return CreatedAtAction(nameof(GetProjectCharterByCharterId), new { id = projectCharterResponse.Id },
+                    projectCharterResponse);
             }
             catch (UnauthorizedProjectRoleException ex)
             {
                 _logger.LogError(ex, "Unauthorized Role");
                 return StatusCode(403, ex.Message);
             }
+            catch (NotFoundException ex)
+            {
+                _logger.LogError(ex, "User or project is not found");
+                return BadRequest(ex);
+            }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error while creating new project charter.");
-                return StatusCode(500, ex.Message);
+
+                return StatusCode(500, MessageConstant.InternalServerError);
+
             }
         }
 
-        [HttpGet("projectcharters/{id}")]
+        [HttpGet("/api/project-charters/{id}")]
         [Authorize(Roles = RoleConstants.USER + "," + RoleConstants.INVESTOR)]
         public async Task<ActionResult<ProjectCharterResponseDTO>> GetProjectCharterByCharterId([FromRoute] string id)
         {
@@ -64,11 +73,11 @@ namespace StartedIn.API.Controllers
             }
             catch (Exception ex)
             {
-                return StatusCode(500, ex.Message);
+                return StatusCode(500, MessageConstant.InternalServerError);
             }
         }
 
-        [HttpGet("projects/{projectId}/projectcharter")]
+        [HttpGet]
         [Authorize(Roles = RoleConstants.USER + "," + RoleConstants.INVESTOR)]
         public async Task<ActionResult<ProjectCharterResponseDTO>> GetProjectCharterByProjectId([FromRoute] string projectId)
         {
@@ -83,7 +92,7 @@ namespace StartedIn.API.Controllers
             }
             catch (Exception ex)
             {
-                return StatusCode(500, ex.Message);
+                return StatusCode(500, MessageConstant.InternalServerError);
             }
         }
 

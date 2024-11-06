@@ -58,7 +58,13 @@ namespace StartedIn.API.Configuration.AutoMapper
         private void ProjectMappingProfile()
         {
             CreateMap<ProjectCreateDTO, Project>().ReverseMap();
-            CreateMap<Project, ProjectResponseDTO>().ReverseMap();
+            CreateMap<Project, ProjectResponseDTO>().ForMember(dest => dest.LeaderId,
+                    opt => opt.MapFrom(src =>
+                        src.UserProjects.FirstOrDefault(up => up.RoleInTeam == RoleInTeam.Leader).UserId))
+                .ForMember(dest => dest.LeaderFullName,
+                    opt => opt.MapFrom(src =>
+                        src.UserProjects.FirstOrDefault(up => up.RoleInTeam == RoleInTeam.Leader).User.FullName))
+                .ReverseMap();
             CreateMap<Project, ProjectWithMembersResponseDTO>()
                 .ForMember(dest => dest.Project, opt => opt.MapFrom(src => src))
                 .ForMember(dest => dest.MemberWithRoleInProject, opt => opt.MapFrom(src =>

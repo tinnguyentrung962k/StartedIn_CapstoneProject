@@ -1,10 +1,5 @@
 ﻿using DocumentFormat.OpenXml;
-using DocumentFormat.OpenXml.InkML;
-using DocumentFormat.OpenXml.Packaging;
-using DocumentFormat.OpenXml.Wordprocessing;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using StartedIn.CrossCutting.Constants;
@@ -17,12 +12,7 @@ using StartedIn.Domain.Entities;
 using StartedIn.Repository.Repositories.Interface;
 using StartedIn.Service.Services.Interface;
 using StartedIn.CrossCutting.Enum;
-using System.Collections.Generic;
-using System.Net;
-using StartedIn.CrossCutting.Enum;
-using DocumentFormat.OpenXml.Spreadsheet;
 using CrossCutting.Exceptions;
-using DocumentFormat.OpenXml.Office2010.Excel;
 
 namespace StartedIn.Service.Services
 {
@@ -70,7 +60,6 @@ namespace StartedIn.Service.Services
             _userService = userService;
             _apiDomain = _configuration.GetValue<string>("API_DOMAIN") ?? _configuration["Local_domain"];
         }
-        
 
         public async Task<Contract> CreateInvestmentContract(string userId,string projectId ,InvestmentContractCreateDTO investmentContractCreateDTO)
         {
@@ -91,7 +80,7 @@ namespace StartedIn.Service.Services
                 var investor = await _userManager.FindByIdAsync(investmentContractCreateDTO.InvestorInfo.UserId);
                 if (investor == null)
                 {
-                    throw new NotFoundException("Không tìm thấy nhà đầu tư");
+                    throw new NotFoundException(MessageConstant.NotFoundInvestorError);
                 }
                 Contract contract = new Contract
                 {
@@ -240,7 +229,7 @@ namespace StartedIn.Service.Services
                 var webhookCompleteSign = new SignNowWebhookCreateDTO
                 {
                     Action = SignNowServiceConstant.CallBackAction,
-                    CallBackUrl = $"{_apiDomain}/api/projects/{projectId}/contracts/valid-contract/{contractId}",
+                    CallBackUrl = $"{_apiDomain}/api/projects/{projectId}/contracts/{contractId}/validate",
                     EntityId = userInChosenContract.Contract.SignNowDocumentId,
                     Event = SignNowServiceConstant.DocumentCompleteEvent
                 };
@@ -248,7 +237,7 @@ namespace StartedIn.Service.Services
                 var webhookUpdate = new SignNowWebhookCreateDTO
                 {
                     Action = SignNowServiceConstant.CallBackAction,
-                    CallBackUrl = $"{_apiDomain}/api/projects/{projectId}/contracts/sign-confirmation/{contractId}",
+                    CallBackUrl = $"{_apiDomain}/api/projects/{projectId}/contracts/{contractId}/confirm-sign",
                     EntityId = userInChosenContract.Contract.SignNowDocumentId,
                     Event = SignNowServiceConstant.DocumentUpdateEvent
                 };
@@ -480,7 +469,7 @@ namespace StartedIn.Service.Services
 
             if (projectRole != RoleInTeam.Leader)
             {
-                throw new UnauthorizedProjectRoleException("User does not have permission to update this contract.");
+                throw new UnauthorizedProjectRoleException(MessageConstant.RolePermissionError);
             }
 
             var contract = await _contractRepository.GetContractById(contractId);
@@ -506,7 +495,7 @@ namespace StartedIn.Service.Services
                 var investor = await _userManager.FindByIdAsync(investmentContractUpdateDTO.InvestorInfo.UserId);
                 if (investor == null)
                 {
-                    throw new NotFoundException("Investor not found.");
+                    throw new NotFoundException(MessageConstant.NotFoundInvestorError);
                 }
 
                 ShareEquity shareEquity;
@@ -600,7 +589,5 @@ namespace StartedIn.Service.Services
                 throw;
             }
         }
-
-
     }
 }

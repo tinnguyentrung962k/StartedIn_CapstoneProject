@@ -46,7 +46,7 @@ namespace StartedIn.API.Controllers
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error while creating new task.");
-                return StatusCode(500, "Lỗi server");
+                return StatusCode(500, MessageConstant.InternalServerError);
             }
         }
 
@@ -75,7 +75,7 @@ namespace StartedIn.API.Controllers
             }
             catch (Exception ex)
             {
-                return StatusCode(500, "Lỗi Server");
+                return StatusCode(500, MessageConstant.InternalServerError);
             }
         }
 
@@ -104,7 +104,7 @@ namespace StartedIn.API.Controllers
             }
             catch (Exception ex)
             {
-                return StatusCode(500,ex.Message);
+                return BadRequest(MessageConstant.UpdateFailed);
             }
         }
     }

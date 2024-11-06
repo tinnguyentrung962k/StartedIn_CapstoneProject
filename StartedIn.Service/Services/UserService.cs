@@ -357,7 +357,7 @@ namespace StartedIn.Service.Services
             var user = await _userManager.FindByEmailAsync(resetPasswordDTO.Email);
             if (user is null)
             {
-                throw new NotFoundException("Người dùng không tồn tại");
+                throw new NotFoundException(MessageConstant.NotFoundUserError);
             }
             var resetResult = await _userManager.ResetPasswordAsync(user, resetPasswordDTO.Token, resetPasswordDTO.NewPassword);
             if (!resetResult.Succeeded)
@@ -365,7 +365,7 @@ namespace StartedIn.Service.Services
                 // Handle the error (log and return validation errors)
                 foreach (var error in resetResult.Errors)
                 {
-                    throw new Exception("Lỗi reset");
+                    throw new Exception(error.ToString());
                 }
             }
         }

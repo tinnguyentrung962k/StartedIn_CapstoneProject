@@ -57,6 +57,7 @@ namespace StartedIn.API.Controllers
         }
 
 
+
         [HttpGet("users/{userId}")]
         [Authorize]
         public async Task<ActionResult<FullProfileDTO>> GetUserById(string userId)
