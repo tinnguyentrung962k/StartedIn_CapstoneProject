@@ -69,7 +69,7 @@ namespace StartedIn.API.Controllers
             }
         }
 
-        [HttpGet("project/{projectId}/deal-offers")]
+        [HttpGet("projects/{projectId}/deal-offers")]
         [Authorize]
         public async Task<ActionResult<SearchResponseDTO<DealOfferForProjectResponseDTO>>> GetDealListForAProject([FromRoute] string projectId, [FromQuery] int pageIndex, int pageSize)
         {
@@ -91,14 +91,14 @@ namespace StartedIn.API.Controllers
             }
         }
 
-        [HttpPost("project/{projectId}/deal-offers/{dealId}/accept")]
+        [HttpPost("projects/{projectId}/deal-offers/{dealId}/accept")]
         [Authorize]
         public async Task AcceptDeal([FromRoute] string projectId, [FromRoute] string dealId)
         {
             // check deal trong prj & chinh status
         }
 
-        [HttpPost("project/{projectId}/deal-offers/{dealId}/reject")]
+        [HttpPost("projects/{projectId}/deal-offers/{dealId}/reject")]
         [Authorize]
         public async Task RejectDeal([FromRoute] string projectId, [FromRoute] string dealId)
         {
