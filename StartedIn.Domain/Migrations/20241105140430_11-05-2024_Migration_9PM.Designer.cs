@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using StartedIn.Domain.Context;
@@ -11,9 +12,11 @@ using StartedIn.Domain.Context;
 namespace StartedIn.Domain.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20241105140430_11-05-2024_Migration_9PM")]
+    partial class _11052024_Migration_9PM
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -744,12 +747,6 @@ namespace StartedIn.Domain.Migrations
                         .HasColumnType("timestamp with time zone");
 
                     b.Property<string>("MilestoneId")
-                        .HasColumnType("text");
-
-                    b.Property<string>("ParentTaskId")
-                        .HasColumnType("text");
-
-                    b.Property<string>("ProjectId")
                         .IsRequired()
                         .HasColumnType("text");
 
@@ -766,10 +763,6 @@ namespace StartedIn.Domain.Migrations
                     b.HasKey("Id");
 
                     b.HasIndex("MilestoneId");
-
-                    b.HasIndex("ParentTaskId");
-
-                    b.HasIndex("ProjectId");
 
                     b.ToTable("Task", (string)null);
                 });
@@ -1152,23 +1145,11 @@ namespace StartedIn.Domain.Migrations
                 {
                     b.HasOne("StartedIn.Domain.Entities.Milestone", "Milestone")
                         .WithMany("Tasks")
-                        .HasForeignKey("MilestoneId");
-
-                    b.HasOne("StartedIn.Domain.Entities.TaskEntity", "ParentTask")
-                        .WithMany()
-                        .HasForeignKey("ParentTaskId");
-
-                    b.HasOne("StartedIn.Domain.Entities.Project", "Project")
-                        .WithMany()
-                        .HasForeignKey("ProjectId")
+                        .HasForeignKey("MilestoneId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.Navigation("Milestone");
-
-                    b.Navigation("ParentTask");
-
-                    b.Navigation("Project");
                 });
 
             modelBuilder.Entity("StartedIn.Domain.Entities.TaskHistory", b =>

@@ -12,7 +12,7 @@ using StartedIn.Service.Services.Interface;
 namespace StartedIn.API.Controllers
 {
     [ApiController]
-    [Route("api")]
+    [Route("api/projects/{projectId}/tasks")]
     public class TaskController : ControllerBase
     {
         private readonly IMapper _mapper;
@@ -26,14 +26,16 @@ namespace StartedIn.API.Controllers
             _logger = logger;
         }
 
-        [HttpPost("tasks")]
+        [HttpPost]
         [Authorize]
-        public async Task<ActionResult<TaskResponseDTO>> CreateNewTask(TaskCreateDTO taskCreateDto)
+        public async Task<ActionResult<TaskResponseDTO>> CreateNewTask(
+            [FromBody] TaskCreateDTO taskCreateDto,
+            [FromRoute] string projectId)
         {
             try
             {
                 var userId = User.FindFirst(ClaimTypes.NameIdentifier).Value;
-                var task = await _taskService.CreateTask(taskCreateDto, userId);
+                var task = await _taskService.CreateTask(taskCreateDto, userId, projectId);
                 var response = _mapper.Map<TaskResponseDTO>(task);
                 return Ok(response);
             }
@@ -48,19 +50,19 @@ namespace StartedIn.API.Controllers
             }
         }
 
-        [HttpPut("tasks/{taskId}")]
-        [Authorize]
-        public async Task<ActionResult<TaskResponseDTO>> EditInfoMinorTask([FromRoute]string taskId, [FromBody] UpdateTaskInfoDTO updateTaskInfoDTO)
+        [HttpGet]
+        [Authorize(Roles = RoleConstants.USER)]
+        public async Task<ActionResult<IEnumerable<TaskResponseDTO>>> getAllTasks(
+            [FromRoute] string projectId,
+            [FromQuery] int page = 1,
+            [FromQuery] int size = 20)
         {
             try
             {
                 var userId = User.FindFirst(ClaimTypes.NameIdentifier).Value;
-                var responseTask = _mapper.Map<TaskResponseDTO>(await _taskService.UpdateTaskInfo(userId,taskId, updateTaskInfoDTO));
-                return Ok(responseTask);
-            }
-            catch (UnauthorizedProjectRoleException ex)
-            {
-                return StatusCode(403, ex.Message);
+                var taskList = _mapper.Map<List<TaskResponseDTO>>(await _taskService.GetAllTask(userId, projectId, size, page));
+
+                return taskList;
             }
             catch (NotFoundException ex)
             {
@@ -71,14 +73,22 @@ namespace StartedIn.API.Controllers
                 return StatusCode(500, MessageConstant.InternalServerError);
             }
         }
-        [HttpGet("tasks/{taskId}")]
+
+        [HttpGet("catalog")]
+        [Authorize(Roles = RoleConstants.USER)]
+        public async Task<ActionResult<IEnumerable<TaskResponseDTO>>> getTaskCatalog()
+        {
+            return BadRequest();
+        }
+
+        [HttpGet("{taskId}")]
         [Authorize(Roles = RoleConstants.USER)]
         public async Task<ActionResult<TaskResponseDTO>> GetTaskDetail([FromRoute] string taskId)
         {
             try
             {
                 var userId = User.FindFirst(ClaimTypes.NameIdentifier).Value;
-                var responseTask = _mapper.Map<TaskResponseDTO>(await _taskService.GetATaskDetail(userId,taskId));
+                var responseTask = _mapper.Map<TaskResponseDTO>(await _taskService.GetTaskDetail(userId, taskId));
                 return Ok(responseTask);
             }
             catch (UnauthorizedProjectRoleException ex)
@@ -95,5 +105,30 @@ namespace StartedIn.API.Controllers
             }
         }
 
+        [HttpPut("{taskId}")]
+        [Authorize]
+        public async Task<ActionResult<TaskResponseDTO>> EditInfoMinorTask(
+            [FromRoute] string taskId,
+            [FromBody] UpdateTaskInfoDTO updateTaskInfoDTO)
+        {
+            try
+            {
+                var userId = User.FindFirst(ClaimTypes.NameIdentifier).Value;
+                var responseTask = _mapper.Map<TaskResponseDTO>(await _taskService.UpdateTaskInfo(userId, taskId, updateTaskInfoDTO));
+                return Ok(responseTask);
+            }
+            catch (UnauthorizedProjectRoleException ex)
+            {
+                return StatusCode(403, ex.Message);
+            }
+            catch (NotFoundException ex)
+            {
+                return BadRequest(ex.Message);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest("Cập nhật thất bại");
+            }
+        }
     }
 }
