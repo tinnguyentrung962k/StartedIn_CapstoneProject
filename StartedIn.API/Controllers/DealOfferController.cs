@@ -65,7 +65,7 @@ namespace StartedIn.API.Controllers
             }
             catch (Exception ex)
             {
-                return StatusCode(500, ex.Message);
+                return StatusCode(500, MessageConstant.InternalServerError);
             }
         }
 
@@ -87,22 +87,69 @@ namespace StartedIn.API.Controllers
             }
             catch (Exception ex)
             {
-                return StatusCode(500, ex.Message);
+                return StatusCode(500, MessageConstant.InternalServerError);
             }
         }
 
         [HttpPost("projects/{projectId}/deal-offers/{dealId}/accept")]
         [Authorize]
-        public async Task AcceptDeal([FromRoute] string projectId, [FromRoute] string dealId)
+        public async Task<ActionResult<DealOfferForProjectResponseDTO>> AcceptDeal([FromRoute] string projectId, [FromRoute] string dealId)
         {
-            // check deal trong prj & chinh status
+            try
+            {
+                var userId = User.FindFirst(ClaimTypes.NameIdentifier).Value;
+                var deal = await _dealOfferService.AcceptADeal(userId, projectId, dealId);
+                var response = _mapper.Map<DealOfferForProjectResponseDTO>(deal);
+                return Ok(response);
+            }
+            catch (UnauthorizedProjectRoleException ex)
+            {
+                _logger.LogError(ex, "Unauthorized Role");
+                return StatusCode(403, ex.Message);
+            }
+            catch (NotFoundException ex)
+            {
+                return BadRequest(ex.Message);
+            }
+            catch (UnmatchedException ex)
+            {
+                return BadRequest(ex.Message);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, MessageConstant.InternalServerError);
+            }
+
         }
 
         [HttpPost("projects/{projectId}/deal-offers/{dealId}/reject")]
         [Authorize]
-        public async Task RejectDeal([FromRoute] string projectId, [FromRoute] string dealId)
+        public async Task<ActionResult<DealOfferForProjectResponseDTO>> RejectDeal([FromRoute] string projectId, [FromRoute] string dealId)
         {
-            // check deal trong prj & chinh status
+            try
+            {
+                var userId = User.FindFirst(ClaimTypes.NameIdentifier).Value;
+                var deal = await _dealOfferService.RejectADeal(userId, projectId, dealId);
+                var response = _mapper.Map<DealOfferForProjectResponseDTO>(deal);
+                return Ok(response);
+            }
+            catch (UnauthorizedProjectRoleException ex)
+            {
+                _logger.LogError(ex, "Unauthorized Role");
+                return StatusCode(403, ex.Message);
+            }
+            catch (NotFoundException ex)
+            {
+                return BadRequest(ex.Message);
+            }
+            catch (UnmatchedException ex)
+            {
+                return BadRequest(ex.Message);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, MessageConstant.InternalServerError);
+            }
         }
     }
 }

@@ -114,7 +114,7 @@ public class ProjectController : ControllerBase
         }
         catch (Exception ex)
         {
-            return BadRequest(ex.Message);
+            return StatusCode(500, MessageConstant.InternalServerError); 
         }
     }
 
@@ -138,7 +138,7 @@ public class ProjectController : ControllerBase
         }
         catch (Exception ex)
         {
-            return BadRequest(ex.Message);
+            return StatusCode(500, MessageConstant.InternalServerError);
         }
     }
 
@@ -158,7 +158,7 @@ public class ProjectController : ControllerBase
         }
         catch (Exception ex)
         {
-            return BadRequest(ex.Message);
+            return StatusCode(500, MessageConstant.InternalServerError);
         }
     }
     

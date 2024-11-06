@@ -246,7 +246,7 @@ namespace StartedIn.API.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(ex.Message);
+                return StatusCode(500, MessageConstant.InternalServerError);
             }
         }
     }

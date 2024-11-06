@@ -43,7 +43,7 @@ namespace StartedIn.API.Controllers
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error while getting users list.");
-                return StatusCode(500, ex.Message);
+                return StatusCode(500, MessageConstant.InternalServerError);
             }
         }
 
@@ -64,7 +64,7 @@ namespace StartedIn.API.Controllers
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error while getting user.");
-                return StatusCode(500, ex.Message);
+                return StatusCode(500, MessageConstant.InternalServerError);
             }
         }
 
@@ -79,7 +79,7 @@ namespace StartedIn.API.Controllers
             }
             catch (Exception ex)
             {
-                return StatusCode(500, ex.Message);
+                return StatusCode(500, MessageConstant.InternalServerError);
             }
         }
     }
