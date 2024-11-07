@@ -1,5 +1,4 @@
 ﻿using Microsoft.Extensions.Logging;
-using StartedIn.CrossCutting.DTOs.RequestDTO;
 using StartedIn.CrossCutting.Enum;
 using StartedIn.CrossCutting.Exceptions;
 using StartedIn.Domain.Entities;
@@ -7,6 +6,10 @@ using StartedIn.Repository.Repositories.Interface;
 using StartedIn.Service.Services.Interface;
 using Microsoft.AspNetCore.Identity;
 using StartedIn.CrossCutting.Constants;
+using StartedIn.CrossCutting.DTOs.RequestDTO.Tasks;
+using StartedIn.CrossCutting.DTOs.ResponseDTO;
+using AutoMapper;
+using StartedIn.CrossCutting.DTOs.ResponseDTO.Tasks;
 
 namespace StartedIn.Service.Services
 {
@@ -20,6 +23,8 @@ namespace StartedIn.Service.Services
         private readonly IProjectRepository _projectRepository;
         private readonly IMilestoneRepository _milestoneRepository;
         private readonly IUserService _userService;
+        private readonly IMapper _mapper;
+
 
         public TaskService(
             IUnitOfWork unitOfWork,
@@ -29,7 +34,8 @@ namespace StartedIn.Service.Services
             UserManager<User> userManager,
             IProjectRepository projectRepository,
             IMilestoneRepository milestoneRepository,
-            IUserService userService)
+            IUserService userService,
+            IMapper mapper)
         {
             _unitOfWork = unitOfWork;
             _taskRepository = taskRepository;
@@ -39,15 +45,17 @@ namespace StartedIn.Service.Services
             _projectRepository = projectRepository;
             _milestoneRepository = milestoneRepository;
             _userService = userService;
+            _mapper = mapper;
         }
-        public async Task<TaskEntity> GetTaskDetail(string userId, string taskId)
+        public async Task<TaskEntity> GetTaskDetail(string userId, string taskId, string projectId)
         {
-            var chosenTask = await _taskRepository.QueryHelper().Include(t => t.Milestone).Filter(t => t.Id.Equals(taskId)).GetOneAsync();
+            var userInProject = await _userService.CheckIfUserInProject(userId, projectId);
+
+            var chosenTask = await _taskRepository.GetOneAsync(taskId);
             if (chosenTask == null)
             {
                 throw new NotFoundException(MessageConstant.NotFoundTaskError);
             }
-            var userInProject = await _userService.CheckIfUserInProject(userId, chosenTask.Milestone.ProjectId);
             return chosenTask;
         }
 
@@ -58,16 +66,20 @@ namespace StartedIn.Service.Services
             {
                 throw new NotFoundException(MessageConstant.UserNotInProjectError);
             }
+
             try
             {
                 _unitOfWork.BeginTransaction();
                 TaskEntity task = new TaskEntity
                 {
-                    Title = taskCreateDto.TaskTitle,
+                    Title = taskCreateDto.Title,
                     Description = taskCreateDto.Description,
                     Deadline = taskCreateDto.Deadline,
                     Status = TaskEntityStatus.NOT_STARTED,
-                    IsLate = false
+                    IsLate = false,
+                    ProjectId = projectId,
+                    CreatedBy = userInProject.User.FullName,
+                    CreatedTime = DateTimeOffset.UtcNow
                 };
                 var taskEntity = _taskRepository.Add(task);
                 string notification = userInProject.User.FullName + " đã tạo ra công việc: " + task.Title;
@@ -90,22 +102,21 @@ namespace StartedIn.Service.Services
             }
         }
 
-        public async Task<TaskEntity> UpdateTaskInfo(string userId, string id, UpdateTaskInfoDTO updateTaskInfoDTO)
+        public async Task<TaskEntity> UpdateTaskInfo(string userId, string taskId, 
+            string projectId, UpdateTaskInfoDTO updateTaskInfoDTO)
         {
-            var chosenTask = await _taskRepository.QueryHelper()
-                .Include(x => x.Milestone)
-                .Filter(x => x.Id.Equals(id)).
-                GetOneAsync();
+            var userInProject = await _userService.CheckIfUserInProject(userId, projectId);
+
+            var chosenTask = await _taskRepository.GetOneAsync(taskId);
             if (chosenTask == null)
             {
                 throw new NotFoundException("Không tìm thấy công việc");
             }
-            var userInProject = await _userService.CheckIfUserInProject(userId, chosenTask.Milestone.ProjectId);
+
             try
             {
-                chosenTask.Title = updateTaskInfoDTO.TaskTitle;
+                chosenTask.Title = updateTaskInfoDTO.Title;
                 chosenTask.Description = updateTaskInfoDTO.Description;
-                chosenTask.Status = updateTaskInfoDTO.Status;
                 chosenTask.Deadline = updateTaskInfoDTO.Deadline;
                 chosenTask.LastUpdatedTime = DateTimeOffset.UtcNow;
                 chosenTask.LastUpdatedBy = userInProject.User.FullName;
@@ -120,16 +131,21 @@ namespace StartedIn.Service.Services
             }
         }
 
-        public async Task<IEnumerable<TaskEntity>> GetAllTask(string userId, string projectId, int size, int page)
+        public async Task<PaginationDTO<TaskResponseDTO>> GetAllTask(string userId, string projectId, int size, int page)
         {
             var userInProject = await _userService.CheckIfUserInProject(userId, projectId);
-            if (userInProject == null) 
-            {
-                throw new NotFoundException(MessageConstant.UserNotInProjectError);
-            }
 
-            var tasksInProject = await _taskRepository.QueryHelper().Filter(t => t.ProjectId == projectId).GetPagingAsync(page, size);
-            return tasksInProject;
+            var tasksInProjectQuery = _taskRepository.QueryHelper().Filter(t => t.ProjectId == projectId);
+
+            var pagination = new PaginationDTO<TaskResponseDTO>()
+            {
+                Data = _mapper.Map<IEnumerable<TaskResponseDTO>>(await tasksInProjectQuery.GetPagingAsync(page, size)),
+                Total = await tasksInProjectQuery.GetTotal(),
+                Page = page,
+                Size = size
+            };
+
+            return pagination;
         }
     }
 }

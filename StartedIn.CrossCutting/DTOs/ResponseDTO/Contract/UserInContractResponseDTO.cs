@@ -1,5 +1,4 @@
 ﻿using StartedIn.CrossCutting.DTOs.BaseDTO;
-
 namespace StartedIn.CrossCutting.DTOs.ResponseDTO.Contract
 {
     public class UserInContractResponseDTO : IdentityResponseDTO

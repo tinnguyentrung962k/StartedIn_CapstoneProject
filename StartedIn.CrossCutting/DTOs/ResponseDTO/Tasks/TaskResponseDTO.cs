@@ -1,9 +1,8 @@
 ﻿using StartedIn.CrossCutting.DTOs.BaseDTO;
 using StartedIn.CrossCutting.Enum;
-
-namespace StartedIn.CrossCutting.DTOs.ResponseDTO
+namespace StartedIn.CrossCutting.DTOs.ResponseDTO.Tasks
 {
-    public class TaskResponseDTO : IdentityResponseDTO
+    public class TaskResponseDTO : AuditResponseDTO
     {
         public string Title { get; set; }
         public string? Description { get; set; }

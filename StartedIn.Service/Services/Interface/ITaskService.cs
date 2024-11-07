@@ -1,4 +1,6 @@
-﻿using StartedIn.CrossCutting.DTOs.RequestDTO;
+﻿using StartedIn.CrossCutting.DTOs.RequestDTO.Tasks;
+using StartedIn.CrossCutting.DTOs.ResponseDTO;
+using StartedIn.CrossCutting.DTOs.ResponseDTO.Tasks;
 using StartedIn.CrossCutting.Enum;
 using StartedIn.Domain.Entities;
 using System;
@@ -12,8 +14,8 @@ namespace StartedIn.Service.Services.Interface
     public interface ITaskService
     {
         Task<TaskEntity> CreateTask(TaskCreateDTO taskCreateDto, string userId, string projectId);
-        Task<TaskEntity> UpdateTaskInfo(string userId, string id, UpdateTaskInfoDTO updateTaskInfoDTO);
-        Task<TaskEntity> GetTaskDetail(string userId, string taskId);
-        Task<IEnumerable<TaskEntity>> GetAllTask(string userId, string projectId, int size, int page);
+        Task<TaskEntity> UpdateTaskInfo(string userId, string taskId, string projectId, UpdateTaskInfoDTO updateTaskInfoDTO);
+        Task<TaskEntity> GetTaskDetail(string userId, string taskId, string projectId);
+        Task<PaginationDTO<TaskResponseDTO>> GetAllTask(string userId, string projectId, int size, int page);
     }
 }

@@ -1,6 +1,5 @@
 using StartedIn.CrossCutting.DTOs.BaseDTO;
 namespace StartedIn.CrossCutting.DTOs.ResponseDTO.Project;
-
 public class ExploreProjectDTO : IdentityResponseDTO
 {
     public string ProjectName { get; set; }

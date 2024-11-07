@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using StartedIn.CrossCutting.DTOs.BaseDTO;
 using StartedIn.CrossCutting.DTOs.ResponseDTO.Milestone;
 
+
 namespace StartedIn.CrossCutting.DTOs.ResponseDTO.ProjectCharter
 {
     public class ProjectCharterResponseDTO : IdentityResponseDTO

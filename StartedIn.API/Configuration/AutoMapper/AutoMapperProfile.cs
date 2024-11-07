@@ -9,6 +9,8 @@ using StartedIn.CrossCutting.DTOs.ResponseDTO.Disbursement;
 using StartedIn.CrossCutting.DTOs.ResponseDTO.Milestone;
 using StartedIn.CrossCutting.DTOs.ResponseDTO.Project;
 using StartedIn.CrossCutting.DTOs.ResponseDTO.ProjectCharter;
+using StartedIn.CrossCutting.DTOs.RequestDTO.Auth;
+using StartedIn.CrossCutting.DTOs.ResponseDTO.Tasks;
 using StartedIn.CrossCutting.Enum;
 using StartedIn.Domain.Entities;
 
