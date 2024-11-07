@@ -62,7 +62,7 @@ namespace StartedIn.API.Controllers
             }
         }
 
-        [HttpPost("sharesofmembers-contracts")]
+        [HttpPost("shares-distribution-contracts")]
         [Authorize(Roles = RoleConstants.USER)]
         public async Task<ActionResult<ContractResponseDTO>> CreateStartupShareAllMemberContract([FromRoute] string projectId, [FromBody] GroupContractCreateDTO groupContractCreateDTO)
         {
