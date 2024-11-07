@@ -48,12 +48,12 @@ namespace StartedIn.API.Controllers
             catch (NotFoundException ex)
             {
                 _logger.LogError(ex, "User or project is not found");
-                return BadRequest(ex);
+                return BadRequest(ex.Message);
             }
             catch (ExistedRecordException ex)
             {
                 _logger.LogError(ex, "Charter existed for project");
-                return BadRequest(ex);
+                return BadRequest(ex.Message);
             }
             catch (Exception ex)
             {
