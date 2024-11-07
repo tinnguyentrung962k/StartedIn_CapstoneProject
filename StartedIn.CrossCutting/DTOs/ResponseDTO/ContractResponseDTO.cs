@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Http;
+using StartedIn.CrossCutting.DTOs.BaseDTO;
 using StartedIn.CrossCutting.Enum;
 using System;
 using System.Collections.Generic;

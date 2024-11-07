@@ -12,8 +12,8 @@ using StartedIn.Service.Services.Interface;
 using StartedIn.Repository.Repositories.Extensions;
 using OfficeOpenXml;
 using System;
-using StartedIn.CrossCutting.DTOs.RequestDTO;
 using StartedIn.Repository.Repositories;
+using StartedIn.CrossCutting.DTOs.RequestDTO.Auth;
 
 namespace StartedIn.Service.Services
 {

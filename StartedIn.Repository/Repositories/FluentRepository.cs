@@ -55,6 +55,12 @@ namespace StartedIn.Repository.Repositories
             return await query.Skip((pageIndex-1) * pageSize).Take(pageSize).ToListAsync();
         }
 
+        public async Task<int> GetTotal()
+        {
+            IQueryable<TEntity> query = BuildQuery();
+            return await query.CountAsync();
+        }
+
         public IFluentRepository<TEntity> Include(Expression<Func<TEntity, object>> expression)
         {
             _includeProperties.Add(expression);

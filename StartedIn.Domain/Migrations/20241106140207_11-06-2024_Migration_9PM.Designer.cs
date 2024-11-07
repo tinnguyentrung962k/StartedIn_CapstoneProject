@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using StartedIn.Domain.Context;
@@ -11,9 +12,11 @@ using StartedIn.Domain.Context;
 namespace StartedIn.Domain.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20241106140207_11-06-2024_Migration_9PM")]
+    partial class _11062024_Migration_9PM
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -961,24 +964,6 @@ namespace StartedIn.Domain.Migrations
                     b.ToTable("UserRoles", (string)null);
                 });
 
-            modelBuilder.Entity("StartedIn.Domain.Entities.UserTask", b =>
-                {
-                    b.Property<string>("UserId")
-                        .HasColumnType("text");
-
-                    b.Property<string>("TaskId")
-                        .HasColumnType("text");
-
-                    b.Property<int>("TaskAssignType")
-                        .HasColumnType("integer");
-
-                    b.HasKey("UserId", "TaskId");
-
-                    b.HasIndex("TaskId");
-
-                    b.ToTable("UserTasks");
-                });
-
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<string>", b =>
                 {
                     b.HasOne("StartedIn.Domain.Entities.Role", null)
@@ -1173,7 +1158,7 @@ namespace StartedIn.Domain.Migrations
                         .HasForeignKey("MilestoneId");
 
                     b.HasOne("StartedIn.Domain.Entities.TaskEntity", "ParentTask")
-                        .WithMany("SubTasks")
+                        .WithMany()
                         .HasForeignKey("ParentTaskId");
 
                     b.HasOne("StartedIn.Domain.Entities.Project", "Project")
@@ -1257,25 +1242,6 @@ namespace StartedIn.Domain.Migrations
                     b.Navigation("User");
                 });
 
-            modelBuilder.Entity("StartedIn.Domain.Entities.UserTask", b =>
-                {
-                    b.HasOne("StartedIn.Domain.Entities.TaskEntity", "Task")
-                        .WithMany("UserTasks")
-                        .HasForeignKey("TaskId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("StartedIn.Domain.Entities.User", "User")
-                        .WithMany()
-                        .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Task");
-
-                    b.Navigation("User");
-                });
-
             modelBuilder.Entity("StartedIn.Domain.Entities.Contract", b =>
                 {
                     b.Navigation("Disbursements");
@@ -1316,15 +1282,11 @@ namespace StartedIn.Domain.Migrations
 
             modelBuilder.Entity("StartedIn.Domain.Entities.TaskEntity", b =>
                 {
-                    b.Navigation("SubTasks");
-
                     b.Navigation("TaskAttachments");
 
                     b.Navigation("TaskComments");
 
                     b.Navigation("TaskHistories");
-
-                    b.Navigation("UserTasks");
                 });
 
             modelBuilder.Entity("StartedIn.Domain.Entities.User", b =>

@@ -1,3 +1,4 @@
+using StartedIn.CrossCutting.DTOs.BaseDTO;
 using StartedIn.CrossCutting.Enum;
 using System.ComponentModel.DataAnnotations.Schema;
 

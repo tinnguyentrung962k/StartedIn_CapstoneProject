@@ -1,7 +1,9 @@
 ﻿using AutoMapper;
 using Microsoft.Extensions.Hosting;
 using StartedIn.CrossCutting.DTOs.RequestDTO;
+using StartedIn.CrossCutting.DTOs.RequestDTO.Auth;
 using StartedIn.CrossCutting.DTOs.ResponseDTO;
+using StartedIn.CrossCutting.DTOs.ResponseDTO.Tasks;
 using StartedIn.CrossCutting.Enum;
 using StartedIn.Domain.Entities;
 using static Microsoft.EntityFrameworkCore.DbLoggerCategory.Database;

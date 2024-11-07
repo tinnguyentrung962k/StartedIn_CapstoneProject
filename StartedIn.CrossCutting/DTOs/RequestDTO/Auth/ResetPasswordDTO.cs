@@ -5,9 +5,9 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace StartedIn.CrossCutting.DTOs.RequestDTO
+namespace StartedIn.CrossCutting.DTOs.RequestDTO.Auth
 {
-    public class ResetPasswordDTO 
+    public class ResetPasswordDTO
     {
         [Required]
         public string Email { get; set; }

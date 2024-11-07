@@ -33,7 +33,7 @@ namespace StartedIn.API.Controllers
             _logger = logger;
             _signNowService = signNowService;
         }
-        
+
         [HttpPost("investment-contracts")]
         [Authorize]
         public async Task<ActionResult<ContractResponseDTO>> CreateAnInvestmentContract([FromRoute] string projectId, [FromBody] InvestmentContractCreateDTO investmentContractCreateDTO)
@@ -65,6 +65,7 @@ namespace StartedIn.API.Controllers
 
             }
         }
+
         [HttpPut("investment-contracts/{contractId}")]
         [Authorize]
         public async Task<ActionResult<ContractResponseDTO>> UpdateInvestmentContract([FromRoute] string projectId, [FromRoute] string contractId, [FromBody] InvestmentContractUpdateDTO investmentContractUpdateDTO)
@@ -72,7 +73,7 @@ namespace StartedIn.API.Controllers
             try
             {
                 var userId = User.FindFirst(ClaimTypes.NameIdentifier).Value;
-                var contract = await _contractService.UpdateInvestmentContract(userId,projectId,contractId,investmentContractUpdateDTO);
+                var contract = await _contractService.UpdateInvestmentContract(userId, projectId, contractId, investmentContractUpdateDTO);
                 var responseContract = _mapper.Map<ContractResponseDTO>(contract);
                 return Ok(responseContract);
             }
@@ -95,14 +96,15 @@ namespace StartedIn.API.Controllers
 
             }
         }
+
         [HttpGet("investment-contracts/{contractId}")]
         [Authorize]
-        public async Task<ActionResult<ContractDetailResponseDTO>> GetInvestmentContractDetail([FromRoute]string projectId, [FromRoute]string contractId)
+        public async Task<ActionResult<ContractDetailResponseDTO>> GetInvestmentContractDetail([FromRoute] string projectId, [FromRoute] string contractId)
         {
             try
             {
                 var userId = User.FindFirst(ClaimTypes.NameIdentifier).Value;
-                var contract = await _contractService.GetContractByContractId(userId,contractId,projectId);
+                var contract = await _contractService.GetContractByContractId(userId, contractId, projectId);
                 var responseContract = _mapper.Map<ContractDetailResponseDTO>(contract);
                 return Ok(responseContract);
             }
@@ -120,14 +122,13 @@ namespace StartedIn.API.Controllers
             }
             catch (Exception ex)
             {
-                return StatusCode(500, MessageConstant.InternalServerError); 
+                return StatusCode(500, MessageConstant.InternalServerError);
             }
         }
 
         [HttpPost("contracts/{contractId}/invite")]
-
         [Authorize]
-        public async Task<ActionResult<ContractResponseDTO>> SendInviteForContract([FromRoute]string projectId, [FromRoute] string contractId)
+        public async Task<ActionResult<ContractResponseDTO>> SendInviteForContract([FromRoute] string projectId, [FromRoute] string contractId)
         {
             try
             {
@@ -155,7 +156,7 @@ namespace StartedIn.API.Controllers
 
         [HttpGet("contracts/{contractId}")]
         [Authorize]
-        public async Task<ActionResult<ContractResponseDTO>> GetContractById([FromRoute]string projectId, [FromRoute] string contractId)
+        public async Task<ActionResult<ContractResponseDTO>> GetContractById([FromRoute] string projectId, [FromRoute] string contractId)
         {
             try
             {
@@ -183,7 +184,7 @@ namespace StartedIn.API.Controllers
         }
 
         [HttpPost("contracts/{contractId}/validate")]
-        public async Task<IActionResult> ValidAcontract([FromRoute]string projectId, [FromRoute] string contractId)
+        public async Task<IActionResult> ValidAcontract([FromRoute] string projectId, [FromRoute] string contractId)
         {
             try
             {
@@ -209,10 +210,10 @@ namespace StartedIn.API.Controllers
                 return StatusCode(500, MessageConstant.InternalServerError);
             }
         }
-        
+
         [HttpPost("contracts/{contractId}/download")]
         [Authorize]
-        public async Task<ActionResult<DocumentDownLoadResponseDTO>> DownLoadContract([FromRoute]string projectId, [FromRoute] string contractId)
+        public async Task<ActionResult<DocumentDownLoadResponseDTO>> DownLoadContract([FromRoute] string projectId, [FromRoute] string contractId)
         {
 
             try

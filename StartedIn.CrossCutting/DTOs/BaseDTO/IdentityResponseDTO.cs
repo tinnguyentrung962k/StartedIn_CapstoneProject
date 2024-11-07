@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace StartedIn.CrossCutting.DTOs.ResponseDTO
+namespace StartedIn.CrossCutting.DTOs.BaseDTO
 {
     public class IdentityResponseDTO
     {

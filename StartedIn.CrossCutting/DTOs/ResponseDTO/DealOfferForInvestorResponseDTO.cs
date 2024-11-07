@@ -1,4 +1,5 @@
-﻿using StartedIn.CrossCutting.Enum;
+﻿using StartedIn.CrossCutting.DTOs.BaseDTO;
+using StartedIn.CrossCutting.Enum;
 using System;
 using System.Collections.Generic;
 using System.Linq;
