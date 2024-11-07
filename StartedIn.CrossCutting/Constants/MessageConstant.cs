@@ -37,5 +37,6 @@ namespace StartedIn.CrossCutting.Constants
         public const string DealPercentageGreaterThanRemainingPercentage = "Số cổ phần thương lượng lớn hơn số cổ phần còn lại của Startup.";
         public const string CharterNotBelongToProjectError = "Điều lệ này không thuộc vào dự án.";
         public const string CharterExistedError = "Điều lệ đã tồn tại cho dự án";
+        public const string CannotConfirmContract = "Bạn không thể xác nhận hợp đồng này";
     }
 }

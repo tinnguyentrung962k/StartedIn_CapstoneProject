@@ -15,6 +15,7 @@ using StartedIn.CrossCutting.Enum;
 using CrossCutting.Exceptions;
 using Microsoft.EntityFrameworkCore;
 using StartedIn.Repository.Repositories.Extensions;
+using StartedIn.Repository.Repositories;
 
 namespace StartedIn.Service.Services
 {
@@ -34,6 +35,9 @@ namespace StartedIn.Service.Services
         private readonly IConfiguration _configuration;
         private readonly string _apiDomain;
         private readonly IUserService _userService;
+        private readonly IDealOfferRepository _dealOfferRepository;
+        private readonly IDealOfferService _dealOfferService;
+
 
         public ContractService(IContractRepository contractRepository,
             IUnitOfWork unitOfWork,
@@ -45,7 +49,10 @@ namespace StartedIn.Service.Services
             IShareEquityRepository shareEquityRepository,
             IDisbursementRepository disbursementRepository, IAzureBlobService azureBlobService, 
             IDocumentFormatService documentFormatService,IConfiguration configuration,
-            IUserService userService)
+            IUserService userService,
+            IDealOfferRepository dealOfferRepository,
+            IDealOfferService dealOfferService
+            )
         {
             _contractRepository = contractRepository;
             _unitOfWork = unitOfWork;
@@ -60,6 +67,8 @@ namespace StartedIn.Service.Services
             _documentFormatService = documentFormatService;
             _configuration = configuration;
             _userService = userService;
+            _dealOfferRepository = dealOfferRepository;
+            _dealOfferService = dealOfferService;
             _apiDomain = _configuration.GetValue<string>("API_DOMAIN") ?? _configuration["Local_domain"];
         }
 
@@ -180,6 +189,124 @@ namespace StartedIn.Service.Services
             }
 
             return orderCode;
+        }
+        public async Task<DealOffer> CreateInvestmentContractByADealOffer(string userId, string projectId, string dealId, InvestmentContractFromDealCreateDTO investmentContractFromDealCreateDTO)
+        {
+            var userInProject = await _userService.CheckIfUserInProject(userId, projectId);
+            var projectRole = await _projectRepository.GetUserRoleInProject(userId, projectId);
+            if (projectRole != RoleInTeam.Leader)
+            {
+                throw new UnauthorizedProjectRoleException(MessageConstant.RolePermissionError);
+            }
+            var existedContract = await _contractRepository.QueryHelper().Filter(x => x.ContractIdNumber.Equals(investmentContractFromDealCreateDTO.Contract.ContractIdNumber) && x.ProjectId.Equals(projectId)).GetOneAsync();
+            if (existedContract != null)
+            {
+                throw new ExistedRecordException(MessageConstant.ContractNumberExistedError);
+            }
+            var project = await _projectRepository.GetProjectById(projectId);
+            var chosenDeal = await _dealOfferRepository.QueryHelper()
+                .Include(x => x.Investor)
+                .Include(x => x.Project)
+                .Filter(x => x.Id.Equals(dealId)).GetOneAsync();
+            if (chosenDeal == null)
+            {
+                throw new NotFoundException(MessageConstant.NotFoundDealError);
+            }
+            if (chosenDeal.Project.Id != projectId)
+            {
+                throw new UnmatchedException(MessageConstant.DealNotBelongToProjectError);
+            }
+            if (chosenDeal.EquityShareOffer > project.RemainingPercentOfShares)
+            {
+                throw new InvalidOperationException(MessageConstant.DealPercentageGreaterThanRemainingPercentage);
+            }
+            if (chosenDeal.DealStatus != DealStatusEnum.Waiting)
+            {
+                throw new ContractConfirmException(MessageConstant.CannotConfirmContract);
+            }
+            decimal totalDisbursementAmount = investmentContractFromDealCreateDTO.Disbursements.Sum(d => d.Amount);
+            if (totalDisbursementAmount > chosenDeal.Amount)
+            {
+                throw new InvalidOperationException(MessageConstant.DisbursementGreaterThanBuyPriceError);
+            }
+            try
+            {
+                _unitOfWork.BeginTransaction();
+                var investor = await _userManager.FindByIdAsync(chosenDeal.InvestorId);
+                if (investor == null)
+                {
+                    throw new NotFoundException(MessageConstant.NotFoundInvestorError);
+                }
+                Contract contract = new Contract
+                {
+                    ContractName = investmentContractFromDealCreateDTO.Contract.ContractName,
+                    ContractPolicy = investmentContractFromDealCreateDTO.Contract.ContractPolicy,
+                    ContractType = ContractTypeEnum.INVESTMENT,
+                    CreatedBy = userInProject.User.FullName,
+                    ProjectId = projectId,
+                    ContractStatus = ContractStatusEnum.DRAFT,
+                    ContractIdNumber = investmentContractFromDealCreateDTO.Contract.ContractIdNumber
+                };
+                var leader = userInProject.User;
+                List<UserContract> usersInContract = new List<UserContract>();
+                List<User> chosenUsersList = new List<User> { investor, leader };
+                foreach (var chosenUser in chosenUsersList)
+                {
+                    UserContract userContract = new UserContract
+                    {
+                        ContractId = contract.Id,
+                        UserId = chosenUser.Id
+                    };
+                    usersInContract.Add(userContract);
+                }
+                contract.UserContracts = usersInContract;
+                ShareEquity shareEquity = new ShareEquity
+                {
+                    ContractId = contract.Id,
+                    Contract = contract,
+                    CreatedBy = userInProject.User.FullName,
+                    Percentage = chosenDeal.EquityShareOffer,
+                    StakeHolderType = RoleInTeam.Investor,
+                    User = investor,
+                    UserId = investor.Id
+                };
+                var contractEntity = _contractRepository.Add(contract);
+                var shareEquityEntity = _shareEquityRepository.Add(shareEquity);
+                var disbursementList = new List<Disbursement>();
+                foreach (var disbursementTime in investmentContractFromDealCreateDTO.Disbursements)
+                {
+                    Disbursement disbursement = new Disbursement
+                    {
+                        Amount = disbursementTime.Amount,
+                        Condition = disbursementTime.Condition,
+                        Contract = contract,
+                        ContractId = contract.Id,
+                        CreatedBy = userInProject.User.FullName,
+                        DisbursementStatus = DisbursementStatusEnum.PENDING,
+                        StartDate = disbursementTime.StartDate,
+                        EndDate = disbursementTime.EndDate,
+                        Title = disbursementTime.Title,
+                        Investor = investor,
+                        InvestorId = investor.Id,
+                        OrderCode = GenerateUniqueBookingCode(),
+                        IsValidWithContract = false
+                    };
+                    disbursementList.Add(disbursement);
+                    var disbursementEntity = _disbursementRepository.Add(disbursement);
+                }
+                await _signNowService.AuthenticateAsync();
+                contract.SignNowDocumentId = await _signNowService.UploadInvestmentContractToSignNowAsync(contract, investor, leader, userInProject.Project, shareEquity, disbursementList, chosenDeal.Amount);
+                var acceptedDeal = await _dealOfferService.AcceptADeal(userId, projectId, dealId);
+                await _unitOfWork.SaveChangesAsync();
+                await _unitOfWork.CommitAsync();
+                return acceptedDeal;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError($"An error occurred while creating the contract: {ex.Message}");
+                await _unitOfWork.RollbackAsync();
+                throw;
+            }
         }
 
         public async Task<Contract> GetContractByContractId(string userId, string id, string projectId)
