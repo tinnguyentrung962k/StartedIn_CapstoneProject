@@ -6,13 +6,11 @@ using System.Linq;
 using System.Net;
 using System.Text;
 using System.Threading.Tasks;
-using StartedIn.CrossCutting.DTOs.RequestDTO;
 using Microsoft.Extensions.Options;
 using Microsoft.Extensions.Configuration;
 using Newtonsoft.Json;
 using System.Net.Http.Headers;
 using StartedIn.CrossCutting.DTOs.ResponseDTO.SignNowResponseDTO;
-using StartedIn.CrossCutting.DTOs.RequestDTO.SignNowWebhookRequestDTO;
 using Azure.Storage.Blobs;
 using StartedIn.CrossCutting.Enum;
 using StartedIn.CrossCutting.Constants;
@@ -22,6 +20,8 @@ using StartedIn.CrossCutting.Exceptions;
 using Microsoft.Extensions.Logging;
 using Azure;
 using System.Runtime.InteropServices;
+using StartedIn.CrossCutting.DTOs.RequestDTO.SignNow;
+using StartedIn.CrossCutting.DTOs.RequestDTO.SignNow.SignNowWebhookRequestDTO;
 
 namespace StartedIn.Service.Services
 {
@@ -116,6 +116,40 @@ namespace StartedIn.Service.Services
         {
             // Bước 1: Thay thế placeholders trong mẫu hợp đồng
             var modifiedMemoryStream = await _documentFormatService.ReplacePlaceHolderForInvestmentDocumentAsync(contract, investor, leader, project, shareEquity, disbursements, buyPrice);
+
+            // Đặt lại vị trí của memoryStream về 0 trước khi upload
+            modifiedMemoryStream.Position = 0;
+
+            // Bước 2: Chuẩn bị MultipartFormDataContent cho việc upload
+            var content = new MultipartFormDataContent();
+            content.Add(new StreamContent(modifiedMemoryStream), "file", $"{Guid.NewGuid()}.docx");
+
+            // Đường dẫn để upload lên SignNow
+            var uploadUrl = $"{_signNowSettings.ApiBaseUrl}/document";
+
+            // Bước 3: Gửi yêu cầu POST để upload lên SignNow
+            var response = await _httpClient.PostAsync(uploadUrl, content);
+
+            if (response.IsSuccessStatusCode)
+            {
+                // Xử lý phản hồi thành công
+                var responseContent = await response.Content.ReadAsStringAsync();
+                var documentResponse = JsonConvert.DeserializeObject<SignNowDocumentResponseDTO>(responseContent);
+                return documentResponse.Id; // Trả về document ID
+            }
+            else
+            {
+                // Xử lý lỗi nếu upload thất bại
+                var errorContent = await response.Content.ReadAsStringAsync();
+                throw new Exception($"Failed to upload document. Status Code: {response.StatusCode}, Error: {errorContent}");
+            }
+        }
+        public async Task<string> UploadStartUpShareDistributionContractToSignNowAsync(
+        Contract contract, User leader, Project project,
+        List<ShareEquity> shareEquities, List<UserContract> usersInContract)
+        {
+            // Bước 1: Thay thế placeholders trong mẫu hợp đồng
+            var modifiedMemoryStream = await _documentFormatService.ReplacePlaceHolderForStartUpShareDistributionDocumentAsync(contract, leader, project, shareEquities, usersInContract);
 
             // Đặt lại vị trí của memoryStream về 0 trước khi upload
             modifiedMemoryStream.Position = 0;

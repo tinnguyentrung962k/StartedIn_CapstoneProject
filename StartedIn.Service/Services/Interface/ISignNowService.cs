@@ -1,8 +1,7 @@
 ﻿using Azure.Core;
 using Microsoft.AspNetCore.Http;
 using Newtonsoft.Json;
-using StartedIn.CrossCutting.DTOs.RequestDTO;
-using StartedIn.CrossCutting.DTOs.RequestDTO.SignNowWebhookRequestDTO;
+using StartedIn.CrossCutting.DTOs.RequestDTO.SignNow.SignNowWebhookRequestDTO;
 using StartedIn.CrossCutting.DTOs.ResponseDTO.SignNowResponseDTO;
 using StartedIn.Domain.Entities;
 using System.Net.Http;
@@ -23,5 +22,6 @@ namespace StartedIn.Service.Services.Interface
         Task<DocumentDownLoadResponseDTO> DownLoadDocument(string documentId);
         Task<SignNowDocumentFullResponseDTO> GetDocumentAllInfoAsync(string documentId);
         Task<SignInviteFreeFormResponseDTO> GetDocumentFreeFormInvite(string documentId);
+        Task<string> UploadStartUpShareDistributionContractToSignNowAsync(Contract contract, User leader, Project project, List<ShareEquity> shareEquities, List<UserContract> usersInContract);
     }
 }

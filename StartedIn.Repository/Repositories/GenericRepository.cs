@@ -78,5 +78,9 @@ namespace StartedIn.Repository.Repositories
             return await _dbSet.Skip(pageIndex * pageSize).Take(pageSize).ToListAsync();
 
         }
+        public async Task AddRangeAsync(IEnumerable<TEntity> entities)
+        {
+            await _dbSet.AddRangeAsync(entities);
+        }
     }
 }

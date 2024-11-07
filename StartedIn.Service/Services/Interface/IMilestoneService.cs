@@ -1,4 +1,4 @@
-﻿using StartedIn.CrossCutting.DTOs.RequestDTO;
+﻿using StartedIn.CrossCutting.DTOs.RequestDTO.Milestone;
 using StartedIn.CrossCutting.Enum;
 using StartedIn.Domain.Entities;
 using System;

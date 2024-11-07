@@ -1,13 +1,10 @@
 ﻿using Microsoft.AspNetCore.Http;
-using StartedIn.CrossCutting.DTOs.RequestDTO;
-using StartedIn.CrossCutting.DTOs.ResponseDTO;
+using StartedIn.CrossCutting.DTOs.BaseDTO;
+using StartedIn.CrossCutting.DTOs.RequestDTO.Contract;
+using StartedIn.CrossCutting.DTOs.ResponseDTO.Contract;
 using StartedIn.CrossCutting.DTOs.ResponseDTO.SignNowResponseDTO;
 using StartedIn.Domain.Entities;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+
 
 namespace StartedIn.Service.Services.Interface
 {
@@ -23,5 +20,6 @@ namespace StartedIn.Service.Services.Interface
         Task<SearchResponseDTO<ContractSearchResponseDTO>> SearchContractWithFilters(string userId, string projectId, ContractSearchDTO search, int pageIndex, int pageSize);
         Task<Contract> UpdateInvestmentContract(string userId, string projectId, string contractId, InvestmentContractUpdateDTO investmentContractUpdateDTO);
         Task<DealOffer> CreateInvestmentContractByADealOffer(string userId, string projectId, string dealId, InvestmentContractFromDealCreateDTO investmentContractFromDealCreateDTO);
+        Task<Contract> CreateStartupShareAllMemberContract(string userId, string projectId, GroupContractCreateDTO groupContractCreateDTO);
     }
 }

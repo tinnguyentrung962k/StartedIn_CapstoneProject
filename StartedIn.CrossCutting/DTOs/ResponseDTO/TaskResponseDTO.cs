@@ -1,9 +1,5 @@
-﻿using StartedIn.CrossCutting.Enum;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using StartedIn.CrossCutting.DTOs.BaseDTO;
+using StartedIn.CrossCutting.Enum;
 
 namespace StartedIn.CrossCutting.DTOs.ResponseDTO
 {

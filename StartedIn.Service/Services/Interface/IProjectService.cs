@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Http;
-using StartedIn.CrossCutting.DTOs.RequestDTO;
-using StartedIn.CrossCutting.DTOs.ResponseDTO;
+using StartedIn.CrossCutting.DTOs.BaseDTO;
+using StartedIn.CrossCutting.DTOs.RequestDTO.Project;
+using StartedIn.CrossCutting.DTOs.ResponseDTO.Project;
 using StartedIn.CrossCutting.Enum;
 using StartedIn.Domain.Entities;
 

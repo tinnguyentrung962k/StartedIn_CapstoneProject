@@ -1,5 +1,5 @@
 ﻿using Net.payOS.Types;
-using StartedIn.CrossCutting.DTOs.ResponseDTO;
+using StartedIn.CrossCutting.DTOs.ResponseDTO.Payment;
 using System;
 using System.Collections.Generic;
 using System.Linq;

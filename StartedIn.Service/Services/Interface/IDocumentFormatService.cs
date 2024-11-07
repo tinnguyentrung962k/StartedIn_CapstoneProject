@@ -14,6 +14,11 @@ namespace StartedIn.Service.Services.Interface
     {
         Task<MemoryStream> ReplacePlaceHolderForInvestmentDocumentAsync(Contract contract, User investor, User leader, Project project, ShareEquity shareEquity, List<Disbursement> disbursements, decimal? buyPrice);
         Table CreateDisbursementTable(List<Disbursement> disbursements);
-        TableCell CreateTableCell(string text, bool isHeader = false);
+        TableCell CreateTableHeaderCell(string text, bool isHeader = false);
+        Table CreateShareholdersInfoTable(List<UserContract> shareholders);
+        Task<Table> CreateShareDistributionTable(List<UserContract> usersInContract, string projectId, string contractId);
+        Task<MemoryStream> ReplacePlaceHolderForStartUpShareDistributionDocumentAsync(Contract contract, User leader, Project project, List<ShareEquity> shareEquities, List<UserContract> usersInContract);
+        TableCell CreateBoldCell(string text, bool isBold = false);
+
     }
 }
