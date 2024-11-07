@@ -10,11 +10,8 @@ using StartedIn.Repository.Repositories.Interface;
 using StartedIn.Service.Services.Interface;
 using StartedIn.Repository.Repositories.Extensions;
 using OfficeOpenXml;
-using System;
-using StartedIn.CrossCutting.DTOs.RequestDTO;
-using StartedIn.Repository.Repositories;
 using StartedIn.CrossCutting.DTOs.ResponseDTO.Authentication;
-using StartedIn.CrossCutting.DTOs.RequestDTO.Authentication;
+using StartedIn.CrossCutting.DTOs.RequestDTO.Auth;
 
 namespace StartedIn.Service.Services
 {

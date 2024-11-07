@@ -1,7 +1,7 @@
 ﻿using System.ComponentModel.DataAnnotations;
 
 
-namespace StartedIn.CrossCutting.DTOs.RequestDTO.Authentication
+namespace StartedIn.CrossCutting.DTOs.RequestDTO.Auth
 {
     public class LoginDTO
     {
