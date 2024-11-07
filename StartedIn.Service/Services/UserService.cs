@@ -15,7 +15,6 @@ using StartedIn.Repository.Repositories;
 using StartedIn.CrossCutting.DTOs.ResponseDTO.Authentication;
 using StartedIn.CrossCutting.DTOs.RequestDTO.Auth;
 
-
 namespace StartedIn.Service.Services
 {
     public class UserService : IUserService

@@ -1,4 +1,4 @@
-﻿namespace StartedIn.CrossCutting.DTOs.RequestDTO.Authentication
+﻿namespace StartedIn.CrossCutting.DTOs.RequestDTO.Auth
 {
     public class RefreshTokenDTO
     {
