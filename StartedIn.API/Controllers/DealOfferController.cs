@@ -1,4 +1,5 @@
 ﻿using AutoMapper;
+using CrossCutting.Exceptions;
 using DocumentFormat.OpenXml.Spreadsheet;
 using DocumentFormat.OpenXml.Wordprocessing;
 using Microsoft.AspNetCore.Authorization;
@@ -9,6 +10,7 @@ using StartedIn.CrossCutting.DTOs.RequestDTO;
 using StartedIn.CrossCutting.DTOs.ResponseDTO;
 using StartedIn.CrossCutting.Exceptions;
 using StartedIn.Domain.Entities;
+using StartedIn.Service.Services;
 using StartedIn.Service.Services.Interface;
 using System.Security.Claims;
 
@@ -21,12 +23,14 @@ namespace StartedIn.API.Controllers
         private readonly IDealOfferService _dealOfferService;
         private readonly IMapper _mapper;
         private readonly ILogger<DealOfferController> _logger;
+        private readonly IContractService _contractService;
 
-        public DealOfferController(IDealOfferService dealOfferService, IMapper mapper, ILogger<DealOfferController> logger)
+        public DealOfferController(IDealOfferService dealOfferService, IMapper mapper, ILogger<DealOfferController> logger, IContractService contractService)
         {
             _dealOfferService = dealOfferService;
             _mapper = mapper;
             _logger = logger;
+            _contractService = contractService;
         }
 
         [HttpPost("deal-offers")]
@@ -67,6 +71,38 @@ namespace StartedIn.API.Controllers
             {
                 return StatusCode(500, MessageConstant.InternalServerError);
             }
+        }
+        [HttpPost("projects/{projectId}/deal-offers/{dealId}/contract-creation")]
+        [Authorize(Roles = RoleConstants.USER)]
+        public async Task<ActionResult<DealOfferForProjectResponseDTO>> AcceptADealAndCreateInvestmentContract([FromRoute] string projectId, [FromRoute] string dealId, [FromBody] InvestmentContractFromDealCreateDTO investmentContractFromDealCreateDTO)
+        {
+            try
+            {
+                var userId = User.FindFirst(ClaimTypes.NameIdentifier).Value;
+                var dealOffer = await _contractService.CreateInvestmentContractByADealOffer(userId, projectId, dealId, investmentContractFromDealCreateDTO);
+                var response = _mapper.Map<DealOfferForProjectResponseDTO>(dealOffer);
+                return Ok(response);
+            }
+            catch (UnauthorizedProjectRoleException ex)
+            {
+                return StatusCode(403, ex.Message);
+            }
+            catch (ExistedRecordException ex)
+            {
+                return BadRequest(ex.Message);
+            }
+            catch (InvalidOperationException ex)
+            {
+                return BadRequest(ex.Message);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error while creating contract");
+
+                return StatusCode(500, MessageConstant.InternalServerError);
+
+            }
+
         }
 
         [HttpGet("projects/{projectId}/deal-offers")]
