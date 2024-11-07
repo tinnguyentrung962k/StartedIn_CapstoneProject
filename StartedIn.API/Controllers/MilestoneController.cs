@@ -51,7 +51,7 @@ namespace StartedIn.API.Controllers
         }
 
         [HttpGet("milestones/{milestoneId}")]
-        [Authorize]
+        [Authorize(Roles = RoleConstants.USER + "," + RoleConstants.INVESTOR)]
         public async Task<ActionResult<MilestoneAndTaskResponseDTO>> GetMilestoneById([FromRoute]string projectId, [FromRoute] string milestoneId)
         {
             try
@@ -80,7 +80,7 @@ namespace StartedIn.API.Controllers
         }
 
         [HttpPut("milestones/{milestoneId}")]
-        [Authorize]
+        [Authorize(Roles = RoleConstants.USER + "," + RoleConstants.INVESTOR)]
         public async Task<ActionResult<MilestoneResponseDTO>> EditInfoMilestone([FromRoute] string milestoneId, [FromRoute] string projectId, [FromBody] MilestoneInfoUpdateDTO milestoneInfoUpdateDTO)
         {
             try

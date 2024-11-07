@@ -214,7 +214,7 @@ namespace StartedIn.API.Controllers
         [Authorize]
         public async Task<ActionResult<DocumentDownLoadResponseDTO>> DownLoadContract([FromRoute]string projectId, [FromRoute] string contractId)
         {
-            
+
             try
             {
                 var userId = User.FindFirst(ClaimTypes.NameIdentifier).Value;
@@ -236,7 +236,7 @@ namespace StartedIn.API.Controllers
         }
 
         [HttpGet("contracts")]
-        [Authorize]
+        [Authorize(Roles = RoleConstants.USER + "," + RoleConstants.INVESTOR)]
         public async Task<ActionResult<SearchResponseDTO<ContractSearchResponseDTO>>> SearchContractWithFilters(
     [FromRoute] string projectId, [FromQuery] ContractSearchDTO search, int pageSize, int pageIndex)
         {
@@ -258,5 +258,5 @@ namespace StartedIn.API.Controllers
             }
         }
     }
-        
+
 }

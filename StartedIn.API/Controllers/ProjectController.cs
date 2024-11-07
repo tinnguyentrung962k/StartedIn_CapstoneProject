@@ -31,7 +31,7 @@ public class ProjectController : ControllerBase
     }
 
     [HttpGet]
-    [Authorize]
+    [Authorize(Roles = RoleConstants.USER + "," + RoleConstants.INVESTOR)]
     public async Task<ActionResult<ProjectListDTO>> GetListOfProjectsWithRole()
     {
         var userId = User.FindFirst(ClaimTypes.NameIdentifier).Value;
@@ -53,7 +53,7 @@ public class ProjectController : ControllerBase
     }
 
     [HttpPost]
-    [Authorize]
+    [Authorize(Roles = RoleConstants.USER)]
     public async Task<ActionResult<ProjectResponseDTO>> CreateANewProject([FromForm] ProjectCreateDTO projectCreatedto)
     {
         try
@@ -75,7 +75,7 @@ public class ProjectController : ControllerBase
     }
 
     [HttpGet("{projectId}")]
-    [Authorize]
+    [Authorize(Roles = RoleConstants.USER + "," + RoleConstants.INVESTOR)]
     public async Task<ActionResult<ProjectResponseDTO>> GetProjectById(string projectId)
     {
         try
@@ -95,7 +95,7 @@ public class ProjectController : ControllerBase
     }
 
     [HttpPost("{projectId}/invite")]
-    [Authorize]
+    [Authorize(Roles = RoleConstants.USER)]
     public async Task<IActionResult> SendInvitationToTeam([FromBody] List<ProjectInviteEmailAndRoleDTO> inviteUsers, [FromRoute] string projectId)
     {
         try
@@ -141,7 +141,7 @@ public class ProjectController : ControllerBase
 
 
     [HttpPost("{projectId}/join")]
-    [Authorize]
+    [Authorize(Roles = RoleConstants.USER + "," + RoleConstants.INVESTOR)]
     public async Task<IActionResult> JoinAProject([FromRoute] string projectId, RoleInTeam roleInTeam)
     {
         try
@@ -165,13 +165,13 @@ public class ProjectController : ControllerBase
     }
 
     [HttpGet("{projectId}/members")]
-    [Authorize]
-    public async Task<ActionResult<ProjectWithMembersResponseDTO>> GetProjectWithMembers([FromRoute] string projectId)
+    [Authorize(Roles = RoleConstants.USER + "," + RoleConstants.INVESTOR)]
+    public async Task<ActionResult<List<MemberWithRoleInProjectResponseDTO>>> GetProjectWithMembers([FromRoute] string projectId)
     {
         try
         {
             var project = await _projectService.GetProjectAndMemberById(projectId);
-            var response = _mapper.Map<ProjectWithMembersResponseDTO>(project);
+            var response = _mapper.Map<List<MemberWithRoleInProjectResponseDTO>>(project.UserProjects);
             return Ok(response);
         }
         catch (NotFoundException ex)
@@ -185,6 +185,7 @@ public class ProjectController : ControllerBase
     }
     
     [HttpGet("{projectId}/parties")]
+    [Authorize(Roles = RoleConstants.USER + "," + RoleConstants.INVESTOR)]
     public async Task<ActionResult<UserInContractResponseDTO>> GetListUsersRelevantToContractInAProject([FromRoute] string projectId)
     {
         try
@@ -204,7 +205,7 @@ public class ProjectController : ControllerBase
     }
 
     [HttpGet("/api/startups")]
-    [Authorize]
+    [Authorize(Roles = RoleConstants.INVESTOR)]
     public async Task<ActionResult<SearchResponseDTO<ExploreProjectDTO>>> ExploreProjects([FromQuery] int pageIndex, int pageSize)
     {
         try

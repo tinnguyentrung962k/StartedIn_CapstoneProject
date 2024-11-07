@@ -60,7 +60,7 @@ namespace StartedIn.API.Controllers
             try
             {
                 var userId = User.FindFirst(ClaimTypes.NameIdentifier).Value;
-                var dealList = await _dealOfferService.GetDealOfferForAnInvestor(userId,pageIndex,pageSize);
+                var dealList = await _dealOfferService.GetDealOfferForAnInvestor(userId, pageIndex, pageSize);
                 return Ok(dealList);
             }
             catch (Exception ex)
@@ -70,7 +70,7 @@ namespace StartedIn.API.Controllers
         }
 
         [HttpGet("projects/{projectId}/deal-offers")]
-        [Authorize]
+        [Authorize(Roles = RoleConstants.USER)]
         public async Task<ActionResult<SearchResponseDTO<DealOfferForProjectResponseDTO>>> GetDealListForAProject([FromRoute] string projectId, [FromQuery] int pageIndex, int pageSize)
         {
             pageIndex = pageIndex < 1 ? 1 : pageIndex;
@@ -92,7 +92,7 @@ namespace StartedIn.API.Controllers
         }
 
         [HttpPut("projects/{projectId}/deal-offers/{dealId}/accept")]
-        [Authorize]
+        [Authorize(Roles = RoleConstants.USER)]
         public async Task<ActionResult<DealOfferForProjectResponseDTO>> AcceptDeal([FromRoute] string projectId, [FromRoute] string dealId)
         {
             try
@@ -123,7 +123,7 @@ namespace StartedIn.API.Controllers
         }
 
         [HttpPut("projects/{projectId}/deal-offers/{dealId}/reject")]
-        [Authorize]
+        [Authorize(Roles = RoleConstants.USER)]
         public async Task<ActionResult<DealOfferForProjectResponseDTO>> RejectDeal([FromRoute] string projectId, [FromRoute] string dealId)
         {
             try
