@@ -43,6 +43,7 @@ namespace StartedIn.Domain.Context
         public DbSet<DealOfferHistory> DealOfferHistories { get; set; }
         public DbSet<Disbursement> Disbursements { get; set; }
         public DbSet<DisbursementAttachment> DisbursementAttachments { get; set; }
+        public DbSet<UserTask> UserTasks { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -85,13 +86,13 @@ namespace StartedIn.Domain.Context
                 .HasOne(up => up.User)
                 .WithMany(u => u.UserProjects)
                 .HasForeignKey(up => up.UserId);
-            
+
             modelBuilder.Entity<UserProject>()
                 .Property(u => u.RoleInTeam)
                 .HasConversion(
                     v => v.ToString(),
                     v => (RoleInTeam)Enum.Parse(typeof(RoleInTeam), v));
-            
+
             modelBuilder.Entity<UserContract>()
                .HasKey(up => new { up.UserId, up.ContractId });
 
@@ -99,86 +100,121 @@ namespace StartedIn.Domain.Context
                 .HasOne(up => up.Contract)
                 .WithMany(p => p.UserContracts)
                 .HasForeignKey(up => up.ContractId);
+
+            modelBuilder.Entity<UserTask>()
+                .HasKey(up => new { up.UserId, up.TaskId });
+
+            modelBuilder.Entity<UserTask>()
+                .HasOne(up => up.Task)
+                .WithMany(p => p.UserTasks)
+                .HasForeignKey(up => up.TaskId);
+
             modelBuilder.Entity<Contract>()
                 .ToTable("Contract");
+
             modelBuilder.Entity<Contract>()
             .Property(u => u.ContractStatus)
             .HasConversion(
             v => v.ToString(),
                 v => (ContractStatusEnum)Enum.Parse(typeof(ContractStatusEnum), v));
+
             modelBuilder.Entity<Contract>()
             .Property(u => u.ContractType)
             .HasConversion(
             v => v.ToString(),
                 v => (ContractTypeEnum)Enum.Parse(typeof(ContractTypeEnum), v));
+
             modelBuilder.Entity<UserContract>()
                 .HasOne(up => up.User)
                 .WithMany(u => u.UserContracts)
                 .HasForeignKey(up => up.UserId);
+
             modelBuilder.Entity<DealOffer>()
                 .ToTable("DealOffer");
+
             modelBuilder.Entity<DealOffer>()
             .Property(u => u.DealStatus)
             .HasConversion(
             v => v.ToString(),
                 v => (DealStatusEnum)Enum.Parse(typeof(DealStatusEnum), v));
+
             modelBuilder.Entity<Disbursement>()
                 .ToTable("Disbursement");
+
             modelBuilder.Entity<Disbursement>()
             .Property(u => u.DisbursementStatus)
             .HasConversion(
             v => v.ToString(),
                 v => (DisbursementStatusEnum)Enum.Parse(typeof(DisbursementStatusEnum), v));
+
             modelBuilder.Entity<DisbursementAttachment>()
                 .ToTable("DisbursementAttachment");
+
             modelBuilder.Entity<DealOfferHistory>()
                 .ToTable("DealOfferHistory");
+
             modelBuilder.Entity<ShareEquity>()
                 .ToTable("ShareEquity");
+
             modelBuilder.Entity<ShareEquity>()
             .Property(u => u.StakeHolderType)
             .HasConversion(
             v => v.ToString(),
                 v => (RoleInTeam)Enum.Parse(typeof(RoleInTeam), v));
+
             modelBuilder.Entity<ProjectCharter>()
                 .ToTable("ProjectCharter");
+
             modelBuilder.Entity<ShareEquity>()
                 .Property(u => u.Percentage)
                 .HasColumnType("decimal(5,2)");
+
             modelBuilder.Entity<UserProject>()
                 .ToTable("UserProject");
+
             modelBuilder.Entity<Milestone>()
                 .ToTable("Milestone");
+
             modelBuilder.Entity<Milestone>()
             .Property(u => u.PhaseName)
             .HasConversion(
             v => v.ToString(),
                 v => (PhaseEnum)Enum.Parse(typeof(PhaseEnum), v));
+
             modelBuilder.Entity<MilestoneHistory>()
                 .ToTable("MilestoneHistory");
+
             modelBuilder.Entity<Project>()
                 .ToTable("Project");
+
             modelBuilder.Entity<Project>()
             .Property(u => u.ProjectStatus)
             .HasConversion(
             v => v.ToString(),
                 v => (ProjectStatusEnum)Enum.Parse(typeof(ProjectStatusEnum), v));
+
             modelBuilder.Entity<TaskAttachment>()
                 .ToTable("TaskAttachment");
+
             modelBuilder.Entity<TaskHistory>()
                 .ToTable("TaskHistory");
+
             modelBuilder.Entity<TaskEntity>()
                 .ToTable("Task");
+
             modelBuilder.Entity<TaskEntity>()
             .Property(u => u.Status)
             .HasConversion(
             v => v.ToString(),
                 v => (TaskEntityStatus)Enum.Parse(typeof(TaskEntityStatus), v));
+
             modelBuilder.Entity<TaskComment>()
                 .ToTable("TaskComment");
+
             modelBuilder.Entity<Project>()
             .Property(p => p.RemainingPercentOfShares)
             .HasColumnType("decimal(5,2)");
+
             modelBuilder.Entity<Milestone>()
             .Property(p => p.Percentage)
             .HasColumnType("decimal(5,2)");

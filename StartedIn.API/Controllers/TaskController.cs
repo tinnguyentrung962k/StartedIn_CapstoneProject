@@ -4,8 +4,10 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using StartedIn.CrossCutting.Constants;
-using StartedIn.CrossCutting.DTOs.RequestDTO;
+using StartedIn.CrossCutting.DTOs.RequestDTO.Tasks;
 using StartedIn.CrossCutting.DTOs.ResponseDTO;
+using StartedIn.CrossCutting.DTOs.ResponseDTO.Tasks;
+using StartedIn.CrossCutting.Enum;
 using StartedIn.CrossCutting.Exceptions;
 using StartedIn.Service.Services.Interface;
 
@@ -27,8 +29,8 @@ namespace StartedIn.API.Controllers
         }
 
         [HttpPost]
-        [Authorize]
-        public async Task<ActionResult<TaskResponseDTO>> CreateNewTask(
+        [Authorize(Roles = RoleConstants.USER)]
+        public async Task<ActionResult<TaskResponseDTO>> CreateTask(
             [FromBody] TaskCreateDTO taskCreateDto,
             [FromRoute] string projectId)
         {
@@ -52,7 +54,7 @@ namespace StartedIn.API.Controllers
 
         [HttpGet]
         [Authorize(Roles = RoleConstants.USER)]
-        public async Task<ActionResult<IEnumerable<TaskResponseDTO>>> getAllTasks(
+        public async Task<ActionResult<PaginationDTO<TaskResponseDTO>>> getAllTasks(
             [FromRoute] string projectId,
             [FromQuery] int page = 1,
             [FromQuery] int size = 20)
@@ -60,9 +62,9 @@ namespace StartedIn.API.Controllers
             try
             {
                 var userId = User.FindFirst(ClaimTypes.NameIdentifier).Value;
-                var taskList = _mapper.Map<List<TaskResponseDTO>>(await _taskService.GetAllTask(userId, projectId, size, page));
+                var taskPagination = await _taskService.GetAllTask(userId, projectId, size, page);
 
-                return taskList;
+                return taskPagination;
             }
             catch (NotFoundException ex)
             {
@@ -76,9 +78,20 @@ namespace StartedIn.API.Controllers
 
         [HttpGet("catalog")]
         [Authorize(Roles = RoleConstants.USER)]
-        public async Task<ActionResult<IEnumerable<TaskResponseDTO>>> getTaskCatalog()
+        public async Task<ActionResult<IEnumerable<TaskResponseDTO>>> getTaskCatalog(
+            [FromRoute] string projectId,
+            [FromQuery] string? title,
+            [FromQuery] TaskEntityStatus? status = null,
+            [FromQuery] bool? isLate = false)
         {
-            return BadRequest();
+            try
+            {
+                return BadRequest();
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, MessageConstant.InternalServerError + ex.Message);
+            }
         }
 
         [HttpGet("{taskId}")]
@@ -106,8 +119,8 @@ namespace StartedIn.API.Controllers
         }
 
         [HttpPut("{taskId}")]
-        [Authorize]
-        public async Task<ActionResult<TaskResponseDTO>> EditInfoMinorTask(
+        [Authorize(Roles = RoleConstants.USER)]
+        public async Task<ActionResult<TaskResponseDTO>> EditTaskInfo(
             [FromRoute] string taskId,
             [FromBody] UpdateTaskInfoDTO updateTaskInfoDTO)
         {
@@ -127,7 +140,7 @@ namespace StartedIn.API.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest("Cập nhật thất bại");
+                return StatusCode(500, ex.Message);
             }
         }
     }

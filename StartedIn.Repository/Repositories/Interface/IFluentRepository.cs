@@ -14,6 +14,7 @@ namespace StartedIn.Repository.Repositories.Interface
         Task<TEntity?> GetOneAsync();
         Task<IEnumerable<TEntity>> GetAllAsync();
         Task<IEnumerable<TEntity>> GetPagingAsync(int pageIndex = 1, int pageSize = 1);
+        Task<int> GetTotal();
         IFluentRepository<TEntity> Include(Expression<Func<TEntity, object>> expression);
         IFluentRepository<TEntity> AsNoTracking();
     }
