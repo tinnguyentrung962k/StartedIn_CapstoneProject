@@ -27,7 +27,7 @@ namespace StartedIn.Repository.Repositories
         {
             var projectCharter = await _appDbContext.ProjectCharters
                 .Include(pc => pc.Milestones)
-                .FirstOrDefaultAsync(p => p.Id.Equals(projectId));
+                .FirstOrDefaultAsync(p => p.ProjectId.Equals(projectId));
             return projectCharter;
         }
     }
