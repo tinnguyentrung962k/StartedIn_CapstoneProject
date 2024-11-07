@@ -1,4 +1,5 @@
-﻿using System;
+﻿using StartedIn.CrossCutting.Enum;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -9,6 +10,7 @@ namespace StartedIn.CrossCutting.DTOs.ResponseDTO
     public class MemberWithRoleInProjectResponseDTO : IdentityResponseDTO
     {
         public string FullName { get; set; }
-        public string RoleInTeam { get; set; }
+        public RoleInTeam RoleInTeam { get; set; }
+        public string Email { get; set; }
     }
 }

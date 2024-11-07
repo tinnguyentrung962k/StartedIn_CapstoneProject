@@ -54,6 +54,11 @@ namespace StartedIn.API.Configuration.AutoMapper
                 .ReverseMap()
                 .ForPath(user => user.UserRoles, opt
                     => opt.MapFrom(userDto => userDto.UserRoles.Select(role => new UserRole { Role = new Role { Name = role } }).ToHashSet()));
+            CreateMap<UserProject, MemberWithRoleInProjectResponseDTO>()
+                .ForMember(x => x.Id, opt => opt.MapFrom(src => src.User.Id))
+                .ForMember(x => x.FullName, opt => opt.MapFrom(src => src.User.FullName))
+                .ForMember(x => x.RoleInTeam, opt => opt.MapFrom(src => src.RoleInTeam))
+                .ForMember(x => x.Email, opt => opt.MapFrom(src => src.User.Email));
         }
         private void ProjectMappingProfile()
         {
@@ -65,15 +70,6 @@ namespace StartedIn.API.Configuration.AutoMapper
                     opt => opt.MapFrom(src =>
                         src.UserProjects.FirstOrDefault(up => up.RoleInTeam == RoleInTeam.Leader).User.FullName))
                 .ReverseMap();
-            CreateMap<Project, ProjectWithMembersResponseDTO>()
-                .ForMember(dest => dest.Project, opt => opt.MapFrom(src => src))
-                .ForMember(dest => dest.MemberWithRoleInProject, opt => opt.MapFrom(src =>
-                    src.UserProjects.Select(tu => new MemberWithRoleInProjectResponseDTO
-                    {
-                        Id = tu.User.Id,
-                        FullName = tu.User.FullName,
-                        RoleInTeam = tu.RoleInTeam.ToString()
-                    }).ToList()));
             CreateMap<Project, ExploreProjectDTO>()
                 .ForMember(dest => dest.LeaderId,
                     opt => opt.MapFrom(src =>

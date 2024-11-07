@@ -28,7 +28,7 @@ namespace StartedIn.API.Controllers
         }
 
         [HttpPost]
-        [Authorize]
+        [Authorize(Roles = RoleConstants.USER)]
         public async Task<ActionResult<ProjectCharterResponseDTO>> CreateNewProjectCharter([FromRoute] string projectId, [FromBody]ProjectCharterCreateDTO projectCharterCreateDto)
         {
             try
@@ -84,7 +84,7 @@ namespace StartedIn.API.Controllers
         }
         
         [HttpPut]
-        [Authorize]
+        [Authorize(Roles = RoleConstants.USER)]
         public async Task<ActionResult<MilestoneResponseDTO>> EditProjectCharter([FromRoute] string projectId, [FromBody] EditProjectCharterDTO editProjectCharterDto)
         {
             try

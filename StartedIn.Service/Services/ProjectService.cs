@@ -71,7 +71,7 @@ public class ProjectService : IProjectService
         var project = await _projectRepository.GetProjectById(id);
         if (project == null)
         {
-            throw new NotFoundException("Không có dự án được tìm thấy");
+            throw new NotFoundException(MessageConstant.NotFoundProjectError);
         }
 
         return project;
@@ -82,21 +82,21 @@ public class ProjectService : IProjectService
         var user = await _userManager.FindByIdAsync(userId);
         if (user == null)
         {
-            throw new NotFoundException($"Người dùng ID: {userId} không tìm thấy.");
+            throw new NotFoundException(MessageConstant.NotFoundUserError);
         }
         var project = await _projectRepository.GetProjectAndMemberByProjectId(projectId);
         if (project == null)
         {
-            throw new NotFoundException("Không tìm thấy team");
+            throw new NotFoundException(MessageConstant.NotFoundProjectError);
         }
         var userProject = project.UserProjects.FirstOrDefault(up => up.UserId.Equals(userId));
         if (userProject == null)
         {
-            throw new NotFoundException("Người dùng không thuộc dự án này");
+            throw new NotFoundException(MessageConstant.UserNotInProjectError);
         }
         if (userProject.RoleInTeam != CrossCutting.Enum.RoleInTeam.Leader)
         {
-            throw new InviteException("Bạn không có quyền mời thành viên");
+            throw new InviteException(MessageConstant.RolePermissionError);
         }
         foreach (var inviteUser in inviteUsers)
         {

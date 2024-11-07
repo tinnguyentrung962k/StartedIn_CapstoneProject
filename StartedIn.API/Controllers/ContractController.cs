@@ -236,7 +236,7 @@ namespace StartedIn.API.Controllers
         }
 
         [HttpGet("contracts")]
-        [Authorize]
+        [Authorize(Roles = RoleConstants.USER + "," + RoleConstants.INVESTOR)]
         public async Task<ActionResult<SearchResponseDTO<ContractSearchResponseDTO>>> SearchContractWithFilters(
     [FromRoute] string projectId, [FromQuery] ContractSearchDTO search, int pageSize, int pageIndex)
         {
