@@ -43,30 +43,30 @@ namespace StartedIn.Service.Services
 
         public async Task<ProjectCharter> CreateNewProjectCharter(string userId, string projectId, ProjectCharterCreateDTO projectCharter)
         {
+            var user = await _userManager.FindByIdAsync(userId);
+            if (user == null)
+            {
+                throw new NotFoundException(MessageConstant.NotFoundUserError);
+            }
+            var project = await _projectRepository.GetProjectById(projectId);
+            if (project is null)
+            {
+                throw new NotFoundException(MessageConstant.NotFoundProjectError);
+            }
+            var userInProject = await _userService.CheckIfUserInProject(userId, projectId);
+            var projectRole = await _projectRepository.GetUserRoleInProject(userId, projectId);
+            if (projectRole != CrossCutting.Enum.RoleInTeam.Leader)
+            {
+                throw new UnauthorizedProjectRoleException(MessageConstant.RolePermissionError);
+            }
+
+            var existing = await _projectCharterRepository.GetProjectCharterByProjectId(projectId);
+            if (existing != null)
+            {
+                throw new ExistedRecordException(MessageConstant.CharterExistedError);
+            }
             try
             {
-                var user = await _userManager.FindByIdAsync(userId);
-                if (user == null)
-                {
-                    throw new NotFoundException(MessageConstant.NotFoundUserError);
-                }
-                var project = await _projectRepository.GetProjectById(projectId);
-                if (project is null)
-                {
-                    throw new NotFoundException(MessageConstant.NotFoundProjectError);
-                }
-                var userInProject = await _userService.CheckIfUserInProject(userId, projectId);
-                var projectRole = await _projectRepository.GetUserRoleInProject(userId, projectId);
-                if (projectRole != CrossCutting.Enum.RoleInTeam.Leader)
-                {
-                    throw new UnauthorizedProjectRoleException(MessageConstant.RolePermissionError);
-                }
-
-                var existing = await _projectCharterRepository.GetProjectCharterByProjectId(projectId);
-                if (existing != null)
-                {
-                    throw new ExistedRecordException(MessageConstant.CharterExistedError);
-                }
                 _unitOfWork.BeginTransaction();
                 ProjectCharter newProjectCharter = new ProjectCharter
                 {
