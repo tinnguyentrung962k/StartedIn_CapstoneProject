@@ -1,10 +1,5 @@
 ﻿using System.ComponentModel.DataAnnotations;
-
-<<<<<<<< HEAD:StartedIn.CrossCutting/DTOs/RequestDTO/Authentication/RegisterDTO.cs
-namespace StartedIn.CrossCutting.DTOs.RequestDTO.Authentication
-========
 namespace StartedIn.CrossCutting.DTOs.RequestDTO.Auth
->>>>>>>> main:StartedIn.CrossCutting/DTOs/RequestDTO/Auth/RegisterDTO.cs
 {
     public class RegisterDTO
     {
