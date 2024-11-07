@@ -96,12 +96,12 @@ namespace StartedIn.API.Controllers
 
         [HttpGet("{taskId}")]
         [Authorize(Roles = RoleConstants.USER)]
-        public async Task<ActionResult<TaskResponseDTO>> GetTaskDetail([FromRoute] string taskId)
+        public async Task<ActionResult<TaskResponseDTO>> GetTaskDetail([FromRoute] string projectId, [FromRoute] string taskId)
         {
             try
             {
                 var userId = User.FindFirst(ClaimTypes.NameIdentifier).Value;
-                var responseTask = _mapper.Map<TaskResponseDTO>(await _taskService.GetTaskDetail(userId, taskId));
+                var responseTask = _mapper.Map<TaskResponseDTO>(await _taskService.GetTaskDetail(userId, taskId, projectId));
                 return Ok(responseTask);
             }
             catch (UnauthorizedProjectRoleException ex)
@@ -121,13 +121,14 @@ namespace StartedIn.API.Controllers
         [HttpPut("{taskId}")]
         [Authorize(Roles = RoleConstants.USER)]
         public async Task<ActionResult<TaskResponseDTO>> EditTaskInfo(
+            [FromRoute] string projectId,
             [FromRoute] string taskId,
             [FromBody] UpdateTaskInfoDTO updateTaskInfoDTO)
         {
             try
             {
                 var userId = User.FindFirst(ClaimTypes.NameIdentifier).Value;
-                var responseTask = _mapper.Map<TaskResponseDTO>(await _taskService.UpdateTaskInfo(userId, taskId, updateTaskInfoDTO));
+                var responseTask = _mapper.Map<TaskResponseDTO>(await _taskService.UpdateTaskInfo(userId, taskId, projectId, updateTaskInfoDTO));
                 return Ok(responseTask);
             }
             catch (UnauthorizedProjectRoleException ex)
@@ -140,7 +141,38 @@ namespace StartedIn.API.Controllers
             }
             catch (Exception ex)
             {
-                return StatusCode(500, ex.Message);
+                return StatusCode(500, MessageConstant.InternalServerError);
+            }
+        }
+
+        // Separate Status Update
+
+        // Separate Assignment Update
+
+        // Separate Milestone Update
+
+        // Separate Parent Task Update
+
+        [HttpDelete("{taskId}")]
+        [Authorize(Roles = RoleConstants.USER)]
+        public async Task<ActionResult> DeleteTask([FromRoute] string taskId)
+        {
+            try
+            {
+                var userId = User.FindFirst(ClaimTypes.NameIdentifier).Value;
+                return Ok();
+            }
+            catch (UnauthorizedProjectRoleException ex)
+            {
+                return StatusCode(403, ex.Message);
+            }
+            catch (NotFoundException ex)
+            {
+                return BadRequest(ex.Message);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, MessageConstant.InternalServerError);
             }
         }
     }

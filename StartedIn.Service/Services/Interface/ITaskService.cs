@@ -14,8 +14,8 @@ namespace StartedIn.Service.Services.Interface
     public interface ITaskService
     {
         Task<TaskEntity> CreateTask(TaskCreateDTO taskCreateDto, string userId, string projectId);
-        Task<TaskEntity> UpdateTaskInfo(string userId, string id, UpdateTaskInfoDTO updateTaskInfoDTO);
-        Task<TaskEntity> GetTaskDetail(string userId, string taskId);
+        Task<TaskEntity> UpdateTaskInfo(string userId, string taskId, string projectId, UpdateTaskInfoDTO updateTaskInfoDTO);
+        Task<TaskEntity> GetTaskDetail(string userId, string taskId, string projectId);
         Task<PaginationDTO<TaskResponseDTO>> GetAllTask(string userId, string projectId, int size, int page);
     }
 }

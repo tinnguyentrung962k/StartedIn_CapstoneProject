@@ -47,14 +47,15 @@ namespace StartedIn.Service.Services
             _userService = userService;
             _mapper = mapper;
         }
-        public async Task<TaskEntity> GetTaskDetail(string userId, string taskId)
+        public async Task<TaskEntity> GetTaskDetail(string userId, string taskId, string projectId)
         {
-            var chosenTask = await _taskRepository.QueryHelper().Include(t => t.Milestone).Filter(t => t.Id.Equals(taskId)).GetOneAsync();
+            var userInProject = await _userService.CheckIfUserInProject(userId, projectId);
+
+            var chosenTask = await _taskRepository.GetOneAsync(taskId);
             if (chosenTask == null)
             {
                 throw new NotFoundException(MessageConstant.NotFoundTaskError);
             }
-            var userInProject = await _userService.CheckIfUserInProject(userId, chosenTask.Milestone.ProjectId);
             return chosenTask;
         }
 
@@ -65,6 +66,7 @@ namespace StartedIn.Service.Services
             {
                 throw new NotFoundException(MessageConstant.UserNotInProjectError);
             }
+
             try
             {
                 _unitOfWork.BeginTransaction();
@@ -100,22 +102,21 @@ namespace StartedIn.Service.Services
             }
         }
 
-        public async Task<TaskEntity> UpdateTaskInfo(string userId, string id, UpdateTaskInfoDTO updateTaskInfoDTO)
+        public async Task<TaskEntity> UpdateTaskInfo(string userId, string taskId, 
+            string projectId, UpdateTaskInfoDTO updateTaskInfoDTO)
         {
-            var chosenTask = await _taskRepository.QueryHelper()
-                .Include(x => x.Milestone)
-                .Filter(x => x.Id.Equals(id)).
-                GetOneAsync();
+            var userInProject = await _userService.CheckIfUserInProject(userId, projectId);
+
+            var chosenTask = await _taskRepository.GetOneAsync(taskId);
             if (chosenTask == null)
             {
                 throw new NotFoundException("Không tìm thấy công việc");
             }
-            var userInProject = await _userService.CheckIfUserInProject(userId, chosenTask.Milestone.ProjectId);
+
             try
             {
-                chosenTask.Title = updateTaskInfoDTO.TaskTitle;
+                chosenTask.Title = updateTaskInfoDTO.Title;
                 chosenTask.Description = updateTaskInfoDTO.Description;
-                chosenTask.Status = updateTaskInfoDTO.Status;
                 chosenTask.Deadline = updateTaskInfoDTO.Deadline;
                 chosenTask.LastUpdatedTime = DateTimeOffset.UtcNow;
                 chosenTask.LastUpdatedBy = userInProject.User.FullName;
@@ -133,10 +134,6 @@ namespace StartedIn.Service.Services
         public async Task<PaginationDTO<TaskResponseDTO>> GetAllTask(string userId, string projectId, int size, int page)
         {
             var userInProject = await _userService.CheckIfUserInProject(userId, projectId);
-            if (userInProject == null) 
-            {
-                throw new NotFoundException(MessageConstant.UserNotInProjectError);
-            }
 
             var tasksInProjectQuery = _taskRepository.QueryHelper().Filter(t => t.ProjectId == projectId);
 
