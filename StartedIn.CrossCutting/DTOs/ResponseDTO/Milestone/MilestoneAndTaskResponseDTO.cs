@@ -1,4 +1,6 @@
-﻿namespace StartedIn.CrossCutting.DTOs.ResponseDTO.Milestone
+﻿using StartedIn.CrossCutting.DTOs.ResponseDTO.Tasks;
+
+namespace StartedIn.CrossCutting.DTOs.ResponseDTO.Milestone
 {
     public class MilestoneAndTaskResponseDTO
     {

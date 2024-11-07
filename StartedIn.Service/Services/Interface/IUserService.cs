@@ -1,7 +1,6 @@
 ﻿using Microsoft.AspNetCore.Http;
 using StartedIn.CrossCutting.DTOs.RequestDTO.Auth;
 using StartedIn.CrossCutting.DTOs.ResponseDTO.Authentication;
-using StartedIn.CrossCutting.DTOs.RequestDTO.Auth;
 using StartedIn.Domain.Entities;
 
 
