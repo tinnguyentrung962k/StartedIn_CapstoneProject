@@ -1,12 +1,7 @@
-﻿using DocumentFormat.OpenXml.Spreadsheet;
-using StartedIn.CrossCutting.DTOs.RequestDTO;
-using StartedIn.CrossCutting.DTOs.ResponseDTO;
+﻿using StartedIn.CrossCutting.DTOs.BaseDTO;
+using StartedIn.CrossCutting.DTOs.RequestDTO.DealOffer;
+using StartedIn.CrossCutting.DTOs.ResponseDTO.DealOffer;
 using StartedIn.Domain.Entities;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace StartedIn.Service.Services.Interface
 {

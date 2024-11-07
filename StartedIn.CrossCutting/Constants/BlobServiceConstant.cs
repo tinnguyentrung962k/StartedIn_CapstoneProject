@@ -9,5 +9,6 @@ namespace StartedIn.CrossCutting.Constants
     public class BlobServiceConstant
     {
         public const string InvesmentContractTemplate = "Mau-Hop-dong-mua-ban-co-phan-v2.docx";
+        public const string StartupAllMemberShareContractTemplate = "";
     }
 }

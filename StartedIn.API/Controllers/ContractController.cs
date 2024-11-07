@@ -1,20 +1,16 @@
 ﻿using AutoMapper;
 using CrossCutting.Exceptions;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
 using Newtonsoft.Json;
-using StartedIn.CrossCutting.DTOs.RequestDTO;
-using StartedIn.CrossCutting.DTOs.RequestDTO.SignNowWebhookRequestDTO;
-using StartedIn.CrossCutting.DTOs.ResponseDTO;
 using StartedIn.CrossCutting.DTOs.ResponseDTO.SignNowResponseDTO;
 using StartedIn.CrossCutting.Exceptions;
-using StartedIn.Domain.Entities;
 using StartedIn.Service.Services.Interface;
-using System.Collections.Generic;
 using System.Security.Claims;
 using StartedIn.CrossCutting.Constants;
+using StartedIn.CrossCutting.DTOs.RequestDTO.Contract;
+using StartedIn.CrossCutting.DTOs.ResponseDTO.Contract;
+using StartedIn.CrossCutting.DTOs.BaseDTO;
 
 namespace StartedIn.API.Controllers
 {
@@ -35,13 +31,45 @@ namespace StartedIn.API.Controllers
         }
 
         [HttpPost("investment-contracts")]
-        [Authorize]
+        [Authorize(Roles = RoleConstants.USER)]
         public async Task<ActionResult<ContractResponseDTO>> CreateAnInvestmentContract([FromRoute] string projectId, [FromBody] InvestmentContractCreateDTO investmentContractCreateDTO)
         {
             try
             {
                 var userId = User.FindFirst(ClaimTypes.NameIdentifier).Value;
                 var contract = await _contractService.CreateInvestmentContract(userId, projectId, investmentContractCreateDTO);
+                var responseContract = _mapper.Map<ContractResponseDTO>(contract);
+                return CreatedAtAction(nameof(GetContractById), new { projectId, contractId = responseContract.Id }, responseContract);
+            }
+            catch (UnauthorizedProjectRoleException ex)
+            {
+                return StatusCode(403, ex.Message);
+            }
+            catch (ExistedRecordException ex)
+            {
+                return BadRequest(ex.Message);
+            }
+            catch (InvalidOperationException ex)
+            {
+                return BadRequest(ex.Message);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error while creating contract");
+
+                return StatusCode(500, MessageConstant.InternalServerError);
+
+            }
+        }
+
+        [HttpPost("shares-distribution-contracts")]
+        [Authorize(Roles = RoleConstants.USER)]
+        public async Task<ActionResult<ContractResponseDTO>> CreateStartupShareAllMemberContract([FromRoute] string projectId, [FromBody] GroupContractCreateDTO groupContractCreateDTO)
+        {
+            try
+            {
+                var userId = User.FindFirst(ClaimTypes.NameIdentifier).Value;
+                var contract = await _contractService.CreateStartupShareAllMemberContract(userId, projectId, groupContractCreateDTO);
                 var responseContract = _mapper.Map<ContractResponseDTO>(contract);
                 return CreatedAtAction(nameof(GetContractById), new { projectId, contractId = responseContract.Id }, responseContract);
             }
@@ -98,6 +126,7 @@ namespace StartedIn.API.Controllers
         }
 
         [HttpGet("investment-contracts/{contractId}")]
+        [Authorize(Roles = RoleConstants.USER + "," + RoleConstants.INVESTOR)]
         [Authorize]
         public async Task<ActionResult<ContractDetailResponseDTO>> GetInvestmentContractDetail([FromRoute] string projectId, [FromRoute] string contractId)
         {
@@ -127,7 +156,7 @@ namespace StartedIn.API.Controllers
         }
 
         [HttpPost("contracts/{contractId}/invite")]
-        [Authorize]
+        [Authorize(Roles = RoleConstants.USER)]
         public async Task<ActionResult<ContractResponseDTO>> SendInviteForContract([FromRoute] string projectId, [FromRoute] string contractId)
         {
             try
@@ -155,8 +184,9 @@ namespace StartedIn.API.Controllers
         }
 
         [HttpGet("contracts/{contractId}")]
-        [Authorize]
-        public async Task<ActionResult<ContractResponseDTO>> GetContractById([FromRoute] string projectId, [FromRoute] string contractId)
+        [Authorize(Roles = RoleConstants.USER + "," + RoleConstants.INVESTOR)]
+        public async Task<ActionResult<ContractResponseDTO>> GetContractById([FromRoute]string projectId, [FromRoute] string contractId)
+
         {
             try
             {
@@ -212,8 +242,9 @@ namespace StartedIn.API.Controllers
         }
 
         [HttpPost("contracts/{contractId}/download")]
-        [Authorize]
-        public async Task<ActionResult<DocumentDownLoadResponseDTO>> DownLoadContract([FromRoute] string projectId, [FromRoute] string contractId)
+        [Authorize(Roles = RoleConstants.USER + "," + RoleConstants.INVESTOR)]
+        public async Task<ActionResult<DocumentDownLoadResponseDTO>> DownLoadContract([FromRoute]string projectId, [FromRoute] string contractId)
+
         {
 
             try

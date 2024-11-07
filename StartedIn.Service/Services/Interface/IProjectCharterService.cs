@@ -1,4 +1,4 @@
-﻿using StartedIn.CrossCutting.DTOs.RequestDTO;
+﻿using StartedIn.CrossCutting.DTOs.RequestDTO.ProjectCharter;
 using StartedIn.Domain.Entities;
 using System;
 using System.Collections.Generic;

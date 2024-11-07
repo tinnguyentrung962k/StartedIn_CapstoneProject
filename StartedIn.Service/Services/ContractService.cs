@@ -3,9 +3,6 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using StartedIn.CrossCutting.Constants;
-using StartedIn.CrossCutting.DTOs.RequestDTO;
-using StartedIn.CrossCutting.DTOs.RequestDTO.SignNowWebhookRequestDTO;
-using StartedIn.CrossCutting.DTOs.ResponseDTO;
 using StartedIn.CrossCutting.DTOs.ResponseDTO.SignNowResponseDTO;
 using StartedIn.CrossCutting.Exceptions;
 using StartedIn.Domain.Entities;
@@ -16,6 +13,11 @@ using CrossCutting.Exceptions;
 using Microsoft.EntityFrameworkCore;
 using StartedIn.Repository.Repositories.Extensions;
 using StartedIn.Repository.Repositories;
+using StartedIn.CrossCutting.DTOs.RequestDTO.Contract;
+using StartedIn.CrossCutting.DTOs.ResponseDTO.Contract;
+using StartedIn.CrossCutting.DTOs.RequestDTO.SignNow.SignNowWebhookRequestDTO;
+using StartedIn.CrossCutting.DTOs.BaseDTO;
+using DocumentFormat.OpenXml.Bibliography;
 
 namespace StartedIn.Service.Services
 {
@@ -163,6 +165,89 @@ namespace StartedIn.Service.Services
                 }
                 await _signNowService.AuthenticateAsync();
                 contract.SignNowDocumentId = await _signNowService.UploadInvestmentContractToSignNowAsync(contract,investor,leader,userInProject.Project,shareEquity,disbursementList,investmentContractCreateDTO.InvestorInfo.BuyPrice);
+                await _unitOfWork.SaveChangesAsync();
+                await _unitOfWork.CommitAsync();
+                return contractEntity;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError($"An error occurred while creating the contract: {ex.Message}");
+                await _unitOfWork.RollbackAsync();
+                throw;
+            }
+        }
+        public async Task<Contract> CreateStartupShareAllMemberContract(string userId, string projectId,GroupContractCreateDTO groupContractCreateDTO)
+        {
+            var userInProject = await _userService.CheckIfUserInProject(userId, projectId);
+            var projectRole = await _projectRepository.GetUserRoleInProject(userId, projectId);
+            if (projectRole != RoleInTeam.Leader)
+            {
+                throw new UnauthorizedProjectRoleException(MessageConstant.RolePermissionError);
+            }
+            var existedContractWithIdNumber = await _contractRepository.QueryHelper().Filter(x => x.ContractIdNumber.Equals(groupContractCreateDTO.Contract.ContractIdNumber) && x.ProjectId.Equals(projectId)).GetOneAsync();
+            if (existedContractWithIdNumber != null)
+            {
+                throw new ExistedRecordException(MessageConstant.ContractNumberExistedError);
+            }
+            var project = await _projectRepository.GetProjectById(projectId);
+            var totalShareOfDistribution = groupContractCreateDTO.ShareEquitiesOfMembers.Sum(d => d.Percentage);
+            if (totalShareOfDistribution > project.RemainingPercentOfShares)
+            {
+                throw new InvalidOperationException(MessageConstant.TotalDistributePercentageGreaterThanRemainingPercentage);
+            }
+            var existedDistributeContractInProject = await _contractRepository.QueryHelper().Filter(x => x.ProjectId.Equals(projectId) && x.ContractType.Equals(ContractTypeEnum.INTERNAL)).GetOneAsync();
+            if (existedDistributeContractInProject != null)
+            {
+                throw new ExistedRecordException(MessageConstant.ValidShareDistributionContractExisted);
+            }
+            try
+            {
+                _unitOfWork.BeginTransaction();
+                Contract contract = new Contract
+                {
+                    ContractName = groupContractCreateDTO.Contract.ContractName,
+                    ContractPolicy = groupContractCreateDTO.Contract.ContractPolicy,
+                    ContractType = ContractTypeEnum.INTERNAL,
+                    CreatedBy = userInProject.User.FullName,
+                    ProjectId = projectId,
+                    ContractStatus = ContractStatusEnum.DRAFT,
+                    ContractIdNumber = groupContractCreateDTO.Contract.ContractIdNumber
+                };
+
+                List<UserContract> usersInContract = new List<UserContract>();
+                List<ShareEquity> shareEquitiesOfMembers = new List<ShareEquity>();
+                foreach (var shareEquityOfAMember in groupContractCreateDTO.ShareEquitiesOfMembers)
+                {
+                    var userMemberInContract = await _userManager.FindByIdAsync(shareEquityOfAMember.UserId);
+                    var projectRoleOfMember = await _projectRepository.GetUserRoleInProject(shareEquityOfAMember.UserId, projectId);
+                    UserContract userInContract = new UserContract
+                    {
+                        UserId = userMemberInContract.Id,
+                        ContractId = contract.Id,
+                        Contract = contract,
+                        User = userMemberInContract,
+                    };
+                    usersInContract.Add(userInContract);
+                    ShareEquity shareEquity = new ShareEquity
+                    {
+                        ContractId = contract.Id,
+                        Contract = contract,
+                        CreatedBy = userInProject.User.FullName,
+                        Percentage = shareEquityOfAMember.Percentage,
+                        StakeHolderType = projectRoleOfMember,
+                        User = userMemberInContract,
+                        UserId = shareEquityOfAMember.UserId,
+                        ShareQuantity = shareEquityOfAMember.ShareQuantity,
+                    };
+                    shareEquitiesOfMembers.Add(shareEquity);
+                }
+                var leader = userInProject.User;
+                contract.UserContracts = usersInContract;
+                var contractEntity = _contractRepository.Add(contract);
+                await _shareEquityRepository.AddRangeAsync(shareEquitiesOfMembers);
+                var disbursementList = new List<Disbursement>();
+                await _signNowService.AuthenticateAsync();
+                contract.SignNowDocumentId = await _signNowService.UploadStartUpShareDistributionContractToSignNowAsync(contract, leader, userInProject.Project, shareEquitiesOfMembers, usersInContract);
                 await _unitOfWork.SaveChangesAsync();
                 await _unitOfWork.CommitAsync();
                 return contractEntity;

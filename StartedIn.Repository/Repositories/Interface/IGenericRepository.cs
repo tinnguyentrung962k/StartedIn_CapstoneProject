@@ -18,5 +18,6 @@ namespace StartedIn.Repository.Repositories.Interface
         TEntity Update(TEntity entity);
         Task<int> SaveChangesAsync();
         IFluentRepository<TEntity> QueryHelper();
+        Task AddRangeAsync(IEnumerable<TEntity> entities);
     }
 }

@@ -1,11 +1,10 @@
-﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.ComponentModel.DataAnnotations;
 
+<<<<<<<< HEAD:StartedIn.CrossCutting/DTOs/RequestDTO/Authentication/RegisterDTO.cs
+namespace StartedIn.CrossCutting.DTOs.RequestDTO.Authentication
+========
 namespace StartedIn.CrossCutting.DTOs.RequestDTO.Auth
+>>>>>>>> main:StartedIn.CrossCutting/DTOs/RequestDTO/Auth/RegisterDTO.cs
 {
     public class RegisterDTO
     {

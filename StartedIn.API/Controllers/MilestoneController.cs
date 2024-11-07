@@ -1,13 +1,13 @@
 ﻿using AutoMapper;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using StartedIn.CrossCutting.DTOs.RequestDTO;
-using StartedIn.CrossCutting.DTOs.ResponseDTO;
 using StartedIn.CrossCutting.Exceptions;
 using StartedIn.Service.Services.Interface;
 using System.Security.Claims;
 using Microsoft.AspNetCore.Authorization;
 using StartedIn.CrossCutting.Constants;
+using StartedIn.CrossCutting.DTOs.RequestDTO.Milestone;
+using StartedIn.CrossCutting.DTOs.ResponseDTO.Milestone;
 
 namespace StartedIn.API.Controllers
 {

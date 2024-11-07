@@ -11,7 +11,7 @@ using System.Text;
 using System.Threading.Tasks;
 using StartedIn.Service.Services.Interface;
 using StartedIn.Domain.Entities;
-using StartedIn.CrossCutting.DTOs.ResponseDTO;
+using StartedIn.CrossCutting.DTOs.ResponseDTO.Payment;
 
 namespace StartedIn.Service.Services
 {

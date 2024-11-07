@@ -1,7 +1,6 @@
 ﻿using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Logging;
 using StartedIn.CrossCutting.Constants;
-using StartedIn.CrossCutting.DTOs.RequestDTO;
 using StartedIn.CrossCutting.Exceptions;
 using StartedIn.Domain.Entities;
 using StartedIn.Repository.Repositories.Interface;
@@ -13,6 +12,7 @@ using System.Text;
 using System.Threading.Tasks;
 using CrossCutting.Exceptions;
 using StartedIn.CrossCutting.Enum;
+using StartedIn.CrossCutting.DTOs.RequestDTO.ProjectCharter;
 
 namespace StartedIn.Service.Services
 {

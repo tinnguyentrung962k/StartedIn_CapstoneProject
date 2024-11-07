@@ -4,7 +4,6 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using StartedIn.CrossCutting.Constants;
-using StartedIn.CrossCutting.DTOs.ResponseDTO;
 using StartedIn.CrossCutting.Exceptions;
 using StartedIn.Domain.Entities;
 using StartedIn.Repository.Repositories.Interface;
@@ -13,6 +12,7 @@ using StartedIn.Repository.Repositories.Extensions;
 using OfficeOpenXml;
 using System;
 using StartedIn.Repository.Repositories;
+using StartedIn.CrossCutting.DTOs.ResponseDTO.Authentication;
 using StartedIn.CrossCutting.DTOs.RequestDTO.Auth;
 
 namespace StartedIn.Service.Services
