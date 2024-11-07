@@ -10,7 +10,7 @@ namespace StartedIn.CrossCutting.DTOs.RequestDTO
     {
         public string UserId { get; set; }
         public int? ShareQuantity { get; set; }
-        public int? Percentage { get; set; }
+        public decimal? Percentage { get; set; }
         public decimal? BuyPrice { get; set; }
     }
 }
