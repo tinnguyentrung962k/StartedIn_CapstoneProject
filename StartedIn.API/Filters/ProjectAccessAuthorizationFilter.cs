@@ -31,13 +31,10 @@ namespace StartedIn.API.Filters
                 return;
             }
 
-            try
+            var isUserInProject = await _userService.IsUserInProject(userId, projectId);
+            if (!isUserInProject)
             {
-                var userInProject = await _userService.CheckIfUserInProject(userId, projectId);
-            }
-            catch (Exception ex)
-            {
-                context.Result = new ForbidResult(ex.Message);
+                context.Result = new ForbidResult();
             }
         }
     }

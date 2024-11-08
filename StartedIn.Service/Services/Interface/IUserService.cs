@@ -33,6 +33,7 @@ namespace StartedIn.Service.Services.Interface
         Task ResetPassword(ResetPasswordDTO resetPasswordDTO);
         Task<UserProject> CheckIfUserInProject(string userId, string projectId);
         Task <UserContract> CheckIfUserBelongToContract(string userId, string contractId);
+        Task<bool> IsUserInProject(string userId, string projectId);
 
         //Task<IEnumerable<User>> GetUserSuggestedFriendList(string userId, int pageIndex, int pageSize);
     }
