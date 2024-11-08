@@ -145,13 +145,116 @@ namespace StartedIn.API.Controllers
             }
         }
 
-        // Separate Status Update
+        [HttpPut("{taskId}/status")]
+        [Authorize(Roles = RoleConstants.USER)]
+        public async Task<ActionResult<TaskResponseDTO>> UpdateTaskStatus(
+            [FromRoute] string projectId,
+            [FromRoute] string taskId,
+            [FromBody] UpdateTaskStatusDTO updateTaskStatusDTO)
+        {
+            try
+            {
+                var userId = User.FindFirst(ClaimTypes.NameIdentifier).Value;
+                var responseTask = _mapper.Map<TaskResponseDTO>(await _taskService.UpdateTaskStatus(userId, taskId, projectId, updateTaskStatusDTO));
+                return Ok(responseTask);
+            }
+            catch (UnauthorizedProjectRoleException ex)
+            {
+                return StatusCode(403, ex.Message);
+            }
+            catch (NotFoundException ex)
+            {
+                return BadRequest(ex.Message);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, MessageConstant.InternalServerError);
+            }
+        }
 
         // Separate Assignment Update
+        [HttpPut("{taskId}/assign")]
+        [Authorize(Roles = RoleConstants.USER)]
+        public async Task<ActionResult<TaskResponseDTO>> UpdateTaskAssignment(
+            [FromRoute] string projectId,
+            [FromRoute] string taskId,
+            [FromBody] UpdateTaskAssignmentDTO updateTaskAssignmentDTO)
+        {
+            try
+            {
+                var userId = User.FindFirst(ClaimTypes.NameIdentifier).Value;
+                var responseTask = _mapper.Map<TaskResponseDTO>(await _taskService.UpdateTaskAssignment(userId, taskId, projectId, updateTaskAssignmentDTO));
+                return Ok(responseTask);
+            }
+            catch (UnauthorizedProjectRoleException ex)
+            {
+                return StatusCode(403, ex.Message);
+            }
+            catch (NotFoundException ex)
+            {
+                return BadRequest(ex.Message);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, MessageConstant.InternalServerError);
+            }
+        }
 
         // Separate Milestone Update
+        [HttpPut("{taskId}/milestone")]
+        [Authorize(Roles = RoleConstants.USER)]
+        public async Task<ActionResult<TaskResponseDTO>> UpdateTaskMilestone(
+            [FromRoute] string projectId,
+            [FromRoute] string taskId,
+            [FromBody] UpdateTaskMilestoneDTO updateTaskMilestoneDTO)
+        {
+            try
+            {
+                var userId = User.FindFirst(ClaimTypes.NameIdentifier).Value;
+                var responseTask = _mapper.Map<TaskResponseDTO>(await _taskService.UpdateTaskMilestone(userId, taskId, projectId, updateTaskMilestoneDTO));
+                return Ok(responseTask);
+            }
+            catch (UnauthorizedProjectRoleException ex)
+            {
+                return StatusCode(403, ex.Message);
+            }
+            catch (NotFoundException ex)
+            {
+                return BadRequest(ex.Message);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, MessageConstant.InternalServerError);
+            }
+        }
 
-        // Separate Parent Task Update
+        [HttpPut("{taskId}/parent")]
+        [Authorize(Roles = RoleConstants.USER)]
+        public async Task<ActionResult<TaskResponseDTO>> UpdateParentTask(
+            [FromRoute] string projectId,
+            [FromRoute] string taskId,
+            [FromBody] UpdateParentTaskDTO updateParentTaskDTO)
+        {
+            try
+            {
+                var userId = User.FindFirst(ClaimTypes.NameIdentifier).Value;
+                var responseTask = _mapper.Map<TaskResponseDTO>(await _taskService.UpdateParentTask(userId, taskId, projectId, updateParentTaskDTO));
+                return Ok(responseTask);
+            }
+            catch (UnauthorizedProjectRoleException ex)
+            {
+                return StatusCode(403, ex.Message);
+            }
+            catch (NotFoundException ex)
+            {
+                return BadRequest(ex.Message);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, MessageConstant.InternalServerError);
+            }
+        }
+
 
         [HttpDelete("{taskId}")]
         [Authorize(Roles = RoleConstants.USER)]
