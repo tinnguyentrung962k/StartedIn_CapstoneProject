@@ -10,6 +10,7 @@ using StartedIn.CrossCutting.DTOs.ResponseDTO.DealOffer;
 using StartedIn.CrossCutting.Exceptions;
 using StartedIn.Service.Services.Interface;
 using System.Security.Claims;
+using StartedIn.API.Attributes;
 
 namespace StartedIn.API.Controllers
 {
@@ -50,6 +51,7 @@ namespace StartedIn.API.Controllers
 
             }
         }
+
         [HttpGet("deal-offers")]
         [Authorize(Roles = RoleConstants.INVESTOR)]
         public async Task<ActionResult<SearchResponseDTO<DealOfferForInvestorResponseDTO>>> GetDealListOfAnInvestor([FromQuery] int pageIndex, int pageSize)
@@ -83,6 +85,20 @@ namespace StartedIn.API.Controllers
             catch (UnauthorizedProjectRoleException ex)
             {
                 return StatusCode(403, ex.Message);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, MessageConstant.InternalServerError);
+            }
+        }
+
+        [HttpGet("projects/{projectId}/deal-offers/{dealId}")]
+        [Authorize(Roles = RoleConstants.USER), RequireProjectAccess]
+        public async Task<ActionResult<DealOfferForProjectResponseDTO>> GetByIdInProject([FromRoute] string dealId)
+        {
+            try
+            {
+                return Ok(await _dealOfferService.GetById(dealId));
             }
             catch (Exception ex)
             {
