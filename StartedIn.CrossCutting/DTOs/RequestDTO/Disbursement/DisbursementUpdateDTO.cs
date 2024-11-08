@@ -2,6 +2,5 @@
 {
     public class DisbursementUpdateDTO : DisbursementCreateDTO
     {
-        public string Id { get; set; }
     }
 }

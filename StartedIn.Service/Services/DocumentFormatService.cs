@@ -233,8 +233,9 @@ namespace StartedIn.Service.Services
             {
                 { "SOHOPDONG", contract.ContractIdNumber },
                 { "CREATEDDATE", DateOnly.FromDateTime(DateTime.Now).ToString("dd-MM-yyyy") },
-                { "TENDUAN", project.ProjectName },
+                { "PROJECT", project.ProjectName },
                 { "CONTRACTPOLICY", contract.ContractPolicy },
+                { "LEADER", leader.FullName}
             };
 
             // Bước 2: Mở file Word để thay thế placeholders
@@ -283,76 +284,6 @@ namespace StartedIn.Service.Services
 
             return modifiedMemoryStream;
         }
-        //public async Task<MemoryStream> ReplacePlaceHolderForStartUpShareDistributionDocumentAsync(Contract contract, User leader, Project project, List<ShareEquity> shareEquities, List<UserContract> usersInContract)
-        //{
-        //    string filePath = @"C:\\Users\\Admin\\Downloads\\Bien-ban-thoa-thuan-gop-von-thanh-lap-cong-ty-co-phan.docx"; // Specify your local file path here
-
-        //    // Step 1: Load the contract template from a local file
-        //    using var originalMemoryStream = new MemoryStream(await File.ReadAllBytesAsync(filePath));
-
-        //    // Create a copy of MemoryStream for editing
-        //    var modifiedMemoryStream = new MemoryStream();
-        //    originalMemoryStream.CopyTo(modifiedMemoryStream);
-        //    modifiedMemoryStream.Position = 0;
-
-        //    // Create dictionary for placeholders and replacement values
-        //    var replacements = new Dictionary<string, string>
-        //    {
-        //        { "SOHOPDONG", contract.ContractIdNumber },
-        //        { "CREATEDDATE", DateOnly.FromDateTime(DateTime.Now).ToString("dd-MM-yyyy") },
-        //        { "PROJECT", project.ProjectName },
-        //        { "CONTRACTPOLICY", contract.ContractPolicy },
-        //        { "LEADER", leader.FullName}
-        //    };
-
-        //    // Step 2: Open Word file and replace placeholders
-        //    using (WordprocessingDocument doc = WordprocessingDocument.Open(modifiedMemoryStream, true))
-        //    {
-        //        var body = doc.MainDocumentPart.Document.Body;
-
-        //        // Replace placeholders in the text
-        //        foreach (var paragraph in body.Descendants<Paragraph>())
-        //        {
-        //            foreach (var run in paragraph.Descendants<Run>())
-        //            {
-        //                foreach (var text in run.Descendants<Text>())
-        //                {
-        //                    foreach (var placeholder in replacements)
-        //                    {
-        //                        if (text.Text.Contains(placeholder.Key))
-        //                        {
-        //                            text.Text = text.Text.Replace(placeholder.Key, placeholder.Value);
-        //                        }
-        //                    }
-        //                }
-        //            }
-        //        }
-
-        //        // Insert shareholders info table
-        //        var placeholderShareHoldersInfoParagraph = body.Elements<Paragraph>().FirstOrDefault(p => p.InnerText.Contains("HOLDERS"));
-        //        if (placeholderShareHoldersInfoParagraph != null)
-        //        {
-        //            Table shareHolderInfoTable = CreateShareholdersInfoTable(usersInContract);
-        //            placeholderShareHoldersInfoParagraph.InsertAfterSelf(shareHolderInfoTable);
-        //            placeholderShareHoldersInfoParagraph.Remove();
-        //        }
-
-        //        // Insert shareholders distribution table
-        //        var placeholderShareHoldersDistributionParagraph = body.Elements<Paragraph>().FirstOrDefault(p => p.InnerText.Contains("TABLE"));
-        //        if (placeholderShareHoldersDistributionParagraph != null)
-        //        {
-        //            Table shareHolderTable = await CreateShareDistributionTable(usersInContract, project.Id, contract.Id);
-        //            placeholderShareHoldersDistributionParagraph.InsertAfterSelf(shareHolderTable);
-        //            placeholderShareHoldersDistributionParagraph.Remove();
-        //        }
-
-        //        doc.MainDocumentPart.Document.Save();
-        //    }
-
-        //    modifiedMemoryStream.Position = 0;
-
-        //    return modifiedMemoryStream;
-        //}
 
         public async Task<MemoryStream> ReplacePlaceHolderForInvestmentDocumentAsync(
             Contract contract, User investor, User leader, Project project,
