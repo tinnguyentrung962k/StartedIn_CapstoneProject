@@ -434,6 +434,9 @@ namespace StartedIn.Service.Services
             {
                 throw new UnmatchedException(MessageConstant.ContractNotBelongToProjectError);    
             }
+            if (contract.ContractStatus != ContractStatusEnum.DRAFT) {
+                throw new StatusException(MessageConstant.CannotInviteToSign);
+            }
             var userInChosenContract = await _userService.CheckIfUserBelongToContract(userId, contractId);
             try
             {
@@ -581,6 +584,8 @@ namespace StartedIn.Service.Services
                     equityShare.DateAssigned = DateOnly.FromDateTime(DateTime.Now);
                     _shareEquityRepository.Update(equityShare);
                 }
+                var totalEquitiesSharePercentageInContract = chosenContract.ShareEquities.Sum(e => e.Percentage);
+                project.RemainingPercentOfShares = (decimal)(project.RemainingPercentOfShares - totalEquitiesSharePercentageInContract);
                 foreach (var disbursement in chosenContract.Disbursements)
                 {
                     disbursement.IsValidWithContract = true;
@@ -717,13 +722,11 @@ namespace StartedIn.Service.Services
         {
             var userInProject = await _userService.CheckIfUserInProject(userId, projectId);
             var projectRole = await _projectRepository.GetUserRoleInProject(userId, projectId);
-            var leader = await _userManager.FindByIdAsync(userId);
-
             if (projectRole != RoleInTeam.Leader)
             {
                 throw new UnauthorizedProjectRoleException(MessageConstant.RolePermissionError);
             }
-
+            var leader = await _userManager.FindByIdAsync(userId);
             var contract = await _contractRepository.GetContractById(contractId);
             if (contract == null)
             {
@@ -731,7 +734,7 @@ namespace StartedIn.Service.Services
             }
             if (contract.ContractStatus != ContractStatusEnum.DRAFT)
             {
-                throw new UpdateException(MessageConstant.CannotUpdateContractError);
+                throw new UpdateException(MessageConstant.CannotEditContractError);
             }
             var project = await _projectRepository.GetProjectById(projectId);
             if (investmentContractUpdateDTO.InvestorInfo.Percentage > project.RemainingPercentOfShares)
@@ -829,6 +832,39 @@ namespace StartedIn.Service.Services
                 await _unitOfWork.SaveChangesAsync();
                 await _unitOfWork.CommitAsync();
                 return contract;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "An error occurred while updating the contract.");
+                await _unitOfWork.RollbackAsync();
+                throw;
+            }
+        }
+        public async Task<Contract> CancelContract(string userId, string projectId, string contractId)
+        {
+            var userInProject = await _userService.CheckIfUserInProject(userId, projectId);
+            var loginUser = await _userManager.FindByIdAsync(userId);
+            var chosenContract = await _contractRepository.GetContractById(contractId);
+            if (chosenContract == null)
+            {
+                throw new NotFoundException(MessageConstant.NotFoundContractError);
+            }
+            if (chosenContract.ProjectId != projectId)
+            {
+                throw new UnmatchedException(MessageConstant.ContractNotBelongToProjectError);
+            }
+            var userInContract = await _userService.CheckIfUserBelongToContract(userId, contractId);
+            if (chosenContract.ContractStatus == ContractStatusEnum.COMPLETED || chosenContract.ContractStatus == ContractStatusEnum.EXPIRED)
+            {
+                throw new UpdateException(MessageConstant.CannotCancelContractError);
+            }
+            try {
+                _unitOfWork.BeginTransaction();
+                chosenContract.ContractStatus = ContractStatusEnum.CANCELLED;
+                _contractRepository.Update(chosenContract);
+                await _unitOfWork.SaveChangesAsync();
+                await _unitOfWork.CommitAsync();
+                return chosenContract;
             }
             catch (Exception ex)
             {

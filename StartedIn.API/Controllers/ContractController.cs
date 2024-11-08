@@ -12,6 +12,7 @@ using StartedIn.CrossCutting.DTOs.RequestDTO.Contract;
 using StartedIn.CrossCutting.DTOs.ResponseDTO.Contract;
 using StartedIn.CrossCutting.DTOs.BaseDTO;
 using StartedIn.CrossCutting.DTOs.ResponseDTO.DealOffer;
+using StartedIn.Domain.Entities;
 
 namespace StartedIn.API.Controllers
 {
@@ -214,9 +215,10 @@ namespace StartedIn.API.Controllers
             }
         }
 
+
         [HttpGet("contracts/{contractId}")]
         [Authorize(Roles = RoleConstants.USER + "," + RoleConstants.INVESTOR)]
-        public async Task<ActionResult<ContractResponseDTO>> GetContractById([FromRoute]string projectId, [FromRoute] string contractId)
+        public async Task<ActionResult<ContractResponseDTO>> GetContractById([FromRoute] string projectId, [FromRoute] string contractId)
 
         {
             try
@@ -274,7 +276,7 @@ namespace StartedIn.API.Controllers
 
         [HttpPost("contracts/{contractId}/download")]
         [Authorize(Roles = RoleConstants.USER + "," + RoleConstants.INVESTOR)]
-        public async Task<ActionResult<DocumentDownLoadResponseDTO>> DownLoadContract([FromRoute]string projectId, [FromRoute] string contractId)
+        public async Task<ActionResult<DocumentDownLoadResponseDTO>> DownLoadContract([FromRoute] string projectId, [FromRoute] string contractId)
 
         {
 
@@ -295,6 +297,36 @@ namespace StartedIn.API.Controllers
             catch (Exception ex)
             {
                 return StatusCode(500, MessageConstant.InternalServerError);
+            }
+        }
+        [HttpPut("contracts/{contractId}/cancel")]
+        public async Task<ActionResult<ContractResponseDTO>> CancelAContract([FromRoute] string projectId, [FromRoute] string contractId)
+        {
+            try
+            {
+                var userId = User.FindFirst(ClaimTypes.NameIdentifier).Value;
+                var contract = await _contractService.CancelContract(userId, projectId, contractId);
+                var responseContract = _mapper.Map<ContractResponseDTO>(contract);
+
+                return Ok(responseContract);
+            }
+            catch (UnauthorizedProjectRoleException ex)
+            {
+                return StatusCode(403, ex.Message);
+            }
+            catch (UnmatchedException ex)
+            {
+                return BadRequest(ex.Message);
+            }
+            catch (UpdateException ex)
+            {
+                return BadRequest(ex.Message);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error while creating contract");
+                return StatusCode(500, MessageConstant.InternalServerError);
+
             }
         }
 
