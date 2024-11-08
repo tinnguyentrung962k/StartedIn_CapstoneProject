@@ -11,7 +11,7 @@ namespace StartedIn.CrossCutting.Enum
         DRAFT,
         SENT,
         COMPLETED,
-        DECLINED,
+        CANCELLED,
         EXPIRED
     }
 }

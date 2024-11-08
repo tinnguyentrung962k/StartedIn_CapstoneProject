@@ -10,7 +10,7 @@
     {
         public string Id { get; set; }
         public string Status { get; set; }
-        public long Created { get; set; } // Consider using DateTimeOffset if you need to work with time zones
+        public long Created { get; set; } 
         public string Email { get; set; }
     }
 
