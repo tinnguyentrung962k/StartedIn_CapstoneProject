@@ -250,7 +250,8 @@ namespace StartedIn.Service.Services
 
         public async Task<DealOffer> GetById(string id)
         {
-            return await _dealOfferRepository.GetOneAsync(id);
+            var list = await _dealOfferRepository.Get(deal => deal.Id == id, null, "Investor");
+            return list.FirstOrDefault() ?? throw new NotFoundException(MessageConstant.NotFoundDealError);
         }
     }
 }
