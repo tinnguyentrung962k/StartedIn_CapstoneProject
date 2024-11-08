@@ -26,6 +26,7 @@ namespace StartedIn.Repository.Repositories
                 .Include(x => x.Project)
                 .Include(x => x.ShareEquities)
                 .Include(x => x.Disbursements)
+                .Include(x => x.DealOffer)
                 .FirstOrDefaultAsync();
             return contract;
         }

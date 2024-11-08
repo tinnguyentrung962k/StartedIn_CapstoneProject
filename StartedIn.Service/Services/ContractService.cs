@@ -333,7 +333,9 @@ namespace StartedIn.Service.Services
                     CreatedBy = userInProject.User.FullName,
                     ProjectId = projectId,
                     ContractStatus = ContractStatusEnum.DRAFT,
-                    ContractIdNumber = investmentContractFromDealCreateDTO.Contract.ContractIdNumber
+                    ContractIdNumber = investmentContractFromDealCreateDTO.Contract.ContractIdNumber,
+                    DealOffer = chosenDeal,
+                    DealOfferId = chosenDeal.Id
                 };
                 var leader = userInProject.User;
                 List<UserContract> usersInContract = new List<UserContract>();
@@ -733,6 +735,10 @@ namespace StartedIn.Service.Services
                 throw new NotFoundException(MessageConstant.NotFoundContractError);
             }
             if (contract.ContractStatus != ContractStatusEnum.DRAFT)
+            {
+                throw new UpdateException(MessageConstant.CannotEditContractError);
+            }
+            if (contract.DealOfferId != null)
             {
                 throw new UpdateException(MessageConstant.CannotEditContractError);
             }

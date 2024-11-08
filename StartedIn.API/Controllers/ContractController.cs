@@ -160,13 +160,13 @@ namespace StartedIn.API.Controllers
         [HttpGet("investment-contracts/{contractId}")]
         [Authorize(Roles = RoleConstants.USER + "," + RoleConstants.INVESTOR)]
         [Authorize]
-        public async Task<ActionResult<ContractDetailResponseDTO>> GetInvestmentContractDetail([FromRoute] string projectId, [FromRoute] string contractId)
+        public async Task<ActionResult<InvestmentContractDetailResponseDTO>> GetInvestmentContractDetail([FromRoute] string projectId, [FromRoute] string contractId)
         {
             try
             {
                 var userId = User.FindFirst(ClaimTypes.NameIdentifier).Value;
                 var contract = await _contractService.GetContractByContractId(userId, contractId, projectId);
-                var responseContract = _mapper.Map<ContractDetailResponseDTO>(contract);
+                var responseContract = _mapper.Map<InvestmentContractDetailResponseDTO>(contract);
                 return Ok(responseContract);
             }
             catch (NotFoundException ex)
