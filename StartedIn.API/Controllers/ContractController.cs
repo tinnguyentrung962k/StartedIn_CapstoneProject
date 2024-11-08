@@ -11,6 +11,7 @@ using StartedIn.CrossCutting.Constants;
 using StartedIn.CrossCutting.DTOs.RequestDTO.Contract;
 using StartedIn.CrossCutting.DTOs.ResponseDTO.Contract;
 using StartedIn.CrossCutting.DTOs.BaseDTO;
+using StartedIn.CrossCutting.DTOs.ResponseDTO.DealOffer;
 
 namespace StartedIn.API.Controllers
 {
@@ -59,6 +60,36 @@ namespace StartedIn.API.Controllers
 
                 return StatusCode(500, MessageConstant.InternalServerError);
 
+            }
+        }
+
+        [HttpPost("investment-contracts/from-deal")]
+        [Authorize(Roles = RoleConstants.USER)]
+        public async Task<ActionResult<ContractResponseDTO>> CreateInvestmentContractFromDeal([FromRoute] string projectId, [FromBody] InvestmentContractFromDealCreateDTO investmentContractFromDealCreateDTO)
+        {
+            try
+            {
+                var userId = User.FindFirst(ClaimTypes.NameIdentifier).Value;
+                var contract = await _contractService.CreateInvestmentContractFromDeal(userId, projectId, investmentContractFromDealCreateDTO);
+                var response = _mapper.Map<ContractResponseDTO>(contract);
+                return Ok(response);
+            }
+            catch (UnauthorizedProjectRoleException ex)
+            {
+                return StatusCode(403, ex.Message);
+            }
+            catch (ExistedRecordException ex)
+            {
+                return BadRequest(ex.Message);
+            }
+            catch (InvalidOperationException ex)
+            {
+                return BadRequest(ex.Message);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error while creating contract");
+                return StatusCode(500, MessageConstant.InternalServerError);
             }
         }
 

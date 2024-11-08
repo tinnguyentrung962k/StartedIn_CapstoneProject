@@ -38,8 +38,6 @@ namespace StartedIn.Service.Services
         private readonly string _apiDomain;
         private readonly IUserService _userService;
         private readonly IDealOfferRepository _dealOfferRepository;
-        private readonly IDealOfferService _dealOfferService;
-
 
         public ContractService(IContractRepository contractRepository,
             IUnitOfWork unitOfWork,
@@ -49,11 +47,12 @@ namespace StartedIn.Service.Services
             IEmailService emailService,
             IProjectRepository projectRepository,
             IShareEquityRepository shareEquityRepository,
-            IDisbursementRepository disbursementRepository, IAzureBlobService azureBlobService, 
-            IDocumentFormatService documentFormatService,IConfiguration configuration,
+            IDisbursementRepository disbursementRepository,
+            IAzureBlobService azureBlobService, 
+            IDocumentFormatService documentFormatService,
+            IConfiguration configuration,
             IUserService userService,
-            IDealOfferRepository dealOfferRepository,
-            IDealOfferService dealOfferService
+            IDealOfferRepository dealOfferRepository
             )
         {
             _contractRepository = contractRepository;
@@ -70,7 +69,6 @@ namespace StartedIn.Service.Services
             _configuration = configuration;
             _userService = userService;
             _dealOfferRepository = dealOfferRepository;
-            _dealOfferService = dealOfferService;
             _apiDomain = _configuration.GetValue<string>("API_DOMAIN") ?? _configuration["Local_domain"];
         }
 
@@ -275,7 +273,11 @@ namespace StartedIn.Service.Services
 
             return orderCode;
         }
-        public async Task<DealOffer> CreateInvestmentContractByADealOffer(string userId, string projectId, string dealId, InvestmentContractFromDealCreateDTO investmentContractFromDealCreateDTO)
+        public async Task<Contract> CreateInvestmentContractFromDeal(
+            string userId,
+            string projectId,
+            InvestmentContractFromDealCreateDTO investmentContractFromDealCreateDTO
+            )
         {
             var userInProject = await _userService.CheckIfUserInProject(userId, projectId);
             var projectRole = await _projectRepository.GetUserRoleInProject(userId, projectId);
@@ -292,7 +294,8 @@ namespace StartedIn.Service.Services
             var chosenDeal = await _dealOfferRepository.QueryHelper()
                 .Include(x => x.Investor)
                 .Include(x => x.Project)
-                .Filter(x => x.Id.Equals(dealId)).GetOneAsync();
+                .Filter(x => x.Id.Equals(investmentContractFromDealCreateDTO.DealId))
+                .GetOneAsync();
             if (chosenDeal == null)
             {
                 throw new NotFoundException(MessageConstant.NotFoundDealError);
@@ -305,9 +308,9 @@ namespace StartedIn.Service.Services
             {
                 throw new InvalidOperationException(MessageConstant.DealPercentageGreaterThanRemainingPercentage);
             }
-            if (chosenDeal.DealStatus != DealStatusEnum.Waiting)
+            if (chosenDeal.DealStatus != DealStatusEnum.Accepted)
             {
-                throw new ContractConfirmException(MessageConstant.CannotConfirmContract);
+                throw new ContractConfirmException(MessageConstant.DealNotAccepted);
             }
             decimal totalDisbursementAmount = investmentContractFromDealCreateDTO.Disbursements.Sum(d => d.Amount);
             if (totalDisbursementAmount > chosenDeal.Amount)
@@ -380,11 +383,11 @@ namespace StartedIn.Service.Services
                     var disbursementEntity = _disbursementRepository.Add(disbursement);
                 }
                 await _signNowService.AuthenticateAsync();
-                contract.SignNowDocumentId = await _signNowService.UploadInvestmentContractToSignNowAsync(contract, investor, leader, userInProject.Project, shareEquity, disbursementList, chosenDeal.Amount);
-                var acceptedDeal = await _dealOfferService.AcceptADeal(userId, projectId, dealId);
+                contract.SignNowDocumentId = await _signNowService
+                    .UploadInvestmentContractToSignNowAsync(contract, investor, leader, userInProject.Project, shareEquity, disbursementList, chosenDeal.Amount);
                 await _unitOfWork.SaveChangesAsync();
                 await _unitOfWork.CommitAsync();
-                return acceptedDeal;
+                return contract;
             }
             catch (Exception ex)
             {

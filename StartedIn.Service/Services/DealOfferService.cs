@@ -43,7 +43,7 @@ namespace StartedIn.Service.Services
             _userService = userService;
         }
 
-        public async Task<SearchResponseDTO<DealOfferForProjectResponseDTO>> GetDealOfferForAProject(string userId,string projectId, int pageIndex, int pageSize)
+        public async Task<SearchResponseDTO<DealOfferForProjectResponseDTO>> GetDealOfferForAProject(string userId, string projectId, int pageIndex, int pageSize)
         {
             var userInProject = await _userService.CheckIfUserInProject(userId, projectId);
             var project = await _projectRepository.GetProjectById(projectId);
@@ -83,6 +83,7 @@ namespace StartedIn.Service.Services
             return response;
             
         }
+
         public async Task<SearchResponseDTO<DealOfferForInvestorResponseDTO>> GetDealOfferForAnInvestor(string userId, int pageIndex, int pageSize)
         {
             var dealList = _dealOfferRepository.QueryHelper()
