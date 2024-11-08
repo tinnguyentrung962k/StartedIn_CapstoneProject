@@ -98,7 +98,7 @@ namespace StartedIn.API.Controllers
         {
             try
             {
-                return Ok(await _dealOfferService.GetById(dealId));
+                return Ok(_mapper.Map<DealOfferForProjectResponseDTO>(await _dealOfferService.GetById(dealId)));
             }
             catch (Exception ex)
             {
