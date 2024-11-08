@@ -12,7 +12,7 @@ namespace StartedIn.Service.Services.Interface
 {
     public interface IDocumentFormatService
     {
-        Task<MemoryStream> ReplacePlaceHolderForInvestmentDocumentAsync(Contract contract, User investor, User leader, Project project, ShareEquity shareEquity, List<Disbursement> disbursements, decimal? buyPrice);
+        Task<MemoryStream> ReplacePlaceHolderForInvestmentDocumentAsync(Contract contract, User investor, User leader, Project project, ShareEquity shareEquity, List<Disbursement> disbursements);
         Table CreateDisbursementTable(List<Disbursement> disbursements);
         TableCell CreateTableHeaderCell(string text, bool isHeader = false);
         Table CreateShareholdersInfoTable(List<UserContract> shareholders);

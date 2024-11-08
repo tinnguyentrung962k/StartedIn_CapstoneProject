@@ -136,6 +136,7 @@ namespace StartedIn.Service.Services
                     User = investor,
                     UserId = investor.Id,
                     ShareQuantity = investmentContractCreateDTO.InvestorInfo.ShareQuantity,
+                    SharePrice = investmentContractCreateDTO.InvestorInfo.BuyPrice
                 };
                 var contractEntity = _contractRepository.Add(contract);
                 var shareEquityEntity = _shareEquityRepository.Add(shareEquity);
@@ -162,7 +163,7 @@ namespace StartedIn.Service.Services
                     var disbursementEntity = _disbursementRepository.Add(disbursement);
                 }
                 await _signNowService.AuthenticateAsync();
-                contract.SignNowDocumentId = await _signNowService.UploadInvestmentContractToSignNowAsync(contract,investor,leader,userInProject.Project,shareEquity,disbursementList,investmentContractCreateDTO.InvestorInfo.BuyPrice);
+                contract.SignNowDocumentId = await _signNowService.UploadInvestmentContractToSignNowAsync(contract,investor,leader,userInProject.Project,shareEquity,disbursementList);
                 await _unitOfWork.SaveChangesAsync();
                 await _unitOfWork.CommitAsync();
                 return contractEntity;
@@ -235,7 +236,7 @@ namespace StartedIn.Service.Services
                         StakeHolderType = projectRoleOfMember,
                         User = userMemberInContract,
                         UserId = shareEquityOfAMember.UserId,
-                        ShareQuantity = shareEquityOfAMember.ShareQuantity,
+                        ShareQuantity = shareEquityOfAMember.ShareQuantity
                     };
                     shareEquitiesOfMembers.Add(shareEquity);
                 }
@@ -358,7 +359,9 @@ namespace StartedIn.Service.Services
                     Percentage = chosenDeal.EquityShareOffer,
                     StakeHolderType = RoleInTeam.Investor,
                     User = investor,
-                    UserId = investor.Id
+                    UserId = investor.Id,
+                    SharePrice = chosenDeal.Amount
+                    
                 };
                 var contractEntity = _contractRepository.Add(contract);
                 var shareEquityEntity = _shareEquityRepository.Add(shareEquity);
@@ -386,7 +389,7 @@ namespace StartedIn.Service.Services
                 }
                 await _signNowService.AuthenticateAsync();
                 contract.SignNowDocumentId = await _signNowService
-                    .UploadInvestmentContractToSignNowAsync(contract, investor, leader, userInProject.Project, shareEquity, disbursementList, chosenDeal.Amount);
+                    .UploadInvestmentContractToSignNowAsync(contract, investor, leader, userInProject.Project, shareEquity, disbursementList);
                 await _unitOfWork.SaveChangesAsync();
                 await _unitOfWork.CommitAsync();
                 return contract;
@@ -777,6 +780,7 @@ namespace StartedIn.Service.Services
                     // Update existing ShareEquity
                     existingShareEquity.Percentage = investmentContractUpdateDTO.InvestorInfo.Percentage;
                     existingShareEquity.ShareQuantity = investmentContractUpdateDTO.InvestorInfo.ShareQuantity;
+                    existingShareEquity.SharePrice = investmentContractUpdateDTO.InvestorInfo.BuyPrice;
                     existingShareEquity.LastUpdatedBy = leader.FullName;
                     _shareEquityRepository.Update(existingShareEquity);
                     shareEquity = existingShareEquity;
@@ -831,8 +835,7 @@ namespace StartedIn.Service.Services
                     leader,
                     userInProject.Project,
                     shareEquity,
-                    disbursementList,
-                    investmentContractUpdateDTO.InvestorInfo.BuyPrice
+                    disbursementList
                 );
 
                 await _unitOfWork.SaveChangesAsync();

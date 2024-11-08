@@ -88,15 +88,8 @@ namespace StartedIn.API.Configuration.AutoMapper
         }
         private void ContractMappingProfile() 
         {
-            CreateMap<Contract, ContractResponseDTO>()
-                .ForMember(dest => dest.UsersInContract, opt => opt.MapFrom(
-                    src => src.UserContracts.Select(uc => new UserInContractResponseDTO
-                    {
-                        Id = uc.UserId,
-                        FullName = uc.User.FullName,
-                        Email = uc.User.Email,
-                        PhoneNumber = uc.User.PhoneNumber
-                    }).ToList()));
+            CreateMap<Contract, ContractResponseDTO>();
+                    
             CreateMap<Contract, ContractSearchResponseDTO>()
                 .ForMember(dest => dest.Parties, opt => opt.MapFrom(
                     src => src.UserContracts.Select(uc => new UserInContractResponseDTO
@@ -108,7 +101,22 @@ namespace StartedIn.API.Configuration.AutoMapper
                     }).ToList()));
             CreateMap<Contract, InvestmentContractDetailResponseDTO>()
                 .ForMember(dest => dest.Disbursements, opt => opt.MapFrom(
-                    src => src.Disbursements.OrderBy(x=>x.StartDate)));
+                    src => src.Disbursements.OrderBy(x=>x.StartDate)))
+                .ForMember(dest => dest.SharePercentage, opt => opt.MapFrom(
+                    src => src.ShareEquities.FirstOrDefault(x=>x.ContractId.Equals(src.Id)).Percentage))
+                .ForMember(dest => dest.BuyPrice, opt => opt.MapFrom(
+                    src => src.ShareEquities.FirstOrDefault(x=>x.ContractId.Equals(src.Id)).SharePrice))
+                .ForMember(dest => dest.InvestorInfo, opt => opt.MapFrom(
+                    src => src.UserContracts
+                    .Where(uc => uc.ContractId == src.Id &&
+                     uc.Contract.ShareEquities.Any(se => se.ContractId == src.Id && se.StakeHolderType == RoleInTeam.Investor))
+                    .Select(uc => new UserInContractResponseDTO
+                    {
+                        Id = uc.UserId,
+                        FullName = uc.User.FullName,
+                        Email = uc.User.Email,
+                        PhoneNumber = uc.User.PhoneNumber
+                    }).FirstOrDefault()));
         }
         private void ProjectCharterMappingProfile()
         {
