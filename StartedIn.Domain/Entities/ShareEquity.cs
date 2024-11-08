@@ -17,6 +17,9 @@ namespace StartedIn.Domain.Entities
         [ForeignKey(nameof(User))]
         public string UserId { get; set; }
 
+        [Column(TypeName = "decimal(14,3)")]
+        public decimal SharePrice { get; set; }
+
         public int? ShareQuantity { get; set; }
 
         [Column(TypeName = "decimal(5,2)")]

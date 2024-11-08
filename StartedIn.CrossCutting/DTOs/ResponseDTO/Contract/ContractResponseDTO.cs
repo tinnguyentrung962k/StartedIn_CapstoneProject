@@ -13,8 +13,5 @@ namespace StartedIn.CrossCutting.DTOs.ResponseDTO.Contract
         public string ContractIdNumber { get; set; }
         public DateOnly? ValidDate { get; set; }
         public DateOnly? ExpiredDate { get; set; }
-
-        public List<UserInContractResponseDTO> UsersInContract { get; set; }
-        
     }
 }

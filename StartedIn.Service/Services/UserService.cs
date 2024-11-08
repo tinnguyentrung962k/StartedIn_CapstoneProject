@@ -424,5 +424,9 @@ namespace StartedIn.Service.Services
             };
             return userInContract;
         }
+        public async Task<bool> IsUserInProject(string userId, string projectId)
+        {
+            return await _userRepository.CheckIfUserInProject(userId, projectId);
+        }
     }
 }

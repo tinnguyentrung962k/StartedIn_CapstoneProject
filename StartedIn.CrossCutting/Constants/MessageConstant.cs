@@ -19,7 +19,7 @@ namespace StartedIn.CrossCutting.Constants
         public const string UserNotBelongContractError = "Người dùng không thuộc hợp đồng.";
         public const string NotFoundMilestoneError = "Không tìm thấy cột mốc.";
         public const string NotFoundTaskError = "Không tìm thấy công việc.";
-        public const string CannotUpdateContractError = "Không thể sửa hợp đồng này.";
+        public const string CannotEditContractError = "Không thể sửa hợp đồng này.";
         public const string ContractNumberExistedError = "Mã hợp đồng này đã tồn tại trong dự án.";
         public const string JoinGroupWithLeaderRoleError = "Bạn không thể tham gia với vai trò nhóm trưởng.";
         public const string ContractNotBelongToProjectError = "Hợp đồng này không thuộc dự án được chọn.";
@@ -37,8 +37,10 @@ namespace StartedIn.CrossCutting.Constants
         public const string DealPercentageGreaterThanRemainingPercentage = "Tỉ lệ cổ phần thương lượng lớn hơn tỉ lệ cổ phần còn lại của Startup.";
         public const string CharterNotBelongToProjectError = "Điều lệ này không thuộc vào dự án.";
         public const string CharterExistedError = "Điều lệ đã tồn tại cho dự án.";
-        public const string CannotConfirmContract = "Bạn không thể xác nhận hợp đồng này";
+        public const string DealNotAccepted = "Thỏa thuận chưa được chấp nhận.";
         public const string TotalDistributePercentageGreaterThanRemainingPercentage = "Tỉ lệ cổ phần chia cho các thành viên không thể vượt quá tỉ lệ cổ phần còn lại.";
         public const string ValidShareDistributionContractExisted = "Hợp đồng chia cổ phần hợp lệ của dự án đã tồn tại.";
+        public const string CannotCancelContractError = "Bạn không thể huỷ hợp đồng này.";
+        public const string CannotInviteToSign = "Tài liệu này không thể được mời ký.";
     }
 }

@@ -38,8 +38,6 @@ namespace StartedIn.Service.Services
         private readonly string _apiDomain;
         private readonly IUserService _userService;
         private readonly IDealOfferRepository _dealOfferRepository;
-        private readonly IDealOfferService _dealOfferService;
-
 
         public ContractService(IContractRepository contractRepository,
             IUnitOfWork unitOfWork,
@@ -49,11 +47,12 @@ namespace StartedIn.Service.Services
             IEmailService emailService,
             IProjectRepository projectRepository,
             IShareEquityRepository shareEquityRepository,
-            IDisbursementRepository disbursementRepository, IAzureBlobService azureBlobService, 
-            IDocumentFormatService documentFormatService,IConfiguration configuration,
+            IDisbursementRepository disbursementRepository,
+            IAzureBlobService azureBlobService, 
+            IDocumentFormatService documentFormatService,
+            IConfiguration configuration,
             IUserService userService,
-            IDealOfferRepository dealOfferRepository,
-            IDealOfferService dealOfferService
+            IDealOfferRepository dealOfferRepository
             )
         {
             _contractRepository = contractRepository;
@@ -70,7 +69,6 @@ namespace StartedIn.Service.Services
             _configuration = configuration;
             _userService = userService;
             _dealOfferRepository = dealOfferRepository;
-            _dealOfferService = dealOfferService;
             _apiDomain = _configuration.GetValue<string>("API_DOMAIN") ?? _configuration["Local_domain"];
         }
 
@@ -138,6 +136,7 @@ namespace StartedIn.Service.Services
                     User = investor,
                     UserId = investor.Id,
                     ShareQuantity = investmentContractCreateDTO.InvestorInfo.ShareQuantity,
+                    SharePrice = investmentContractCreateDTO.InvestorInfo.BuyPrice
                 };
                 var contractEntity = _contractRepository.Add(contract);
                 var shareEquityEntity = _shareEquityRepository.Add(shareEquity);
@@ -164,7 +163,7 @@ namespace StartedIn.Service.Services
                     var disbursementEntity = _disbursementRepository.Add(disbursement);
                 }
                 await _signNowService.AuthenticateAsync();
-                contract.SignNowDocumentId = await _signNowService.UploadInvestmentContractToSignNowAsync(contract,investor,leader,userInProject.Project,shareEquity,disbursementList,investmentContractCreateDTO.InvestorInfo.BuyPrice);
+                contract.SignNowDocumentId = await _signNowService.UploadInvestmentContractToSignNowAsync(contract,investor,leader,userInProject.Project,shareEquity,disbursementList);
                 await _unitOfWork.SaveChangesAsync();
                 await _unitOfWork.CommitAsync();
                 return contractEntity;
@@ -237,7 +236,7 @@ namespace StartedIn.Service.Services
                         StakeHolderType = projectRoleOfMember,
                         User = userMemberInContract,
                         UserId = shareEquityOfAMember.UserId,
-                        ShareQuantity = shareEquityOfAMember.ShareQuantity,
+                        ShareQuantity = shareEquityOfAMember.ShareQuantity
                     };
                     shareEquitiesOfMembers.Add(shareEquity);
                 }
@@ -275,7 +274,11 @@ namespace StartedIn.Service.Services
 
             return orderCode;
         }
-        public async Task<DealOffer> CreateInvestmentContractByADealOffer(string userId, string projectId, string dealId, InvestmentContractFromDealCreateDTO investmentContractFromDealCreateDTO)
+        public async Task<Contract> CreateInvestmentContractFromDeal(
+            string userId,
+            string projectId,
+            InvestmentContractFromDealCreateDTO investmentContractFromDealCreateDTO
+            )
         {
             var userInProject = await _userService.CheckIfUserInProject(userId, projectId);
             var projectRole = await _projectRepository.GetUserRoleInProject(userId, projectId);
@@ -292,7 +295,8 @@ namespace StartedIn.Service.Services
             var chosenDeal = await _dealOfferRepository.QueryHelper()
                 .Include(x => x.Investor)
                 .Include(x => x.Project)
-                .Filter(x => x.Id.Equals(dealId)).GetOneAsync();
+                .Filter(x => x.Id.Equals(investmentContractFromDealCreateDTO.DealId))
+                .GetOneAsync();
             if (chosenDeal == null)
             {
                 throw new NotFoundException(MessageConstant.NotFoundDealError);
@@ -305,9 +309,9 @@ namespace StartedIn.Service.Services
             {
                 throw new InvalidOperationException(MessageConstant.DealPercentageGreaterThanRemainingPercentage);
             }
-            if (chosenDeal.DealStatus != DealStatusEnum.Waiting)
+            if (chosenDeal.DealStatus != DealStatusEnum.Accepted)
             {
-                throw new ContractConfirmException(MessageConstant.CannotConfirmContract);
+                throw new ContractConfirmException(MessageConstant.DealNotAccepted);
             }
             decimal totalDisbursementAmount = investmentContractFromDealCreateDTO.Disbursements.Sum(d => d.Amount);
             if (totalDisbursementAmount > chosenDeal.Amount)
@@ -330,7 +334,9 @@ namespace StartedIn.Service.Services
                     CreatedBy = userInProject.User.FullName,
                     ProjectId = projectId,
                     ContractStatus = ContractStatusEnum.DRAFT,
-                    ContractIdNumber = investmentContractFromDealCreateDTO.Contract.ContractIdNumber
+                    ContractIdNumber = investmentContractFromDealCreateDTO.Contract.ContractIdNumber,
+                    DealOffer = chosenDeal,
+                    DealOfferId = chosenDeal.Id
                 };
                 var leader = userInProject.User;
                 List<UserContract> usersInContract = new List<UserContract>();
@@ -353,7 +359,9 @@ namespace StartedIn.Service.Services
                     Percentage = chosenDeal.EquityShareOffer,
                     StakeHolderType = RoleInTeam.Investor,
                     User = investor,
-                    UserId = investor.Id
+                    UserId = investor.Id,
+                    SharePrice = chosenDeal.Amount
+                    
                 };
                 var contractEntity = _contractRepository.Add(contract);
                 var shareEquityEntity = _shareEquityRepository.Add(shareEquity);
@@ -380,11 +388,11 @@ namespace StartedIn.Service.Services
                     var disbursementEntity = _disbursementRepository.Add(disbursement);
                 }
                 await _signNowService.AuthenticateAsync();
-                contract.SignNowDocumentId = await _signNowService.UploadInvestmentContractToSignNowAsync(contract, investor, leader, userInProject.Project, shareEquity, disbursementList, chosenDeal.Amount);
-                var acceptedDeal = await _dealOfferService.AcceptADeal(userId, projectId, dealId);
+                contract.SignNowDocumentId = await _signNowService
+                    .UploadInvestmentContractToSignNowAsync(contract, investor, leader, userInProject.Project, shareEquity, disbursementList);
                 await _unitOfWork.SaveChangesAsync();
                 await _unitOfWork.CommitAsync();
-                return acceptedDeal;
+                return contract;
             }
             catch (Exception ex)
             {
@@ -430,6 +438,9 @@ namespace StartedIn.Service.Services
             if (projectId != contract.ProjectId) 
             {
                 throw new UnmatchedException(MessageConstant.ContractNotBelongToProjectError);    
+            }
+            if (contract.ContractStatus != ContractStatusEnum.DRAFT) {
+                throw new StatusException(MessageConstant.CannotInviteToSign);
             }
             var userInChosenContract = await _userService.CheckIfUserBelongToContract(userId, contractId);
             try
@@ -578,6 +589,8 @@ namespace StartedIn.Service.Services
                     equityShare.DateAssigned = DateOnly.FromDateTime(DateTime.Now);
                     _shareEquityRepository.Update(equityShare);
                 }
+                var totalEquitiesSharePercentageInContract = chosenContract.ShareEquities.Sum(e => e.Percentage);
+                project.RemainingPercentOfShares = (decimal)(project.RemainingPercentOfShares - totalEquitiesSharePercentageInContract);
                 foreach (var disbursement in chosenContract.Disbursements)
                 {
                     disbursement.IsValidWithContract = true;
@@ -714,13 +727,11 @@ namespace StartedIn.Service.Services
         {
             var userInProject = await _userService.CheckIfUserInProject(userId, projectId);
             var projectRole = await _projectRepository.GetUserRoleInProject(userId, projectId);
-            var leader = await _userManager.FindByIdAsync(userId);
-
             if (projectRole != RoleInTeam.Leader)
             {
                 throw new UnauthorizedProjectRoleException(MessageConstant.RolePermissionError);
             }
-
+            var leader = await _userManager.FindByIdAsync(userId);
             var contract = await _contractRepository.GetContractById(contractId);
             if (contract == null)
             {
@@ -728,7 +739,11 @@ namespace StartedIn.Service.Services
             }
             if (contract.ContractStatus != ContractStatusEnum.DRAFT)
             {
-                throw new UpdateException(MessageConstant.CannotUpdateContractError);
+                throw new UpdateException(MessageConstant.CannotEditContractError);
+            }
+            if (contract.DealOfferId != null)
+            {
+                throw new UpdateException(MessageConstant.CannotEditContractError);
             }
             var project = await _projectRepository.GetProjectById(projectId);
             if (investmentContractUpdateDTO.InvestorInfo.Percentage > project.RemainingPercentOfShares)
@@ -765,6 +780,7 @@ namespace StartedIn.Service.Services
                     // Update existing ShareEquity
                     existingShareEquity.Percentage = investmentContractUpdateDTO.InvestorInfo.Percentage;
                     existingShareEquity.ShareQuantity = investmentContractUpdateDTO.InvestorInfo.ShareQuantity;
+                    existingShareEquity.SharePrice = investmentContractUpdateDTO.InvestorInfo.BuyPrice;
                     existingShareEquity.LastUpdatedBy = leader.FullName;
                     _shareEquityRepository.Update(existingShareEquity);
                     shareEquity = existingShareEquity;
@@ -819,13 +835,45 @@ namespace StartedIn.Service.Services
                     leader,
                     userInProject.Project,
                     shareEquity,
-                    disbursementList,
-                    investmentContractUpdateDTO.InvestorInfo.BuyPrice
+                    disbursementList
                 );
 
                 await _unitOfWork.SaveChangesAsync();
                 await _unitOfWork.CommitAsync();
                 return contract;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "An error occurred while updating the contract.");
+                await _unitOfWork.RollbackAsync();
+                throw;
+            }
+        }
+        public async Task<Contract> CancelContract(string userId, string projectId, string contractId)
+        {
+            var userInProject = await _userService.CheckIfUserInProject(userId, projectId);
+            var loginUser = await _userManager.FindByIdAsync(userId);
+            var chosenContract = await _contractRepository.GetContractById(contractId);
+            if (chosenContract == null)
+            {
+                throw new NotFoundException(MessageConstant.NotFoundContractError);
+            }
+            if (chosenContract.ProjectId != projectId)
+            {
+                throw new UnmatchedException(MessageConstant.ContractNotBelongToProjectError);
+            }
+            var userInContract = await _userService.CheckIfUserBelongToContract(userId, contractId);
+            if (chosenContract.ContractStatus == ContractStatusEnum.COMPLETED || chosenContract.ContractStatus == ContractStatusEnum.EXPIRED)
+            {
+                throw new UpdateException(MessageConstant.CannotCancelContractError);
+            }
+            try {
+                _unitOfWork.BeginTransaction();
+                chosenContract.ContractStatus = ContractStatusEnum.CANCELLED;
+                _contractRepository.Update(chosenContract);
+                await _unitOfWork.SaveChangesAsync();
+                await _unitOfWork.CommitAsync();
+                return chosenContract;
             }
             catch (Exception ex)
             {

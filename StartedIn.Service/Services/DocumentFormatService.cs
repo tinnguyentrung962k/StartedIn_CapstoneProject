@@ -287,7 +287,7 @@ namespace StartedIn.Service.Services
 
         public async Task<MemoryStream> ReplacePlaceHolderForInvestmentDocumentAsync(
             Contract contract, User investor, User leader, Project project,
-            ShareEquity shareEquity, List<Disbursement> disbursements, decimal? buyPrice)
+            ShareEquity shareEquity, List<Disbursement> disbursements)
         {
             string blobName = BlobServiceConstant.InvesmentContractTemplate;
 
@@ -317,7 +317,7 @@ namespace StartedIn.Service.Services
                 { "MAIL", leader.Email },
                 { "DCCDU", leader.Address },
                 { "PHANTRAMCOPHAN", shareEquity.Percentage.ToString() },
-                { "GIAMUA", buyPrice?.ToString() },
+                { "GIAMUA", shareEquity.SharePrice.ToString() },
                 { "DIEUKHOANDUAN", contract.ContractPolicy },
             };
 

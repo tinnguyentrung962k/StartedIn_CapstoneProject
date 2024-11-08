@@ -112,10 +112,10 @@ namespace StartedIn.Service.Services
         }
         public async Task<string> UploadInvestmentContractToSignNowAsync(
         Contract contract, User investor, User leader, Project project,
-        ShareEquity shareEquity, List<Disbursement> disbursements, decimal? buyPrice)
+        ShareEquity shareEquity, List<Disbursement> disbursements)
         {
             // Bước 1: Thay thế placeholders trong mẫu hợp đồng
-            var modifiedMemoryStream = await _documentFormatService.ReplacePlaceHolderForInvestmentDocumentAsync(contract, investor, leader, project, shareEquity, disbursements, buyPrice);
+            var modifiedMemoryStream = await _documentFormatService.ReplacePlaceHolderForInvestmentDocumentAsync(contract, investor, leader, project, shareEquity, disbursements);
 
             // Đặt lại vị trí của memoryStream về 0 trước khi upload
             modifiedMemoryStream.Position = 0;

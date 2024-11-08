@@ -19,7 +19,8 @@ namespace StartedIn.Service.Services.Interface
         Task<DocumentDownLoadResponseDTO> DownLoadFileContract(string userId, string projectId,string contractId);
         Task<SearchResponseDTO<ContractSearchResponseDTO>> SearchContractWithFilters(string userId, string projectId, ContractSearchDTO search, int pageIndex, int pageSize);
         Task<Contract> UpdateInvestmentContract(string userId, string projectId, string contractId, InvestmentContractUpdateDTO investmentContractUpdateDTO);
-        Task<DealOffer> CreateInvestmentContractByADealOffer(string userId, string projectId, string dealId, InvestmentContractFromDealCreateDTO investmentContractFromDealCreateDTO);
+        Task<Contract> CreateInvestmentContractFromDeal(string userId, string projectId, InvestmentContractFromDealCreateDTO investmentContractFromDealCreateDTO);
         Task<Contract> CreateStartupShareAllMemberContract(string userId, string projectId, GroupContractCreateDTO groupContractCreateDTO);
+        Task<Contract> CancelContract(string userId, string projectId, string contractId);
     }
 }
