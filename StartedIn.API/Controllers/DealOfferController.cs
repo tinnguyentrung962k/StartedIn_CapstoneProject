@@ -100,6 +100,10 @@ namespace StartedIn.API.Controllers
             {
                 return Ok(_mapper.Map<DealOfferForProjectResponseDTO>(await _dealOfferService.GetById(dealId)));
             }
+            catch (NotFoundException ex)
+            {
+                return BadRequest(ex.Message);
+            }
             catch (Exception ex)
             {
                 return StatusCode(500, MessageConstant.InternalServerError);
