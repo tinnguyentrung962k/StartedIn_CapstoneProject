@@ -29,5 +29,6 @@ namespace StartedIn.Domain.Entities
         public DealStatusEnum DealStatus { get; set; }
         public Project Project { get; set; }
         public User Investor { get; set; }
+        public Contract? Contract { get; set; }
     }
 }
