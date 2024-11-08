@@ -247,5 +247,10 @@ namespace StartedIn.Service.Services
                 throw;
             }
         }
+
+        public async Task<DealOffer> GetById(string id)
+        {
+            return await _dealOfferRepository.GetOneAsync(id);
+        }
     }
 }
