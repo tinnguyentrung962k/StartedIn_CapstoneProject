@@ -459,6 +459,7 @@ namespace StartedIn.Service.Services
                 userInChosenContract.Contract.LastUpdatedBy = userInChosenContract.User.FullName;
                 userInChosenContract.Contract.LastUpdatedTime = DateTimeOffset.UtcNow;
                 userInChosenContract.Contract.ContractStatus = ContractStatusEnum.SENT;
+                userInChosenContract.Contract.SignDeadline = DateTimeOffset.UtcNow.AddDays(7);
                 var inviteResponse = await _signNowService.CreateFreeFormInvite(userInChosenContract.Contract.SignNowDocumentId, userEmails);
                 var webHookCreateList = new List<SignNowWebhookCreateDTO>();
                 if (contract.ContractType == ContractTypeEnum.INVESTMENT)
@@ -971,6 +972,20 @@ namespace StartedIn.Service.Services
                 _logger.LogError(ex, "An error occurred while updating the contract.");
                 await _unitOfWork.RollbackAsync();
                 throw;
+            }
+        }
+
+        public async Task CancelContractAfterDueDate()
+        {
+            var contracts = await _contractRepository.QueryHelper()
+                .Filter(c => (c.ContractStatus == ContractStatusEnum.SENT ||
+                             c.ContractStatus == ContractStatusEnum.DRAFT) &&
+                             c.SignDeadline < DateTimeOffset.UtcNow.AddDays(1)).GetAllAsync();
+            foreach (var contract in contracts)
+            {
+                contract.ContractStatus = ContractStatusEnum.CANCELLED; 
+                _contractRepository.Update(contract);
+                await _unitOfWork.SaveChangesAsync();
             }
         }
     }
