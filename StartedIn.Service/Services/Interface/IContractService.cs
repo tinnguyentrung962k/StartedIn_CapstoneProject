@@ -23,5 +23,6 @@ namespace StartedIn.Service.Services.Interface
         Task<Contract> UpdateStartupShareAllMemberContract(string userId, string projectId, string contractId, GroupContractUpdateDTO groupContractUpdateDTO);
         Task<Contract> UpdateInvestmentContract(string userId, string projectId, string contractId, InvestmentContractUpdateDTO investmentContractUpdateDTO);
         Task<Contract> CancelContract(string userId, string projectId, string contractId);
+        Task CancelContractAfterDueDate();
     }
 }

@@ -12,6 +12,7 @@ builder.Services.AddSecurityConfiguration(config);
 builder.Services.AddDatabaseConfiguration(config);
 builder.Services.AddRepositoryConfiguration();
 builder.Services.AddServiceConfiguration(config);
+builder.Services.AddBackgroundWorkerConfiguration(config);
 builder.Services.AddAutoMapper(typeof(Program));
 
 builder.Services.AddControllers(options =>

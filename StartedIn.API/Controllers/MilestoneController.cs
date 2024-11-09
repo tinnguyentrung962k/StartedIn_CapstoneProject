@@ -5,6 +5,7 @@ using StartedIn.CrossCutting.Exceptions;
 using StartedIn.Service.Services.Interface;
 using System.Security.Claims;
 using Microsoft.AspNetCore.Authorization;
+using StartedIn.API.Attributes;
 using StartedIn.CrossCutting.Constants;
 using StartedIn.CrossCutting.DTOs.RequestDTO.Milestone;
 using StartedIn.CrossCutting.DTOs.ResponseDTO.Milestone;
@@ -35,7 +36,7 @@ namespace StartedIn.API.Controllers
                 var userId = User.FindFirst(ClaimTypes.NameIdentifier).Value;
                 var milestone = await _milestoneService.CreateNewMilestone(userId,projectId,milestoneCreateDto);
                 var responseMilestone = _mapper.Map<MilestoneResponseDTO>(milestone);
-                return CreatedAtAction(nameof(GetMilestoneById), new { milestoneId = responseMilestone.Id }, responseMilestone);
+                return CreatedAtAction(nameof(GetMilestoneById), new { projectId, milestoneId = responseMilestone.Id }, responseMilestone);
 
             }
             catch (UnauthorizedProjectRoleException ex)
@@ -78,9 +79,24 @@ namespace StartedIn.API.Controllers
                 return StatusCode(500, MessageConstant.InternalServerError);
             }
         }
+        
+        [HttpGet("milestones")]
+        [Authorize(Roles = RoleConstants.USER + "," + RoleConstants.INVESTOR)]
+        public async Task<ActionResult<List<MilestoneResponseDTO>>> GetMilestonesForProject([FromRoute]string projectId)
+        {
+            try
+            {
+                var responseMilestone = _mapper.Map<List<MilestoneResponseDTO>>(await _milestoneService.GetMilestoneListOfAProject(projectId));
+                return Ok(responseMilestone);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, MessageConstant.InternalServerError);
+            }
+        }
 
         [HttpPut("milestones/{milestoneId}")]
-        [Authorize(Roles = RoleConstants.USER + "," + RoleConstants.INVESTOR)]
+        [Authorize(Roles = RoleConstants.USER)]
         public async Task<ActionResult<MilestoneResponseDTO>> EditInfoMilestone([FromRoute] string milestoneId, [FromRoute] string projectId, [FromBody] MilestoneInfoUpdateDTO milestoneInfoUpdateDTO)
         {
             try

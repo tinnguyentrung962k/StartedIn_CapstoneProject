@@ -10,6 +10,7 @@ using StartedIn.CrossCutting.DTOs.RequestDTO.Tasks;
 using StartedIn.CrossCutting.DTOs.ResponseDTO;
 using AutoMapper;
 using StartedIn.CrossCutting.DTOs.ResponseDTO.Tasks;
+using StartedIn.CrossCutting.DTOs.BaseDTO;
 
 namespace StartedIn.Service.Services
 {
@@ -51,11 +52,13 @@ namespace StartedIn.Service.Services
         {
             var userInProject = await _userService.CheckIfUserInProject(userId, projectId);
 
-            var chosenTask = await _taskRepository.GetOneAsync(taskId);
-            if (chosenTask == null)
-            {
-                throw new NotFoundException(MessageConstant.NotFoundTaskError);
-            }
+            var chosenTask = await _taskRepository.GetTaskDetails(taskId) ?? throw new NotFoundException(MessageConstant.NotFoundTaskError);
+            var subTasks = await _taskRepository.QueryHelper().Filter(t => t.ParentTaskId == taskId).GetAllAsync();
+
+            chosenTask.SubTasks = (ICollection<TaskEntity>) subTasks;
+
+            //TODO: Get all comments, attachments 
+
             return chosenTask;
         }
 
@@ -96,13 +99,12 @@ namespace StartedIn.Service.Services
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Lỗi khi tạo công việc");
                 await _unitOfWork.RollbackAsync();
-                throw;
+                throw new Exception(MessageConstant.CreateFailed);
             }
         }
 
-        public async Task<TaskEntity> UpdateTaskInfo(string userId, string taskId, 
+        public async Task<TaskEntity> UpdateTaskInfo(string userId, string taskId,
             string projectId, UpdateTaskInfoDTO updateTaskInfoDTO)
         {
             var userInProject = await _userService.CheckIfUserInProject(userId, projectId);
@@ -110,7 +112,7 @@ namespace StartedIn.Service.Services
             var chosenTask = await _taskRepository.GetOneAsync(taskId);
             if (chosenTask == null)
             {
-                throw new NotFoundException("Không tìm thấy công việc");
+                throw new NotFoundException(MessageConstant.NotFoundTaskError);
             }
 
             try
@@ -120,6 +122,14 @@ namespace StartedIn.Service.Services
                 chosenTask.Deadline = updateTaskInfoDTO.Deadline;
                 chosenTask.LastUpdatedTime = DateTimeOffset.UtcNow;
                 chosenTask.LastUpdatedBy = userInProject.User.FullName;
+                TaskHistory history = new TaskHistory
+                {
+                    Content = $"{userInProject.User.FullName} đã cập nhật thông tin task {chosenTask.Id}",
+                    CreatedBy = userInProject.User.FullName,
+                    TaskId = chosenTask.Id
+                };
+                var taskHistory = _taskHistoryRepository.Add(history);
+
                 _taskRepository.Update(chosenTask);
                 await _unitOfWork.SaveChangesAsync();
                 return chosenTask;
@@ -127,7 +137,7 @@ namespace StartedIn.Service.Services
             catch (Exception ex)
             {
                 await _unitOfWork.RollbackAsync();
-                throw new Exception("Failed while update task");
+                throw new Exception(MessageConstant.UpdateFailed);
             }
         }
 
@@ -146,6 +156,170 @@ namespace StartedIn.Service.Services
             };
 
             return pagination;
+        }
+
+        public async Task<TaskEntity> UpdateTaskStatus(string userId, string taskId, string projectId, UpdateTaskStatusDTO updateTaskStatusDTO)
+        {
+            var userInProject = await _userService.CheckIfUserInProject(userId, projectId);
+
+            var chosenTask = await _taskRepository.GetOneAsync(taskId);
+            if (chosenTask == null)
+            {
+                throw new NotFoundException(MessageConstant.NotFoundTaskError);
+            }
+
+            try
+            {
+                chosenTask.Status = updateTaskStatusDTO.Status;
+                chosenTask.LastUpdatedBy = userInProject.User.FullName;
+                chosenTask.LastUpdatedTime = DateTimeOffset.UtcNow;
+                TaskHistory history = new TaskHistory
+                {
+                    Content = userInProject.User.FullName + "đã cập nhật trạng thái task " + chosenTask.Id,
+                    CreatedBy = userInProject.User.FullName,
+                    TaskId = chosenTask.Id
+                };
+                var taskHistory = _taskHistoryRepository.Add(history);
+                _taskRepository.Update(chosenTask);
+                await _unitOfWork.SaveChangesAsync();
+                return chosenTask;
+            }
+            catch (Exception ex)
+            {
+                await _unitOfWork.RollbackAsync();
+                throw new Exception(MessageConstant.UpdateFailed);
+            }
+        }
+
+        public async Task<TaskEntity> UpdateTaskAssignment(string userId, string taskId, string projectId, UpdateTaskAssignmentDTO updateTaskAssignmentDTO)
+        {
+            var userInProject = await _userService.CheckIfUserInProject(userId, projectId);
+            var assigneeInProject = await _userService.CheckIfUserInProject(updateTaskAssignmentDTO.AssigneeId, projectId);
+
+            var chosenTask = await _taskRepository.QueryHelper().Include(t => t.UserTasks).Filter(t => t.Id == taskId).GetOneAsync();
+            if (chosenTask == null)
+            {
+                throw new NotFoundException(MessageConstant.NotFoundTaskError);
+            }
+
+            try
+            {
+                chosenTask.UserTasks.Add(new UserTask
+                {
+                    UserId = updateTaskAssignmentDTO.AssigneeId,
+                    TaskId = taskId
+                });
+                chosenTask.LastUpdatedBy = userInProject.User.FullName;
+                chosenTask.LastUpdatedTime = DateTimeOffset.UtcNow;
+                TaskHistory history = new TaskHistory
+                {
+                    Content = $"{userInProject.User.FullName} đã phân công {assigneeInProject.User.FullName} vào task {chosenTask.Id}",
+                    CreatedBy = userInProject.User.FullName,
+                    TaskId = chosenTask.Id
+                };
+                var taskHistory = _taskHistoryRepository.Add(history);
+                _taskRepository.Update(chosenTask);
+                await _unitOfWork.SaveChangesAsync();
+                return chosenTask;
+            }
+            catch (Exception ex)
+            {
+                await _unitOfWork.RollbackAsync();
+                throw new Exception(MessageConstant.UpdateFailed);
+            }
+        }
+
+        public async Task<TaskEntity> UpdateTaskMilestone(string userId, string taskId, string projectId, UpdateTaskMilestoneDTO updateTaskMilestoneDTO)
+        {
+            var userInProject = await _userService.CheckIfUserInProject(userId, projectId);
+
+            var chosenTask = await _taskRepository.GetOneAsync(taskId);
+            if (chosenTask == null)
+            {
+                throw new NotFoundException(MessageConstant.NotFoundTaskError);
+            }
+
+            var chosenMilestone = await _milestoneRepository.GetOneAsync(updateTaskMilestoneDTO.MilestoneId);
+            if (chosenMilestone == null)
+            {
+                throw new NotFoundException(MessageConstant.NotFoundMilestoneError);
+            }
+
+            try
+            {
+                chosenTask.MilestoneId = updateTaskMilestoneDTO.MilestoneId;
+                chosenTask.LastUpdatedBy = userInProject.User.FullName;
+                chosenTask.LastUpdatedTime = DateTimeOffset.UtcNow;
+                TaskHistory history = new TaskHistory
+                {
+                    Content = $"{userInProject.User.FullName} đã gán task {chosenTask.Id} vào mục tiêu {chosenMilestone.Id}",
+                    CreatedBy = userInProject.User.FullName,
+                    TaskId = chosenTask.Id
+                };
+                var taskHistory = _taskHistoryRepository.Add(history);
+                _taskRepository.Update(chosenTask);
+                await _unitOfWork.SaveChangesAsync();
+                return chosenTask;
+            }
+            catch (Exception ex)
+            {
+                await _unitOfWork.RollbackAsync();
+                throw new Exception(MessageConstant.UpdateFailed);
+            }
+        }
+
+        public async Task<TaskEntity> UpdateParentTask(string userId, string taskId, string projectId, UpdateParentTaskDTO updateParentTaskDTO)
+        {
+            if (taskId == updateParentTaskDTO.ParentTaskId)
+            {
+                throw new AssignParentTaskException(MessageConstant.AssignParentTaskToSelfError);
+            }
+
+            var userInProject = await _userService.CheckIfUserInProject(userId, projectId);
+
+            var chosenTask = await _taskRepository.GetOneAsync(taskId);
+            if (chosenTask == null)
+            {
+                throw new NotFoundException(MessageConstant.NotFoundTaskError);
+            }
+
+            var parentTask = await _taskRepository.GetOneAsync(updateParentTaskDTO.ParentTaskId);
+            if (parentTask == null)
+            {
+                throw new NotFoundException(MessageConstant.NotFoundParentTaskError);
+            }
+
+            // Get List of SubTasks and Check if assign parent task to sub task
+            var subTasks = await _taskRepository.QueryHelper().Filter(t => t.ParentTaskId == taskId).GetAllAsync();
+            foreach (TaskEntity task in subTasks)
+            {
+                if (task.Id == updateParentTaskDTO.ParentTaskId)
+                {
+                    throw new AssignParentTaskException(MessageConstant.AssignParentTaskToSubTaskError);
+                }
+            }
+
+            try
+            {
+                chosenTask.ParentTaskId = updateParentTaskDTO.ParentTaskId;
+                chosenTask.LastUpdatedBy = userInProject.User.FullName;
+                chosenTask.LastUpdatedTime = DateTimeOffset.UtcNow;
+                TaskHistory history = new TaskHistory
+                {
+                    Content = $"{userInProject.User.FullName} đã gán task {chosenTask.Id} vào task cha {parentTask.Id}",
+                    CreatedBy = userInProject.User.FullName,
+                    TaskId = chosenTask.Id
+                };
+                var taskHistory = _taskHistoryRepository.Add(history);
+                _taskRepository.Update(chosenTask);
+                await _unitOfWork.SaveChangesAsync();
+                return chosenTask;
+            }
+            catch (Exception ex)
+            {
+                await _unitOfWork.RollbackAsync();
+                throw new Exception(MessageConstant.UpdateFailed);
+            }
         }
     }
 }

@@ -1,4 +1,6 @@
 ﻿using StartedIn.CrossCutting.DTOs.BaseDTO;
+using StartedIn.CrossCutting.DTOs.ResponseDTO.Milestone;
+using StartedIn.CrossCutting.DTOs.ResponseDTO.Project;
 using StartedIn.CrossCutting.Enum;
 using System;
 using System.Collections.Generic;
@@ -16,6 +18,8 @@ namespace StartedIn.CrossCutting.DTOs.ResponseDTO.Tasks
         public TaskEntityStatus Status { get; set; }
         public DateTimeOffset? Deadline { get; set; }
         public TaskResponseDTO ParentTask { get; set; }
+        public MilestoneResponseDTO Milestone { get; set; }
         public ICollection<TaskResponseDTO> SubTasks { get; set; }
+        public ICollection<MemberWithRoleInProjectResponseDTO> Assignees { get; set; }
     }
 }
