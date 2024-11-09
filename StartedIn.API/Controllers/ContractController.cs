@@ -156,6 +156,36 @@ namespace StartedIn.API.Controllers
 
             }
         }
+        [HttpPut("shares-distribution-contracts/{contractId}")]
+        [Authorize]
+        public async Task<ActionResult<ContractResponseDTO>> UpdateStartupShareAllMemberContract([FromRoute] string projectId, [FromRoute] string contractId, [FromBody] GroupContractUpdateDTO groupContractUpdateDTO)
+        {
+            try
+            {
+                var userId = User.FindFirst(ClaimTypes.NameIdentifier).Value;
+                var contract = await _contractService.UpdateStartupShareAllMemberContract(userId, projectId, contractId, groupContractUpdateDTO);
+                var responseContract = _mapper.Map<ContractResponseDTO>(contract);
+                return Ok(responseContract);
+            }
+            catch (UnauthorizedProjectRoleException ex)
+            {
+                return StatusCode(403, ex.Message);
+            }
+            catch (InvalidOperationException ex)
+            {
+                return BadRequest(ex.Message);
+            }
+            catch (UpdateException ex)
+            {
+                return BadRequest(ex.Message);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error while creating contract");
+                return StatusCode(500, MessageConstant.InternalServerError);
+
+            }
+        }
 
         [HttpGet("investment-contracts/{contractId}")]
         [Authorize(Roles = RoleConstants.USER + "," + RoleConstants.INVESTOR)]

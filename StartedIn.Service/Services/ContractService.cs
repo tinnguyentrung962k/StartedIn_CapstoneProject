@@ -194,7 +194,7 @@ namespace StartedIn.Service.Services
             {
                 throw new InvalidOperationException(MessageConstant.TotalDistributePercentageGreaterThanRemainingPercentage);
             }
-            var existedDistributeContractInProject = await _contractRepository.QueryHelper().Filter(x => x.ProjectId.Equals(projectId) && x.ContractType.Equals(ContractTypeEnum.INTERNAL)).GetOneAsync();
+            var existedDistributeContractInProject = await _contractRepository.QueryHelper().Filter(x => x.ProjectId.Equals(projectId) && x.ContractType.Equals(ContractTypeEnum.INTERNAL) && x.ContractStatus == ContractStatusEnum.COMPLETED).GetOneAsync();
             if (existedDistributeContractInProject != null)
             {
                 throw new ExistedRecordException(MessageConstant.ValidShareDistributionContractExisted);
@@ -244,7 +244,6 @@ namespace StartedIn.Service.Services
                 contract.UserContracts = usersInContract;
                 var contractEntity = _contractRepository.Add(contract);
                 await _shareEquityRepository.AddRangeAsync(shareEquitiesOfMembers);
-                var disbursementList = new List<Disbursement>();
                 await _signNowService.AuthenticateAsync();
                 contract.SignNowDocumentId = await _signNowService.UploadStartUpShareDistributionContractToSignNowAsync(contract, leader, userInProject.Project, shareEquitiesOfMembers, usersInContract);
                 await _unitOfWork.SaveChangesAsync();
@@ -841,6 +840,98 @@ namespace StartedIn.Service.Services
                 await _unitOfWork.SaveChangesAsync();
                 await _unitOfWork.CommitAsync();
                 return contract;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "An error occurred while updating the contract.");
+                await _unitOfWork.RollbackAsync();
+                throw;
+            }
+        }
+        public async Task<Contract> UpdateStartupShareAllMemberContract(string userId, string projectId, string contractId, GroupContractUpdateDTO groupContractUpdateDTO)
+        {
+            var userInProject = await _userService.CheckIfUserInProject(userId, projectId);
+            var projectRole = await _projectRepository.GetUserRoleInProject(userId, projectId);
+            if (projectRole != RoleInTeam.Leader)
+            {
+                throw new UnauthorizedProjectRoleException(MessageConstant.RolePermissionError);
+            }
+            var contract = await _contractRepository.GetContractById(contractId);
+            if (contract == null)
+            {
+                throw new NotFoundException(MessageConstant.NotFoundContractError);
+            }
+            if (contract.ProjectId != projectId)
+            {
+                throw new UnmatchedException(MessageConstant.CharterNotBelongToProjectError);
+            }
+            var currentUserInContract = await _userService.CheckIfUserBelongToContract(userId, contractId);
+            if (contract.ContractStatus != ContractStatusEnum.DRAFT)
+            {
+                throw new UpdateException(MessageConstant.CannotEditContractError);
+            }
+            var existedContractWithIdNumber = await _contractRepository.QueryHelper().Filter(x => x.ContractIdNumber.Equals(groupContractUpdateDTO.Contract.ContractIdNumber) && x.ProjectId.Equals(projectId) && !x.Id.Equals(contractId)).GetOneAsync();
+            if (existedContractWithIdNumber != null)
+            {
+                throw new ExistedRecordException(MessageConstant.ContractNumberExistedError);
+            }
+            var project = await _projectRepository.GetProjectById(projectId);
+            var totalShareOfDistribution = groupContractUpdateDTO.ShareEquitiesOfMembers.Sum(d => d.Percentage);
+            if (totalShareOfDistribution > project.RemainingPercentOfShares)
+            {
+                throw new InvalidOperationException(MessageConstant.TotalDistributePercentageGreaterThanRemainingPercentage);
+            }
+            try
+            {
+                _unitOfWork.BeginTransaction();
+
+                // Update contract details
+                contract.ContractName = groupContractUpdateDTO.Contract.ContractName;
+                contract.ContractPolicy = groupContractUpdateDTO.Contract.ContractPolicy;
+                contract.ContractIdNumber = groupContractUpdateDTO.Contract.ContractIdNumber;
+
+                var existingShareEquitiesOfMembers = contract.ShareEquities;
+                foreach (var existingShareEquity in existingShareEquitiesOfMembers)
+                {
+                    await _shareEquityRepository.DeleteAsync(existingShareEquity);
+                }
+
+                List<UserContract> usersInContract = new List<UserContract>();
+                List<ShareEquity> shareEquitiesOfMembers = new List<ShareEquity>();
+                foreach (var updatedShareEquity in groupContractUpdateDTO.ShareEquitiesOfMembers)
+                {
+                    var userMemberInContract = await _userManager.FindByIdAsync(updatedShareEquity.UserId);
+                    var projectRoleOfMember = await _projectRepository.GetUserRoleInProject(updatedShareEquity.UserId, projectId);
+                    UserContract userInContract = new UserContract
+                    {
+                        UserId = userMemberInContract.Id,
+                        ContractId = contract.Id,
+                        Contract = contract,
+                        User = userMemberInContract,
+                    };
+                    usersInContract.Add(userInContract);
+                    ShareEquity shareEquity = new ShareEquity
+                    {
+                        ContractId = contract.Id,
+                        Contract = contract,
+                        CreatedBy = userInProject.User.FullName,
+                        Percentage = updatedShareEquity.Percentage,
+                        StakeHolderType = projectRoleOfMember,
+                        User = userMemberInContract,
+                        UserId = updatedShareEquity.UserId,
+                        ShareQuantity = updatedShareEquity.ShareQuantity
+                    };
+                    shareEquitiesOfMembers.Add(shareEquity);
+                }
+                var leader = userInProject.User;
+                contract.UserContracts = usersInContract;
+                var contractEntity = _contractRepository.Update(contract);
+                await _shareEquityRepository.AddRangeAsync(shareEquitiesOfMembers);
+                await _signNowService.AuthenticateAsync();
+                contract.SignNowDocumentId = await _signNowService.UploadStartUpShareDistributionContractToSignNowAsync(contract, leader, userInProject.Project, shareEquitiesOfMembers, usersInContract);
+                await _unitOfWork.SaveChangesAsync();
+                await _unitOfWork.CommitAsync();
+                return contractEntity;
             }
             catch (Exception ex)
             {
