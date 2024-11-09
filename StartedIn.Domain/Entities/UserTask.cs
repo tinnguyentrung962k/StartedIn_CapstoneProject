@@ -13,7 +13,5 @@ namespace StartedIn.Domain.Entities
         public string TaskId { get; set; }
         public virtual User User { get; set; }
         public virtual TaskEntity Task { get; set; }
-        public TaskAssignType TaskAssignType { get; set; }
-
     }
 }

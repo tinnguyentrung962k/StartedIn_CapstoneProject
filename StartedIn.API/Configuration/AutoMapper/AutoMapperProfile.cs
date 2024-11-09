@@ -34,6 +34,12 @@ namespace StartedIn.API.Configuration.AutoMapper
         private void TaskMappingProfile()
         {
             CreateMap<TaskEntity, TaskResponseDTO>().ReverseMap();
+            CreateMap<TaskEntity, TaskDetailDTO>()
+                .ForMember(dest => dest.Assignees, opt => opt.MapFrom(src => src.UserTasks.Select(ut => ut.User)))
+                .ForMember(dest => dest.Milestone, opt => opt.MapFrom(src => src.Milestone))
+                .ForMember(dest => dest.ParentTask, opt => opt.MapFrom(src => src.ParentTask))
+                .ForMember(dest => dest.SubTasks, opt => opt.MapFrom(src => src.SubTasks))
+                .ReverseMap();
         }
 
         private void MilestoneMappingProfile()
@@ -67,6 +73,10 @@ namespace StartedIn.API.Configuration.AutoMapper
                 .ForMember(x => x.FullName, opt => opt.MapFrom(src => src.User.FullName))
                 .ForMember(x => x.RoleInTeam, opt => opt.MapFrom(src => src.RoleInTeam))
                 .ForMember(x => x.Email, opt => opt.MapFrom(src => src.User.Email));
+            CreateMap<User, MemberWithRoleInProjectResponseDTO>()
+                    .ForMember(dest => dest.Id, opt => opt.MapFrom(src => src.Id))
+                    .ReverseMap();
+
         }
         private void ProjectMappingProfile()
         {
@@ -87,7 +97,7 @@ namespace StartedIn.API.Configuration.AutoMapper
                         src.UserProjects.FirstOrDefault(up => up.RoleInTeam == RoleInTeam.Leader).User.FullName))
                 .ReverseMap();
         }
-        private void ContractMappingProfile() 
+        private void ContractMappingProfile()
         {
             CreateMap<Contract, ContractResponseDTO>();
             CreateMap<Contract, GroupContractDetailResponseDTO>()
@@ -104,11 +114,11 @@ namespace StartedIn.API.Configuration.AutoMapper
                     }).ToList()));
             CreateMap<Contract, InvestmentContractDetailResponseDTO>()
                 .ForMember(dest => dest.Disbursements, opt => opt.MapFrom(
-                    src => src.Disbursements.OrderBy(x=>x.StartDate)))
+                    src => src.Disbursements.OrderBy(x => x.StartDate)))
                 .ForMember(dest => dest.SharePercentage, opt => opt.MapFrom(
-                    src => src.ShareEquities.FirstOrDefault(x=>x.ContractId.Equals(src.Id)).Percentage))
+                    src => src.ShareEquities.FirstOrDefault(x => x.ContractId.Equals(src.Id)).Percentage))
                 .ForMember(dest => dest.BuyPrice, opt => opt.MapFrom(
-                    src => src.ShareEquities.FirstOrDefault(x=>x.ContractId.Equals(src.Id)).SharePrice))
+                    src => src.ShareEquities.FirstOrDefault(x => x.ContractId.Equals(src.Id)).SharePrice))
                 .ForMember(dest => dest.InvestorId, opt => opt.MapFrom(
                     src => src.UserContracts
                     .Where(uc => uc.ContractId == src.Id &&
