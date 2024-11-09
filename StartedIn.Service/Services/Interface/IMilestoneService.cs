@@ -14,5 +14,6 @@ namespace StartedIn.Service.Services.Interface
         Task<Milestone> CreateNewMilestone(string userId, string projectId, MilestoneCreateDTO milestoneCreateDto);
         Task<Milestone> GetMilestoneById(string userId, string projectId, string id);
         Task<Milestone> UpdateMilestoneInfo(string userId, string projectId, string id, MilestoneInfoUpdateDTO updateMilestoneInfoDTO);
+        Task<List<Milestone>> GetMilestoneListOfAProject(string projectId);
     }
 }

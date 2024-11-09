@@ -24,7 +24,7 @@ namespace StartedIn.Service.Services
         private readonly UserManager<User> _userManager;
         private readonly IMilestoneHistoryRepository _milestoneHistoryRepository;
         private readonly IProjectRepository _projectRepository;
-        private readonly IUserService _userService;
+        private readonly IUserService _userService;  
 
         public MilestoneService(
             IUnitOfWork unitOfWork,
@@ -140,6 +140,13 @@ namespace StartedIn.Service.Services
                 await _unitOfWork.RollbackAsync();
                 throw new Exception("Failed while update milestone");
             }
+        }
+
+        public async Task<List<Milestone>> GetMilestoneListOfAProject(string projectId)
+        {
+            var milestones = await _milestoneRepository.QueryHelper()
+                .Filter(m => m.ProjectId.Equals(projectId)).GetAllAsync();
+            return milestones.ToList();
         }
     }
 }
