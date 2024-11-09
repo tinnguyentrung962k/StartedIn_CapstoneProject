@@ -7,9 +7,9 @@ using System.Threading.Tasks;
 
 namespace StartedIn.CrossCutting.DTOs.RequestDTO.Tasks
 {
-    public class UpdateParentTaskDTO
+    public class UpdateTaskUnassignmentDTO
     {
         [Required]
-        public string ParentTaskId { get; set; }
+        public string AssigneeId { get; set; }
     }
 }

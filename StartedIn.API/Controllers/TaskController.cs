@@ -96,12 +96,12 @@ namespace StartedIn.API.Controllers
 
         [HttpGet("{taskId}")]
         [Authorize(Roles = RoleConstants.USER)]
-        public async Task<ActionResult<TaskResponseDTO>> GetTaskDetail([FromRoute] string projectId, [FromRoute] string taskId)
+        public async Task<ActionResult<TaskDetailDTO>> GetTaskDetail([FromRoute] string projectId, [FromRoute] string taskId)
         {
             try
             {
                 var userId = User.FindFirst(ClaimTypes.NameIdentifier).Value;
-                var responseTask = _mapper.Map<TaskResponseDTO>(await _taskService.GetTaskDetail(userId, taskId, projectId));
+                var responseTask = _mapper.Map<TaskDetailDTO>(await _taskService.GetTaskDetail(userId, taskId, projectId));
                 return Ok(responseTask);
             }
             catch (UnauthorizedProjectRoleException ex)

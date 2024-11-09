@@ -51,11 +51,13 @@ namespace StartedIn.Service.Services
         {
             var userInProject = await _userService.CheckIfUserInProject(userId, projectId);
 
-            var chosenTask = await _taskRepository.GetOneAsync(taskId);
-            if (chosenTask == null)
-            {
-                throw new NotFoundException(MessageConstant.NotFoundTaskError);
-            }
+            var chosenTask = await _taskRepository.GetTaskDetails(taskId) ?? throw new NotFoundException(MessageConstant.NotFoundTaskError);
+            var subTasks = await _taskRepository.QueryHelper().Filter(t => t.ParentTaskId == taskId).GetAllAsync();
+
+            chosenTask.SubTasks = (ICollection<TaskEntity>) subTasks;
+
+            //TODO: Get all comments, attachments 
+
             return chosenTask;
         }
 
@@ -96,9 +98,8 @@ namespace StartedIn.Service.Services
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Lỗi khi tạo công việc");
                 await _unitOfWork.RollbackAsync();
-                throw;
+                throw new Exception(MessageConstant.CreateFailed);
             }
         }
 
@@ -135,7 +136,7 @@ namespace StartedIn.Service.Services
             catch (Exception ex)
             {
                 await _unitOfWork.RollbackAsync();
-                throw new Exception("Failed while update task");
+                throw new Exception(MessageConstant.UpdateFailed);
             }
         }
 
@@ -185,7 +186,7 @@ namespace StartedIn.Service.Services
             catch (Exception ex)
             {
                 await _unitOfWork.RollbackAsync();
-                throw new Exception("Failed while update task status");
+                throw new Exception(MessageConstant.UpdateFailed);
             }
         }
 
@@ -209,7 +210,6 @@ namespace StartedIn.Service.Services
                 });
                 chosenTask.LastUpdatedBy = userInProject.User.FullName;
                 chosenTask.LastUpdatedTime = DateTimeOffset.UtcNow;
-                string message = $"{} abc";
                 TaskHistory history = new TaskHistory
                 {
                     Content = $"{userInProject.User.FullName} đã phân công {assigneeInProject.User.FullName} vào task {chosenTask.Id}",
@@ -224,7 +224,7 @@ namespace StartedIn.Service.Services
             catch (Exception ex)
             {
                 await _unitOfWork.RollbackAsync();
-                throw new Exception("Failed while update task assignment");
+                throw new Exception(MessageConstant.UpdateFailed);
             }
         }
 
@@ -263,7 +263,61 @@ namespace StartedIn.Service.Services
             catch (Exception ex)
             {
                 await _unitOfWork.RollbackAsync();
-                throw new Exception("Failed while update task milestone");
+                throw new Exception(MessageConstant.UpdateFailed);
+            }
+        }
+
+        public async Task<TaskEntity> UpdateParentTask(string userId, string taskId, string projectId, UpdateParentTaskDTO updateParentTaskDTO)
+        {
+            if (taskId == updateParentTaskDTO.ParentTaskId)
+            {
+                throw new AssignParentTaskException(MessageConstant.AssignParentTaskToSelfError);
+            }
+
+            var userInProject = await _userService.CheckIfUserInProject(userId, projectId);
+
+            var chosenTask = await _taskRepository.GetOneAsync(taskId);
+            if (chosenTask == null)
+            {
+                throw new NotFoundException(MessageConstant.NotFoundTaskError);
+            }
+
+            var parentTask = await _taskRepository.GetOneAsync(updateParentTaskDTO.ParentTaskId);
+            if (parentTask == null)
+            {
+                throw new NotFoundException(MessageConstant.NotFoundParentTaskError);
+            }
+
+            // Get List of SubTasks and Check if assign parent task to sub task
+            var subTasks = await _taskRepository.QueryHelper().Filter(t => t.ParentTaskId == taskId).GetAllAsync();
+            foreach (TaskEntity task in subTasks)
+            {
+                if (task.Id == updateParentTaskDTO.ParentTaskId)
+                {
+                    throw new AssignParentTaskException(MessageConstant.AssignParentTaskToSubTaskError);
+                }
+            }
+
+            try
+            {
+                chosenTask.ParentTaskId = updateParentTaskDTO.ParentTaskId;
+                chosenTask.LastUpdatedBy = userInProject.User.FullName;
+                chosenTask.LastUpdatedTime = DateTimeOffset.UtcNow;
+                TaskHistory history = new TaskHistory
+                {
+                    Content = $"{userInProject.User.FullName} đã gán task {chosenTask.Id} vào task cha {parentTask.Id}",
+                    CreatedBy = userInProject.User.FullName,
+                    TaskId = chosenTask.Id
+                };
+                var taskHistory = _taskHistoryRepository.Add(history);
+                _taskRepository.Update(chosenTask);
+                await _unitOfWork.SaveChangesAsync();
+                return chosenTask;
+            }
+            catch (Exception ex)
+            {
+                await _unitOfWork.RollbackAsync();
+                throw new Exception(MessageConstant.UpdateFailed);
             }
         }
     }
