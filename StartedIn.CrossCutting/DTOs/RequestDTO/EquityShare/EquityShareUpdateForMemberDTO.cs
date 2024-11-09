@@ -1,6 +1,6 @@
 ﻿namespace StartedIn.CrossCutting.DTOs.RequestDTO.EquityShare
 {
-    public class EquityShareUpdateForMember : EquityShareCreateForMemberDTO
+    public class EquityShareUpdateForMemberDTO : EquityShareCreateForMemberDTO
     {
     }
 }

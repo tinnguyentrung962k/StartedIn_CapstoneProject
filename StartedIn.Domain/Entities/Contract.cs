@@ -29,6 +29,7 @@ namespace StartedIn.Domain.Entities
         public string ContractPolicy { get; set; }
         public string ContractIdNumber { get; set; }
 
+        public DateTimeOffset? SignDeadline { get; set; }
         public DateOnly? ValidDate { get; set; }
         public DateOnly? ExpiredDate { get; set; }
         public Project Project { get; set; }

@@ -18,9 +18,11 @@ namespace StartedIn.Service.Services.Interface
         Task UpdateSignedStatusForUserInContract(string contractId, string projectId);
         Task<DocumentDownLoadResponseDTO> DownLoadFileContract(string userId, string projectId,string contractId);
         Task<SearchResponseDTO<ContractSearchResponseDTO>> SearchContractWithFilters(string userId, string projectId, ContractSearchDTO search, int pageIndex, int pageSize);
-        Task<Contract> UpdateInvestmentContract(string userId, string projectId, string contractId, InvestmentContractUpdateDTO investmentContractUpdateDTO);
         Task<Contract> CreateInvestmentContractFromDeal(string userId, string projectId, InvestmentContractFromDealCreateDTO investmentContractFromDealCreateDTO);
         Task<Contract> CreateStartupShareAllMemberContract(string userId, string projectId, GroupContractCreateDTO groupContractCreateDTO);
+        Task<Contract> UpdateStartupShareAllMemberContract(string userId, string projectId, string contractId, GroupContractUpdateDTO groupContractUpdateDTO);
+        Task<Contract> UpdateInvestmentContract(string userId, string projectId, string contractId, InvestmentContractUpdateDTO investmentContractUpdateDTO);
         Task<Contract> CancelContract(string userId, string projectId, string contractId);
+        Task CancelContractAfterDueDate();
     }
 }

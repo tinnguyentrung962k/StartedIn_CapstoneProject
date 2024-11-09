@@ -27,6 +27,7 @@ namespace StartedIn.API.Configuration.AutoMapper
             ProjectCharterMappingProfile();
             DealOfferMappingProfile();
             DisbursementMappingProfile();
+            ShareEquityMappingProfile();
         }
 
 
@@ -99,7 +100,9 @@ namespace StartedIn.API.Configuration.AutoMapper
         private void ContractMappingProfile()
         {
             CreateMap<Contract, ContractResponseDTO>();
-
+            CreateMap<Contract, GroupContractDetailResponseDTO>()
+                .ForMember(dest => dest.UserShareEquityInContract, opt => opt.MapFrom(
+                    src => src.ShareEquities));
             CreateMap<Contract, ContractSearchResponseDTO>()
                 .ForMember(dest => dest.Parties, opt => opt.MapFrom(
                     src => src.UserContracts.Select(uc => new UserInContractResponseDTO
@@ -120,6 +123,10 @@ namespace StartedIn.API.Configuration.AutoMapper
                     src => src.UserContracts
                     .Where(uc => uc.ContractId == src.Id &&
                      uc.Contract.ShareEquities.Any(se => se.ContractId == src.Id && se.StakeHolderType == RoleInTeam.Investor)).FirstOrDefault().UserId));
+        }
+        private void ShareEquityMappingProfile()
+        {
+            CreateMap<ShareEquity, UserShareEquityInContractResponseDTO>().ReverseMap();
         }
         private void ProjectCharterMappingProfile()
         {
