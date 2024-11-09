@@ -9,7 +9,6 @@ namespace StartedIn.CrossCutting.DTOs.RequestDTO.Tasks
 {
     public class UpdateParentTaskDTO
     {
-        [Required]
         public string ParentTaskId { get; set; }
     }
 }

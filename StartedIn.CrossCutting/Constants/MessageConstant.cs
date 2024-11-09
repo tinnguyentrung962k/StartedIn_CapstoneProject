@@ -22,6 +22,7 @@ namespace StartedIn.CrossCutting.Constants
         public const string NotFoundParentTaskError = "Không tìm thấy công việc mẹ.";
         public const string AssignParentTaskToSubTaskError = "Không thể gán công việc mẹ cho công việc con.";
         public const string AssignParentTaskToSelfError = "Không thể gán công việc mẹ cho chính nó.";
+        public const string NotFoundAssigneeError = "Không tìm thấy người được giao việc.";
         public const string CannotEditContractError = "Không thể sửa hợp đồng này.";
         public const string ContractNumberExistedError = "Mã hợp đồng này đã tồn tại trong dự án.";
         public const string JoinGroupWithLeaderRoleError = "Bạn không thể tham gia với vai trò nhóm trưởng.";
