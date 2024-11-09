@@ -96,7 +96,7 @@ namespace StartedIn.API.Controllers
         }
 
         [HttpPut("milestones/{milestoneId}")]
-        [Authorize(Roles = RoleConstants.USER + "," + RoleConstants.INVESTOR)]
+        [Authorize(Roles = RoleConstants.USER)]
         public async Task<ActionResult<MilestoneResponseDTO>> EditInfoMilestone([FromRoute] string milestoneId, [FromRoute] string projectId, [FromBody] MilestoneInfoUpdateDTO milestoneInfoUpdateDTO)
         {
             try

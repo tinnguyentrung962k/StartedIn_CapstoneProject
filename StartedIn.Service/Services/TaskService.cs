@@ -10,6 +10,7 @@ using StartedIn.CrossCutting.DTOs.RequestDTO.Tasks;
 using StartedIn.CrossCutting.DTOs.ResponseDTO;
 using AutoMapper;
 using StartedIn.CrossCutting.DTOs.ResponseDTO.Tasks;
+using StartedIn.CrossCutting.DTOs.BaseDTO;
 
 namespace StartedIn.Service.Services
 {
