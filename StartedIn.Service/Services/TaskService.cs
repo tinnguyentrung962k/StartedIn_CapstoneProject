@@ -158,7 +158,7 @@ namespace StartedIn.Service.Services
         public async Task<PaginationDTO<TaskResponseDTO>> FilterTask(string userId, string projectId, TaskFilterDTO taskFilterDto, int size, int page)
         {
             var userInProject = await _userService.CheckIfUserInProject(userId, projectId);
-            var filterTasks = _taskRepository.QueryHelper().Filter(t => t.ProjectId.Equals(projectId));
+            var filterTasks = _taskRepository.QueryHelper().Include(t => t.UserTasks).Filter(t => t.ProjectId.Equals(projectId));
             
             if (!string.IsNullOrWhiteSpace(taskFilterDto.Title))
             {
@@ -173,6 +173,16 @@ namespace StartedIn.Service.Services
             if (taskFilterDto.IsLate.HasValue)
             {
                 filterTasks = filterTasks.Filter(t => t.IsLate == taskFilterDto.IsLate.Value);
+            }
+
+            if (!string.IsNullOrWhiteSpace(taskFilterDto.AssigneeId))
+            {
+                filterTasks.Filter(t => t.UserTasks.Any(ut => ut.UserId.Equals(taskFilterDto.AssigneeId)));
+            }
+
+            if (!string.IsNullOrWhiteSpace(taskFilterDto.MilestoneId))
+            {
+                filterTasks.Filter(t => t.MilestoneId.Equals(taskFilterDto.MilestoneId));
             }
             
             var pagination = new PaginationDTO<TaskResponseDTO>()
