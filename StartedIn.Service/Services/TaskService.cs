@@ -159,32 +159,34 @@ namespace StartedIn.Service.Services
         {
             var userInProject = await _userService.CheckIfUserInProject(userId, projectId);
             var filterTasks = _taskRepository.QueryHelper().Include(t => t.UserTasks).Filter(t => t.ProjectId.Equals(projectId));
-            
+
             if (!string.IsNullOrWhiteSpace(taskFilterDto.Title))
             {
-                filterTasks = filterTasks.Filter(t => t.Title.ToLower().Contains(taskFilterDto.Title.ToLower()));
+                filterTasks = filterTasks.Filter(t => t.Title != null &&
+                                                     t.Title.ToLower().Contains(taskFilterDto.Title.ToLower()));
             }
 
-            if (taskFilterDto.Status.HasValue)
+            if (taskFilterDto.Status != null)
             {
                 filterTasks = filterTasks.Filter(t => t.Status == taskFilterDto.Status.Value);
             }
 
-            if (taskFilterDto.IsLate.HasValue)
+            if (taskFilterDto.IsLate != null)
             {
                 filterTasks = filterTasks.Filter(t => t.IsLate == taskFilterDto.IsLate.Value);
             }
 
             if (!string.IsNullOrWhiteSpace(taskFilterDto.AssigneeId))
             {
-                filterTasks.Filter(t => t.UserTasks.Any(ut => ut.UserId.Equals(taskFilterDto.AssigneeId)));
+                filterTasks = filterTasks.Filter(t => t.UserTasks.Any(ut => ut.UserId == taskFilterDto.AssigneeId));
             }
 
             if (!string.IsNullOrWhiteSpace(taskFilterDto.MilestoneId))
             {
-                filterTasks.Filter(t => t.MilestoneId.Equals(taskFilterDto.MilestoneId));
+                filterTasks = filterTasks.Filter(t => t.MilestoneId == taskFilterDto.MilestoneId);
             }
-            
+
+
             var pagination = new PaginationDTO<TaskResponseDTO>()
             {
                 Data = _mapper.Map<IEnumerable<TaskResponseDTO>>(await filterTasks.GetPagingAsync(page, size)),
