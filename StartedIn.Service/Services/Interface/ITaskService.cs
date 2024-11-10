@@ -22,5 +22,6 @@ namespace StartedIn.Service.Services.Interface
         Task<TaskEntity> UpdateParentTask(string userId, string taskId, string projectId, UpdateParentTaskDTO updateParentTaskDTO);
         Task<TaskEntity> GetTaskDetail(string userId, string taskId, string projectId);
         Task<PaginationDTO<TaskResponseDTO>> GetAllTask(string userId, string projectId, int size, int page);
+        Task DeleteTask(string userId, string taskId, string projectId);
     }
 }

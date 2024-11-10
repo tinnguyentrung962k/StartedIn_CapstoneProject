@@ -23,6 +23,7 @@ namespace StartedIn.CrossCutting.Constants
         public const string AssignParentTaskToSubTaskError = "Không thể gán công việc mẹ cho công việc con.";
         public const string AssignParentTaskToSelfError = "Không thể gán công việc mẹ cho chính nó.";
         public const string NotFoundAssigneeError = "Không tìm thấy người được giao việc.";
+        public const string AssigneeRoleError = "Người được giao việc không hợp lệ.";
         public const string CannotEditContractError = "Không thể sửa hợp đồng này.";
         public const string ContractNumberExistedError = "Mã hợp đồng này đã tồn tại trong dự án.";
         public const string JoinGroupWithLeaderRoleError = "Bạn không thể tham gia với vai trò nhóm trưởng.";
@@ -33,6 +34,7 @@ namespace StartedIn.CrossCutting.Constants
         public const string NotFoundInvestorError = "Không tìm thấy nhà đầu tư.";
         public const string UpdateFailed = "Cập nhật thất bại.";
         public const string CreateFailed = "Tạo dữ liệu mới thất bại.";
+        public const string DeleteFailed = "Xoá dữ liệu thất bại.";
         public const string UserExistedInProject = "Người dùng đã tồn tại trong dự án.";
         public const string NotFoundDealError = "Không tìm thấy yêu cầu thương lượng.";
         public const string DealNotBelongToProjectError = "Yêu cầu thương lượng này không thuộc vào dự án.";

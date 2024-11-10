@@ -285,11 +285,12 @@ namespace StartedIn.API.Controllers
 
         [HttpDelete("{taskId}")]
         [Authorize(Roles = RoleConstants.USER)]
-        public async Task<ActionResult> DeleteTask([FromRoute] string taskId)
+        public async Task<ActionResult> DeleteTask([FromRoute] string taskId, [FromRoute] string projectId)
         {
             try
             {
                 var userId = User.FindFirst(ClaimTypes.NameIdentifier).Value;
+                await _taskService.DeleteTask(userId, taskId, projectId);
                 return Ok();
             }
             catch (UnauthorizedProjectRoleException ex)

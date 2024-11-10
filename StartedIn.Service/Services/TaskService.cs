@@ -20,8 +20,6 @@ namespace StartedIn.Service.Services
         private readonly ITaskRepository _taskRepository;
         private readonly ILogger<TaskEntity> _logger;
         private readonly ITaskHistoryRepository _taskHistoryRepository;
-        private readonly UserManager<User> _userManager;
-        private readonly IProjectRepository _projectRepository;
         private readonly IMilestoneRepository _milestoneRepository;
         private readonly IUserService _userService;
         private readonly IMapper _mapper;
@@ -42,8 +40,6 @@ namespace StartedIn.Service.Services
             _taskRepository = taskRepository;
             _logger = logger;
             _taskHistoryRepository = taskHistoryRepository;
-            _userManager = userManager;
-            _projectRepository = projectRepository;
             _milestoneRepository = milestoneRepository;
             _userService = userService;
             _mapper = mapper;
@@ -199,6 +195,12 @@ namespace StartedIn.Service.Services
             var userInProject = await _userService.CheckIfUserInProject(userId, projectId);
             var assigneeInProject = await _userService.CheckIfUserInProject(updateTaskAssignmentDTO.AssigneeId, projectId);
 
+            // If role in team is INVESTOR or ADMIN or MENTOR throw exception
+            if (assigneeInProject.RoleInTeam == RoleInTeam.Investor ||  assigneeInProject.RoleInTeam == RoleInTeam.Mentor)
+            {
+                throw new InvalidAssignRoleException(MessageConstant.AssigneeRoleError);
+            }
+
             var chosenTask = await _taskRepository.QueryHelper().Include(t => t.UserTasks).Filter(t => t.Id == taskId).GetOneAsync();
             if (chosenTask == null)
             {
@@ -239,6 +241,12 @@ namespace StartedIn.Service.Services
         {
             var userInProject = await _userService.CheckIfUserInProject(userId, projectId);
             var assigneeInProject = await _userService.CheckIfUserInProject(updateTaskAssignmentDTO.AssigneeId, projectId);
+
+            // If role in team is INVESTOR or ADMIN or MENTOR throw exception
+            if (assigneeInProject.RoleInTeam == RoleInTeam.Investor || assigneeInProject.RoleInTeam == RoleInTeam.Mentor)
+            {
+                throw new InvalidAssignRoleException(MessageConstant.AssigneeRoleError);
+            }
 
             var chosenTask = await _taskRepository.QueryHelper().Include(t => t.UserTasks).Filter(t => t.Id == taskId).GetOneAsync();
             if (chosenTask == null)
@@ -391,6 +399,28 @@ namespace StartedIn.Service.Services
             {
                 await _unitOfWork.RollbackAsync();
                 throw new Exception(MessageConstant.UpdateFailed);
+            }
+        }
+
+        public async Task DeleteTask(string userId, string taskId, string projectId)
+        {
+            var userInProject = await _userService.CheckIfUserInProject(userId, projectId);
+
+            var chosenTask = await _taskRepository.GetOneAsync(taskId);
+            if (chosenTask == null)
+            {
+                throw new NotFoundException(MessageConstant.NotFoundTaskError);
+            }
+
+            try
+            {
+                await _taskRepository.DeleteByIdAsync(taskId);
+                await _unitOfWork.SaveChangesAsync();
+            }
+            catch (Exception ex)
+            {
+                await _unitOfWork.RollbackAsync();
+                throw new Exception(MessageConstant.DeleteFailed);
             }
         }
     }
