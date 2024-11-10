@@ -78,15 +78,17 @@ namespace StartedIn.API.Controllers
 
         [HttpGet("catalog")]
         [Authorize(Roles = RoleConstants.USER)]
-        public async Task<ActionResult<IEnumerable<TaskResponseDTO>>> getTaskCatalog(
+        public async Task<ActionResult<PaginationDTO<TaskResponseDTO>>> getTaskCatalog(
             [FromRoute] string projectId,
-            [FromQuery] string? title,
-            [FromQuery] TaskEntityStatus? status = null,
-            [FromQuery] bool? isLate = false)
+            [FromQuery] TaskFilterDTO taskFilterDto,
+            [FromQuery] int page = 1,
+            [FromQuery] int size = 20)
         {
             try
             {
-                return BadRequest();
+                var userId = User.FindFirst(ClaimTypes.NameIdentifier).Value;
+                var taskPagination = await _taskService.FilterTask(userId, projectId, taskFilterDto, size, page);
+                return Ok(taskPagination);
             }
             catch (Exception ex)
             {

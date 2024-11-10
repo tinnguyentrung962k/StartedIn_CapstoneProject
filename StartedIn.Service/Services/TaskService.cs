@@ -155,6 +155,47 @@ namespace StartedIn.Service.Services
             return pagination;
         }
 
+        public async Task<PaginationDTO<TaskResponseDTO>> FilterTask(string userId, string projectId, TaskFilterDTO taskFilterDto, int size, int page)
+        {
+            var userInProject = await _userService.CheckIfUserInProject(userId, projectId);
+            var filterTasks = _taskRepository.QueryHelper().Include(t => t.UserTasks).Filter(t => t.ProjectId.Equals(projectId));
+            
+            if (!string.IsNullOrWhiteSpace(taskFilterDto.Title))
+            {
+                filterTasks = filterTasks.Filter(t => t.Title.ToLower().Contains(taskFilterDto.Title.ToLower()));
+            }
+
+            if (taskFilterDto.Status.HasValue)
+            {
+                filterTasks = filterTasks.Filter(t => t.Status == taskFilterDto.Status.Value);
+            }
+
+            if (taskFilterDto.IsLate.HasValue)
+            {
+                filterTasks = filterTasks.Filter(t => t.IsLate == taskFilterDto.IsLate.Value);
+            }
+
+            if (!string.IsNullOrWhiteSpace(taskFilterDto.AssigneeId))
+            {
+                filterTasks.Filter(t => t.UserTasks.Any(ut => ut.UserId.Equals(taskFilterDto.AssigneeId)));
+            }
+
+            if (!string.IsNullOrWhiteSpace(taskFilterDto.MilestoneId))
+            {
+                filterTasks.Filter(t => t.MilestoneId.Equals(taskFilterDto.MilestoneId));
+            }
+            
+            var pagination = new PaginationDTO<TaskResponseDTO>()
+            {
+                Data = _mapper.Map<IEnumerable<TaskResponseDTO>>(await filterTasks.GetPagingAsync(page, size)),
+                Total = await filterTasks.GetTotal(),
+                Page = page,
+                Size = size
+            };
+
+            return pagination;
+        }
+
         public async Task<TaskEntity> UpdateTaskStatus(string userId, string taskId, string projectId, UpdateTaskStatusDTO updateTaskStatusDTO)
         {
             var userInProject = await _userService.CheckIfUserInProject(userId, projectId);
