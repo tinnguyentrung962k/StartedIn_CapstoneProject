@@ -20,8 +20,6 @@ namespace StartedIn.Service.Services
         private readonly ITaskRepository _taskRepository;
         private readonly ILogger<TaskEntity> _logger;
         private readonly ITaskHistoryRepository _taskHistoryRepository;
-        private readonly UserManager<User> _userManager;
-        private readonly IProjectRepository _projectRepository;
         private readonly IMilestoneRepository _milestoneRepository;
         private readonly IUserService _userService;
         private readonly IMapper _mapper;
@@ -42,8 +40,6 @@ namespace StartedIn.Service.Services
             _taskRepository = taskRepository;
             _logger = logger;
             _taskHistoryRepository = taskHistoryRepository;
-            _userManager = userManager;
-            _projectRepository = projectRepository;
             _milestoneRepository = milestoneRepository;
             _userService = userService;
             _mapper = mapper;
@@ -92,7 +88,7 @@ namespace StartedIn.Service.Services
                     CreatedBy = userInProject.User.FullName,
                     TaskId = task.Id
                 };
-                var taskHistory = _taskHistoryRepository.Add(history);
+                _taskHistoryRepository.Add(history);
                 await _unitOfWork.SaveChangesAsync();
                 await _unitOfWork.CommitAsync();
                 return taskEntity;
@@ -117,6 +113,7 @@ namespace StartedIn.Service.Services
 
             try
             {
+                _unitOfWork.BeginTransaction();
                 chosenTask.Title = updateTaskInfoDTO.Title;
                 chosenTask.Description = updateTaskInfoDTO.Description;
                 chosenTask.Deadline = updateTaskInfoDTO.Deadline;
@@ -128,10 +125,10 @@ namespace StartedIn.Service.Services
                     CreatedBy = userInProject.User.FullName,
                     TaskId = chosenTask.Id
                 };
-                var taskHistory = _taskHistoryRepository.Add(history);
-
+                _taskHistoryRepository.Add(history);
                 _taskRepository.Update(chosenTask);
                 await _unitOfWork.SaveChangesAsync();
+                await _unitOfWork.CommitAsync();
                 return chosenTask;
             }
             catch (Exception ex)
@@ -158,6 +155,47 @@ namespace StartedIn.Service.Services
             return pagination;
         }
 
+        public async Task<PaginationDTO<TaskResponseDTO>> FilterTask(string userId, string projectId, TaskFilterDTO taskFilterDto, int size, int page)
+        {
+            var userInProject = await _userService.CheckIfUserInProject(userId, projectId);
+            var filterTasks = _taskRepository.QueryHelper().Include(t => t.UserTasks).Filter(t => t.ProjectId.Equals(projectId));
+            
+            if (!string.IsNullOrWhiteSpace(taskFilterDto.Title))
+            {
+                filterTasks = filterTasks.Filter(t => t.Title.ToLower().Contains(taskFilterDto.Title.ToLower()));
+            }
+
+            if (taskFilterDto.Status.HasValue)
+            {
+                filterTasks = filterTasks.Filter(t => t.Status == taskFilterDto.Status.Value);
+            }
+
+            if (taskFilterDto.IsLate.HasValue)
+            {
+                filterTasks = filterTasks.Filter(t => t.IsLate == taskFilterDto.IsLate.Value);
+            }
+
+            if (!string.IsNullOrWhiteSpace(taskFilterDto.AssigneeId))
+            {
+                filterTasks.Filter(t => t.UserTasks.Any(ut => ut.UserId.Equals(taskFilterDto.AssigneeId)));
+            }
+
+            if (!string.IsNullOrWhiteSpace(taskFilterDto.MilestoneId))
+            {
+                filterTasks.Filter(t => t.MilestoneId.Equals(taskFilterDto.MilestoneId));
+            }
+            
+            var pagination = new PaginationDTO<TaskResponseDTO>()
+            {
+                Data = _mapper.Map<IEnumerable<TaskResponseDTO>>(await filterTasks.GetPagingAsync(page, size)),
+                Total = await filterTasks.GetTotal(),
+                Page = page,
+                Size = size
+            };
+
+            return pagination;
+        }
+
         public async Task<TaskEntity> UpdateTaskStatus(string userId, string taskId, string projectId, UpdateTaskStatusDTO updateTaskStatusDTO)
         {
             var userInProject = await _userService.CheckIfUserInProject(userId, projectId);
@@ -170,6 +208,7 @@ namespace StartedIn.Service.Services
 
             try
             {
+                _unitOfWork.BeginTransaction();
                 chosenTask.Status = updateTaskStatusDTO.Status;
                 chosenTask.LastUpdatedBy = userInProject.User.FullName;
                 chosenTask.LastUpdatedTime = DateTimeOffset.UtcNow;
@@ -179,9 +218,10 @@ namespace StartedIn.Service.Services
                     CreatedBy = userInProject.User.FullName,
                     TaskId = chosenTask.Id
                 };
-                var taskHistory = _taskHistoryRepository.Add(history);
+                _taskHistoryRepository.Add(history);
                 _taskRepository.Update(chosenTask);
                 await _unitOfWork.SaveChangesAsync();
+                await _unitOfWork.CommitAsync();
                 return chosenTask;
             }
             catch (Exception ex)
@@ -196,6 +236,12 @@ namespace StartedIn.Service.Services
             var userInProject = await _userService.CheckIfUserInProject(userId, projectId);
             var assigneeInProject = await _userService.CheckIfUserInProject(updateTaskAssignmentDTO.AssigneeId, projectId);
 
+            // If role in team is INVESTOR or ADMIN or MENTOR throw exception
+            if (assigneeInProject.RoleInTeam == RoleInTeam.Investor ||  assigneeInProject.RoleInTeam == RoleInTeam.Mentor)
+            {
+                throw new InvalidAssignRoleException(MessageConstant.AssigneeRoleError);
+            }
+
             var chosenTask = await _taskRepository.QueryHelper().Include(t => t.UserTasks).Filter(t => t.Id == taskId).GetOneAsync();
             if (chosenTask == null)
             {
@@ -204,6 +250,7 @@ namespace StartedIn.Service.Services
 
             try
             {
+                _unitOfWork.BeginTransaction();
                 chosenTask.UserTasks.Add(new UserTask
                 {
                     UserId = updateTaskAssignmentDTO.AssigneeId,
@@ -217,9 +264,58 @@ namespace StartedIn.Service.Services
                     CreatedBy = userInProject.User.FullName,
                     TaskId = chosenTask.Id
                 };
-                var taskHistory = _taskHistoryRepository.Add(history);
+                _taskHistoryRepository.Add(history);
                 _taskRepository.Update(chosenTask);
                 await _unitOfWork.SaveChangesAsync();
+                await _unitOfWork.CommitAsync();
+                return chosenTask;
+            }
+            catch (Exception ex)
+            {
+                await _unitOfWork.RollbackAsync();
+                throw new Exception(MessageConstant.UpdateFailed);
+            }
+        }
+
+        public async Task<TaskEntity> UpdateTaskUnassignment(string userId, string taskId, 
+            string projectId, UpdateTaskAssignmentDTO updateTaskAssignmentDTO)
+        {
+            var userInProject = await _userService.CheckIfUserInProject(userId, projectId);
+            var assigneeInProject = await _userService.CheckIfUserInProject(updateTaskAssignmentDTO.AssigneeId, projectId);
+
+            // If role in team is INVESTOR or ADMIN or MENTOR throw exception
+            if (assigneeInProject.RoleInTeam == RoleInTeam.Investor || assigneeInProject.RoleInTeam == RoleInTeam.Mentor)
+            {
+                throw new InvalidAssignRoleException(MessageConstant.AssigneeRoleError);
+            }
+
+            var chosenTask = await _taskRepository.QueryHelper().Include(t => t.UserTasks).Filter(t => t.Id == taskId).GetOneAsync();
+            if (chosenTask == null)
+            {
+                throw new NotFoundException(MessageConstant.NotFoundTaskError);
+            }
+
+            try
+            {
+                _unitOfWork.BeginTransaction();
+                var userTask = chosenTask.UserTasks.FirstOrDefault(ut => ut.UserId == updateTaskAssignmentDTO.AssigneeId && ut.TaskId == taskId);
+                if (userTask == null)
+                {
+                    throw new NotFoundException(MessageConstant.NotFoundAssigneeError);
+                }
+                chosenTask.UserTasks.Remove(userTask);
+                chosenTask.LastUpdatedBy = userInProject.User.FullName;
+                chosenTask.LastUpdatedTime = DateTimeOffset.UtcNow;
+                TaskHistory history = new TaskHistory
+                {
+                    Content = $"{userInProject.User.FullName} đã hủy phân công {assigneeInProject.User.FullName} khỏi task {chosenTask.Id}",
+                    CreatedBy = userInProject.User.FullName,
+                    TaskId = chosenTask.Id
+                };
+                _taskHistoryRepository.Add(history);
+                _taskRepository.Update(chosenTask);
+                await _unitOfWork.SaveChangesAsync();
+                await _unitOfWork.CommitAsync();
                 return chosenTask;
             }
             catch (Exception ex)
@@ -247,6 +343,7 @@ namespace StartedIn.Service.Services
 
             try
             {
+                _unitOfWork.BeginTransaction();
                 chosenTask.MilestoneId = updateTaskMilestoneDTO.MilestoneId;
                 chosenTask.LastUpdatedBy = userInProject.User.FullName;
                 chosenTask.LastUpdatedTime = DateTimeOffset.UtcNow;
@@ -259,6 +356,7 @@ namespace StartedIn.Service.Services
                 var taskHistory = _taskHistoryRepository.Add(history);
                 _taskRepository.Update(chosenTask);
                 await _unitOfWork.SaveChangesAsync();
+                await _unitOfWork.CommitAsync();
                 return chosenTask;
             }
             catch (Exception ex)
@@ -283,6 +381,27 @@ namespace StartedIn.Service.Services
                 throw new NotFoundException(MessageConstant.NotFoundTaskError);
             }
 
+            // If parent task id is empty, remove parent task
+            if (string.IsNullOrEmpty(updateParentTaskDTO.ParentTaskId))
+            {
+                _unitOfWork.BeginTransaction();
+                chosenTask.ParentTaskId = null;
+                chosenTask.LastUpdatedBy = userInProject.User.FullName;
+                chosenTask.LastUpdatedTime = DateTimeOffset.UtcNow;
+                TaskHistory history = new TaskHistory
+                {
+                    Content = $"{userInProject.User.FullName} đã hủy gán task {chosenTask.Id} vào task cha",
+                    CreatedBy = userInProject.User.FullName,
+                    TaskId = chosenTask.Id
+                };
+                var taskHistory = _taskHistoryRepository.Add(history);
+                _taskRepository.Update(chosenTask);
+                await _unitOfWork.SaveChangesAsync();
+                await _unitOfWork.CommitAsync();
+                return chosenTask;
+            }
+
+            // Only continue when update parent task id exists
             var parentTask = await _taskRepository.GetOneAsync(updateParentTaskDTO.ParentTaskId);
             if (parentTask == null)
             {
@@ -301,6 +420,7 @@ namespace StartedIn.Service.Services
 
             try
             {
+                _unitOfWork.BeginTransaction();
                 chosenTask.ParentTaskId = updateParentTaskDTO.ParentTaskId;
                 chosenTask.LastUpdatedBy = userInProject.User.FullName;
                 chosenTask.LastUpdatedTime = DateTimeOffset.UtcNow;
@@ -313,12 +433,35 @@ namespace StartedIn.Service.Services
                 var taskHistory = _taskHistoryRepository.Add(history);
                 _taskRepository.Update(chosenTask);
                 await _unitOfWork.SaveChangesAsync();
+                await _unitOfWork.CommitAsync();
                 return chosenTask;
             }
             catch (Exception ex)
             {
                 await _unitOfWork.RollbackAsync();
                 throw new Exception(MessageConstant.UpdateFailed);
+            }
+        }
+
+        public async Task DeleteTask(string userId, string taskId, string projectId)
+        {
+            var userInProject = await _userService.CheckIfUserInProject(userId, projectId);
+
+            var chosenTask = await _taskRepository.GetOneAsync(taskId);
+            if (chosenTask == null)
+            {
+                throw new NotFoundException(MessageConstant.NotFoundTaskError);
+            }
+
+            try
+            {
+                await _taskRepository.DeleteByIdAsync(taskId);
+                await _unitOfWork.SaveChangesAsync();
+            }
+            catch (Exception ex)
+            {
+                await _unitOfWork.RollbackAsync();
+                throw new Exception(MessageConstant.DeleteFailed);
             }
         }
     }
