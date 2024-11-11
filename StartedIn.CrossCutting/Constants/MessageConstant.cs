@@ -48,5 +48,11 @@ namespace StartedIn.CrossCutting.Constants
         public const string ValidShareDistributionContractExisted = "Hợp đồng chia cổ phần hợp lệ của dự án đã tồn tại.";
         public const string CannotCancelContractError = "Bạn không thể huỷ hợp đồng này.";
         public const string CannotInviteToSign = "Tài liệu này không thể được mời ký.";
+        public const string NullOrWhiteSpaceProjectName = "Tên dự án không được để trống";
+        public const string NullOrWhiteSpaceDescription = "Mô tả dự án không được để trống";
+        public const string NullOrEmptyLogoFile = "Logo dự án không được để trống";
+        public const string NullOrEmptyStartDate = "Ngày bắt đầu dự án không được để trống";
+        public const string NegativeNumberError = "Vui lòng không nhập số âm";
+
     }
 }

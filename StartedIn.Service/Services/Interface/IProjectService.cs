@@ -9,7 +9,7 @@ namespace StartedIn.Service.Services.Interface;
 
 public interface IProjectService 
 {
-    Task CreateNewProject(string userId, Project project, IFormFile avatar);
+    Task<Project> CreateNewProject(string userId, ProjectCreateDTO projectCreateDTO);
     Task<Project> GetProjectById(string id);
     Task SendJoinProjectInvitation(string userId, List<ProjectInviteEmailAndRoleDTO> inviteUsers, string projectId);
     Task AddUserToProject(string projectId, string userId, RoleInTeam roleInTeam);
