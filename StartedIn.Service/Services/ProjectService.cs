@@ -35,7 +35,7 @@ public class ProjectService : IProjectService
         _userRepository = userRepository;
         _azureBlobService = azureBlobService;
     }
-    public async Task CreateNewProject(string userId, Project project, IFormFile avatar)
+    public async Task<Project> CreateNewProject(string userId, ProjectCreateDTO projectCreateDTO)
     {
         var user = await _userManager.FindByIdAsync(userId);
         var createdProject = await _projectRepository
@@ -47,17 +47,41 @@ public class ProjectService : IProjectService
         {
             throw new ExistedRecordException(MessageConstant.CreateMoreProjectError);
         }
+        if (string.IsNullOrWhiteSpace(projectCreateDTO.ProjectName))
+        {
+            throw new InvalidDataException(MessageConstant.NullOrWhiteSpaceProjectName);
+        }
+        if (string.IsNullOrWhiteSpace(projectCreateDTO.Description))
+        {
+            throw new InvalidDataException(MessageConstant.NullOrWhiteSpaceDescription);
+        }
+        if (projectCreateDTO.LogoFile == null)
+        {
+            throw new InvalidDataException(MessageConstant.NullOrEmptyLogoFile);
+        }
+        if (projectCreateDTO.StartDate == null)
+        {
+            throw new InvalidDataException(MessageConstant.NullOrEmptyStartDate);
+        }
         try {
             _unitOfWork.BeginTransaction();
-            
-            project.ProjectStatus = ProjectStatusEnum.CONSTRUCTING;
-            var imgUrl = await _azureBlobService.UploadAvatarOrCover(avatar);
-            project.LogoUrl = imgUrl;
-            project.CreatedBy = user.FullName;
-            var projectEntity = _projectRepository.Add(project);
-            await _userRepository.AddUserToProject(userId, project.Id, RoleInTeam.Leader);
+            var imgUrl = await _azureBlobService.UploadAvatarOrCover(projectCreateDTO.LogoFile);
+            var newProject = new Project
+            {
+                ProjectName = projectCreateDTO.ProjectName,
+                Description = projectCreateDTO.Description,
+                LogoUrl = imgUrl,
+                ProjectStatus = ProjectStatusEnum.CONSTRUCTING,
+                TotalShares = projectCreateDTO.TotalShares,
+                EndDate = projectCreateDTO.EndDate,
+                StartDate = projectCreateDTO.StartDate,
+                CompanyIdNumber = projectCreateDTO.CompanyIdNumer
+            };
+            var projectEntity = _projectRepository.Add(newProject);
+            await _userRepository.AddUserToProject(userId, projectEntity.Id, RoleInTeam.Leader);
             await _unitOfWork.SaveChangesAsync();
             await _unitOfWork.CommitAsync();
+            return projectEntity;
         }
         catch (Exception ex) 
         {
