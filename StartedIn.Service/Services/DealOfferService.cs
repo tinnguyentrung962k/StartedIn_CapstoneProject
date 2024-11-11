@@ -253,5 +253,23 @@ namespace StartedIn.Service.Services
             var list = await _dealOfferRepository.Get(deal => deal.Id == id, null, "Investor");
             return list.FirstOrDefault() ?? throw new NotFoundException(MessageConstant.NotFoundDealError);
         }
+        public async Task<DealOffer> GetDealOfferForInvestorById(string userId, string id)
+        {
+            var user = await _userManager.FindByIdAsync(userId);
+            if (user == null)
+            {
+                throw new NotFoundException(MessageConstant.NotFoundUserError);
+            }
+            var deal = await _dealOfferRepository.GetDealOfferById(id);
+            if (deal is null)
+            {
+                throw new NotFoundException(MessageConstant.NotFoundDealError);
+            }
+            if (deal.InvestorId != userId)
+            {
+                throw new Exception(MessageConstant.NotFoundDealError);
+            }
+            return deal;
+        }
     }
 }

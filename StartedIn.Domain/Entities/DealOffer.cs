@@ -10,7 +10,7 @@ using System.Threading.Tasks;
 
 namespace StartedIn.Domain.Entities
 {
-    public class DealOffer : BaseEntity<string>
+    public class DealOffer : BaseAuditEntity<string>
     {
         [ForeignKey(nameof(Project))]
         public string ProjectId { get; set; }

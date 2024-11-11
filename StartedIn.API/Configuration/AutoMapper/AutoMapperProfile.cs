@@ -96,6 +96,8 @@ namespace StartedIn.API.Configuration.AutoMapper
                     opt => opt.MapFrom(src =>
                         src.UserProjects.FirstOrDefault(up => up.RoleInTeam == RoleInTeam.Leader).User.FullName))
                 .ReverseMap();
+            CreateMap<UserProject, UserRoleInATeamResponseDTO>()
+                .ForMember(dest => dest.RoleInTeam, opt => opt.MapFrom(src => src.RoleInTeam));
         }
         private void ContractMappingProfile()
         {
@@ -142,6 +144,13 @@ namespace StartedIn.API.Configuration.AutoMapper
                 .ForMember(dr => dr.EquityShareOffer, opt => opt.MapFrom(de => de.EquityShareOffer.ToString()))
                 .ForMember(dr => dr.Amount, opt => opt.MapFrom(de => de.Amount.ToString()))
                 .ReverseMap();
+            CreateMap<DealOffer, DealOfferForInvestorResponseDTO>()
+                .ForMember(dr => dr.ProjectName, opt => opt.MapFrom(de => de.Project.ProjectName))
+                .ForMember(dr => dr.ProjectId, opt => opt.MapFrom(de => de.ProjectId))
+                .ForMember(dr => dr.LeaderId, opt => opt.MapFrom(de => de.Project.UserProjects.FirstOrDefault(x => x.RoleInTeam == RoleInTeam.Leader).UserId))
+                .ForMember(dr => dr.LeaderName, opt => opt.MapFrom(de => de.Project.UserProjects.FirstOrDefault(x => x.RoleInTeam == RoleInTeam.Leader).User.FullName))
+                .ForMember(dr => dr.Amount, opt => opt.MapFrom(de => de.Amount.ToString()))
+                .ForMember(dr => dr.EquityShareOffer, opt => opt.MapFrom(de => de.EquityShareOffer.ToString()));
         }
         private void DisbursementMappingProfile()
         {

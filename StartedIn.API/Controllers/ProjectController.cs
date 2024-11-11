@@ -24,12 +24,14 @@ public class ProjectController : ControllerBase
     private readonly IMapper _mapper;
     private readonly ILogger<ProjectController> _logger;
     private readonly IProjectService _projectService;
+    private readonly IUserService _userService;
 
-    public ProjectController(IProjectService projectService, IMapper mapper, ILogger<ProjectController> logger)
+    public ProjectController(IProjectService projectService, IMapper mapper, ILogger<ProjectController> logger, IUserService userService)
     {
         _projectService = projectService;
         _mapper = mapper;
         _logger = logger;
+        _userService = userService;
     }
 
     [HttpGet]
@@ -119,7 +121,7 @@ public class ProjectController : ControllerBase
         }
         catch (Exception ex)
         {
-            return StatusCode(500, MessageConstant.InternalServerError); 
+            return StatusCode(500, MessageConstant.InternalServerError);
         }
     }
     [HttpPost("{projectId}/add-user/{userId}/{roleInTeam}")]
@@ -188,7 +190,7 @@ public class ProjectController : ControllerBase
             return StatusCode(500, MessageConstant.InternalServerError);
         }
     }
-    
+
     [HttpGet("{projectId}/parties")]
     [Authorize(Roles = RoleConstants.USER + "," + RoleConstants.INVESTOR)]
     public async Task<ActionResult<UserInContractResponseDTO>> GetListUsersRelevantToContractInAProject([FromRoute] string projectId)
@@ -225,6 +227,30 @@ public class ProjectController : ControllerBase
         {
             return StatusCode(500, ex.Message);
         }
-            
+
+    }
+    [HttpGet("{projectId}/current-role")]
+    [Authorize]
+    public async Task<ActionResult<UserRoleInATeamResponseDTO>> GetRoleInTeamInChosenProjectOfACurrentUser([FromRoute] string projectId)
+    {
+        try
+        {
+            var userId = User.FindFirst(ClaimTypes.NameIdentifier).Value;
+            var userInProject = await _userService.CheckIfUserInProject(userId, projectId);
+            var roleInTeam = _mapper.Map<UserRoleInATeamResponseDTO>(userInProject);
+            return Ok(roleInTeam);
+        }
+        catch (NotFoundException ex)
+        {
+            return BadRequest(ex.Message);
+        }
+        catch (UnauthorizedProjectRoleException ex)
+        {
+            return BadRequest(ex.Message);
+        }
+        catch (Exception ex)
+        {
+            return StatusCode(500, ex.Message);
+        }
     }
 }

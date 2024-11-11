@@ -11,6 +11,7 @@ using StartedIn.CrossCutting.Exceptions;
 using StartedIn.Service.Services.Interface;
 using System.Security.Claims;
 using StartedIn.API.Attributes;
+using StartedIn.Domain.Entities;
 
 namespace StartedIn.API.Controllers
 {
@@ -169,6 +170,27 @@ namespace StartedIn.API.Controllers
             {
                 return StatusCode(500, MessageConstant.InternalServerError);
             }
+        }
+        [HttpGet("deal-offers/{dealId}")]
+        [Authorize(Roles = RoleConstants.INVESTOR)]
+        public async Task<ActionResult<DealOfferForInvestorResponseDTO>> GetDealOfferDetailForInvestor([FromRoute] string dealId)
+        {
+            try
+            {
+                var userId = User.FindFirst(ClaimTypes.NameIdentifier).Value;
+                var deal = await _dealOfferService.GetDealOfferForInvestorById(userId,dealId);
+                var response = _mapper.Map<DealOfferForInvestorResponseDTO>(deal);
+                return Ok(response);
+            }
+            catch (NotFoundException ex)
+            {
+                return BadRequest(ex.Message);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, MessageConstant.InternalServerError);
+            }
+
         }
     }
 }
