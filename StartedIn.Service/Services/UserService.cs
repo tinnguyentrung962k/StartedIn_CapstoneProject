@@ -14,6 +14,7 @@ using System;
 using StartedIn.Repository.Repositories;
 using StartedIn.CrossCutting.DTOs.ResponseDTO.Authentication;
 using StartedIn.CrossCutting.DTOs.RequestDTO.Auth;
+using StartedIn.CrossCutting.Enum;
 
 namespace StartedIn.Service.Services
 {
@@ -371,7 +372,10 @@ namespace StartedIn.Service.Services
         }
         public async Task<UserProject> CheckIfUserInProject(string userId, string projectId)
         {
-            var user = await _userManager.FindByIdAsync(userId);
+            var user = await _userManager.Users
+                .Include(u => u.UserProjects) // Ensure UserProjects are loaded
+                .FirstOrDefaultAsync(u => u.Id == userId);
+
             if (user is null)
             {
                 throw new NotFoundException(MessageConstant.NotFoundUserError);
@@ -389,12 +393,16 @@ namespace StartedIn.Service.Services
                 throw new UnauthorizedProjectRoleException(MessageConstant.UserNotInProjectError);
             }
 
+            // Null-check user.UserProjects before accessing
+            var userRoleInProject = await _projectRepository.GetUserRoleInProject(userId, projectId);
+
             var userProject = new UserProject
             {
                 UserId = userId,
                 ProjectId = projectId,
                 User = user,
-                Project = project
+                Project = project,
+                RoleInTeam = userRoleInProject
             };
             return userProject;
         }

@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 
 namespace StartedIn.Repository.Repositories.Interface
 {
-    public interface IGenericRepository<TEntity, TKey> where TEntity : BaseEntity<TKey>
+    public interface IGenericRepository<TEntity, TKey> where TEntity : BaseAuditEntity<TKey>
     {
         Task<TEntity> GetOneAsync(TKey id);
         Task<IEnumerable<TEntity>> GetAllAsync();
@@ -18,6 +18,7 @@ namespace StartedIn.Repository.Repositories.Interface
         TEntity Add(TEntity entity);
         TEntity Update(TEntity entity);
         Task<int> SaveChangesAsync();
+        Task SoftDeleteById(TKey id);
         IFluentRepository<TEntity> QueryHelper();
         Task AddRangeAsync(IEnumerable<TEntity> entities);
         Task<IEnumerable<TEntity>> Get(

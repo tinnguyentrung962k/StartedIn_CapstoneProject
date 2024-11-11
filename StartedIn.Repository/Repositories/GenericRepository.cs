@@ -11,7 +11,7 @@ using System.Threading.Tasks;
 
 namespace StartedIn.Repository.Repositories
 {
-    public class GenericRepository<TEntity, TKey> : IGenericRepository<TEntity, TKey>, IDisposable where TEntity : BaseEntity<TKey>
+    public class GenericRepository<TEntity, TKey> : IGenericRepository<TEntity, TKey>, IDisposable where TEntity : BaseAuditEntity<TKey>
     {
         protected internal readonly AppDbContext _context;
         protected internal readonly DbSet<TEntity> _dbSet;
@@ -32,6 +32,13 @@ namespace StartedIn.Repository.Repositories
         public async Task DeleteAsync(TEntity entity)
         {
             await Task.FromResult(_dbSet.Remove(entity));
+        }
+
+        public async Task SoftDeleteById(TKey id)
+        {
+            var entity = await GetOneAsync(id);
+            entity.DeletedTime = DateTime.UtcNow;
+            _dbSet.Update(entity);
         }
 
         public async Task DeleteByIdAsync(TKey id)

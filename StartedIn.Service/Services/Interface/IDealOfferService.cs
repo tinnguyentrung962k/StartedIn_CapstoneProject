@@ -13,5 +13,6 @@ namespace StartedIn.Service.Services.Interface
         Task<DealOffer> AcceptADeal(string userId, string projectId, string dealId);
         Task<DealOffer> RejectADeal(string userId, string projectId, string dealId);
         Task<DealOffer> GetById(string id);
+        Task<DealOffer> GetDealOfferForInvestorById(string userId, string id);
     }
 }
