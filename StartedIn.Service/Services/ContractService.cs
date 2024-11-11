@@ -72,7 +72,7 @@ namespace StartedIn.Service.Services
             _apiDomain = _configuration.GetValue<string>("API_DOMAIN") ?? _configuration["Local_domain"];
         }
 
-        public async Task<Contract> CreateInvestmentContract(string userId,string projectId ,InvestmentContractCreateDTO investmentContractCreateDTO)
+        public async Task<Contract> CreateInvestmentContract(string userId, string projectId, InvestmentContractCreateDTO investmentContractCreateDTO)
         {
             var userInProject = await _userService.CheckIfUserInProject(userId, projectId);
             var projectRole = await _projectRepository.GetUserRoleInProject(userId, projectId);
@@ -89,6 +89,10 @@ namespace StartedIn.Service.Services
             if (investmentContractCreateDTO.InvestorInfo.Percentage > project.RemainingPercentOfShares)
             {
                 throw new InvalidOperationException(MessageConstant.DealPercentageGreaterThanRemainingPercentage);
+            }
+            if (investmentContractCreateDTO.Disbursements == null)
+            {
+                throw new InvalidDataException(MessageConstant.DisbursementListEmptyInContract);
             }
             decimal totalDisbursementAmount = investmentContractCreateDTO.Disbursements.Sum(d => d.Amount);
             if (totalDisbursementAmount > investmentContractCreateDTO.InvestorInfo.BuyPrice)
@@ -187,6 +191,10 @@ namespace StartedIn.Service.Services
             if (existedContractWithIdNumber != null)
             {
                 throw new ExistedRecordException(MessageConstant.ContractNumberExistedError);
+            }
+            if (groupContractCreateDTO.ShareEquitiesOfMembers == null)
+            {
+                throw new InvalidDataException(MessageConstant.ShareDistributionListEmptyInContract);
             }
             var project = await _projectRepository.GetProjectById(projectId);
             var totalShareOfDistribution = groupContractCreateDTO.ShareEquitiesOfMembers.Sum(d => d.Percentage);
@@ -311,6 +319,10 @@ namespace StartedIn.Service.Services
             if (chosenDeal.DealStatus != DealStatusEnum.Accepted)
             {
                 throw new ContractConfirmException(MessageConstant.DealNotAccepted);
+            }
+            if (investmentContractFromDealCreateDTO.Disbursements == null)
+            {
+                throw new InvalidDataException(MessageConstant.DisbursementListEmptyInContract);
             }
             decimal totalDisbursementAmount = investmentContractFromDealCreateDTO.Disbursements.Sum(d => d.Amount);
             if (totalDisbursementAmount > chosenDeal.Amount)
