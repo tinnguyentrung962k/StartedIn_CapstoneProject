@@ -61,9 +61,13 @@ public class ProjectController : ControllerBase
         try
         {
             var userId = User.FindFirst(ClaimTypes.NameIdentifier).Value;
-            var newProject = await _projectService.CreateNewProject(userId,projectCreatedto);
+            var newProject = await _projectService.CreateNewProject(userId, projectCreatedto);
             var responseNewProject = _mapper.Map<ProjectResponseDTO>(newProject);
             return CreatedAtAction(nameof(GetProjectById), new { projectId = responseNewProject.Id }, responseNewProject);
+        }
+        catch (InvalidDataException ex)
+        {
+            return BadRequest(ex.Message);
         }
         catch (ExistedRecordException ex)
         {

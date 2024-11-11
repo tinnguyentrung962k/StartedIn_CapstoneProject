@@ -63,6 +63,10 @@ public class ProjectService : IProjectService
         {
             throw new InvalidDataException(MessageConstant.NullOrEmptyStartDate);
         }
+        if (projectCreateDTO.TotalShares < 0)
+        {
+            throw new InvalidDataException(MessageConstant.NegativeNumberError);
+        }
         try {
             _unitOfWork.BeginTransaction();
             var imgUrl = await _azureBlobService.UploadAvatarOrCover(projectCreateDTO.LogoFile);
