@@ -55,6 +55,10 @@ namespace StartedIn.API.Controllers
             {
                 return BadRequest(ex.Message);
             }
+            catch (InvalidDataException ex)
+            {
+                return BadRequest(ex.Message);
+            }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error while creating contract");
@@ -80,6 +84,10 @@ namespace StartedIn.API.Controllers
                 return StatusCode(403, ex.Message);
             }
             catch (ExistedRecordException ex)
+            {
+                return BadRequest(ex.Message);
+            }
+            catch (InvalidDataException ex)
             {
                 return BadRequest(ex.Message);
             }
@@ -110,6 +118,10 @@ namespace StartedIn.API.Controllers
                 return StatusCode(403, ex.Message);
             }
             catch (ExistedRecordException ex)
+            {
+                return BadRequest(ex.Message);
+            }
+            catch (InvalidDataException ex)
             {
                 return BadRequest(ex.Message);
             }
