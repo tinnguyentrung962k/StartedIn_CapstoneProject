@@ -55,6 +55,9 @@ namespace StartedIn.CrossCutting.Constants
         public const string NegativeNumberError = "Vui lòng không nhập số âm.";
         public const string DisbursementListEmptyInContract = "Vui lòng điền các mốc giải ngân cho hợp đồng.";
         public const string ShareDistributionListEmptyInContract = "Vui lòng điền thông tin phân bổ cổ phần cho hợp đồng.";
+        public const string DisbursementNotBelongToProject = "Đợt giải ngân này không thuộc vào dự án được chọn";
+        public const string DisbursementNotFound = "Không tìm thấy đợt giải ngân.";
+        public const string DisbursementFinished = "Đợt giải ngân đã hoàn thành.";
 
     }
 }

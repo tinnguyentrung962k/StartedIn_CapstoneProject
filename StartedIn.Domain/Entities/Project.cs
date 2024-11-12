@@ -18,7 +18,9 @@ public class Project : BaseAuditEntity<string>
     public DateOnly StartDate { get; set; }
     public DateOnly? EndDate { get; set; }
     public string? CompanyIdNumber { get; set; }
-
+    public string? HarshClientIdPayOsKey { get; set; }
+    public string? HarshPayOsApiKey { get; set; }
+    public string? HarshChecksumPayOsKey { get; set; }  
     public ICollection<UserProject>? UserProjects { get; set; }
     public ICollection<Milestone>? Milestones { get; set; }
 }

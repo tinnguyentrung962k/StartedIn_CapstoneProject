@@ -11,6 +11,8 @@ using StartedIn.CrossCutting.Exceptions;
 using StartedIn.Domain.Entities;
 using StartedIn.Repository.Repositories.Interface;
 using StartedIn.Service.Services.Interface;
+using System.Security.Cryptography;
+using System.Text;
 
 namespace StartedIn.Service.Services;
 
@@ -23,9 +25,10 @@ public class ProjectService : IProjectService
     private readonly IEmailService _emailService;
     private readonly IUserRepository _userRepository;
     private readonly IAzureBlobService _azureBlobService;
+    private readonly IUserService _userService;
 
     public ProjectService(IProjectRepository projectRepository, IUnitOfWork unitOfWork, 
-        UserManager<User> userManager, ILogger<ProjectService> logger, IEmailService emailService, IUserRepository userRepository, IAzureBlobService azureBlobService)
+        UserManager<User> userManager, ILogger<ProjectService> logger, IEmailService emailService, IUserRepository userRepository, IAzureBlobService azureBlobService, IUserService userService)
     {
         _projectRepository = projectRepository;
         _unitOfWork = unitOfWork;
@@ -34,6 +37,7 @@ public class ProjectService : IProjectService
         _emailService = emailService;
         _userRepository = userRepository;
         _azureBlobService = azureBlobService;
+        _userService = userService;
     }
     public async Task<Project> CreateNewProject(string userId, ProjectCreateDTO projectCreateDTO)
     {
@@ -298,6 +302,94 @@ public class ProjectService : IProjectService
         };
         return response;
     }
-     
+
+    public async Task AddPaymentGatewayInfo(string userId, string projectId, PayOsPaymentGatewayRegisterDTO payOsPaymentGatewayRegisterDTO)
+    {
+        var userInProject = await _userService.CheckIfUserInProject(userId, projectId);
+        var projectRole = await _projectRepository.GetUserRoleInProject(userId, projectId);
+        if (projectRole != RoleInTeam.Leader)
+        {
+            throw new UnauthorizedProjectRoleException(MessageConstant.RolePermissionError);
+        }
+        try
+        {
+            var project = await _projectRepository.GetProjectById(projectId);
+            project.HarshChecksumPayOsKey = EncryptString(payOsPaymentGatewayRegisterDTO.ChecksumKey);
+            project.HarshClientIdPayOsKey = EncryptString(payOsPaymentGatewayRegisterDTO.ClientIdKey);
+            project.HarshPayOsApiKey = EncryptString(payOsPaymentGatewayRegisterDTO.ApiKey);
+            var projectEntity = _projectRepository.Update(project);
+            await _unitOfWork.SaveChangesAsync();
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error while register payment gateway.");
+            await _unitOfWork.RollbackAsync();
+            throw;
+        }
+    }
+    public async Task<PayOsPaymentGatewayResponseDTO> GetPaymentGatewayInfoByProjectId(string userId, string projectId)
+    {
+        var userInProject = await _userService.CheckIfUserInProject(userId, projectId);
+        var projectRole = await _projectRepository.GetUserRoleInProject(userId, projectId);
+        if (projectRole != RoleInTeam.Leader)
+        {
+            throw new UnauthorizedProjectRoleException(MessageConstant.RolePermissionError);
+        }
+        var project = await _projectRepository.GetProjectById(projectId);
+        PayOsPaymentGatewayResponseDTO payOsPaymentGatewayResponseDTO = new PayOsPaymentGatewayResponseDTO
+        {
+            ProjectId = project.Id,
+            ApiKey = DecryptString(project.HarshPayOsApiKey),
+            ChecksumKey = DecryptString(project.HarshChecksumPayOsKey),
+            ClientKey = DecryptString(project.HarshClientIdPayOsKey)
+        };
+        return payOsPaymentGatewayResponseDTO;
+    }
+    private string EncryptString(string plainText)
+    {
+        // Use a key and IV (initialization vector) here - ideally these should be securely stored or generated
+        var key = Encoding.UTF8.GetBytes("1234567890abcdef"); // Must be 16 bytes for AES-128
+        var iv = Encoding.UTF8.GetBytes("abcdef0123456789"); // Must be 16 bytes for AES
+
+        using (var aes = Aes.Create())
+        {
+            aes.Key = key;
+            aes.IV = iv;
+            var encryptor = aes.CreateEncryptor(aes.Key, aes.IV);
+
+            using (var ms = new MemoryStream())
+            {
+                using (var cs = new CryptoStream(ms, encryptor, CryptoStreamMode.Write))
+                using (var writer = new StreamWriter(cs))
+                {
+                    writer.Write(plainText);
+                }
+
+                // Ensure all data is written and flush the final encrypted result
+                return Convert.ToBase64String(ms.ToArray());
+            }
+        }
+    }
+
+    // Helper method to decrypt a string
+    private string DecryptString(string cipherText)
+    {
+        var key = Encoding.UTF8.GetBytes("1234567890abcdef"); // Same key as in EncryptString
+        var iv = Encoding.UTF8.GetBytes("abcdef0123456789"); // Same IV as in EncryptString
+
+        using (var aes = Aes.Create())
+        {
+            aes.Key = key;
+            aes.IV = iv;
+            var decryptor = aes.CreateDecryptor(aes.Key, aes.IV);
+
+            using (var ms = new MemoryStream(Convert.FromBase64String(cipherText)))
+            using (var cs = new CryptoStream(ms, decryptor, CryptoStreamMode.Read))
+            using (var reader = new StreamReader(cs))
+            {
+                return reader.ReadToEnd();
+            }
+        }
+    }
 
 }

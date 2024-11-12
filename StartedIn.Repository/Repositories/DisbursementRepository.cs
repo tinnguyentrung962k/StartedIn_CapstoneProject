@@ -19,7 +19,17 @@ namespace StartedIn.Repository.Repositories
         }
         public async Task<bool> ExistsAsync(long orderCode)
         {
-            return await _context.Disbursements.AnyAsync(b => b.OrderCode == orderCode);
+            return await _appDbContext.Disbursements.AnyAsync(b => b.OrderCode == orderCode);
+        }
+
+        public async Task<Disbursement> GetDisbursementById(string id)
+        {
+            return await _appDbContext.Disbursements.Where(x=>x.Id.Equals(id))
+                .Include(d=>d.Contract)
+                .ThenInclude(c=>c.Project)
+                .Include(d=>d.Investor)
+                .Include(d=>d.DisbursementAttachments)
+                .FirstOrDefaultAsync();
         }
     }
 }
