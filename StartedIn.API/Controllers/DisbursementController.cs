@@ -58,18 +58,30 @@ namespace StartedIn.API.Controllers
         }
 
         [HttpGet("disbursements/{disbursementId}/cancel")]
-        public async Task<IActionResult> HandleCancel([FromRoute] string projectId,[FromRoute] string disbursementId)
-        {
-            var redirectUrl = "https://www.startedin.net/payment-fail";
-            return Redirect(redirectUrl);
-        }
-
-        [HttpGet("disbursements/{disbursementId}/return")]
-        public async Task<IActionResult> HandleReturn([FromRoute] string projectId, [FromRoute] string disbursementId)
+        public async Task<IActionResult> HandleCancel([FromRoute]string projectId, [FromRoute] string disbursementId, [FromQuery] string apiKey)
         {
             try
             {
-                await _disbursementService.FinishedTheTransaction(disbursementId, projectId);
+                await _disbursementService.CancelPayment(disbursementId, projectId, apiKey);
+                var redirectUrl = "https://www.startedin.net/payment-fail";
+                return Redirect(redirectUrl);
+            }
+            catch (UnauthorizedAccessException ex)
+            {
+                return StatusCode(403, ex.Message);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, ex.Message);
+            }
+        }
+
+        [HttpGet("disbursements/{disbursementId}/return")]
+        public async Task<IActionResult> HandleReturn([FromRoute] string projectId, [FromRoute] string disbursementId, [FromQuery] string apiKey)
+        {
+            try
+            {
+                await _disbursementService.FinishedTheTransaction(disbursementId, projectId, apiKey);
                 var redirectUrl = "https://www.startedin.net/payment-success";
                 return Redirect(redirectUrl);
             }

@@ -11,7 +11,6 @@ using System.Numerics;
 using System.Text;
 using System.Threading.Tasks;
 using StartedIn.CrossCutting.Enum;
-using static Microsoft.EntityFrameworkCore.DbLoggerCategory.Database;
 
 namespace StartedIn.Domain.Context
 {
@@ -44,6 +43,12 @@ namespace StartedIn.Domain.Context
         public DbSet<Disbursement> Disbursements { get; set; }
         public DbSet<DisbursementAttachment> DisbursementAttachments { get; set; }
         public DbSet<UserTask> UserTasks { get; set; }
+        public DbSet<Appointment> Appointments { get; set; }
+        public DbSet<Document> Documents { get; set; }
+        public DbSet<DocumentComment> DocumentComments { get; set; }
+        public DbSet<MeetingNote> MeetingNotes { get; set; }
+        public DbSet<Finance> Finances { get; set; }
+        public DbSet<Transaction> Transactions { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -128,7 +133,19 @@ namespace StartedIn.Domain.Context
                 .HasOne(up => up.User)
                 .WithMany(u => u.UserContracts)
                 .HasForeignKey(up => up.UserId);
-
+            modelBuilder.Entity<Appointment>()
+                .ToTable("Appointment");
+            modelBuilder.Entity<Appointment>()
+            .Property(u => u.Status)
+            .HasConversion(
+            v => v.ToString(),
+                v => (MeetingStatus)Enum.Parse(typeof(MeetingStatus), v));
+            modelBuilder.Entity<Document>()
+                .ToTable("Document");
+            modelBuilder.Entity<DocumentComment>()
+                .ToTable("DocumentComment");
+            modelBuilder.Entity<MeetingNote>()
+                .ToTable("MeetingNote");
             modelBuilder.Entity<DealOffer>()
                 .ToTable("DealOffer");
 
@@ -218,6 +235,21 @@ namespace StartedIn.Domain.Context
             modelBuilder.Entity<Milestone>()
             .Property(p => p.Percentage)
             .HasColumnType("decimal(5,2)");
+
+            modelBuilder.Entity<Finance>()
+                .ToTable("Finance");
+            modelBuilder.Entity<Transaction>()
+                .ToTable("Transaction");
+            modelBuilder.Entity<Transaction>()
+            .Property(u => u.Status)
+            .HasConversion(
+            v => v.ToString(),
+                v => (TransactionStatus)Enum.Parse(typeof(TransactionStatus), v));
+            modelBuilder.Entity<Transaction>()
+            .Property(u => u.Type)
+            .HasConversion(
+            v => v.ToString(),
+                v => (TransactionType)Enum.Parse(typeof(TransactionType), v));
 
             foreach (var entityType in modelBuilder.Model.GetEntityTypes())
             {

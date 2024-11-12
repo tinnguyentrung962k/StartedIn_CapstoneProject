@@ -39,5 +39,6 @@ namespace StartedIn.Domain.Entities
         public Contract Contract { get; set; }
         public User Investor { get; set; }
         public ICollection<DisbursementAttachment> DisbursementAttachments { get; set; }
+        public Transaction Transaction { get; set; }
     }
 }

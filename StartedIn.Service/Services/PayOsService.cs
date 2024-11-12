@@ -43,7 +43,7 @@ namespace StartedIn.Service.Services
             _logger = logger;
         }
 
-        public async Task<PaymentResultResponseDTO> PaymentWithPayOs(string userId, string disbursementId, string projectId)
+        public async Task<string> PaymentWithPayOs(string userId, string disbursementId, string projectId)
         {
             var userInProject = await _userService.CheckIfUserInProject(userId, projectId);
             var projectRole = await _projectRepository.GetUserRoleInProject(userId, projectId);
@@ -82,8 +82,8 @@ namespace StartedIn.Service.Services
                     (int)Math.Ceiling(disbursement.Amount),
                     content,
                     items,
-                    $"{_apiDomain}/api/projects/{projectId}/disbursements/{disbursementId}/cancel",
-                    $"{_apiDomain}/api/projects/{projectId}/disbursements/{disbursementId}/return",
+                    $"{_apiDomain}/api/projects/{projectId}/disbursements/{disbursementId}/cancel?apiKey={apiKey}",
+                    $"{_apiDomain}/api/projects/{projectId}/disbursements/{disbursementId}/return?apiKey={apiKey}",
                     null,
                     user.FullName,
                     user.Email,
@@ -121,7 +121,7 @@ namespace StartedIn.Service.Services
                     Signature = paymentData.signature,
                 };
 
-                return paymentResultResponseDTO;
+                return paymentResultResponseDTO.CreatedPaymentResult.CheckoutUrl;
             }
             catch (Exception ex) {
                 _logger.LogError("Error while creating payment link:", ex.Message);

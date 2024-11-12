@@ -26,7 +26,7 @@ namespace StartedIn.Service.Services
             _logger = logger;
             _projectRepository = projectRepository;
         }
-        public async Task FinishedTheTransaction(string disbursementId, string projectId)
+        public async Task FinishedTheTransaction(string disbursementId, string projectId, string apiKey)
         {
            var project = await _projectRepository.GetProjectById(projectId);
            if (project == null)
@@ -42,6 +42,10 @@ namespace StartedIn.Service.Services
            {
                 throw new UnmatchedException(MessageConstant.DisbursementNotBelongToProject);
            }
+           if (apiKey != DecryptString(project.HarshPayOsApiKey))
+           {
+                throw new UnauthorizedAccessException(MessageConstant.RolePermissionError);
+           }
            try
            {
                 _unitOfWork.BeginTransaction();
@@ -51,12 +55,46 @@ namespace StartedIn.Service.Services
                 await _unitOfWork.CommitAsync();
            }
            catch (Exception ex) 
-            {
+           {
                 _logger.LogError($"An error occurred while updating a disbursement: {ex.Message}");
                 await _unitOfWork.RollbackAsync();
                 throw;
-            }
+           }
 
+        }
+        public async Task CancelPayment(string disbursementId, string projectId, string apiKey)
+        {
+            var project = await _projectRepository.GetProjectById(projectId);
+            if (project == null)
+            {
+                throw new NotFoundException(MessageConstant.NotFoundProjectError);
+            }
+            var disbursement = await _disbursementRepository.GetDisbursementById(disbursementId);
+            if (disbursement is null)
+            {
+                throw new NotFoundException(MessageConstant.DisbursementNotFound);
+            }
+            if (disbursement.Contract.ProjectId != project.Id)
+            {
+                throw new UnmatchedException(MessageConstant.DisbursementNotBelongToProject);
+            }
+            if (apiKey != DecryptString(project.HarshPayOsApiKey))
+            {
+                throw new UnauthorizedAccessException(MessageConstant.RolePermissionError);
+            }
+            try
+            {
+                _unitOfWork.BeginTransaction();
+                _logger.LogInformation($"Payment for Disbursement {disbursementId} under Project {projectId} has been requested to be canceled.");
+                await _unitOfWork.SaveChangesAsync();
+                await _unitOfWork.CommitAsync();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError($"An error occurred while processing payment cancellation: {ex.Message}");
+                await _unitOfWork.RollbackAsync();
+                throw;
+            }
         }
         private string DecryptString(string cipherText)
         {
