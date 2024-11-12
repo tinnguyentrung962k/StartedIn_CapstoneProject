@@ -30,4 +30,5 @@ public class Milestone : BaseAuditEntity<string>
     public ICollection<TaskEntity>? Tasks { get; set; }
     [JsonIgnore] public ProjectCharter ProjectCharter { get; set; }
     public ICollection<MilestoneHistory>? MilestoneHistories { get; set; }
+    public ICollection<Appointment>? Appointments { get; set; }
 }

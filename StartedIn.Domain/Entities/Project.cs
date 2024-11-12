@@ -23,4 +23,6 @@ public class Project : BaseAuditEntity<string>
     public string? HarshChecksumPayOsKey { get; set; }  
     public ICollection<UserProject>? UserProjects { get; set; }
     public ICollection<Milestone>? Milestones { get; set; }
+    public ICollection<Contract>? Contracts { get; set; }
+    public Finance Finance { get; set; }
 }

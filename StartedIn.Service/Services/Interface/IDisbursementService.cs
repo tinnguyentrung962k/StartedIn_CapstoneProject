@@ -8,6 +8,7 @@ namespace StartedIn.Service.Services.Interface
 {
     public interface IDisbursementService
     {
-        Task FinishedTheTransaction(string disbursementId, string projectId);
+        Task FinishedTheTransaction(string disbursementId, string projectId, string apiKey);
+        Task CancelPayment(string disbursementId, string projectId, string apiKey);
     }
 }
