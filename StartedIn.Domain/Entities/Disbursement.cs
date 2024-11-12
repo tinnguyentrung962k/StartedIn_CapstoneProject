@@ -30,7 +30,7 @@ namespace StartedIn.Domain.Entities
         [MaxLength(500)]
         public string? DeclineReason { get; set; }
         public DateTimeOffset? ExecutedTime { get; set; }    
-        public long OrderCode { get; set; }
+        public long? OrderCode { get; set; }
 
         public bool IsValidWithContract { get; set; }
         

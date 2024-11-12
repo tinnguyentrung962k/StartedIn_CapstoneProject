@@ -13,7 +13,6 @@ namespace StartedIn.Service.Services.Interface
         Task<Contract> CreateInvestmentContract(string userId, string projectId, InvestmentContractCreateDTO investmentContractCreateDTO);
         Task<Contract> SendSigningInvitationForContract(string projectId, string userId, string contractId);
         Task<Contract> GetContractByContractId(string userId, string id, string projectId);
-        long GenerateUniqueBookingCode();
         Task<Contract> ValidateContractOnSignedAsync(string id,string projectId);
         Task UpdateSignedStatusForUserInContract(string contractId, string projectId);
         Task<DocumentDownLoadResponseDTO> DownLoadFileContract(string userId, string projectId,string contractId);

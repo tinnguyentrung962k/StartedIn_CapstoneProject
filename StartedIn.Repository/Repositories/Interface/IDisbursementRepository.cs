@@ -11,6 +11,7 @@ namespace StartedIn.Repository.Repositories.Interface
     public interface IDisbursementRepository : IGenericRepository<Disbursement,string>
     {
         Task<bool> ExistsAsync(long orderCode);
+        Task<Disbursement> GetDisbursementById(string id);
       
     }
 }

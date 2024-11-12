@@ -246,7 +246,53 @@ public class ProjectController : ControllerBase
         }
         catch (UnauthorizedProjectRoleException ex)
         {
+            return StatusCode(403, ex.Message);
+        }
+        catch (Exception ex)
+        {
+            return StatusCode(500, ex.Message);
+        }
+    }
+    [HttpPost("{projectId}/payment-gateway")]
+    [Authorize(Roles = RoleConstants.USER)]
+    public async Task<IActionResult> RegisterPaymentGatewayForProject([FromRoute] string projectId, [FromBody] PayOsPaymentGatewayRegisterDTO payOsPaymentGatewayRegisterDTO)
+    {
+        try
+        {
+            var userId = User.FindFirst(ClaimTypes.NameIdentifier).Value;
+            await _projectService.AddPaymentGatewayInfo(userId, projectId, payOsPaymentGatewayRegisterDTO);
+            return Ok("Đăng ký cổng thanh toán thành công");
+        }
+        catch (NotFoundException ex)
+        {
             return BadRequest(ex.Message);
+        }
+        catch (UnauthorizedProjectRoleException ex)
+        {
+            return StatusCode(403,ex.Message);
+        }
+        catch (Exception ex)
+        {
+            return StatusCode(500, ex.Message);
+        }
+    }
+    [HttpGet("{projectId}/payment-gateway")]
+    [Authorize(Roles = RoleConstants.USER)]
+    public async Task<ActionResult<PayOsPaymentGatewayResponseDTO>> GetPaymentGatewayInfo([FromRoute] string projectId)
+    {
+        try
+        {
+            var userId = User.FindFirst(ClaimTypes.NameIdentifier).Value;
+            var paymentInfo = await _projectService.GetPaymentGatewayInfoByProjectId(userId,projectId);
+            return Ok(paymentInfo);
+        }
+        catch (NotFoundException ex)
+        {
+            return BadRequest(ex.Message);
+        }
+        catch (UnauthorizedProjectRoleException ex)
+        {
+            return StatusCode(403, ex.Message);
         }
         catch (Exception ex)
         {

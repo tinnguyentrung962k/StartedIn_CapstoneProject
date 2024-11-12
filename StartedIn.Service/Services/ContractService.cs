@@ -160,7 +160,6 @@ namespace StartedIn.Service.Services
                         Title = disbursementTime.Title,
                         Investor = investor,
                         InvestorId = investor.Id,
-                        OrderCode = GenerateUniqueBookingCode(),
                         IsValidWithContract = false
                     };
                     disbursementList.Add(disbursement);
@@ -264,22 +263,6 @@ namespace StartedIn.Service.Services
                 await _unitOfWork.RollbackAsync();
                 throw;
             }
-        }
-        public long GenerateUniqueBookingCode()
-        {
-            var random = new Random();
-            long orderCode;
-
-            // Generate a random number with a desired number of digits, e.g., 6 digits
-            orderCode = random.Next(100000, 999999);
-
-            // Ensure the booking code is unique
-            while (_disbursementRepository.ExistsAsync(orderCode).Result)
-            {
-                orderCode = random.Next(100000, 999999);
-            }
-
-            return orderCode;
         }
         public async Task<Contract> CreateInvestmentContractFromDeal(
             string userId,
@@ -392,7 +375,6 @@ namespace StartedIn.Service.Services
                         Title = disbursementTime.Title,
                         Investor = investor,
                         InvestorId = investor.Id,
-                        OrderCode = GenerateUniqueBookingCode(),
                         IsValidWithContract = false
                     };
                     disbursementList.Add(disbursement);
@@ -831,7 +813,6 @@ namespace StartedIn.Service.Services
                        CreatedBy = userId,
                        DisbursementStatus = DisbursementStatusEnum.PENDING,
                        InvestorId = investor.Id,
-                       OrderCode = GenerateUniqueBookingCode(),
                        IsValidWithContract = false
                     };
                     _disbursementRepository.Add(newDisbursement);
@@ -850,9 +831,10 @@ namespace StartedIn.Service.Services
                     disbursementList
                 );
 
+                var contractEntity = _contractRepository.Update(contract);
                 await _unitOfWork.SaveChangesAsync();
                 await _unitOfWork.CommitAsync();
-                return contract;
+                return contractEntity;
             }
             catch (Exception ex)
             {

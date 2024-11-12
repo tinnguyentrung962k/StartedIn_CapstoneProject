@@ -18,4 +18,6 @@ public interface IProjectService
     Task<List<ProjectResponseDTO>> GetListParticipatedProjects(string userId);
     Task<List<User>> GetListUserRelevantToContractsInAProject(string projectId);
     Task<SearchResponseDTO<ExploreProjectDTO>> GetProjectsForInvestor(string userId, int pageIndex, int pageSize);
+    Task AddPaymentGatewayInfo(string userId, string projectId, PayOsPaymentGatewayRegisterDTO payOsPaymentGatewayRegisterDTO);
+    Task<PayOsPaymentGatewayResponseDTO> GetPaymentGatewayInfoByProjectId(string userId, string projectId);
 }
