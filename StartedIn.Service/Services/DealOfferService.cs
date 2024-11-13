@@ -3,6 +3,7 @@ using Microsoft.Extensions.Logging;
 using StartedIn.CrossCutting.Constants;
 using StartedIn.CrossCutting.DTOs.BaseDTO;
 using StartedIn.CrossCutting.DTOs.RequestDTO.DealOffer;
+using StartedIn.CrossCutting.DTOs.ResponseDTO;
 using StartedIn.CrossCutting.DTOs.ResponseDTO.DealOffer;
 using StartedIn.CrossCutting.Enum;
 using StartedIn.CrossCutting.Exceptions;
@@ -43,7 +44,7 @@ namespace StartedIn.Service.Services
             _userService = userService;
         }
 
-        public async Task<SearchResponseDTO<DealOfferForProjectResponseDTO>> GetDealOfferForAProject(string userId, string projectId, int pageIndex, int pageSize)
+        public async Task<PaginationDTO<DealOfferForProjectResponseDTO>> GetDealOfferForAProject(string userId, string projectId, int page, int size)
         {
             var userInProject = await _userService.CheckIfUserInProject(userId, projectId);
             var project = await _projectRepository.GetProjectById(projectId);
@@ -54,9 +55,7 @@ namespace StartedIn.Service.Services
             var dealList = _dealOfferRepository.QueryHelper()
                 .Include(x => x.Investor)
                 .Filter(x => x.ProjectId.Equals(projectId));
-            var record = await dealList.GetAllAsync();
-            var totalRecord = record.Count();
-            var deallistPaging = await dealList.GetPagingAsync(pageIndex, pageSize);
+            var deallistPaging = await dealList.GetPagingAsync(page, size);
             List<DealOfferForProjectResponseDTO> dealInProjectResponse = new List<DealOfferForProjectResponseDTO>();
             foreach (var deal in deallistPaging)
             {
@@ -72,26 +71,24 @@ namespace StartedIn.Service.Services
                 };
                 dealInProjectResponse.Add(dealOfferForProjectResponseDTO);
             }
-            var response = new SearchResponseDTO<DealOfferForProjectResponseDTO>
+            var response = new PaginationDTO<DealOfferForProjectResponseDTO>
             {
-                TotalRecord = totalRecord,
-                PageIndex = pageIndex,
-                PageSize = pageSize,
-                ResponseList = dealInProjectResponse,
-                TotalPage = (int)Math.Ceiling((double)totalRecord / pageSize)
+                Data = dealInProjectResponse,
+                Page = page,
+                Size = size,
+                Total = await dealList.GetTotal()
+
             };
             return response;
             
         }
 
-        public async Task<SearchResponseDTO<DealOfferForInvestorResponseDTO>> GetDealOfferForAnInvestor(string userId, int pageIndex, int pageSize)
+        public async Task<PaginationDTO<DealOfferForInvestorResponseDTO>> GetDealOfferForAnInvestor(string userId, int page, int size)
         {
             var dealList = _dealOfferRepository.QueryHelper()
                 .Include(x => x.Project)
                 .Filter(x => x.InvestorId.Equals(userId));
-            var record = await dealList.GetAllAsync();
-            var totalRecord = record.Count();
-            var deallistPaging = await dealList.GetPagingAsync(pageIndex, pageSize);
+            var deallistPaging = await dealList.GetPagingAsync(page, size);
             List<DealOfferForInvestorResponseDTO> dealofInvestorResponse = new List<DealOfferForInvestorResponseDTO>();
             foreach (var deal in deallistPaging)
             {
@@ -120,13 +117,12 @@ namespace StartedIn.Service.Services
                 };
                 dealofInvestorResponse.Add(dealOfferForInvestorResponseDTO);
             }
-            var response = new SearchResponseDTO<DealOfferForInvestorResponseDTO>
+            var response = new PaginationDTO<DealOfferForInvestorResponseDTO>
             {
-                TotalRecord = totalRecord,
-                PageIndex = pageIndex,
-                PageSize = pageSize,
-                ResponseList = dealofInvestorResponse,
-                TotalPage = (int)Math.Ceiling((double)totalRecord / pageSize)
+                Data = dealofInvestorResponse,
+                Page = page,
+                Size = size,
+                Total = await dealList.GetTotal()
             };
             return response;
 

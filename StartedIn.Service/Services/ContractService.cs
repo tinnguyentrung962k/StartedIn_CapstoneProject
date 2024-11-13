@@ -18,6 +18,7 @@ using StartedIn.CrossCutting.DTOs.ResponseDTO.Contract;
 using StartedIn.CrossCutting.DTOs.RequestDTO.SignNow.SignNowWebhookRequestDTO;
 using StartedIn.CrossCutting.DTOs.BaseDTO;
 using DocumentFormat.OpenXml.Bibliography;
+using StartedIn.CrossCutting.DTOs.ResponseDTO;
 
 namespace StartedIn.Service.Services
 {
@@ -618,7 +619,7 @@ namespace StartedIn.Service.Services
             return documentDownloadinfo;
         }
 
-        public async Task<SearchResponseDTO<ContractSearchResponseDTO>> SearchContractWithFilters(string userId, string projectId, ContractSearchDTO search, int pageIndex, int pageSize)
+        public async Task<PaginationDTO<ContractSearchResponseDTO>> SearchContractWithFilters(string userId, string projectId, ContractSearchDTO search, int page, int size)
         {
             var userProject = await _userService.CheckIfUserInProject(userId, projectId);
             var searchResult = _contractRepository.QueryHelper().Include(c => c.UserContracts).Filter(x=>x.ProjectId.Equals(projectId) && x.UserContracts.Any(us => us.UserId.Equals(userId))).OrderBy(x=>x.OrderByDescending(x=>x.LastUpdatedTime));
@@ -664,10 +665,8 @@ namespace StartedIn.Service.Services
             {
                 searchResult = searchResult.Filter(c => c.ContractStatus == search.ContractStatusEnum.Value);
             }
-            var records = await searchResult.GetAllAsync();
-            var totalRecord = records.Count();
 
-            var searchResultList = await searchResult.GetPagingAsync(pageIndex, pageSize);
+            var searchResultList = await searchResult.GetPagingAsync(page,size);
             
             // Mapping contracts and their users to the DTOs
             foreach (var contract in searchResultList)
@@ -706,13 +705,12 @@ namespace StartedIn.Service.Services
                 contractSearchResponseDTOs.Add(contractResponseDTO);
             }
 
-            var response = new SearchResponseDTO<ContractSearchResponseDTO>
+            var response = new PaginationDTO<ContractSearchResponseDTO>
             {
-                ResponseList = contractSearchResponseDTOs,
-                PageIndex = pageIndex,
-                PageSize = pageSize,
-                TotalRecord = totalRecord,
-                TotalPage = (int)Math.Ceiling((double)totalRecord / pageSize)
+                Data = contractSearchResponseDTOs,
+                Total = await searchResult.GetTotal(),
+                Size = size,
+                Page = page
             };
             return response;
         }

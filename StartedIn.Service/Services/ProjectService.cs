@@ -3,8 +3,8 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Logging;
 using StartedIn.CrossCutting.Constants;
-using StartedIn.CrossCutting.DTOs.BaseDTO;
 using StartedIn.CrossCutting.DTOs.RequestDTO.Project;
+using StartedIn.CrossCutting.DTOs.ResponseDTO;
 using StartedIn.CrossCutting.DTOs.ResponseDTO.Project;
 using StartedIn.CrossCutting.Enum;
 using StartedIn.CrossCutting.Exceptions;
@@ -266,13 +266,11 @@ public class ProjectService : IProjectService
         return listUser;
     }
 
-    public async Task<SearchResponseDTO<ExploreProjectDTO>> GetProjectsForInvestor(string userId, int pageIndex, int pageSize)
+    public async Task<PaginationDTO<ExploreProjectDTO>> GetProjectsForInvestor(string userId, int size, int page)
     {
         var projects = _projectRepository.QueryHelper().Include(p => p.UserProjects)
             .Filter(p => !p.UserProjects.Any(up => up.UserId.Contains(userId))).OrderBy(x=>x.OrderByDescending(x=>x.StartDate));
-        var records = await projects.GetAllAsync();
-        var result = await projects.GetPagingAsync(pageIndex, pageSize);
-        var totalRecord = records.Count();
+        var result = await projects.GetPagingAsync(page, size);
         List<ExploreProjectDTO> exploreProjects = new List<ExploreProjectDTO>();
         foreach (var project in result)
         {
@@ -292,13 +290,12 @@ public class ProjectService : IProjectService
             };
             exploreProjects.Add(exploreProjectDTO);
         }
-        var response = new SearchResponseDTO<ExploreProjectDTO>
+        var response = new PaginationDTO<ExploreProjectDTO>
         {
-            PageIndex = pageIndex,
-            PageSize = pageSize,
-            ResponseList = exploreProjects,
-            TotalPage = (int)Math.Ceiling((double)totalRecord / pageSize),
-            TotalRecord = totalRecord
+            Data = exploreProjects,
+            Page = page,
+            Size = size,
+            Total = await projects.GetTotal()
         };
         return response;
     }
