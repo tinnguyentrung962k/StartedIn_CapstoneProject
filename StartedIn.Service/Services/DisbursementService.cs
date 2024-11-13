@@ -138,8 +138,7 @@ namespace StartedIn.Service.Services
 
             // Lọc các khoản giải ngân có EndDate trong vòng 2 ngày từ hôm nay
             var upcomingDisbursements = await _disbursementRepository.QueryHelper()
-                .Filter(x => x.IsValidWithContract == true)
-                .Filter(x => x.EndDate == today.AddDays(reminderDaysBeforeEndDate)) // Lọc ngày kết thúc chính xác
+                .Filter(x => x.EndDate == today.AddDays(reminderDaysBeforeEndDate) && x.IsValidWithContract == true) // Lọc ngày kết thúc chính xác
                 .Include(x => x.Investor)
                 .Include(x => x.Contract)
                 .GetAllAsync();
@@ -186,8 +185,7 @@ namespace StartedIn.Service.Services
             var filterDisbursements = _disbursementRepository.QueryHelper()
                 .Include(x => x.Contract)
                 .Include(x => x.Investor)
-                .Filter(x => x.Contract.ProjectId.Equals(projectId))
-                .Filter(x => x.IsValidWithContract == true);
+                .Filter(x => x.Contract.ProjectId.Equals(projectId) && x.IsValidWithContract == true);
             if (!string.IsNullOrWhiteSpace(disbursementFilterDTO.Title))
             {
                 filterDisbursements = filterDisbursements.Filter(d => d.Title != null && d.Title.ToLower().Contains(disbursementFilterDTO.Title.ToLower()));

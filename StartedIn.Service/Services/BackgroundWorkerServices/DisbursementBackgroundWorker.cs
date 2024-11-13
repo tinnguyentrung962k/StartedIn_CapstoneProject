@@ -10,13 +10,13 @@ using System.Threading.Tasks;
 
 namespace StartedIn.Service.Services.BackgroundWorkerServices
 {
-    public class DisbursementReminderBackgroundWorker : BackgroundService
+    public class DisbursementBackgroundWorker : BackgroundService
     {
-        private readonly ILogger<DisbursementReminderBackgroundWorker> _logger;
+        private readonly ILogger<DisbursementBackgroundWorker> _logger;
         private readonly IServiceProvider _serviceProvider;
         private const int ONE_HOUR = 3600000;
 
-        public DisbursementReminderBackgroundWorker(ILogger<DisbursementReminderBackgroundWorker> logger,
+        public DisbursementBackgroundWorker(ILogger<DisbursementBackgroundWorker> logger,
         IServiceProvider serviceProvider)
         {
             _logger = logger;

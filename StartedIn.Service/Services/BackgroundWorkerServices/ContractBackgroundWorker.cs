@@ -5,13 +5,13 @@ using StartedIn.Service.Services.Interface;
 
 namespace StartedIn.Service.Services.BackgroundWorkerServices;
 
-public class ContractCancelBackgroundWorker : BackgroundService
+public class ContractBackgroundWorker : BackgroundService
 {
-    private readonly ILogger<ContractCancelBackgroundWorker> _logger;
+    private readonly ILogger<ContractBackgroundWorker> _logger;
     private readonly IServiceProvider _serviceProvider;
     private const int ONE_HOUR = 3600000;
 
-    public ContractCancelBackgroundWorker(ILogger<ContractCancelBackgroundWorker> logger,
+    public ContractBackgroundWorker(ILogger<ContractBackgroundWorker> logger,
         IServiceProvider serviceProvider)
     {
         _logger = logger;

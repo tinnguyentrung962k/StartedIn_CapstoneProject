@@ -56,7 +56,7 @@ namespace StartedIn.API.Controllers
 
         [HttpGet("deal-offers")]
         [Authorize(Roles = RoleConstants.INVESTOR)]
-        public async Task<ActionResult<PaginationDTO<DealOfferForInvestorResponseDTO>>> GetDealListOfAnInvestor([FromQuery] int page, int size)
+        public async Task<ActionResult<PaginationDTO<DealOfferForInvestorResponseDTO>>> GetDealListOfAnInvestor([FromQuery] int page = 1, int size = 20)
         {
             try
             {
