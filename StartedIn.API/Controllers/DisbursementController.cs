@@ -105,8 +105,8 @@ namespace StartedIn.API.Controllers
         public async Task<ActionResult<PaginationDTO<DisbursementForLeaderInProjectResponseDTO>>> GetListDisbursementInProjectForLeader(
             [FromRoute] string projectId, 
             [FromQuery] DisbursementFilterInProjectDTO disbursementFilterDTO,
-            [FromQuery] int page = 1,
-            [FromQuery] int size = 20)
+            [FromQuery] int page,
+            [FromQuery] int size)
         {
             try
             {
@@ -127,8 +127,8 @@ namespace StartedIn.API.Controllers
         [Authorize(Roles = RoleConstants.INVESTOR)]
         public async Task<ActionResult<PaginationDTO<DisbursementForLeaderInProjectResponseDTO>>> GetListDisbursementForInvestorInMenu(
             [FromQuery] DisbursementFilterInvestorMenuDTO disbursementFilterDTO,
-            [FromQuery] int page = 1,
-            [FromQuery] int size = 20)
+            [FromQuery] int page,
+            [FromQuery] int size)
         {
             try
             {

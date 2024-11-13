@@ -81,8 +81,8 @@ namespace StartedIn.API.Controllers
         public async Task<ActionResult<PaginationDTO<TaskResponseDTO>>> getTaskCatalog(
             [FromRoute] string projectId,
             [FromQuery] TaskFilterDTO taskFilterDto,
-            [FromQuery] int page = 1,
-            [FromQuery] int size = 20)
+            [FromQuery] int page,
+            [FromQuery] int size)
         {
             try
             {

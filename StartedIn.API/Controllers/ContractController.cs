@@ -403,7 +403,7 @@ namespace StartedIn.API.Controllers
         [HttpGet("contracts")]
         [Authorize(Roles = RoleConstants.USER + "," + RoleConstants.INVESTOR)]
         public async Task<ActionResult<PaginationDTO<ContractSearchResponseDTO>>> SearchContractWithFilters(
-    [FromRoute] string projectId, [FromQuery] ContractSearchDTO search, int page = 1, int size = 20)
+    [FromRoute] string projectId, [FromQuery] ContractSearchDTO search, int page, int size)
         {
             try
             {

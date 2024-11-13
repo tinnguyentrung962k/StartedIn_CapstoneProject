@@ -56,7 +56,7 @@ namespace StartedIn.API.Controllers
 
         [HttpGet("deal-offers")]
         [Authorize(Roles = RoleConstants.INVESTOR)]
-        public async Task<ActionResult<PaginationDTO<DealOfferForInvestorResponseDTO>>> GetDealListOfAnInvestor([FromQuery] int page = 1, int size = 20)
+        public async Task<ActionResult<PaginationDTO<DealOfferForInvestorResponseDTO>>> GetDealListOfAnInvestor([FromQuery] int page, int size)
         {
             try
             {
@@ -72,7 +72,7 @@ namespace StartedIn.API.Controllers
 
         [HttpGet("projects/{projectId}/deal-offers")]
         [Authorize(Roles = RoleConstants.USER)]
-        public async Task<ActionResult<PaginationDTO<DealOfferForProjectResponseDTO>>> GetDealListForAProject([FromRoute] string projectId, [FromQuery] int page = 1, int size = 20)
+        public async Task<ActionResult<PaginationDTO<DealOfferForProjectResponseDTO>>> GetDealListForAProject([FromRoute] string projectId, [FromQuery] int page, int size)
         {
             try
             {

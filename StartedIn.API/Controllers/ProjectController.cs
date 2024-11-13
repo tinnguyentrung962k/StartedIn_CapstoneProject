@@ -214,7 +214,7 @@ public class ProjectController : ControllerBase
 
     [HttpGet("/api/startups")]
     [Authorize(Roles = RoleConstants.INVESTOR)]
-    public async Task<ActionResult<PaginationDTO<ExploreProjectDTO>>> ExploreProjects([FromQuery] int page = 1, int size = 20)
+    public async Task<ActionResult<PaginationDTO<ExploreProjectDTO>>> ExploreProjects([FromQuery] int page, int size)
     {
         try
         {
