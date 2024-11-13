@@ -13,6 +13,7 @@ using StartedIn.CrossCutting.DTOs.ResponseDTO.Contract;
 using StartedIn.CrossCutting.DTOs.BaseDTO;
 using StartedIn.CrossCutting.DTOs.ResponseDTO.DealOffer;
 using StartedIn.Domain.Entities;
+using StartedIn.CrossCutting.DTOs.ResponseDTO;
 
 namespace StartedIn.API.Controllers
 {
@@ -401,15 +402,13 @@ namespace StartedIn.API.Controllers
 
         [HttpGet("contracts")]
         [Authorize(Roles = RoleConstants.USER + "," + RoleConstants.INVESTOR)]
-        public async Task<ActionResult<SearchResponseDTO<ContractSearchResponseDTO>>> SearchContractWithFilters(
-    [FromRoute] string projectId, [FromQuery] ContractSearchDTO search, int pageSize, int pageIndex)
+        public async Task<ActionResult<PaginationDTO<ContractSearchResponseDTO>>> SearchContractWithFilters(
+    [FromRoute] string projectId, [FromQuery] ContractSearchDTO search, int page = 1, int size = 20)
         {
-            pageIndex = pageIndex < 1 ? 1 : pageIndex;
-            pageSize = pageSize < 1 ? 10 : pageSize;
             try
             {
                 var userId = User.FindFirst(ClaimTypes.NameIdentifier).Value;
-                var contracts = await _contractService.SearchContractWithFilters(userId, projectId, search, pageIndex, pageSize);
+                var contracts = await _contractService.SearchContractWithFilters(userId, projectId, search, page, size);
                 return Ok(contracts);
             }
             catch (UnauthorizedProjectRoleException ex)

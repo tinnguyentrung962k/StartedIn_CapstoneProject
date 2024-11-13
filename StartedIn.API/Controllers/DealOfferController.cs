@@ -12,6 +12,7 @@ using StartedIn.Service.Services.Interface;
 using System.Security.Claims;
 using StartedIn.API.Attributes;
 using StartedIn.Domain.Entities;
+using StartedIn.CrossCutting.DTOs.ResponseDTO;
 
 namespace StartedIn.API.Controllers
 {
@@ -55,14 +56,12 @@ namespace StartedIn.API.Controllers
 
         [HttpGet("deal-offers")]
         [Authorize(Roles = RoleConstants.INVESTOR)]
-        public async Task<ActionResult<SearchResponseDTO<DealOfferForInvestorResponseDTO>>> GetDealListOfAnInvestor([FromQuery] int pageIndex, int pageSize)
+        public async Task<ActionResult<PaginationDTO<DealOfferForInvestorResponseDTO>>> GetDealListOfAnInvestor([FromQuery] int page, int size)
         {
-            pageIndex = pageIndex < 1 ? 1 : pageIndex;
-            pageSize = pageSize < 1 ? 10 : pageSize;
             try
             {
                 var userId = User.FindFirst(ClaimTypes.NameIdentifier).Value;
-                var dealList = await _dealOfferService.GetDealOfferForAnInvestor(userId, pageIndex, pageSize);
+                var dealList = await _dealOfferService.GetDealOfferForAnInvestor(userId, page, size);
                 return Ok(dealList);
             }
             catch (Exception ex)
@@ -73,14 +72,12 @@ namespace StartedIn.API.Controllers
 
         [HttpGet("projects/{projectId}/deal-offers")]
         [Authorize(Roles = RoleConstants.USER)]
-        public async Task<ActionResult<SearchResponseDTO<DealOfferForProjectResponseDTO>>> GetDealListForAProject([FromRoute] string projectId, [FromQuery] int pageIndex, int pageSize)
+        public async Task<ActionResult<PaginationDTO<DealOfferForProjectResponseDTO>>> GetDealListForAProject([FromRoute] string projectId, [FromQuery] int page = 1, int size = 20)
         {
-            pageIndex = pageIndex < 1 ? 1 : pageIndex;
-            pageSize = pageSize < 1 ? 10 : pageSize;
             try
             {
                 var userId = User.FindFirst(ClaimTypes.NameIdentifier).Value;
-                var dealList = await _dealOfferService.GetDealOfferForAProject(userId, projectId, pageIndex, pageSize);
+                var dealList = await _dealOfferService.GetDealOfferForAProject(userId, projectId, page, size);
                 return Ok(dealList);
             }
             catch (UnauthorizedProjectRoleException ex)

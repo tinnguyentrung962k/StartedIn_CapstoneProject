@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.Mvc;
 using StartedIn.CrossCutting.Constants;
 using StartedIn.CrossCutting.DTOs.BaseDTO;
 using StartedIn.CrossCutting.DTOs.RequestDTO.Project;
+using StartedIn.CrossCutting.DTOs.ResponseDTO;
 using StartedIn.CrossCutting.DTOs.ResponseDTO.Contract;
 using StartedIn.CrossCutting.DTOs.ResponseDTO.Project;
 using StartedIn.CrossCutting.Enum;
@@ -213,15 +214,13 @@ public class ProjectController : ControllerBase
 
     [HttpGet("/api/startups")]
     [Authorize(Roles = RoleConstants.INVESTOR)]
-    public async Task<ActionResult<SearchResponseDTO<ExploreProjectDTO>>> ExploreProjects([FromQuery] int pageIndex, int pageSize)
+    public async Task<ActionResult<PaginationDTO<ExploreProjectDTO>>> ExploreProjects([FromQuery] int page = 1, int size = 20)
     {
         try
         {
-            pageIndex = pageIndex < 1 ? 1 : pageIndex;
-            pageSize = pageSize < 1 ? 10 : pageSize;
             var userId = User.FindFirst(ClaimTypes.NameIdentifier).Value;
-            var result = await _projectService.GetProjectsForInvestor(userId, pageIndex, pageSize);
-            return Ok(result);
+            var projectList = await _projectService.GetProjectsForInvestor(userId, size, page);
+            return Ok(projectList);
         }
         catch (Exception ex)
         {
