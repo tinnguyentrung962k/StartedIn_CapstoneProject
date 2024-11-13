@@ -155,6 +155,10 @@ namespace StartedIn.API.Configuration.AutoMapper
         private void DisbursementMappingProfile()
         {
             CreateMap<Disbursement, DisbursementInContractResponseDTO>().ReverseMap();
+            CreateMap<Disbursement, DisbursementForLeaderInProjectResponseDTO>()
+                .ForMember(dr => dr.ContractIdNumber, opt => opt.MapFrom(de => de.Contract.ContractIdNumber))
+                .ForMember(dr => dr.Amount, opt => opt.MapFrom(de => de.Amount.ToString()))
+                .ForMember(dr => dr.InvestorName, opt => opt.MapFrom(de => de.Investor.FullName));
         }
     }
 }

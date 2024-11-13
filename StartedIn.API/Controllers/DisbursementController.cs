@@ -1,5 +1,10 @@
-﻿using Microsoft.AspNetCore.Http;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using StartedIn.CrossCutting.Constants;
+using StartedIn.CrossCutting.DTOs.RequestDTO.Disbursement;
+using StartedIn.CrossCutting.DTOs.ResponseDTO;
+using StartedIn.CrossCutting.DTOs.ResponseDTO.Disbursement;
 using StartedIn.CrossCutting.DTOs.ResponseDTO.PayOs;
 using StartedIn.CrossCutting.Exceptions;
 using StartedIn.Service.Services.Interface;
@@ -26,7 +31,7 @@ namespace StartedIn.API.Controllers
             try
             {
                 var userId = User.FindFirst(ClaimTypes.NameIdentifier).Value;
-                var paymentResponse = await _payOsService.PaymentWithPayOs(userId,disbursementId,projectId);
+                var paymentResponse = await _payOsService.PaymentWithPayOs(userId, disbursementId, projectId);
                 return Ok(paymentResponse);
             }
             catch (NotFoundException ex)
@@ -39,12 +44,12 @@ namespace StartedIn.API.Controllers
             }
         }
         [HttpGet("disbursements/{disbursementId}/payment-info")]
-        public async Task<IActionResult> GetPaymentStatus([FromRoute]string disbursementId, [FromRoute] string projectId)
+        public async Task<IActionResult> GetPaymentStatus([FromRoute] string disbursementId, [FromRoute] string projectId)
         {
             try
             {
                 var userId = User.FindFirst(ClaimTypes.NameIdentifier).Value;
-                var paymentStatus = await _payOsService.GetPaymentStatus(userId,disbursementId,projectId);
+                var paymentStatus = await _payOsService.GetPaymentStatus(userId, disbursementId, projectId);
                 return Ok(paymentStatus);
             }
             catch (NotFoundException ex)
@@ -58,7 +63,7 @@ namespace StartedIn.API.Controllers
         }
 
         [HttpGet("disbursements/{disbursementId}/cancel")]
-        public async Task<IActionResult> HandleCancel([FromRoute]string projectId, [FromRoute] string disbursementId, [FromQuery] string apiKey)
+        public async Task<IActionResult> HandleCancel([FromRoute] string projectId, [FromRoute] string disbursementId, [FromQuery] string apiKey)
         {
             try
             {
@@ -92,7 +97,31 @@ namespace StartedIn.API.Controllers
             catch (Exception ex)
             {
                 return StatusCode(500, ex.Message);
-            } 
+            }
+        }
+
+        [HttpGet("disbursements")]
+        [Authorize(Roles = RoleConstants.USER)]
+        public async Task<ActionResult<PaginationDTO<DisbursementForLeaderInProjectResponseDTO>>> GetListDisbursementInProjectForLeader(
+            [FromRoute] string projectId, 
+            [FromQuery] DisbursementFilterDTO disbursementFilterDTO,
+            [FromQuery] int page = 1,
+            [FromQuery] int size = 20)
+        {
+            try
+            {
+                var userId = User.FindFirst(ClaimTypes.NameIdentifier).Value;
+                var disbursementPaginationList = await _disbursementService.GetDisbursementListForLeaderInAProject(userId, projectId, disbursementFilterDTO, size, page);
+                return Ok(disbursementPaginationList);
+            }
+            catch (UnauthorizedProjectRoleException ex)
+            {
+                return StatusCode(403, ex.Message);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, MessageConstant.InternalServerError + ex.Message);
+            }
         }
 
     }
