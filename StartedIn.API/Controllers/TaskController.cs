@@ -56,8 +56,8 @@ namespace StartedIn.API.Controllers
         [Authorize(Roles = RoleConstants.USER)]
         public async Task<ActionResult<PaginationDTO<TaskResponseDTO>>> getAllTasks(
             [FromRoute] string projectId,
-            [FromQuery] int page = 1,
-            [FromQuery] int size = 20)
+            [FromQuery] int page,
+            [FromQuery] int size)
         {
             try
             {

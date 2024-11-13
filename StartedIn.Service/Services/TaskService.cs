@@ -142,7 +142,7 @@ namespace StartedIn.Service.Services
         {
             var userInProject = await _userService.CheckIfUserInProject(userId, projectId);
 
-            var tasksInProjectQuery = _taskRepository.QueryHelper().Filter(t => t.ProjectId == projectId);
+            var tasksInProjectQuery = _taskRepository.QueryHelper().Filter(t => t.ProjectId == projectId && t.DeletedTime == null);
 
             var pagination = new PaginationDTO<TaskResponseDTO>()
             {
@@ -158,7 +158,7 @@ namespace StartedIn.Service.Services
         public async Task<PaginationDTO<TaskResponseDTO>> FilterTask(string userId, string projectId, TaskFilterDTO taskFilterDto, int size, int page)
         {
             var userInProject = await _userService.CheckIfUserInProject(userId, projectId);
-            var filterTasks = _taskRepository.QueryHelper().Include(t => t.UserTasks).Filter(t => t.ProjectId.Equals(projectId));
+            var filterTasks = _taskRepository.QueryHelper().Include(t => t.UserTasks).Filter(t => t.ProjectId.Equals(projectId) && t.DeletedTime == null);
 
             if (!string.IsNullOrWhiteSpace(taskFilterDto.Title))
             {
@@ -457,7 +457,7 @@ namespace StartedIn.Service.Services
 
             try
             {
-                await _taskRepository.DeleteByIdAsync(taskId);
+                await _taskRepository.SoftDeleteById(taskId);
                 await _unitOfWork.SaveChangesAsync();
             }
             catch (Exception ex)
