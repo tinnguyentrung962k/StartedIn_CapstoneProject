@@ -159,6 +159,11 @@ namespace StartedIn.API.Configuration.AutoMapper
                 .ForMember(dr => dr.ContractIdNumber, opt => opt.MapFrom(de => de.Contract.ContractIdNumber))
                 .ForMember(dr => dr.Amount, opt => opt.MapFrom(de => de.Amount.ToString()))
                 .ForMember(dr => dr.InvestorName, opt => opt.MapFrom(de => de.Investor.FullName));
+            CreateMap<Disbursement, DisbursementForInvestorInInvestorMenuResponseDTO>()
+                .ForMember(dr => dr.ContractIdNumber, opt => opt.MapFrom(de => de.Contract.ContractIdNumber))
+                .ForMember(dr => dr.Amount, opt => opt.MapFrom(de => de.Amount.ToString()))
+                .ForMember(dr => dr.ProjectName, opt => opt.MapFrom(de => de.Contract.Project.ProjectName));
+
         }
     }
 }

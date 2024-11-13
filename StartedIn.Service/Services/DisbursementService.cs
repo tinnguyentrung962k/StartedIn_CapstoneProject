@@ -175,7 +175,7 @@ namespace StartedIn.Service.Services
                 }
             }
         }
-        public async Task<PaginationDTO<DisbursementForLeaderInProjectResponseDTO>> GetDisbursementListForLeaderInAProject(string userId, string projectId, DisbursementFilterDTO disbursementFilterDTO, int size, int page)
+        public async Task<PaginationDTO<DisbursementForLeaderInProjectResponseDTO>> GetDisbursementListForLeaderInAProject(string userId, string projectId, DisbursementFilterInProjectDTO disbursementFilterDTO, int size, int page)
         {
             var loginUser = await _userService.CheckIfUserInProject(userId, projectId);
             var projectRole = await _projectRepository.GetUserRoleInProject(userId, projectId);
@@ -236,6 +236,79 @@ namespace StartedIn.Service.Services
             var pagination = new PaginationDTO<DisbursementForLeaderInProjectResponseDTO>()
             {
                 Data = _mapper.Map<IEnumerable<DisbursementForLeaderInProjectResponseDTO>>(await filterDisbursements.GetPagingAsync(page, size)),
+                Total = await filterDisbursements.GetTotal(),
+                Page = page,
+                Size = size
+            };
+
+            return pagination;
+        }
+
+        public async Task<PaginationDTO<DisbursementForInvestorInInvestorMenuResponseDTO>> GetDisbursementListForInvestorInMenu(string userId, DisbursementFilterInvestorMenuDTO disbursementFilterDTO, int size, int page)
+        {
+            var investor = await _userManager.FindByIdAsync(userId);
+            if (investor == null) 
+            {
+                throw new NotFoundException(MessageConstant.NotFoundUserError);
+            }
+            var filterDisbursements = _disbursementRepository.QueryHelper()
+                .Include(x => x.Contract)
+                .Include(x => x.Investor)
+                .Filter(x => x.InvestorId.Equals(investor.Id))
+                .Filter(x => x.IsValidWithContract == true);
+            if (!string.IsNullOrWhiteSpace(disbursementFilterDTO.Title))
+            {
+                filterDisbursements = filterDisbursements.Filter(d => d.Title != null && d.Title.ToLower().Contains(disbursementFilterDTO.Title.ToLower()));
+            }
+            if (disbursementFilterDTO.PeriodFrom.HasValue && disbursementFilterDTO.PeriodTo.HasValue)
+            {
+                filterDisbursements = filterDisbursements.Filter(d => d.StartDate >= disbursementFilterDTO.PeriodFrom.Value && d.EndDate <= disbursementFilterDTO.PeriodTo.Value);
+            }
+            else if (disbursementFilterDTO.PeriodFrom.HasValue)
+            {
+                filterDisbursements = filterDisbursements.Filter(d => d.StartDate >= disbursementFilterDTO.PeriodFrom.Value);
+            }
+            else if (disbursementFilterDTO.PeriodTo.HasValue)
+            {
+                filterDisbursements = filterDisbursements.Filter(d => d.EndDate <= disbursementFilterDTO.PeriodTo.Value);
+            }
+
+            // Amount range filter
+            if (disbursementFilterDTO.AmountFrom.HasValue)
+            {
+                filterDisbursements = filterDisbursements.Filter(d => d.Amount >= disbursementFilterDTO.AmountFrom.Value);
+            }
+            if (disbursementFilterDTO.AmountTo.HasValue)
+            {
+                filterDisbursements = filterDisbursements.Filter(d => d.Amount <= disbursementFilterDTO.AmountTo.Value);
+            }
+
+            // Status filter
+            if (disbursementFilterDTO.DisbursementStatus.HasValue)
+            {
+                filterDisbursements = filterDisbursements.Filter(d => d.DisbursementStatus == disbursementFilterDTO.DisbursementStatus.Value);
+            }
+
+            // Project filter
+            if (!string.IsNullOrEmpty(disbursementFilterDTO.ProjectId))
+            {
+                filterDisbursements = filterDisbursements.Filter(d => d.Contract.ProjectId.Equals(disbursementFilterDTO.ProjectId));
+            }
+
+            // Contract filter
+            if (!string.IsNullOrWhiteSpace(disbursementFilterDTO.ContractId))
+            {
+                filterDisbursements = filterDisbursements.Filter(d => d.ContractId.Equals(disbursementFilterDTO.ContractId));
+            }
+            var recordInPage = await filterDisbursements.GetPagingAsync(page, size);
+            foreach (var filterDisbursement in recordInPage)
+            {
+                var project = await _projectRepository.GetProjectById(filterDisbursement.Contract.ProjectId);
+                filterDisbursement.Contract.Project = project;
+            }    
+            var pagination = new PaginationDTO<DisbursementForInvestorInInvestorMenuResponseDTO>()
+            {
+                Data = _mapper.Map<IEnumerable<DisbursementForInvestorInInvestorMenuResponseDTO>>(recordInPage),
                 Total = await filterDisbursements.GetTotal(),
                 Page = page,
                 Size = size

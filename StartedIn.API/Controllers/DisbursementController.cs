@@ -13,7 +13,7 @@ using System.Security.Claims;
 namespace StartedIn.API.Controllers
 {
     [ApiController]
-    [Route("api/projects/{projectId}")]
+    [Route("api")]
     public class DisbursementController : ControllerBase
     {
         private readonly IPayOsService _payOsService;
@@ -25,7 +25,7 @@ namespace StartedIn.API.Controllers
             _payOsService = payOsService;
             _disbursementService = disbursementService;
         }
-        [HttpPost("disbursements/{disbursementId}/payments")]
+        [HttpPost("projects/{projectId}/disbursements/{disbursementId}/payments")]
         public async Task<IActionResult> PaymentProccessing([FromRoute] string disbursementId, [FromRoute] string projectId)
         {
             try
@@ -43,7 +43,7 @@ namespace StartedIn.API.Controllers
                 return StatusCode(500, "Server Error");
             }
         }
-        [HttpGet("disbursements/{disbursementId}/payment-info")]
+        [HttpGet("projects/{projectId}/disbursements/{disbursementId}/payment-info")]
         public async Task<IActionResult> GetPaymentStatus([FromRoute] string disbursementId, [FromRoute] string projectId)
         {
             try
@@ -62,7 +62,7 @@ namespace StartedIn.API.Controllers
             }
         }
 
-        [HttpGet("disbursements/{disbursementId}/cancel")]
+        [HttpGet("projects/{projectId}/disbursements/{disbursementId}/cancel")]
         public async Task<IActionResult> HandleCancel([FromRoute] string projectId, [FromRoute] string disbursementId, [FromQuery] string apiKey)
         {
             try
@@ -81,7 +81,7 @@ namespace StartedIn.API.Controllers
             }
         }
 
-        [HttpGet("disbursements/{disbursementId}/return")]
+        [HttpGet("projects/{projectId}/disbursements/{disbursementId}/return")]
         public async Task<IActionResult> HandleReturn([FromRoute] string projectId, [FromRoute] string disbursementId, [FromQuery] string apiKey)
         {
             try
@@ -100,11 +100,11 @@ namespace StartedIn.API.Controllers
             }
         }
 
-        [HttpGet("disbursements")]
+        [HttpGet("projects/{projectId}/disbursements")]
         [Authorize(Roles = RoleConstants.USER)]
         public async Task<ActionResult<PaginationDTO<DisbursementForLeaderInProjectResponseDTO>>> GetListDisbursementInProjectForLeader(
             [FromRoute] string projectId, 
-            [FromQuery] DisbursementFilterDTO disbursementFilterDTO,
+            [FromQuery] DisbursementFilterInProjectDTO disbursementFilterDTO,
             [FromQuery] int page = 1,
             [FromQuery] int size = 20)
         {
@@ -112,6 +112,28 @@ namespace StartedIn.API.Controllers
             {
                 var userId = User.FindFirst(ClaimTypes.NameIdentifier).Value;
                 var disbursementPaginationList = await _disbursementService.GetDisbursementListForLeaderInAProject(userId, projectId, disbursementFilterDTO, size, page);
+                return Ok(disbursementPaginationList);
+            }
+            catch (UnauthorizedProjectRoleException ex)
+            {
+                return StatusCode(403, ex.Message);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, MessageConstant.InternalServerError + ex.Message);
+            }
+        }
+        [HttpGet("disbursements")]
+        [Authorize(Roles = RoleConstants.INVESTOR)]
+        public async Task<ActionResult<PaginationDTO<DisbursementForLeaderInProjectResponseDTO>>> GetListDisbursementForInvestorInMenu(
+            [FromQuery] DisbursementFilterInvestorMenuDTO disbursementFilterDTO,
+            [FromQuery] int page = 1,
+            [FromQuery] int size = 20)
+        {
+            try
+            {
+                var userId = User.FindFirst(ClaimTypes.NameIdentifier).Value;
+                var disbursementPaginationList = await _disbursementService.GetDisbursementListForInvestorInMenu(userId, disbursementFilterDTO, size, page);
                 return Ok(disbursementPaginationList);
             }
             catch (UnauthorizedProjectRoleException ex)
