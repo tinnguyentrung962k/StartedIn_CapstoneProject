@@ -71,7 +71,7 @@ namespace StartedIn.Service.Services
             }
             try
             {
-                string content = $"{user.FullName} - {disbursement.Title}";
+                string content = $"{disbursement.Contract.ContractIdNumber} - {disbursement.Title}";
                 int expiredAt = (int)(DateTimeOffset.UtcNow.ToUnixTimeSeconds() + (60 * 5));
                 long orderCodeLong = GenerateUniqueBookingCode();
                 disbursement.OrderCode = orderCodeLong;
