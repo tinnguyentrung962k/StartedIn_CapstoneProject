@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace StartedIn.CrossCutting.DTOs.RequestDTO.Disbursement
 {
-    public class DisbursementFilterDTO
+    public class DisbursementFilterInProjectDTO
     {
         public string? Title { get; set; }
         public DateOnly? PeriodFrom { get; set; }
