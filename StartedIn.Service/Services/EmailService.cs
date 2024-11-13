@@ -1,14 +1,8 @@
 ﻿using Microsoft.Extensions.Configuration;
 using StartedIn.CrossCutting.DTOs.Email;
 using StartedIn.Service.Services.Interface;
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Net.Mail;
 using System.Net;
-using System.Text;
-using System.Threading.Tasks;
-using StartedIn.Domain.Entities;
 using StartedIn.CrossCutting.Enum;
 
 namespace StartedIn.Service.Services
@@ -106,11 +100,13 @@ namespace StartedIn.Service.Services
             await SendEmailAsync(receiveEmail, subject, body);
         }
 
-        public async Task SendingSigningContractRequest(User user, string contractLink)
+        public async Task SendDisbursementReminder(string receiveEmail, DateOnly disbursementEndDate, string projectName, string disbursementTitle, decimal disbursementAmount)
         {
-            var subject = "Yêu cầu ký hợp đồng";
-            var emailContent = $"Hi {user.FullName}, \nPlease review and sign the contract using the following link:\n{contractLink} \n\n Xin chân thành cảm ơn vì đã đồng hành cùng StartedIn!";
-            await SendEmailAsync(user.Email, subject, emailContent);
+            var subject = "Nhắc nhở về việc giải ngân";
+            var body = $"Bạn có đợt giải ngân kết vào ngày {disbursementEndDate} với dự án {projectName}: \n\t Tên đợt giải ngân: {disbursementTitle} \n\t Số tiền giải ngân: {disbursementAmount}";
+            await SendEmailAsync(receiveEmail, subject, body);
         }
+
+
     }
 }
