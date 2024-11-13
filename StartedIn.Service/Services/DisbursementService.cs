@@ -185,7 +185,7 @@ namespace StartedIn.Service.Services
             var filterDisbursements = _disbursementRepository.QueryHelper()
                 .Include(x => x.Contract)
                 .Include(x => x.Investor)
-                .Filter(x => x.Contract.ProjectId.Equals(projectId) && x.IsValidWithContract == true);
+                .Filter(x => x.Contract.ProjectId.Equals(projectId) && x.IsValidWithContract == true).OrderBy(x=>x.OrderBy(x=>x.StartDate));
             if (!string.IsNullOrWhiteSpace(disbursementFilterDTO.Title))
             {
                 filterDisbursements = filterDisbursements.Filter(d => d.Title != null && d.Title.ToLower().Contains(disbursementFilterDTO.Title.ToLower()));
@@ -252,8 +252,8 @@ namespace StartedIn.Service.Services
             var filterDisbursements = _disbursementRepository.QueryHelper()
                 .Include(x => x.Contract)
                 .Include(x => x.Investor)
-                .Filter(x => x.InvestorId.Equals(investor.Id))
-                .Filter(x => x.IsValidWithContract == true);
+                .Filter(x => x.InvestorId.Equals(investor.Id) && x.IsValidWithContract == true)
+                .OrderBy(x => x.OrderBy(x => x.StartDate));
             if (!string.IsNullOrWhiteSpace(disbursementFilterDTO.Title))
             {
                 filterDisbursements = filterDisbursements.Filter(d => d.Title != null && d.Title.ToLower().Contains(disbursementFilterDTO.Title.ToLower()));
