@@ -197,7 +197,7 @@ namespace StartedIn.Service.Services
 
             // Retrieve all expired disbursements that need updating
             var expiredDisbursements = await _disbursementRepository.QueryHelper()
-                .Filter(x => x.EndDate < today && x.IsValidWithContract == true)
+                .Filter(x => x.EndDate < today && x.IsValidWithContract == true && x.DisbursementStatus == CrossCutting.Enum.DisbursementStatusEnum.PENDING)
                 .Include(x => x.Investor)
                 .Include(x => x.Contract)
                 .GetAllAsync();
