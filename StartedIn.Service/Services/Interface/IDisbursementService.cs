@@ -20,5 +20,6 @@ namespace StartedIn.Service.Services.Interface
         Task RejectADisbursement(string userId, string disbursementId, DisbursementRejectDTO disbursementRejectDTO);
         Task UpdateFinanceAndTransactionOfProjectOfFinishedDisbursement(User user,string projectId, Disbursement disbursement);
         Task DisbursementConfirmation(string userId, string projectId, string disbursementId);
+        Task AutoUpdateOverdueIfDisbursementsExpire();
     }
 }

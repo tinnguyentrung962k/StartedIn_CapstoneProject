@@ -24,7 +24,7 @@ namespace StartedIn.Service.Services.BackgroundWorkerServices
         }
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
         {
-            _logger.LogInformation("DisbursementReminder started.");
+            _logger.LogInformation("Disbursement worker started.");
 
             while (!stoppingToken.IsCancellationRequested)
             {
@@ -32,15 +32,15 @@ namespace StartedIn.Service.Services.BackgroundWorkerServices
                 {
                     IDisbursementService disbursementService = scope.ServiceProvider.GetRequiredService<IDisbursementService>();
                     await disbursementService.ReminderDisbursementForInvestor();
+                    await disbursementService.AutoUpdateOverdueIfDisbursementsExpire();
                 }
-
                 _logger.LogInformation("Disbursement check completed. Waiting for next execution...");
 
                 // Wait for the specified interval before executing again
                 await Task.Delay(ONE_HOUR, stoppingToken);
             }
 
-            _logger.LogInformation("DisbursementReminderBackgroundWorker stopping.");
+            _logger.LogInformation("DisbursementWorker stopping.");
         }
     }
 }

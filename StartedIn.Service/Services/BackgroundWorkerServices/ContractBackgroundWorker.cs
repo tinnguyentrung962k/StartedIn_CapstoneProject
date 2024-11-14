@@ -20,7 +20,7 @@ public class ContractBackgroundWorker : BackgroundService
     
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
-        _logger.LogInformation("ContractCancelBackgroundWorker started.");
+        _logger.LogInformation("ContractWorker started.");
 
         while (!stoppingToken.IsCancellationRequested)
         {
@@ -30,12 +30,12 @@ public class ContractBackgroundWorker : BackgroundService
                 await contractService.CancelContractAfterDueDate();
             }
 
-            _logger.LogInformation("Contract cancellation check completed. Waiting for next execution...");
+            _logger.LogInformation("Contract check completed. Waiting for next execution...");
 
             // Wait for the specified interval before executing again
             await Task.Delay(ONE_HOUR, stoppingToken);
         }
 
-        _logger.LogInformation("ContractCancelBackgroundWorker stopping.");
+        _logger.LogInformation("ContractWorker stopping.");
     }
 }

@@ -191,6 +191,24 @@ namespace StartedIn.Service.Services
                 }
             }
         }
+        public async Task AutoUpdateOverdueIfDisbursementsExpire()
+        {
+            DateOnly today = DateOnly.FromDateTime(DateTime.Now);
+
+            // Retrieve all expired disbursements that need updating
+            var expiredDisbursements = await _disbursementRepository.QueryHelper()
+                .Filter(x => x.EndDate < today && x.IsValidWithContract == true)
+                .Include(x => x.Investor)
+                .Include(x => x.Contract)
+                .GetAllAsync();
+            foreach (var expiredDisbursement in expiredDisbursements)
+            {
+                expiredDisbursement.DisbursementStatus = CrossCutting.Enum.DisbursementStatusEnum.OVERDUE;
+                _disbursementRepository.Update(expiredDisbursement);
+            }
+            await _unitOfWork.SaveChangesAsync();
+        }
+
         public async Task<PaginationDTO<DisbursementForLeaderInProjectResponseDTO>> GetDisbursementListForLeaderInAProject(string userId, string projectId, DisbursementFilterInProjectDTO disbursementFilterDTO, int size, int page)
         {
             var loginUser = await _userService.CheckIfUserInProject(userId, projectId);
