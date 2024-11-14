@@ -86,7 +86,7 @@ namespace StartedIn.Service.Services
             }
             try
             {
-                await UpdateFinanceAndTransactionOfProjectOfFinishedDisbursement(project.Id, disbursement);
+                await UpdateFinanceAndTransactionOfProjectOfFinishedDisbursement(disbursement.Investor,project.Id, disbursement);
             }
             catch (Exception ex)
             {

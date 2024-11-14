@@ -18,7 +18,7 @@ namespace StartedIn.Service.Services.Interface
         Task<PaginationDTO<DisbursementForLeaderInProjectResponseDTO>> GetDisbursementListForLeaderInAProject(string userId, string projectId, DisbursementFilterInProjectDTO disbursementFilterDTO, int size, int page);
         Task<PaginationDTO<DisbursementForInvestorInInvestorMenuResponseDTO>> GetDisbursementListForInvestorInMenu(string userId, DisbursementFilterInvestorMenuDTO disbursementFilterDTO, int size, int page);
         Task RejectADisbursement(string userId, string disbursementId, DisbursementRejectDTO disbursementRejectDTO);
-        Task UpdateFinanceAndTransactionOfProjectOfFinishedDisbursement(string projectId, Disbursement disbursement);
+        Task UpdateFinanceAndTransactionOfProjectOfFinishedDisbursement(User user,string projectId, Disbursement disbursement);
         Task DisbursementConfirmation(string userId, string projectId, string disbursementId);
     }
 }
