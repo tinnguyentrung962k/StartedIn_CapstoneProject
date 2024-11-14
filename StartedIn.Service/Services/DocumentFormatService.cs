@@ -264,16 +264,32 @@ namespace StartedIn.Service.Services
                 var placeholderShareHoldersInfoParagraph = body.Elements<Paragraph>().FirstOrDefault(p => p.InnerText.Contains("HOLDERS"));
                 if (placeholderShareHoldersInfoParagraph != null)
                 {
-                    Table shareHolderInfoTable = CreateShareholdersInfoTable(usersInContract);
-                    placeholderShareHoldersInfoParagraph.InsertAfterSelf(shareHolderInfoTable);
+                    if (usersInContract.Count > 0)
+                    {
+                        // Insert shareholder info table if usersInContract list is not empty
+                        Table shareHolderInfoTable = CreateShareholdersInfoTable(usersInContract);
+                        placeholderShareHoldersInfoParagraph.InsertAfterSelf(shareHolderInfoTable);
+                    }
+                    else
+                    {
+                        // Replace with whitespace if usersInContract list is empty
+                        placeholderShareHoldersInfoParagraph.AppendChild(new Run(new Text(" ")));
+                    }
                     placeholderShareHoldersInfoParagraph.Remove();
                 }
 
-                var placeholderShareHoldersDistributionParagraph = body.Elements<Paragraph>().FirstOrDefault(p => p.InnerText.Contains("HOLDERS"));
+                var placeholderShareHoldersDistributionParagraph = body.Elements<Paragraph>().FirstOrDefault(p => p.InnerText.Contains("TABLE"));
                 if (placeholderShareHoldersDistributionParagraph != null)
                 {
-                    Table shareHolderTable = await CreateShareDistributionTable(usersInContract, project.Id, contract.Id);
-                    placeholderShareHoldersDistributionParagraph.InsertAfterSelf(shareHolderTable);
+                    if (shareEquities.Count > 0)
+                    {
+                        Table shareHolderTable = await CreateShareDistributionTable(usersInContract, project.Id, contract.Id);
+                        placeholderShareHoldersDistributionParagraph.InsertAfterSelf(shareHolderTable);
+                    }
+                    else
+                    {
+                        placeholderShareHoldersDistributionParagraph.AppendChild(new Run(new Text(" ")));
+                    }
                     placeholderShareHoldersDistributionParagraph.Remove();
                 }
 
@@ -343,13 +359,21 @@ namespace StartedIn.Service.Services
                         }
                     }
                 }
-
-                // Tìm và thay thế "CACMOCGIAINGAN" với bảng giải ngân
                 var placeholderParagraph = body.Elements<Paragraph>().FirstOrDefault(p => p.InnerText.Contains("CACMOCGIAINGAN"));
                 if (placeholderParagraph != null)
                 {
-                    Table disbursementTable = CreateDisbursementTable(disbursements);
-                    placeholderParagraph.InsertAfterSelf(disbursementTable);
+                    if (disbursements.Count > 0)
+                    {
+                        // Insert disbursement table if there are items in the list
+                        Table disbursementTable = CreateDisbursementTable(disbursements);
+                        placeholderParagraph.InsertAfterSelf(disbursementTable);
+                    }
+                    else
+                    {
+                        // Replace with a whitespace paragraph if the list is empty
+                        placeholderParagraph.AppendChild(new Run(new Text(" ")));  // Single whitespace
+                    }
+
                     placeholderParagraph.Remove();
                 }
 
