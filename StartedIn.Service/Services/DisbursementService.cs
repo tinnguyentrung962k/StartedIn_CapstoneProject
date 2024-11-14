@@ -1,5 +1,6 @@
 ﻿using AutoMapper;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore.Update.Internal;
 using Microsoft.Extensions.Logging;
 using StartedIn.CrossCutting.Constants;
 using StartedIn.CrossCutting.DTOs.RequestDTO.Disbursement;
@@ -83,37 +84,9 @@ namespace StartedIn.Service.Services
             {
                 throw new UnauthorizedAccessException(MessageConstant.RolePermissionError);
             }
-
-            
             try
             {
-                _unitOfWork.BeginTransaction();
-                // Perform the transaction logic
-                var projectFinance = await _financeRepository.QueryHelper()
-                    .Filter(x => x.ProjectId.Equals(project.Id))
-                    .GetOneAsync();
-
-                projectFinance.CurrentBudget += disbursement.Amount;
-                projectFinance.DisbursedAmount += disbursement.Amount;
-                projectFinance.RemainingDisbursement -= disbursement.Amount;
-                projectFinance.LastUpdatedTime = DateTime.UtcNow;
-                var newTransaction = new Transaction
-                {
-                    Amount = disbursement.Amount,
-                    Disbursement = disbursement,
-                    DisbursementId = disbursement.Id,
-                    FinanceId = projectFinance.Id,
-                    Type = CrossCutting.Enum.TransactionType.Disbursement,
-                    Status = CrossCutting.Enum.TransactionStatus.Completed,
-                    FromID = disbursement.InvestorId,
-                    ToID = project.UserProjects.FirstOrDefault(x => x.ProjectId.Equals(project.Id) && x.RoleInTeam == CrossCutting.Enum.RoleInTeam.Leader).UserId
-                };
-                disbursement.DisbursementStatus = CrossCutting.Enum.DisbursementStatusEnum.FINISHED;
-                _disbursementRepository.Update(disbursement);
-                _financeRepository.Update(projectFinance);
-                _transactionRepository.Add(newTransaction);
-                await _unitOfWork.SaveChangesAsync(); // Ensure the final status update is saved
-                await _unitOfWork.CommitAsync();
+                await UpdateFinanceAndTransactionOfProjectOfFinishedDisbursement(project.Id, disbursement);
             }
             catch (Exception ex)
             {
@@ -392,6 +365,69 @@ namespace StartedIn.Service.Services
                 await _unitOfWork.RollbackAsync(); // Rollback transaction
                 throw;
             }
+        }
+        public async Task DisbursementConfirmation(string userId, string projectId, string disbursementId)
+        {
+            var userInProject = await _userService.CheckIfUserInProject(userId, projectId);
+            var projectRole = await _projectRepository.GetUserRoleInProject(userId, projectId);
+            if (projectRole != CrossCutting.Enum.RoleInTeam.Leader)
+            {
+                throw new UnauthorizedProjectRoleException(MessageConstant.RolePermissionError);
+            }
+            var disbursement = await _disbursementRepository.GetDisbursementById(disbursementId);
+            if (disbursement == null)
+            {
+                throw new NotFoundException(MessageConstant.DisbursementNotFound);
+            }
+            if (disbursement.DisbursementStatus != CrossCutting.Enum.DisbursementStatusEnum.ACCEPTED)
+            {
+                throw new UpdateException(MessageConstant.UpdateFailed); 
+            }
+            if (userInProject.ProjectId != disbursement.Contract.ProjectId)
+            {
+                throw new UnmatchedException(MessageConstant.DisbursementNotBelongToProject);
+            }
+            try 
+            {
+                await UpdateFinanceAndTransactionOfProjectOfFinishedDisbursement(userInProject.User,projectId, disbursement);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError($"An error occurred while updating a disbursement: {ex.Message}");
+                await _unitOfWork.RollbackAsync(); // Rollback transaction
+                throw;
+            }
+
+        }
+        public async Task UpdateFinanceAndTransactionOfProjectOfFinishedDisbursement(User user, string projectId, Disbursement disbursement)
+        {
+            _unitOfWork.BeginTransaction();
+            var projectFinance = await _financeRepository.QueryHelper()
+                    .Filter(x => x.ProjectId.Equals(projectId))
+                    .GetOneAsync();
+            var project = await _projectRepository.GetProjectAndMemberByProjectId(projectId);
+            projectFinance.CurrentBudget += disbursement.Amount;
+            projectFinance.DisbursedAmount += disbursement.Amount;
+            projectFinance.RemainingDisbursement -= disbursement.Amount;
+            projectFinance.LastUpdatedTime = DateTime.UtcNow;
+            var newTransaction = new Transaction
+            {
+                Amount = disbursement.Amount,
+                Disbursement = disbursement,
+                DisbursementId = disbursement.Id,
+                FinanceId = projectFinance.Id,
+                Type = CrossCutting.Enum.TransactionType.Disbursement,
+                Status = CrossCutting.Enum.TransactionStatus.Completed,
+                FromID = disbursement.InvestorId,
+                ToID = project.UserProjects.FirstOrDefault(x => x.ProjectId.Equals(project.Id) && x.RoleInTeam == CrossCutting.Enum.RoleInTeam.Leader).UserId
+            };
+            disbursement.DisbursementStatus = CrossCutting.Enum.DisbursementStatusEnum.FINISHED;
+            disbursement.LastUpdatedBy = user.FullName;
+            _disbursementRepository.Update(disbursement);
+            _financeRepository.Update(projectFinance);
+            _transactionRepository.Add(newTransaction);
+            await _unitOfWork.SaveChangesAsync(); // Ensure the final status update is saved
+            await _unitOfWork.CommitAsync();
         }
 
 
