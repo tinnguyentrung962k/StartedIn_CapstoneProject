@@ -43,28 +43,34 @@ namespace StartedIn.Service.Services
             _logger = logger;
         }
 
-        public async Task<string> PaymentWithPayOs(string userId, string disbursementId, string projectId)
+        public async Task<string> PaymentWithPayOs(string userId, string disbursementId)
         {
-            var userInProject = await _userService.CheckIfUserInProject(userId, projectId);
-            var projectRole = await _projectRepository.GetUserRoleInProject(userId, projectId);
-            if (projectRole != RoleInTeam.Investor)
+            var disbursement = await _disbursementRepository.GetDisbursementById(disbursementId);
+            if (disbursement == null)
             {
-                throw new UnauthorizedProjectRoleException(MessageConstant.RolePermissionError);
+                throw new NotFoundException(MessageConstant.DisbursementNotFound);
             }
-            var project = await _projectRepository.GetProjectById(projectId);
+            var project = await _projectRepository.GetProjectById(disbursement.Contract.ProjectId);
+            if (project == null)
+            {
+                throw new NotFoundException(MessageConstant.NotFoundProjectError);
+            }
+            if (project.HarshChecksumPayOsKey == null || project.HarshPayOsApiKey == null || project.HarshClientIdPayOsKey == null)
+            {
+                throw new PaymentException(MessageConstant.PaymentGateWayCustomizeError);
+            }
             var user = await _userManager.FindByIdAsync(userId);
-
+            if (disbursement.InvestorId != user.Id)
+            {
+                throw new UnmatchedException(MessageConstant.DisbursementNotBelongToInvestor);
+            }
             var clientId = DecryptString(project.HarshClientIdPayOsKey);
             var apiKey = DecryptString(project.HarshPayOsApiKey);
             var checksumKey = DecryptString(project.HarshChecksumPayOsKey);
 
             _payOS = new PayOS(clientId, apiKey, checksumKey);
             List<ItemData> items = new List<ItemData>();
-            var disbursement = await _disbursementRepository.GetDisbursementById(disbursementId);
-            if (disbursement == null)
-            {
-                throw new NotFoundException(MessageConstant.DisbursementNotFound);
-            }
+            
             if (disbursement.DisbursementStatus == DisbursementStatusEnum.FINISHED)
             {
                 throw new PaymentException(MessageConstant.DisbursementFinished);
@@ -82,8 +88,8 @@ namespace StartedIn.Service.Services
                     (int)Math.Ceiling(disbursement.Amount),
                     content,
                     items,
-                    $"{_apiDomain}/api/projects/{projectId}/disbursements/{disbursementId}/cancel?apiKey={apiKey}",
-                    $"{_apiDomain}/api/projects/{projectId}/disbursements/{disbursementId}/return?apiKey={apiKey}",
+                    $"{_apiDomain}/api/disbursements/{disbursementId}/cancel?apiKey={apiKey}",
+                    $"{_apiDomain}/api/disbursements/{disbursementId}/return?apiKey={apiKey}",
                     null,
                     user.FullName,
                     user.Email,

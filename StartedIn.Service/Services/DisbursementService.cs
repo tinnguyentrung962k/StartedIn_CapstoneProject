@@ -55,20 +55,18 @@ namespace StartedIn.Service.Services
             _transactionRepository = transactionRepository;
             _financeRepository = financeRepository;
         }
-        public async Task FinishedTheTransaction(string disbursementId, string projectId, string apiKey)
+        public async Task FinishedTheTransaction(string disbursementId, string apiKey)
         {
-            var project = await _projectRepository.GetProjectAndMemberByProjectId(projectId);
-            if (project == null)
-            {
-                throw new NotFoundException(MessageConstant.NotFoundProjectError);
-            }
-
             var disbursement = await _disbursementRepository.GetDisbursementById(disbursementId);
             if (disbursement is null)
             {
                 throw new NotFoundException(MessageConstant.DisbursementNotFound);
             }
-
+            var project = await _projectRepository.GetProjectAndMemberByProjectId(disbursement.Contract.ProjectId);
+            if (project == null)
+            {
+                throw new NotFoundException(MessageConstant.NotFoundProjectError);
+            }
             // Check if the disbursement is already finished to avoid reprocessing
             if (disbursement.DisbursementStatus == CrossCutting.Enum.DisbursementStatusEnum.FINISHED)
             {
@@ -92,7 +90,7 @@ namespace StartedIn.Service.Services
                 _unitOfWork.BeginTransaction();
                 // Perform the transaction logic
                 var projectFinance = await _financeRepository.QueryHelper()
-                    .Filter(x => x.ProjectId.Equals(projectId))
+                    .Filter(x => x.ProjectId.Equals(project.Id))
                     .GetOneAsync();
 
                 projectFinance.CurrentBudget += disbursement.Amount;
@@ -108,7 +106,7 @@ namespace StartedIn.Service.Services
                     Type = CrossCutting.Enum.TransactionType.Disbursement,
                     Status = CrossCutting.Enum.TransactionStatus.Completed,
                     FromID = disbursement.InvestorId,
-                    ToID = project.UserProjects.FirstOrDefault(x => x.ProjectId.Equals(projectId) && x.RoleInTeam == CrossCutting.Enum.RoleInTeam.Leader).UserId
+                    ToID = project.UserProjects.FirstOrDefault(x => x.ProjectId.Equals(project.Id) && x.RoleInTeam == CrossCutting.Enum.RoleInTeam.Leader).UserId
                 };
                 disbursement.DisbursementStatus = CrossCutting.Enum.DisbursementStatusEnum.FINISHED;
                 _disbursementRepository.Update(disbursement);
@@ -127,21 +125,17 @@ namespace StartedIn.Service.Services
                 throw; // Re-throw the exception after rollback
             }
         }
-        public async Task CancelPayment(string disbursementId, string projectId, string apiKey)
+        public async Task CancelPayment(string disbursementId, string apiKey)
         {
-            var project = await _projectRepository.GetProjectById(projectId);
-            if (project == null)
-            {
-                throw new NotFoundException(MessageConstant.NotFoundProjectError);
-            }
             var disbursement = await _disbursementRepository.GetDisbursementById(disbursementId);
             if (disbursement is null)
             {
                 throw new NotFoundException(MessageConstant.DisbursementNotFound);
             }
-            if (disbursement.Contract.ProjectId != project.Id)
+            var project = await _projectRepository.GetProjectById(disbursement.Contract.ProjectId);
+            if (project == null)
             {
-                throw new UnmatchedException(MessageConstant.DisbursementNotBelongToProject);
+                throw new NotFoundException(MessageConstant.NotFoundProjectError);
             }
             if (apiKey != DecryptString(project.HarshPayOsApiKey))
             {
@@ -150,7 +144,7 @@ namespace StartedIn.Service.Services
             try
             {
                 _unitOfWork.BeginTransaction();
-                _logger.LogInformation($"Payment for Disbursement {disbursementId} under Project {projectId} has been requested to be canceled.");
+                _logger.LogInformation($"Payment for Disbursement {disbursementId} under Project {project.Id} has been requested to be canceled.");
                 await _unitOfWork.SaveChangesAsync();
                 await _unitOfWork.CommitAsync();
             }

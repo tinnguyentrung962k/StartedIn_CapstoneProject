@@ -25,13 +25,14 @@ namespace StartedIn.API.Controllers
             _payOsService = payOsService;
             _disbursementService = disbursementService;
         }
-        [HttpPost("projects/{projectId}/disbursements/{disbursementId}/payments")]
-        public async Task<IActionResult> PaymentProccessing([FromRoute] string disbursementId, [FromRoute] string projectId)
+        [HttpPost("disbursements/{disbursementId}/payments")]
+        [Authorize(Roles = RoleConstants.INVESTOR)]
+        public async Task<IActionResult> PaymentProccessing([FromRoute] string disbursementId)
         {
             try
             {
                 var userId = User.FindFirst(ClaimTypes.NameIdentifier).Value;
-                var paymentResponse = await _payOsService.PaymentWithPayOs(userId, disbursementId, projectId);
+                var paymentResponse = await _payOsService.PaymentWithPayOs(userId, disbursementId);
                 return Ok(paymentResponse);
             }
             catch (NotFoundException ex)
@@ -40,10 +41,11 @@ namespace StartedIn.API.Controllers
             }
             catch (Exception ex)
             {
-                return StatusCode(500, "Server Error");
+                return StatusCode(500, ex.Message);
             }
         }
         [HttpGet("projects/{projectId}/disbursements/{disbursementId}/payment-info")]
+        [Authorize(Roles = RoleConstants.INVESTOR + RoleConstants.USER)]
         public async Task<IActionResult> GetPaymentStatus([FromRoute] string disbursementId, [FromRoute] string projectId)
         {
             try
@@ -62,12 +64,12 @@ namespace StartedIn.API.Controllers
             }
         }
 
-        [HttpGet("projects/{projectId}/disbursements/{disbursementId}/cancel")]
-        public async Task<IActionResult> HandleCancel([FromRoute] string projectId, [FromRoute] string disbursementId, [FromQuery] string apiKey)
+        [HttpGet("disbursements/{disbursementId}/cancel")]
+        public async Task<IActionResult> HandleCancel([FromRoute] string disbursementId, [FromQuery] string apiKey)
         {
             try
             {
-                await _disbursementService.CancelPayment(disbursementId, projectId, apiKey);
+                await _disbursementService.CancelPayment(disbursementId, apiKey);
                 var redirectUrl = "https://www.startedin.net/payment-fail";
                 return Redirect(redirectUrl);
             }
@@ -81,12 +83,12 @@ namespace StartedIn.API.Controllers
             }
         }
 
-        [HttpGet("projects/{projectId}/disbursements/{disbursementId}/return")]
-        public async Task<IActionResult> HandleReturn([FromRoute] string projectId, [FromRoute] string disbursementId, [FromQuery] string apiKey)
+        [HttpGet("disbursements/{disbursementId}/return")]
+        public async Task<IActionResult> HandleReturn([FromRoute] string disbursementId, [FromQuery] string apiKey)
         {
             try
             {
-                await _disbursementService.FinishedTheTransaction(disbursementId, projectId, apiKey);
+                await _disbursementService.FinishedTheTransaction(disbursementId, apiKey);
                 var redirectUrl = "https://www.startedin.net/payment-success";
                 return Redirect(redirectUrl);
             }

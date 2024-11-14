@@ -10,7 +10,7 @@ namespace StartedIn.Service.Services.Interface
 {
     public interface IPayOsService
     {
-        Task<string> PaymentWithPayOs(string userId, string disbursementId, string projectId);
+        Task<string> PaymentWithPayOs(string userId, string disbursementId);
         Task<PaymentLinkInformation> GetPaymentStatus(string userId, string disbursementId, string projectId);
         long GenerateUniqueBookingCode();
     }
