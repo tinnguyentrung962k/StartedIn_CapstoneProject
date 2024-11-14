@@ -15,19 +15,19 @@ namespace StartedIn.Domain.Entities
         public string FinanceId { get; set; }
         
         [ForeignKey(nameof(Disbursement))]
-        public string DisbursementId { get; set; }
+        public string? DisbursementId { get; set; }
 
         [Column(TypeName = "decimal(14,3)")]
         public decimal Amount { get; set; }
 
         [Column(TypeName = "decimal(14,3)")]
-        public decimal Budget { get; set; }
-        public string FromID { get; set; }
-        public string ToID { get; set; }
+        public decimal? Budget { get; set; }
+        public string? FromID { get; set; }
+        public string? ToID { get; set; }
         public TransactionType Type { get; set; }
         public TransactionStatus Status { get; set; }
-        public string EvidenceUrl { get; set; }
-        public Disbursement Disbursement { get; set; }
+        public string? EvidenceUrl { get; set; }
+        public Disbursement? Disbursement { get; set; }
         public Finance Finance { get; set; }
 
     }

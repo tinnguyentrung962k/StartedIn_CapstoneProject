@@ -39,6 +39,7 @@ namespace StartedIn.Service.Services
         private readonly string _apiDomain;
         private readonly IUserService _userService;
         private readonly IDealOfferRepository _dealOfferRepository;
+        private readonly IFinanceRepository _financeRepository;
 
         public ContractService(IContractRepository contractRepository,
             IUnitOfWork unitOfWork,
@@ -53,7 +54,8 @@ namespace StartedIn.Service.Services
             IDocumentFormatService documentFormatService,
             IConfiguration configuration,
             IUserService userService,
-            IDealOfferRepository dealOfferRepository
+            IDealOfferRepository dealOfferRepository,
+            IFinanceRepository financeRepository
             )
         {
             _contractRepository = contractRepository;
@@ -70,6 +72,7 @@ namespace StartedIn.Service.Services
             _configuration = configuration;
             _userService = userService;
             _dealOfferRepository = dealOfferRepository;
+            _financeRepository = financeRepository;
             _apiDomain = _configuration.GetValue<string>("API_DOMAIN") ?? _configuration["Local_domain"];
         }
 
@@ -577,6 +580,7 @@ namespace StartedIn.Service.Services
             }
             try
             {
+                _unitOfWork.BeginTransaction();
                 chosenContract.ValidDate = DateOnly.FromDateTime(DateTime.Now);
                 chosenContract.ContractStatus = ContractStatusEnum.COMPLETED;
                 foreach (var equityShare in chosenContract.ShareEquities)
@@ -591,8 +595,15 @@ namespace StartedIn.Service.Services
                     disbursement.IsValidWithContract = true;
                     _disbursementRepository.Update(disbursement);
                 }
+                var totalDisbursement = chosenContract.Disbursements.Sum(e => e.Amount);
+                var projectFinance = await _financeRepository.QueryHelper()
+                    .Filter(x => x.ProjectId.Equals(projectId))
+                    .GetOneAsync();
+                projectFinance.RemainingDisbursement += totalDisbursement;
                 _contractRepository.Update(chosenContract);
+                _financeRepository.Update(projectFinance);
                 await _unitOfWork.SaveChangesAsync();
+                await _unitOfWork.CommitAsync();
                 return chosenContract;
             }
             catch (Exception ex)

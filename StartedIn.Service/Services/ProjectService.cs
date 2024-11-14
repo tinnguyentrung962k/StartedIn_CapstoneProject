@@ -26,9 +26,18 @@ public class ProjectService : IProjectService
     private readonly IUserRepository _userRepository;
     private readonly IAzureBlobService _azureBlobService;
     private readonly IUserService _userService;
+    private readonly IFinanceRepository _financeRepository;
 
-    public ProjectService(IProjectRepository projectRepository, IUnitOfWork unitOfWork, 
-        UserManager<User> userManager, ILogger<ProjectService> logger, IEmailService emailService, IUserRepository userRepository, IAzureBlobService azureBlobService, IUserService userService)
+    public ProjectService(
+        IProjectRepository projectRepository, 
+        IUnitOfWork unitOfWork, 
+        UserManager<User> userManager, 
+        ILogger<ProjectService> logger, 
+        IEmailService emailService, 
+        IUserRepository userRepository, 
+        IAzureBlobService azureBlobService, 
+        IUserService userService,
+        IFinanceRepository financeRepository)
     {
         _projectRepository = projectRepository;
         _unitOfWork = unitOfWork;
@@ -38,6 +47,7 @@ public class ProjectService : IProjectService
         _userRepository = userRepository;
         _azureBlobService = azureBlobService;
         _userService = userService;
+        _financeRepository = financeRepository;
     }
     public async Task<Project> CreateNewProject(string userId, ProjectCreateDTO projectCreateDTO)
     {
@@ -87,6 +97,12 @@ public class ProjectService : IProjectService
             };
             var projectEntity = _projectRepository.Add(newProject);
             await _userRepository.AddUserToProject(userId, projectEntity.Id, RoleInTeam.Leader);
+            var projectFinance = new Finance
+            {
+                Project = projectEntity,
+                ProjectId = projectEntity.Id
+            };
+            var projectFinanaceEntity = _financeRepository.Add(projectFinance);
             await _unitOfWork.SaveChangesAsync();
             await _unitOfWork.CommitAsync();
             return projectEntity;

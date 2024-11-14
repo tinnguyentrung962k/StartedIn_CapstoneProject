@@ -30,7 +30,19 @@ namespace StartedIn.Service.Services
         private readonly UserManager<User> _userManager;
         private readonly IUserService _userService;
         private readonly IMapper _mapper;
-        public DisbursementService(IDisbursementRepository disbursementRepository, IUnitOfWork unitOfWork, ILogger<Disbursement> logger, IProjectRepository projectRepository, IEmailService emailService, UserManager<User> userManager, IUserService userService, IMapper mapper)
+        private readonly ITransactionRepository _transactionRepository;
+        private readonly IFinanceRepository _financeRepository;
+        public DisbursementService(
+            IDisbursementRepository disbursementRepository, 
+            IUnitOfWork unitOfWork, 
+            ILogger<Disbursement> logger, 
+            IProjectRepository projectRepository, 
+            IEmailService emailService, 
+            UserManager<User> userManager, 
+            IUserService userService, 
+            IMapper mapper,
+            ITransactionRepository transactionRepository,
+            IFinanceRepository financeRepository)
         {
             _disbursementRepository = disbursementRepository;
             _unitOfWork = unitOfWork;
@@ -40,42 +52,80 @@ namespace StartedIn.Service.Services
             _userManager = userManager;
             _userService = userService;
             _mapper = mapper;
+            _transactionRepository = transactionRepository;
+            _financeRepository = financeRepository;
         }
         public async Task FinishedTheTransaction(string disbursementId, string projectId, string apiKey)
         {
-           var project = await _projectRepository.GetProjectById(projectId);
-           if (project == null)
-           {
+            var project = await _projectRepository.GetProjectAndMemberByProjectId(projectId);
+            if (project == null)
+            {
                 throw new NotFoundException(MessageConstant.NotFoundProjectError);
-           }
-           var disbursement = await _disbursementRepository.GetDisbursementById(disbursementId);
-           if (disbursement is null)
-           {
+            }
+
+            var disbursement = await _disbursementRepository.GetDisbursementById(disbursementId);
+            if (disbursement is null)
+            {
                 throw new NotFoundException(MessageConstant.DisbursementNotFound);
-           }
-           if (disbursement.Contract.ProjectId != project.Id)
-           {
+            }
+
+            // Check if the disbursement is already finished to avoid reprocessing
+            if (disbursement.DisbursementStatus == CrossCutting.Enum.DisbursementStatusEnum.FINISHED)
+            {
+                _logger.LogWarning($"Disbursement {disbursementId} is already finished. Skipping transaction.");
+                return; // Skip processing as it's already finished
+            }
+
+            if (disbursement.Contract.ProjectId != project.Id)
+            {
                 throw new UnmatchedException(MessageConstant.DisbursementNotBelongToProject);
-           }
-           if (apiKey != DecryptString(project.HarshPayOsApiKey))
-           {
+            }
+
+            if (apiKey != DecryptString(project.HarshPayOsApiKey))
+            {
                 throw new UnauthorizedAccessException(MessageConstant.RolePermissionError);
-           }
-           try
-           {
+            }
+
+            
+            try
+            {
                 _unitOfWork.BeginTransaction();
+                // Perform the transaction logic
+                var projectFinance = await _financeRepository.QueryHelper()
+                    .Filter(x => x.ProjectId.Equals(projectId))
+                    .GetOneAsync();
+
+                projectFinance.CurrentBudget += disbursement.Amount;
+                projectFinance.DisbursedAmount += disbursement.Amount;
+                projectFinance.RemainingDisbursement -= disbursement.Amount;
+                projectFinance.LastUpdatedTime = DateTime.UtcNow;
+                var newTransaction = new Transaction
+                {
+                    Amount = disbursement.Amount,
+                    Disbursement = disbursement,
+                    DisbursementId = disbursement.Id,
+                    FinanceId = projectFinance.Id,
+                    Type = CrossCutting.Enum.TransactionType.Disbursement,
+                    Status = CrossCutting.Enum.TransactionStatus.Completed,
+                    FromID = disbursement.InvestorId,
+                    ToID = project.UserProjects.FirstOrDefault(x => x.ProjectId.Equals(projectId) && x.RoleInTeam == CrossCutting.Enum.RoleInTeam.Leader).UserId
+                };
                 disbursement.DisbursementStatus = CrossCutting.Enum.DisbursementStatusEnum.FINISHED;
                 _disbursementRepository.Update(disbursement);
-                await _unitOfWork.SaveChangesAsync();
+                _financeRepository.Update(projectFinance);
+                _transactionRepository.Add(newTransaction);
+                await _unitOfWork.SaveChangesAsync(); // Ensure the final status update is saved
                 await _unitOfWork.CommitAsync();
-           }
-           catch (Exception ex) 
-           {
+            }
+            catch (Exception ex)
+            {
                 _logger.LogError($"An error occurred while updating a disbursement: {ex.Message}");
-                await _unitOfWork.RollbackAsync();
-                throw;
-           }
-
+                disbursement.DisbursementStatus = CrossCutting.Enum.DisbursementStatusEnum.ERROR;
+                _disbursementRepository.Update(disbursement);
+                await _unitOfWork.SaveChangesAsync(); // Update to failed status in case of error
+                await _unitOfWork.RollbackAsync(); // Rollback transaction
+                throw; // Re-throw the exception after rollback
+            }
         }
         public async Task CancelPayment(string disbursementId, string projectId, string apiKey)
         {

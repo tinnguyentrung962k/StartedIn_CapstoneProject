@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using StartedIn.Domain.Context;
@@ -11,9 +12,11 @@ using StartedIn.Domain.Context;
 namespace StartedIn.Domain.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20241114010148_11-14-2024_Migration_8AM01")]
+    partial class _11142024_Migration_8AM01
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -1110,9 +1113,11 @@ namespace StartedIn.Domain.Migrations
                         .HasColumnType("timestamp with time zone");
 
                     b.Property<string>("DisbursementId")
+                        .IsRequired()
                         .HasColumnType("text");
 
                     b.Property<string>("EvidenceUrl")
+                        .IsRequired()
                         .HasColumnType("text");
 
                     b.Property<string>("FinanceId")
@@ -1120,6 +1125,7 @@ namespace StartedIn.Domain.Migrations
                         .HasColumnType("text");
 
                     b.Property<string>("FromID")
+                        .IsRequired()
                         .HasColumnType("text");
 
                     b.Property<string>("LastUpdatedBy")
@@ -1133,6 +1139,7 @@ namespace StartedIn.Domain.Migrations
                         .HasColumnType("text");
 
                     b.Property<string>("ToID")
+                        .IsRequired()
                         .HasColumnType("text");
 
                     b.Property<string>("Type")
@@ -1617,7 +1624,9 @@ namespace StartedIn.Domain.Migrations
                 {
                     b.HasOne("StartedIn.Domain.Entities.Disbursement", "Disbursement")
                         .WithOne("Transaction")
-                        .HasForeignKey("StartedIn.Domain.Entities.Transaction", "DisbursementId");
+                        .HasForeignKey("StartedIn.Domain.Entities.Transaction", "DisbursementId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
 
                     b.HasOne("StartedIn.Domain.Entities.Finance", "Finance")
                         .WithMany()

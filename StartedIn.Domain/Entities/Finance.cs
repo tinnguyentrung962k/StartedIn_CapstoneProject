@@ -14,16 +14,16 @@ namespace StartedIn.Domain.Entities
         public string ProjectId { get; set; }
 
         [Column(TypeName = "decimal(14,3)")]
-        public decimal CurrentBudget { get; set; }
+        public decimal CurrentBudget { get; set; } = 0;
 
         [Column(TypeName = "decimal(14,3)")]
-        public decimal TotalExpense { get; set; }
+        public decimal TotalExpense { get; set; } = 0;
 
         [Column(TypeName = "decimal(14,3)")]
-        public decimal RemainingDisbursement { get; set; }
+        public decimal RemainingDisbursement { get; set; } = 0;
 
         [Column(TypeName = "decimal(14,3)")]
-        public decimal DisbursedAmount { get; set; }
+        public decimal DisbursedAmount { get; set; } = 0;
         public Project Project { get; set; }
     }
 }

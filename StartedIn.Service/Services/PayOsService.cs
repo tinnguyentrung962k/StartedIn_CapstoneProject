@@ -71,12 +71,12 @@ namespace StartedIn.Service.Services
             }
             try
             {
+                _unitOfWork.BeginTransaction();
                 string content = $"{disbursement.Contract.ContractIdNumber} - {disbursement.Title}";
                 int expiredAt = (int)(DateTimeOffset.UtcNow.ToUnixTimeSeconds() + (60 * 5));
                 long orderCodeLong = GenerateUniqueBookingCode();
                 disbursement.OrderCode = orderCodeLong;
                 _disbursementRepository.Update(disbursement);
-                await _unitOfWork.SaveChangesAsync();
                 PaymentData paymentData = new PaymentData(
                     orderCodeLong,
                     (int)Math.Ceiling(disbursement.Amount),
@@ -120,7 +120,8 @@ namespace StartedIn.Service.Services
                     CreatedPaymentResult = createPaymentResult,
                     Signature = paymentData.signature,
                 };
-
+                await _unitOfWork.SaveChangesAsync();
+                await _unitOfWork.CommitAsync();
                 return paymentResultResponseDTO.CreatedPaymentResult.CheckoutUrl;
             }
             catch (Exception ex) {
