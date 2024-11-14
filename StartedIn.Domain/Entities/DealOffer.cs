@@ -27,8 +27,12 @@ namespace StartedIn.Domain.Entities
         [MaxLength(500)]
         public string? TermCondition { get; set; }
         public DealStatusEnum DealStatus { get; set; }
+        [ForeignKey(nameof(InvestmentCall))]
+        public string? InvestmentCallId { get; set; }
         public Project Project { get; set; }
         public User Investor { get; set; }
         public Contract? Contract { get; set; }
+        public InvestmentCall? InvestmentCall { get; set; }
+
     }
 }

@@ -17,6 +17,7 @@ public class Project : BaseAuditEntity<string>
     public int? RemainingShares { get; set; }
     public DateOnly StartDate { get; set; }
     public DateOnly? EndDate { get; set; }
+    public string? ActiveCallId { get; set; }
     public string? CompanyIdNumber { get; set; }
     public string? HarshClientIdPayOsKey { get; set; }
     public string? HarshPayOsApiKey { get; set; }
@@ -25,4 +26,5 @@ public class Project : BaseAuditEntity<string>
     public ICollection<Milestone>? Milestones { get; set; }
     public ICollection<Contract>? Contracts { get; set; }
     public Finance Finance { get; set; }
+    public ICollection<InvestmentCall> InvestmentCalls { get; set; }
 }

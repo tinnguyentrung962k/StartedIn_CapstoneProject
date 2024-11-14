@@ -49,6 +49,7 @@ namespace StartedIn.Domain.Context
         public DbSet<MeetingNote> MeetingNotes { get; set; }
         public DbSet<Finance> Finances { get; set; }
         public DbSet<Transaction> Transactions { get; set; }
+        public DbSet<InvestmentCall> InvestmentCalls { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -148,6 +149,14 @@ namespace StartedIn.Domain.Context
                 .ToTable("MeetingNote");
             modelBuilder.Entity<DealOffer>()
                 .ToTable("DealOffer");
+            modelBuilder.Entity<InvestmentCall>()
+                .ToTable("InvestmentCall");
+
+            modelBuilder.Entity<InvestmentCall>()
+            .Property(u => u.Status)
+            .HasConversion(
+            v => v.ToString(),
+                v => (InvestmentCallStatus)Enum.Parse(typeof(InvestmentCallStatus), v));
 
             modelBuilder.Entity<DealOffer>()
             .Property(u => u.DealStatus)
