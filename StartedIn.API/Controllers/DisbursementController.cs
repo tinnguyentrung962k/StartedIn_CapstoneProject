@@ -147,6 +147,33 @@ namespace StartedIn.API.Controllers
                 return StatusCode(500, MessageConstant.InternalServerError + ex.Message);
             }
         }
+        [HttpPut("disbursements/{disbursementId}/reject")]
+        [Authorize(Roles = RoleConstants.INVESTOR)]
+        public async Task<IActionResult> RejectADisbursement([FromRoute] string disbursementId, [FromBody] DisbursementRejectDTO disbursementRejectDTO)
+        {
+            try
+            {
+                var userId = User.FindFirst(ClaimTypes.NameIdentifier).Value;
+                await _disbursementService.RejectADisbursement(userId, disbursementId, disbursementRejectDTO);
+                return Ok("Từ chối yêu cầu thành công");
+            }
+            catch (UnmatchedException ex)
+            {
+                return BadRequest(ex.Message);
+            }
+            catch (NotFoundException ex)
+            {
+                return BadRequest(ex.Message);
+            }
+            catch (UpdateException ex)
+            {
+                return BadRequest(ex.Message);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, MessageConstant.InternalServerError + ex.Message);
+            }
+        }
 
     }
 }

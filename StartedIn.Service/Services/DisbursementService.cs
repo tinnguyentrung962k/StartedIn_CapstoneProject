@@ -357,8 +357,41 @@ namespace StartedIn.Service.Services
             };
 
             return pagination;
+        }
 
-
+        public async Task RejectADisbursement(string userId, string disbursementId, DisbursementRejectDTO disbursementRejectDTO)
+        {
+            var user = await _userManager.FindByIdAsync(userId);
+            var disbursement = await _disbursementRepository.GetDisbursementById(disbursementId);
+            if (disbursement == null)
+            {
+                throw new NotFoundException(MessageConstant.DisbursementNotFound);
+            }
+            if (disbursement.InvestorId != user.Id)
+            {
+                throw new UnmatchedException(MessageConstant.DisbursementNotBelongToInvestor);
+            }
+            if (disbursement.DisbursementStatus == CrossCutting.Enum.DisbursementStatusEnum.ACCEPTED || disbursement.DisbursementStatus == CrossCutting.Enum.DisbursementStatusEnum.FINISHED)
+            {
+                throw new UpdateException(MessageConstant.CannotRejectThisDisbursement);
+            }
+            try
+            {
+                _unitOfWork.BeginTransaction();
+                disbursement.DisbursementStatus = CrossCutting.Enum.DisbursementStatusEnum.REJECTED;
+                disbursement.DeclineReason = disbursementRejectDTO.DeclineReason;
+                disbursement.LastUpdatedTime = DateTimeOffset.UtcNow;
+                disbursement.LastUpdatedBy = user.FullName;
+                _disbursementRepository.Update(disbursement);
+                await _unitOfWork.SaveChangesAsync();
+                await _unitOfWork.CommitAsync();
+            }
+            catch (Exception ex) 
+            {
+                _logger.LogError($"An error occurred while updating a disbursement: {ex.Message}");
+                await _unitOfWork.RollbackAsync(); // Rollback transaction
+                throw;
+            }
         }
 
 

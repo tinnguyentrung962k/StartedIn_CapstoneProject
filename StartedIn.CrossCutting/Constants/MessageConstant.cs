@@ -60,6 +60,7 @@ namespace StartedIn.CrossCutting.Constants
         public const string DisbursementFinished = "Đợt giải ngân đã hoàn thành.";
         public const string PaymentGateWayCustomizeError = "Lỗi thiết lập cổng thanh toán";
         public const string DisbursementNotBelongToInvestor = "Đợt giải ngân này không phải của bạn";
+        public const string CannotRejectThisDisbursement = "Bạn không thể từ chối đợt giải ngân này";
 
     }
 }
