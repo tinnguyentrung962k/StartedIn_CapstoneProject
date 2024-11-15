@@ -1,5 +1,6 @@
 ﻿using Azure;
 using Azure.Storage.Blobs;
+using Azure.Storage.Blobs.Models;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Configuration;
 using SixLabors.ImageSharp;
@@ -52,6 +53,28 @@ namespace StartedIn.Service.Services
             }
 
                 return blobClient.Uri.AbsoluteUri;
+        }
+        public async Task<string> UploadEvidenceOfDisbursement(IFormFile file)
+        {
+            var fileName = Guid.NewGuid() + Path.GetExtension(file.FileName);
+            var blobClient = _documentContainerClient.GetBlobClient(fileName);
+            using (var stream = file.OpenReadStream())
+            {
+                await blobClient.UploadAsync(stream, new BlobHttpHeaders { ContentType = file.ContentType });
+            }
+            return blobClient.Uri.ToString();
+        }
+        public async Task<IList<string>> UploadEvidencesOfDisbursement(IList<IFormFile> files)
+        {
+            var fileUrls = new List<string>();
+            if (files != null && files.Count > 0)
+            {
+                foreach (var file in files)
+                {
+                    fileUrls.Add(await UploadEvidenceOfDisbursement(file));
+                }
+            }
+            return fileUrls;
         }
 
         public async Task<string> UploadPostImage(IFormFile image)

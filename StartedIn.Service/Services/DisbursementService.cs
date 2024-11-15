@@ -1,4 +1,5 @@
 ﻿using AutoMapper;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore.Update.Internal;
 using Microsoft.Extensions.Logging;
@@ -33,6 +34,7 @@ namespace StartedIn.Service.Services
         private readonly IMapper _mapper;
         private readonly ITransactionRepository _transactionRepository;
         private readonly IFinanceRepository _financeRepository;
+        private readonly IAzureBlobService _azureBlobService;
         public DisbursementService(
             IDisbursementRepository disbursementRepository, 
             IUnitOfWork unitOfWork, 
@@ -43,7 +45,8 @@ namespace StartedIn.Service.Services
             IUserService userService, 
             IMapper mapper,
             ITransactionRepository transactionRepository,
-            IFinanceRepository financeRepository)
+            IFinanceRepository financeRepository,
+            IAzureBlobService azureBlobService)
         {
             _disbursementRepository = disbursementRepository;
             _unitOfWork = unitOfWork;
@@ -55,6 +58,7 @@ namespace StartedIn.Service.Services
             _mapper = mapper;
             _transactionRepository = transactionRepository;
             _financeRepository = financeRepository;
+            _azureBlobService = azureBlobService;
         }
         public async Task FinishedTheTransaction(string disbursementId, string apiKey)
         {
@@ -207,6 +211,39 @@ namespace StartedIn.Service.Services
                 _disbursementRepository.Update(expiredDisbursement);
             }
             await _unitOfWork.SaveChangesAsync();
+        }
+        public async Task AcceptDisbursement(string userId, string disbursementId, List<IFormFile> files)
+        {
+            var user = await _userManager.FindByIdAsync(userId);
+            var disbursement = await _disbursementRepository.GetDisbursementById(disbursementId);
+            if (disbursement == null)
+            {
+                throw new NotFoundException(MessageConstant.DisbursementNotFound);
+            }
+            if (disbursement.InvestorId != userId)
+            {
+                throw new UnmatchedException(MessageConstant.DisbursementNotBelongToInvestor);
+            }
+            if (files is null)
+            {
+                throw new UploadFileException(MessageConstant.EmptyFileError);
+            }
+            try
+            {
+                _unitOfWork.BeginTransaction();
+                var fileUrls = await _azureBlobService.UploadEvidencesOfDisbursement(files);
+                disbursement.DisbursementAttachments = fileUrls.Select(url => new DisbursementAttachment { EvidenceFile = url }).ToList();
+                disbursement.DisbursementStatus = CrossCutting.Enum.DisbursementStatusEnum.ACCEPTED;
+                _disbursementRepository.Update(disbursement);
+                await _unitOfWork.SaveChangesAsync();
+                await _unitOfWork.CommitAsync();
+            }
+            catch (Exception ex) 
+            {
+                _logger.LogError(ex, "Error while updating a disbursement");
+                await _unitOfWork.RollbackAsync();
+                throw;
+            }
         }
 
         public async Task<PaginationDTO<DisbursementForLeaderInProjectResponseDTO>> GetDisbursementListForLeaderInAProject(string userId, string projectId, DisbursementFilterInProjectDTO disbursementFilterDTO, int size, int page)

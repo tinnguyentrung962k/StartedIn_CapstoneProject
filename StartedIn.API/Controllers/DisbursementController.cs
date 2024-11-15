@@ -7,6 +7,7 @@ using StartedIn.CrossCutting.DTOs.ResponseDTO;
 using StartedIn.CrossCutting.DTOs.ResponseDTO.Disbursement;
 using StartedIn.CrossCutting.DTOs.ResponseDTO.PayOs;
 using StartedIn.CrossCutting.Exceptions;
+using StartedIn.Domain.Entities;
 using StartedIn.Service.Services.Interface;
 using System.Security.Claims;
 
@@ -197,6 +198,33 @@ namespace StartedIn.API.Controllers
                 return BadRequest(ex.Message);
             }
             catch (UpdateException ex)
+            {
+                return BadRequest(ex.Message);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, MessageConstant.InternalServerError + ex.Message);
+            }
+        }
+        [HttpPost("disbursements/{disbursementId}/acceptance")]
+        [Authorize(Roles = RoleConstants.INVESTOR)]
+        public async Task<IActionResult> AcceptAndUploadEvidenceForADisbursement([FromRoute] string disbursementId, [FromForm] List<IFormFile> evidenceFiles)
+        {
+            try
+            {
+                var userId = User.FindFirst(ClaimTypes.NameIdentifier).Value;
+                await _disbursementService.AcceptDisbursement(userId, disbursementId, evidenceFiles);
+                return Ok("Chấp nhận thành công.");
+            }
+            catch (UnmatchedException ex)
+            {
+                return BadRequest(ex.Message);
+            }
+            catch (NotFoundException ex)
+            {
+                return BadRequest(ex.Message);
+            }
+            catch (UploadFileException ex)
             {
                 return BadRequest(ex.Message);
             }

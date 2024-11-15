@@ -7,6 +7,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using StartedIn.Domain.Entities;
+using Microsoft.AspNetCore.Http;
 
 namespace StartedIn.Service.Services.Interface
 {
@@ -18,8 +19,9 @@ namespace StartedIn.Service.Services.Interface
         Task<PaginationDTO<DisbursementForLeaderInProjectResponseDTO>> GetDisbursementListForLeaderInAProject(string userId, string projectId, DisbursementFilterInProjectDTO disbursementFilterDTO, int size, int page);
         Task<PaginationDTO<DisbursementForInvestorInInvestorMenuResponseDTO>> GetDisbursementListForInvestorInMenu(string userId, DisbursementFilterInvestorMenuDTO disbursementFilterDTO, int size, int page);
         Task RejectADisbursement(string userId, string disbursementId, DisbursementRejectDTO disbursementRejectDTO);
-        Task UpdateFinanceAndTransactionOfProjectOfFinishedDisbursement(User user,string projectId, Disbursement disbursement);
+        Task UpdateFinanceAndTransactionOfProjectOfFinishedDisbursement(User user, string projectId, Disbursement disbursement);
         Task DisbursementConfirmation(string userId, string projectId, string disbursementId);
         Task AutoUpdateOverdueIfDisbursementsExpire();
+        Task AcceptDisbursement(string userId, string disbursementId, List<IFormFile> files);
     }
 }
