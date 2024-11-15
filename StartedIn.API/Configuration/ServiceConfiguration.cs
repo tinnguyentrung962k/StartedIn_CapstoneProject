@@ -22,6 +22,7 @@ namespace StartedIn.API.Configuration
             services.AddScoped<IDocumentFormatService, DocumentFormatService>();
             services.AddScoped<IPayOsService, PayOsService>();
             services.AddScoped<IDisbursementService, DisbursementService>();
+            services.AddScoped<IShareEquityService, ShareEquityService>();
             return services;
         }
     }

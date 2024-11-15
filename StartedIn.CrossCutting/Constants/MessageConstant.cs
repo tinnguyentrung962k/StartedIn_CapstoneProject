@@ -62,6 +62,7 @@ namespace StartedIn.CrossCutting.Constants
         public const string DisbursementNotBelongToInvestor = "Đợt giải ngân này không phải của bạn";
         public const string CannotRejectThisDisbursement = "Bạn không thể từ chối đợt giải ngân này";
         public const string EmptyFileError = "Vui lòng tải tập tin lên";
+        public const string NotFoundShareEquityError = "Không tìm thấy cổ phần của dự án";
 
     }
 }
