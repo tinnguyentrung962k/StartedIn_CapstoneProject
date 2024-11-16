@@ -1,6 +1,8 @@
 ﻿using AutoMapper;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using StartedIn.CrossCutting.Constants;
 using StartedIn.CrossCutting.DTOs.RequestDTO.EquityShare;
 using StartedIn.CrossCutting.DTOs.ResponseDTO.ShareEquity;
 using StartedIn.CrossCutting.Exceptions;
@@ -27,6 +29,7 @@ namespace StartedIn.API.Controllers
             _shareEquityService = shareEquityService;
         }
         [HttpGet("share-equities")]
+        [Authorize(Roles = RoleConstants.USER)]
         public async Task<ActionResult<List<ShareEquitiesOfMemberInAProject>>> GetShareEquitiesInAProject([FromRoute] string projectId, [FromQuery] EquityShareFilterDTO equityShareFilterDTO)
         {
             try

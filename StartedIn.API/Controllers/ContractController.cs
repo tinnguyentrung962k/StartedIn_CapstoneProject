@@ -420,6 +420,34 @@ namespace StartedIn.API.Controllers
                 return StatusCode(500, MessageConstant.InternalServerError);
             }
         }
+        [HttpPut("contracts/{contractId}/expiration")]
+        [Authorize(Roles = RoleConstants.USER)]
+        public async Task<IActionResult> MarkContractAsExpired([FromRoute] string projectId, [FromRoute] string contractId)
+        {
+            try
+            {
+                var userId = User.FindFirst(ClaimTypes.NameIdentifier).Value;
+                await _contractService.MarkExpiredContract(userId, projectId, contractId);
+                return Ok("Cập nhật hợp đồng thành công");
+            }
+            catch (UnauthorizedProjectRoleException ex)
+            {
+                return StatusCode(403, ex.Message);
+            }
+            catch (NotFoundException ex)
+            {
+                return BadRequest(ex.Message);
+            }
+            catch (UnmatchedException ex)
+            {
+                return BadRequest(ex.Message);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, ex.Message);
+            }
+
+        }
     }
 
 }

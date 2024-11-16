@@ -977,6 +977,55 @@ namespace StartedIn.Service.Services
                 throw;
             }
         }
+        public async Task MarkExpiredContract(string userId, string projectId, string contractId)
+        {
+            var userInProject = await _userService.CheckIfUserInProject(userId, projectId);
+            if (userInProject.RoleInTeam != RoleInTeam.Leader)
+            {
+                throw new UnauthorizedProjectRoleException(MessageConstant.RolePermissionError);
+            }
+            var contract = await _contractRepository.GetContractById(contractId);
+            if (contract.ProjectId != projectId)
+            {
+                throw new UnmatchedException(MessageConstant.ContractNotBelongToProjectError);
+            }
+            var userInContract = await _userService.CheckIfUserBelongToContract(userId, contractId);
+            try
+            {
+                _unitOfWork.BeginTransaction();
+                contract.ExpiredDate = DateOnly.FromDateTime(DateTime.UtcNow.AddDays(1));
+                contract.ContractStatus = ContractStatusEnum.EXPIRED;
+                contract.LastUpdatedBy = userInContract.User.FullName;
+                contract.LastUpdatedTime = DateTimeOffset.UtcNow;
+                if (contract.ContractType == ContractTypeEnum.INTERNAL)
+                {
+                    decimal expiredContractShare = (decimal)contract.ShareEquities.Sum(x => x.Percentage);
+                    userInProject.Project.RemainingPercentOfShares += expiredContractShare;
+                    _logger.LogInformation($"Hợp đồng nội bộ hết hạn. Trả lại {expiredContractShare}% cổ phần cho dự án {userInProject.Project.ProjectName}. Tổng cổ phần còn lại: {userInProject.Project.RemainingPercentOfShares}%.");
+                    _projectRepository.Update(userInProject.Project);
+                }
+                else if (contract.ContractType == ContractTypeEnum.INVESTMENT)
+                {
+                    // Xử lý khi hợp đồng đầu tư hết hạn
+                    decimal investmentShare = (decimal)contract.ShareEquities.Sum(x => x.Percentage);
+
+                    // Logic tuỳ chọn: Mua lại, hoàn trả, hoặc chuyển nhượng cổ phần
+                    userInProject.Project.RemainingPercentOfShares += investmentShare;
+                    _logger.LogInformation($"Hợp đồng đầu tư hết hạn. Trả lại {investmentShare}% cổ phần cho dự án {userInProject.Project.ProjectName}. Tổng cổ phần còn lại: {userInProject.Project.RemainingPercentOfShares}%.");
+                    _projectRepository.Update(userInProject.Project);
+                    // Logic tuỳ chọn: Xử lý tài chính hoặc thông báo
+                }
+                await _unitOfWork.SaveChangesAsync();
+                await _unitOfWork.CommitAsync();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError($"Lỗi xảy ra khi xử lý hết hạn hợp đồng: {ex.Message}");
+                await _unitOfWork.RollbackAsync();
+                throw;
+            }
+
+        }
 
         public async Task CancelContractAfterDueDate()
         {
