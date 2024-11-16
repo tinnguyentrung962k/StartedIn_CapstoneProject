@@ -1,5 +1,8 @@
-﻿using Microsoft.AspNetCore.Identity;
+﻿using DocumentFormat.OpenXml.Wordprocessing;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore;
 using StartedIn.CrossCutting.Constants;
+using StartedIn.CrossCutting.DTOs.RequestDTO.EquityShare;
 using StartedIn.CrossCutting.Exceptions;
 using StartedIn.Domain.Entities;
 using StartedIn.Repository.Repositories.Interface;
@@ -34,16 +37,25 @@ namespace StartedIn.Service.Services
             _shareEquityRepository = shareEquityRepository;
             _userService = userService;
         }
-        public async Task<List<ShareEquity>> GetShareEquityOfAllMembersInAProject(string userId, string projectId)
+        public async Task<List<ShareEquity>> GetShareEquityOfAllMembersInAProject(string userId, string projectId, EquityShareFilterDTO equityShareFilterDTO)
         {
             var userInProject = await _userService.CheckIfUserInProject(userId, projectId);
-            var shareEquities = await _shareEquityRepository.GetShareEquityOfMembersInAProject(projectId);
-            if (shareEquities == null)
+            var filterEquities = await _shareEquityRepository.GetShareEquityOfMembersInAProject(projectId);
+            if (equityShareFilterDTO.FromDate.HasValue)
             {
-                throw new NotFoundException(MessageConstant.NotFoundShareEquityError);
+                filterEquities = filterEquities.Where(x => x.DateAssigned >= equityShareFilterDTO.FromDate.Value);
             }
-            return shareEquities;
-            
+            if (equityShareFilterDTO.ToDate.HasValue)
+            {
+                filterEquities = filterEquities.Where(x => x.DateAssigned <= equityShareFilterDTO.ToDate.Value);
+            }
+            var newestShareEquity = await filterEquities
+                .GroupBy(x => x.UserId)
+                .Select(g => g.OrderByDescending(x => x.DateAssigned)
+                .FirstOrDefault())
+                .ToListAsync();
+            return newestShareEquity;
+
         }
     }
 }

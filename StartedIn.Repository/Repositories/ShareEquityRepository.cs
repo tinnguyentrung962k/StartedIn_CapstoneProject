@@ -18,14 +18,14 @@ namespace StartedIn.Repository.Repositories
             _appDbContext = context;
         }
 
-        public async Task<List<ShareEquity>> GetShareEquityOfMembersInAProject(string projectId)
+        public async Task<IQueryable<ShareEquity>> GetShareEquityOfMembersInAProject(string projectId)
         {
-            var shareEquity = await _appDbContext.ShareEquities.Where(x => x.Contract.ProjectId.Equals(projectId) && x.DateAssigned != null)
-                .Include(x => x.Contract)
-                .ThenInclude(x => x.UserContracts)
-                .Include(x => x.User)
-                .ToListAsync();
-            return shareEquity;
+             var newestShareEquity = _appDbContext.ShareEquities
+            .Where(x => x.Contract.ProjectId.Equals(projectId) && x.DateAssigned != null)
+            .Include(x => x.Contract)
+            .ThenInclude(x => x.UserContracts)
+            .Include(x => x.User);
+            return newestShareEquity;
         }
     }
 }

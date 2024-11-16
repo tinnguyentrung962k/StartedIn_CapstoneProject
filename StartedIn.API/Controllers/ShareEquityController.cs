@@ -1,6 +1,7 @@
 ﻿using AutoMapper;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using StartedIn.CrossCutting.DTOs.RequestDTO.EquityShare;
 using StartedIn.CrossCutting.DTOs.ResponseDTO.ShareEquity;
 using StartedIn.CrossCutting.Exceptions;
 using StartedIn.Service.Services.Interface;
@@ -25,13 +26,13 @@ namespace StartedIn.API.Controllers
             _logger = logger;
             _shareEquityService = shareEquityService;
         }
-        [HttpGet("share-equity")]
-        public async Task<ActionResult<List<ShareEquitiesOfMemberInAProject>>> GetShareEquitiesInAProject([FromRoute] string projectId)
+        [HttpGet("share-equities")]
+        public async Task<ActionResult<List<ShareEquitiesOfMemberInAProject>>> GetShareEquitiesInAProject([FromRoute] string projectId, [FromQuery] EquityShareFilterDTO equityShareFilterDTO)
         {
             try
             {
                 var userId = User.FindFirst(ClaimTypes.NameIdentifier).Value;
-                var shareEquityList = await _shareEquityService.GetShareEquityOfAllMembersInAProject(userId, projectId);
+                var shareEquityList = await _shareEquityService.GetShareEquityOfAllMembersInAProject(userId, projectId, equityShareFilterDTO);
                 var responseShareEquity = _mapper.Map<List<ShareEquitiesOfMemberInAProject>>(shareEquityList);
                 return Ok(responseShareEquity);
             }
