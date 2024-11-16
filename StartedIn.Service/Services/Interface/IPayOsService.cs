@@ -12,6 +12,5 @@ namespace StartedIn.Service.Services.Interface
     {
         Task<string> PaymentWithPayOs(string userId, string disbursementId);
         Task<PaymentLinkInformation> GetPaymentStatus(string userId, string disbursementId, string projectId);
-        long GenerateUniqueBookingCode();
     }
 }

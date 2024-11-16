@@ -136,7 +136,7 @@ namespace StartedIn.Service.Services
                 throw;
             }
         }
-        public long GenerateUniqueBookingCode()
+        private long GenerateUniqueBookingCode()
         {
             var random = new Random();
             long orderCode;
