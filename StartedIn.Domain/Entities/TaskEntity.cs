@@ -23,10 +23,10 @@ public class TaskEntity : BaseAuditEntity<string>
     public Milestone Milestone { get; set; }
     public Project Project { get; set; }
     public TaskEntity ParentTask { get; set; }
-    public ICollection<UserTask> UserTasks { get; set; }
-    public ICollection<TaskEntity> SubTasks { get; set; }
-    public ICollection<TaskComment> TaskComments { get; set; }
-    public ICollection<TaskHistory> TaskHistories { get; set; }
-    public ICollection<TaskAttachment> TaskAttachments { get; set; }
+    public ICollection<UserTask> UserTasks { get; set; } = [];
+    public ICollection<TaskEntity> SubTasks { get; set; } = [];
+    public ICollection<TaskComment> TaskComments { get; set; } = [];
+    public ICollection<TaskHistory> TaskHistories { get; set; } = [];
+    public ICollection<TaskAttachment> TaskAttachments { get; set; } = [];
 
 }

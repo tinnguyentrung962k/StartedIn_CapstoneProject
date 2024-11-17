@@ -54,30 +54,6 @@ namespace StartedIn.API.Controllers
 
         [HttpGet]
         [Authorize(Roles = RoleConstants.USER)]
-        public async Task<ActionResult<PaginationDTO<TaskResponseDTO>>> getAllTasks(
-            [FromRoute] string projectId,
-            [FromQuery] int page,
-            [FromQuery] int size)
-        {
-            try
-            {
-                var userId = User.FindFirst(ClaimTypes.NameIdentifier).Value;
-                var taskPagination = await _taskService.GetAllTask(userId, projectId, size, page);
-
-                return taskPagination;
-            }
-            catch (NotFoundException ex)
-            {
-                return BadRequest(ex.Message);
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(500, MessageConstant.InternalServerError);
-            }
-        }
-
-        [HttpGet("catalog")]
-        [Authorize(Roles = RoleConstants.USER)]
         public async Task<ActionResult<PaginationDTO<TaskResponseDTO>>> getTaskCatalog(
             [FromRoute] string projectId,
             [FromQuery] TaskFilterDTO taskFilterDto,

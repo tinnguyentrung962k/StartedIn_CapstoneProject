@@ -80,6 +80,26 @@ namespace StartedIn.Service.Services
                     CreatedBy = userInProject.User.FullName,
                     CreatedTime = DateTimeOffset.UtcNow
                 };
+
+                foreach (var assignee in taskCreateDto.Assignees)
+                {
+                    task.UserTasks.Add(new UserTask
+                    {
+                        UserId = assignee,
+                        TaskId = task.Id
+                    });
+                }
+
+                if (!string.IsNullOrEmpty(taskCreateDto.Milestone))
+                {
+                    task.MilestoneId = taskCreateDto.Milestone;
+                }
+
+                if (!string.IsNullOrEmpty(taskCreateDto.ParentTask))
+                {
+                    task.ParentTaskId = taskCreateDto.ParentTask;
+                }
+
                 var taskEntity = _taskRepository.Add(task);
                 string notification = userInProject.User.FullName + " đã tạo ra công việc: " + task.Title;
                 TaskHistory history = new TaskHistory
@@ -136,23 +156,6 @@ namespace StartedIn.Service.Services
                 await _unitOfWork.RollbackAsync();
                 throw new Exception(MessageConstant.UpdateFailed);
             }
-        }
-
-        public async Task<PaginationDTO<TaskResponseDTO>> GetAllTask(string userId, string projectId, int size, int page)
-        {
-            var userInProject = await _userService.CheckIfUserInProject(userId, projectId);
-
-            var tasksInProjectQuery = _taskRepository.QueryHelper().Filter(t => t.ProjectId == projectId && t.DeletedTime == null);
-
-            var pagination = new PaginationDTO<TaskResponseDTO>()
-            {
-                Data = _mapper.Map<IEnumerable<TaskResponseDTO>>(await tasksInProjectQuery.GetPagingAsync(page, size)),
-                Total = await tasksInProjectQuery.GetTotal(),
-                Page = page,
-                Size = size
-            };
-
-            return pagination;
         }
 
         public async Task<PaginationDTO<TaskResponseDTO>> FilterTask(string userId, string projectId, TaskFilterDTO taskFilterDto, int size, int page)
