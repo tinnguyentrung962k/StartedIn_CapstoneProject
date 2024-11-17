@@ -30,6 +30,7 @@ public class ProjectRepository : GenericRepository<Project, string>, IProjectRep
             .Include(p => p.UserProjects)
             .Include(p => p.InvestmentCalls)
             .Include(p => p.ProjectCharter)
+            .ThenInclude(pc => pc.Milestones)
             .FirstOrDefaultAsync();
         return project;
     }

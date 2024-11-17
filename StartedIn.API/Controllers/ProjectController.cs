@@ -57,6 +57,15 @@ public class ProjectController : ControllerBase
         }
     }
 
+    [HttpGet("admin")]
+    [Authorize(Roles = RoleConstants.ADMIN)]
+    public async Task<ActionResult<List<ProjectResponseDTO>>> GetAllProjects(int page, int size)
+    {
+        var projects = await _projectService.GetAllProjectsForAdmin(page, size);
+        var response = _mapper.Map<List<ProjectResponseDTO>>(projects);
+        return Ok(response);
+    }
+
     [HttpPost]
     [Authorize(Roles = RoleConstants.USER)]
     public async Task<ActionResult<ProjectResponseDTO>> CreateANewProject([FromForm] ProjectCreateDTO projectCreatedto)
@@ -296,6 +305,26 @@ public class ProjectController : ControllerBase
         catch (Exception ex)
         {
             return StatusCode(500, ex.Message);
+        }
+    }
+
+    [HttpPut("{projectId}/activate")]
+    [Authorize(Roles = RoleConstants.ADMIN)]
+    public async Task<ActionResult<ProjectResponseDTO>> ActivateProject([FromRoute] string projectId)
+    {
+        try
+        {
+            var project = await _projectService.ActivateProject(projectId);
+            var response = _mapper.Map<ProjectResponseDTO>(project);
+            return Ok(response);
+        }
+        catch (NotFoundException ex)
+        {
+            return StatusCode(400, ex);
+        }
+        catch (Exception ex)
+        {
+            return StatusCode(500, MessageConstant.InternalServerError);
         }
     }
 }
