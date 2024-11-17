@@ -1,4 +1,5 @@
 ﻿using StartedIn.CrossCutting.DTOs.RequestDTO.EquityShare;
+using StartedIn.CrossCutting.DTOs.ResponseDTO.ShareEquity;
 using StartedIn.Domain.Entities;
 using System;
 using System.Collections.Generic;
@@ -10,6 +11,6 @@ namespace StartedIn.Service.Services.Interface
 {
     public interface IShareEquityService
     {
-        Task<List<ShareEquity>> GetShareEquityOfAllMembersInAProject(string userId, string projectId, EquityShareFilterDTO equityShareFilterDTO);
+        Task<List<ShareEquitySummaryDTO>> GetShareEquityOfAllMembersInAProject(string userId, string projectId, EquityShareFilterDTO equityShareFilterDTO);
     }
 }

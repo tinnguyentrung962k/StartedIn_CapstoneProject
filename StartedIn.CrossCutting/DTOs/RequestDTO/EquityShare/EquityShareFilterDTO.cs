@@ -8,7 +8,6 @@ namespace StartedIn.CrossCutting.DTOs.RequestDTO.EquityShare
 {
     public class EquityShareFilterDTO
     {
-        public DateOnly? FromDate { get; set; }
         public DateOnly? ToDate { get; set;}
     }
 }

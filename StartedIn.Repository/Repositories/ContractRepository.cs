@@ -1,5 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using StartedIn.CrossCutting.DTOs.RequestDTO;
+using StartedIn.CrossCutting.Enum;
 using StartedIn.Domain.Context;
 using StartedIn.Domain.Entities;
 using StartedIn.Repository.Repositories.Interface;
@@ -30,6 +31,18 @@ namespace StartedIn.Repository.Repositories
                 .FirstOrDefaultAsync();
             return contract;
         }
+        public async Task<List<Contract>> GetContractByProjectId(string projectId)
+        {
+            var contract = await _appDbContext.Contracts.Where(x => x.ProjectId == projectId)
+                .Include(x => x.UserContracts)
+                .ThenInclude(x => x.User)
+                .Include(x => x.Project)
+                .Include(x => x.ShareEquities)
+                .Include(x => x.Disbursements)
+                .Include(x => x.DealOffer)
+                .ToListAsync();
+            return contract;
+        }
         public async Task<IEnumerable<Contract>> GetContractsByUserIdInAProject(string userId, string projectId, int pageIndex, int pageSize)
         {
             pageIndex = pageIndex < 1 ? 0 : pageIndex - 1;
@@ -41,6 +54,21 @@ namespace StartedIn.Repository.Repositories
                 .Skip(pageIndex * pageSize).Take(pageSize)
                 .ToListAsync();
             return contract;
+        }
+        public async Task<Contract> GetTheNearestExpiredInternalContractInAProject(string projectId)
+        {
+             var nearestExpiredContract = await _appDbContext.Contracts
+               .Include(x => x.UserContracts)
+               .ThenInclude(x => x.User)
+               .Include(x => x.Project)
+               .Include(x => x.ShareEquities)
+               .Include(x => x.Disbursements)
+               .Include(x => x.DealOffer)
+               .Where(x => x.ProjectId.Equals(projectId) && x.ContractType.Equals(ContractTypeEnum.INTERNAL))
+               .Where(x => x.ExpiredDate < DateOnly.FromDateTime(DateTime.UtcNow))
+               .OrderByDescending(x => x.ExpiredDate)
+               .FirstOrDefaultAsync();
+            return nearestExpiredContract;
         }
     }
 }
