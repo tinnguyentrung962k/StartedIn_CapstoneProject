@@ -84,12 +84,12 @@ public class ProjectController : ControllerBase
 
     [HttpGet("{projectId}")]
     [Authorize(Roles = RoleConstants.USER + "," + RoleConstants.INVESTOR)]
-    public async Task<ActionResult<ProjectResponseDTO>> GetProjectById(string projectId)
+    public async Task<ActionResult<ProjectDetailDTO>> GetProjectById(string projectId)
     {
         try
         {
             var project = await _projectService.GetProjectById(projectId);
-            var mappedProject = _mapper.Map<ProjectResponseDTO>(project);
+            var mappedProject = _mapper.Map<ProjectDetailDTO>(project);
             return Ok(mappedProject);
         }
         catch (NotFoundException ex)

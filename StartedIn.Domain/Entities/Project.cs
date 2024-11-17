@@ -26,5 +26,6 @@ public class Project : BaseAuditEntity<string>
     public ICollection<Milestone>? Milestones { get; set; }
     public ICollection<Contract>? Contracts { get; set; }
     public Finance Finance { get; set; }
+    public ProjectCharter ProjectCharter { get; set; }
     public ICollection<InvestmentCall> InvestmentCalls { get; set; }
 }

@@ -6,6 +6,7 @@ using StartedIn.CrossCutting.DTOs.ResponseDTO;
 using StartedIn.CrossCutting.DTOs.ResponseDTO.Contract;
 using StartedIn.CrossCutting.DTOs.ResponseDTO.DealOffer;
 using StartedIn.CrossCutting.DTOs.ResponseDTO.Disbursement;
+using StartedIn.CrossCutting.DTOs.ResponseDTO.InvestmentCall;
 using StartedIn.CrossCutting.DTOs.ResponseDTO.Milestone;
 using StartedIn.CrossCutting.DTOs.ResponseDTO.Project;
 using StartedIn.CrossCutting.DTOs.ResponseDTO.ProjectCharter;
@@ -29,6 +30,7 @@ namespace StartedIn.API.Configuration.AutoMapper
             DealOfferMappingProfile();
             DisbursementMappingProfile();
             ShareEquityMappingProfile();
+            InvestmentCallMappingProfile();
         }
 
 
@@ -99,6 +101,10 @@ namespace StartedIn.API.Configuration.AutoMapper
                 .ReverseMap();
             CreateMap<UserProject, UserRoleInATeamResponseDTO>()
                 .ForMember(dest => dest.RoleInTeam, opt => opt.MapFrom(src => src.RoleInTeam));
+            CreateMap<Project, ProjectDetailDTO>()
+                .ForMember(p => p.InvestmentCallResponseDto, opt => opt.MapFrom(src => src.InvestmentCalls.FirstOrDefault(ic => ic.Id.Equals(src.ActiveCallId))))
+                .ForMember(p => p.ProjectCharterResponseDto, opt => opt.MapFrom(src => src.ProjectCharter))
+                .ReverseMap();
         }
         private void ContractMappingProfile()
         {
@@ -169,6 +175,11 @@ namespace StartedIn.API.Configuration.AutoMapper
                 .ForMember(dr => dr.Amount, opt => opt.MapFrom(de => de.Amount.ToString()))
                 .ForMember(dr => dr.ProjectName, opt => opt.MapFrom(de => de.Contract.Project.ProjectName));
 
+        }
+
+        private void InvestmentCallMappingProfile()
+        {
+            CreateMap<InvestmentCall, InvestmentCallResponseDTO>().ReverseMap();
         }
     }
 }
