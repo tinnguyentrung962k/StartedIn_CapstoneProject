@@ -104,6 +104,12 @@ namespace StartedIn.API.Configuration.AutoMapper
             CreateMap<Project, ProjectDetailDTO>()
                 .ForMember(p => p.InvestmentCallResponseDto, opt => opt.MapFrom(src => src.InvestmentCalls.FirstOrDefault(ic => ic.Id.Equals(src.ActiveCallId))))
                 .ForMember(p => p.ProjectCharterResponseDto, opt => opt.MapFrom(src => src.ProjectCharter))
+                .ForMember(dest => dest.LeaderId,
+                    opt => opt.MapFrom(src =>
+                        src.UserProjects.FirstOrDefault(up => up.RoleInTeam == RoleInTeam.Leader).UserId))
+                .ForMember(dest => dest.LeaderFullName,
+                    opt => opt.MapFrom(src =>
+                        src.UserProjects.FirstOrDefault(up => up.RoleInTeam == RoleInTeam.Leader).User.FullName))
                 .ReverseMap();
         }
         private void ContractMappingProfile()
