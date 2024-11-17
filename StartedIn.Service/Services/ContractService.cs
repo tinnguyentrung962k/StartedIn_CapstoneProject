@@ -993,7 +993,7 @@ namespace StartedIn.Service.Services
             try
             {
                 _unitOfWork.BeginTransaction();
-                contract.ExpiredDate = DateOnly.FromDateTime(DateTime.UtcNow.AddDays(1));
+                contract.ExpiredDate = DateOnly.FromDateTime(DateTimeOffset.UtcNow.Date);
                 contract.ContractStatus = ContractStatusEnum.EXPIRED;
                 contract.LastUpdatedBy = userInContract.User.FullName;
                 contract.LastUpdatedTime = DateTimeOffset.UtcNow;
