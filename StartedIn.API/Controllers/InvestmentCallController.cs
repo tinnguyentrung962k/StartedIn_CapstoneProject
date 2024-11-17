@@ -59,7 +59,6 @@ public class InvestmentCallController : ControllerBase
     {
         try
         {
-            var userId = User.FindFirst(ClaimTypes.NameIdentifier).Value;
             var investmentCall = await _investmentCallService.GetInvestmentCallById(projectId, investmentCallId);
             var investmentCallResponse = _mapper.Map<InvestmentCallResponseDTO>(investmentCall);
             return Ok(investmentCallResponse);

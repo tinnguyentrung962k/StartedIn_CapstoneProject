@@ -7,5 +7,6 @@ public interface IProjectRepository : IGenericRepository<Project, string>
 { 
     Task<Project> GetProjectById(string id);
     Task<Project> GetProjectAndMemberByProjectId(string projectId);
-    Task<RoleInTeam> GetUserRoleInProject(string userId, string projectId);    
+    Task<RoleInTeam> GetUserRoleInProject(string userId, string projectId); 
+    
 }

@@ -30,6 +30,7 @@ namespace StartedIn.API.Configuration.AutoMapper
             DealOfferMappingProfile();
             DisbursementMappingProfile();
             ShareEquityMappingProfile();
+            InvestmentCallMappingProfile();
         }
 
 
@@ -100,6 +101,10 @@ namespace StartedIn.API.Configuration.AutoMapper
                 .ReverseMap();
             CreateMap<UserProject, UserRoleInATeamResponseDTO>()
                 .ForMember(dest => dest.RoleInTeam, opt => opt.MapFrom(src => src.RoleInTeam));
+            CreateMap<Project, ProjectDetailDTO>()
+                .ForMember(p => p.InvestmentCallResponseDto, opt => opt.MapFrom(src => src.InvestmentCalls.FirstOrDefault(ic => ic.Id.Equals(src.ActiveCallId))))
+                .ForMember(p => p.ProjectCharterResponseDto, opt => opt.MapFrom(src => src.ProjectCharter))
+                .ReverseMap();
         }
         private void ContractMappingProfile()
         {

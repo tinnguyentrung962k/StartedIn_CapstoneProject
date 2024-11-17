@@ -18,12 +18,13 @@ public class InvestmentCallService : IInvestmentCallService
     private readonly ILogger<InvestmentCall> _logger;
     
     public InvestmentCallService(IUserService userService, IProjectRepository projectRepository, IInvestmentCallRepository investmentCallRepository,
-        ILogger<InvestmentCall> logger)
+        ILogger<InvestmentCall> logger, IUnitOfWork unitOfWork)
     {
         _userService = userService;
         _projectRepository = projectRepository;
         _investmentCallRepository = investmentCallRepository;
         _logger = logger;
+        _unitOfWork = unitOfWork;
     }
 
     public async Task<InvestmentCall> CreateNewInvestmentCall(string userId, string projectId,
