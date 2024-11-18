@@ -476,10 +476,11 @@ namespace StartedIn.Service.Services
             var newTransaction = new Transaction
             {
                 Amount = disbursement.Amount,
+                Budget = disbursement.Amount,
                 Disbursement = disbursement,
                 DisbursementId = disbursement.Id,
                 FinanceId = projectFinance.Id,
-                Type = CrossCutting.Enum.TransactionType.Disbursement,
+                Type = CrossCutting.Enum.TransactionType.In,
                 Status = CrossCutting.Enum.TransactionStatus.Completed,
                 FromID = disbursement.InvestorId,
                 ToID = project.UserProjects.FirstOrDefault(x => x.ProjectId.Equals(project.Id) && x.RoleInTeam == CrossCutting.Enum.RoleInTeam.Leader).UserId

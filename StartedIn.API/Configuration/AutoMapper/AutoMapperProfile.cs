@@ -1,4 +1,5 @@
 ﻿using AutoMapper;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Hosting;
 using StartedIn.CrossCutting.DTOs.RequestDTO.Auth;
 using StartedIn.CrossCutting.DTOs.RequestDTO.Project;
@@ -14,6 +15,7 @@ using StartedIn.CrossCutting.DTOs.ResponseDTO.ShareEquity;
 using StartedIn.CrossCutting.DTOs.ResponseDTO.Tasks;
 using StartedIn.CrossCutting.Enum;
 using StartedIn.Domain.Entities;
+using StartedIn.Service.Services.Interface;
 
 namespace StartedIn.API.Configuration.AutoMapper
 {
@@ -31,6 +33,7 @@ namespace StartedIn.API.Configuration.AutoMapper
             DisbursementMappingProfile();
             ShareEquityMappingProfile();
             InvestmentCallMappingProfile();
+            TransactionMappingProfile();
         }
 
 
@@ -198,5 +201,12 @@ namespace StartedIn.API.Configuration.AutoMapper
         {
             CreateMap<InvestmentCall, InvestmentCallResponseDTO>().ReverseMap();
         }
+        private void TransactionMappingProfile()
+        {
+            CreateMap<Transaction, TransactionResponseDTO>()
+                    .ForMember(dest => dest.Amount, opt => opt.MapFrom(src => src.Amount.ToString()))
+                    .ForMember(dest => dest.Budget, opt => opt.MapFrom(src => src.Budget.ToString()));
+        }
+        
     }
 }
