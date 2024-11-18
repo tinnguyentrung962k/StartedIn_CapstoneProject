@@ -8,8 +8,8 @@ namespace StartedIn.CrossCutting.Enum
 {
     public enum ApplicationStatus
     {
-        PENDING,
-        ACCEPTED,
-        REJECTED
+        PENDING = 1,
+        ACCEPTED = 2,
+        REJECTED = 3
     }
 }

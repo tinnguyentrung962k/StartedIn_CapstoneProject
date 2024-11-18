@@ -8,8 +8,8 @@ namespace StartedIn.CrossCutting.Enum
 {
     public enum TransactionStatus
     {
-        Pending,
-        Processing,
-        Completed
+        Pending = 1,
+        Processing = 2,
+        Completed = 3
     }
 }

@@ -8,9 +8,9 @@ namespace StartedIn.CrossCutting.Enum
 {
     public enum MeetingStatus
     {
-        Proposed,
-        Ongoing,
-        Finished,
-        Cancelled
+        Proposed = 1,
+        Ongoing = 2,
+        Finished = 3,
+        Cancelled = 4
     }
 }

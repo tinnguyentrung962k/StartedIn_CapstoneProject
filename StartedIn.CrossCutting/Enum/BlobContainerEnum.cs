@@ -8,8 +8,8 @@ namespace StartedIn.CrossCutting.Enum
 {
     public enum BlobContainerEnum
     {
-        Avatars,
-        PostImgs,
-        Documents
+        Avatars = 1,
+        PostImgs = 2,
+        Documents = 3
     }
 }
