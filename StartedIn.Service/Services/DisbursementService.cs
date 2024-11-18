@@ -274,31 +274,31 @@ namespace StartedIn.Service.Services
             }
             if (disbursementFilterDTO.PeriodFrom.HasValue && disbursementFilterDTO.PeriodTo.HasValue)
             {
-                filterDisbursements = filterDisbursements.Filter(d => d.StartDate >= disbursementFilterDTO.PeriodFrom.Value && d.EndDate <= disbursementFilterDTO.PeriodTo.Value && d.IsValidWithContract == true);
+                filterDisbursements = filterDisbursements.Filter(d => d.StartDate >= disbursementFilterDTO.PeriodFrom && d.EndDate <= disbursementFilterDTO.PeriodTo.Value && d.IsValidWithContract == true);
             }
             else if (disbursementFilterDTO.PeriodFrom.HasValue)
             {
-                filterDisbursements = filterDisbursements.Filter(d => d.StartDate >= disbursementFilterDTO.PeriodFrom.Value && d.IsValidWithContract == true);
+                filterDisbursements = filterDisbursements.Filter(d => d.StartDate >= disbursementFilterDTO.PeriodFrom && d.IsValidWithContract == true);
             }
             else if (disbursementFilterDTO.PeriodTo.HasValue)
             {
-                filterDisbursements = filterDisbursements.Filter(d => d.EndDate <= disbursementFilterDTO.PeriodTo.Value && d.IsValidWithContract == true);
+                filterDisbursements = filterDisbursements.Filter(d => d.EndDate <= disbursementFilterDTO.PeriodTo && d.IsValidWithContract == true);
             }
 
             // Amount range filter
             if (disbursementFilterDTO.AmountFrom.HasValue)
             {
-                filterDisbursements = filterDisbursements.Filter(d => d.Amount >= disbursementFilterDTO.AmountFrom.Value && d.IsValidWithContract == true);
+                filterDisbursements = filterDisbursements.Filter(d => d.Amount >= disbursementFilterDTO.AmountFrom && d.IsValidWithContract == true);
             }
             if (disbursementFilterDTO.AmountTo.HasValue)
             {
-                filterDisbursements = filterDisbursements.Filter(d => d.Amount <= disbursementFilterDTO.AmountTo.Value && d.IsValidWithContract == true);
+                filterDisbursements = filterDisbursements.Filter(d => d.Amount <= disbursementFilterDTO.AmountTo && d.IsValidWithContract == true);
             }
 
             // Status filter
             if (disbursementFilterDTO.DisbursementStatus.HasValue)
             {
-                filterDisbursements = filterDisbursements.Filter(d => d.DisbursementStatus == disbursementFilterDTO.DisbursementStatus.Value && d.IsValidWithContract == true);
+                filterDisbursements = filterDisbursements.Filter(d => d.DisbursementStatus == disbursementFilterDTO.DisbursementStatus && d.IsValidWithContract == true);
             }
 
             // Investor filter
@@ -342,31 +342,31 @@ namespace StartedIn.Service.Services
             }
             if (disbursementFilterDTO.PeriodFrom.HasValue && disbursementFilterDTO.PeriodTo.HasValue)
             {
-                filterDisbursements = filterDisbursements.Filter(d => d.StartDate >= disbursementFilterDTO.PeriodFrom.Value && d.EndDate <= disbursementFilterDTO.PeriodTo.Value && d.IsValidWithContract == true);
+                filterDisbursements = filterDisbursements.Filter(d => d.StartDate >= disbursementFilterDTO.PeriodFrom && d.EndDate <= disbursementFilterDTO.PeriodTo && d.IsValidWithContract == true);
             }
             else if (disbursementFilterDTO.PeriodFrom.HasValue)
             {
-                filterDisbursements = filterDisbursements.Filter(d => d.StartDate >= disbursementFilterDTO.PeriodFrom.Value && d.IsValidWithContract == true);
+                filterDisbursements = filterDisbursements.Filter(d => d.StartDate >= disbursementFilterDTO.PeriodFrom && d.IsValidWithContract == true);
             }
             else if (disbursementFilterDTO.PeriodTo.HasValue)
             {
-                filterDisbursements = filterDisbursements.Filter(d => d.EndDate <= disbursementFilterDTO.PeriodTo.Value && d.IsValidWithContract == true);
+                filterDisbursements = filterDisbursements.Filter(d => d.EndDate <= disbursementFilterDTO.PeriodTo && d.IsValidWithContract == true);
             }
 
             // Amount range filter
             if (disbursementFilterDTO.AmountFrom.HasValue)
             {
-                filterDisbursements = filterDisbursements.Filter(d => d.Amount >= disbursementFilterDTO.AmountFrom.Value && d.IsValidWithContract == true);
+                filterDisbursements = filterDisbursements.Filter(d => d.Amount >= disbursementFilterDTO.AmountFrom && d.IsValidWithContract == true);
             }
             if (disbursementFilterDTO.AmountTo.HasValue)
             {
-                filterDisbursements = filterDisbursements.Filter(d => d.Amount <= disbursementFilterDTO.AmountTo.Value && d.IsValidWithContract == true);
+                filterDisbursements = filterDisbursements.Filter(d => d.Amount <= disbursementFilterDTO.AmountTo && d.IsValidWithContract == true);
             }
 
             // Status filter
             if (disbursementFilterDTO.DisbursementStatus.HasValue)
             {
-                filterDisbursements = filterDisbursements.Filter(d => d.DisbursementStatus == disbursementFilterDTO.DisbursementStatus.Value && d.IsValidWithContract == true);
+                filterDisbursements = filterDisbursements.Filter(d => d.DisbursementStatus == disbursementFilterDTO.DisbursementStatus && d.IsValidWithContract == true);
             }
             // Project filter
             if (!string.IsNullOrEmpty(disbursementFilterDTO.ProjectId))
