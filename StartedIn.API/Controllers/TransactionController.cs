@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using StartedIn.CrossCutting.Constants;
 using StartedIn.CrossCutting.DTOs.ResponseDTO;
+using StartedIn.CrossCutting.DTOs.ResponseDTO.Transaction;
 using StartedIn.Service.Services.Interface;
 using System.Security.Claims;
 

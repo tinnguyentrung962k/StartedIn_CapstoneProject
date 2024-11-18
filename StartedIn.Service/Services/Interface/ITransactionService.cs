@@ -1,4 +1,5 @@
 ﻿using StartedIn.CrossCutting.DTOs.ResponseDTO;
+using StartedIn.CrossCutting.DTOs.ResponseDTO.Transaction;
 using StartedIn.Domain.Entities;
 using System;
 using System.Collections.Generic;

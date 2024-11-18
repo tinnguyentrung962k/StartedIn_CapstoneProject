@@ -13,6 +13,7 @@ using StartedIn.CrossCutting.DTOs.ResponseDTO.Project;
 using StartedIn.CrossCutting.DTOs.ResponseDTO.ProjectCharter;
 using StartedIn.CrossCutting.DTOs.ResponseDTO.ShareEquity;
 using StartedIn.CrossCutting.DTOs.ResponseDTO.Tasks;
+using StartedIn.CrossCutting.DTOs.ResponseDTO.Transaction;
 using StartedIn.CrossCutting.Enum;
 using StartedIn.Domain.Entities;
 using StartedIn.Service.Services.Interface;
@@ -205,7 +206,9 @@ namespace StartedIn.API.Configuration.AutoMapper
         {
             CreateMap<Transaction, TransactionResponseDTO>()
                     .ForMember(dest => dest.Amount, opt => opt.MapFrom(src => src.Amount.ToString()))
-                    .ForMember(dest => dest.Budget, opt => opt.MapFrom(src => src.Budget.ToString()));
+                    .ForMember(dest => dest.Budget, opt => opt.MapFrom(src => src.Budget.ToString()))
+                    .ForMember(dest => dest.ProjectId, opt => opt.MapFrom(src => src.Finance.ProjectId));
+            
         }
         
     }

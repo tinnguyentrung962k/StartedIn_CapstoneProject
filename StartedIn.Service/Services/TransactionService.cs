@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Identity;
 using StartedIn.CrossCutting.DTOs.ResponseDTO;
 using StartedIn.CrossCutting.DTOs.ResponseDTO.DealOffer;
+using StartedIn.CrossCutting.DTOs.ResponseDTO.Transaction;
 using StartedIn.Domain.Entities;
 using StartedIn.Repository.Repositories.Interface;
 using StartedIn.Service.Services.Interface;
@@ -43,9 +44,9 @@ namespace StartedIn.Service.Services
                 foreach (var transaction in response)
                 {
                     var from = await _userService.GetUserWithId(recordInPage.First(t => t.Id == transaction.Id).FromID);
-                    transaction.From = from.FullName;
+                    transaction.FromUserName = from.FullName;
                     var to = await _userService.GetUserWithId(recordInPage.First(t => t.Id == transaction.Id).ToID);
-                    transaction.To = to.FullName;
+                    transaction.ToUserName = to.FullName;
                 }
             }
             var pagination = new PaginationDTO<TransactionResponseDTO>
