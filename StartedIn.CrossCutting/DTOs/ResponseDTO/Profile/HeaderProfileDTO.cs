@@ -1,8 +1,9 @@
 ﻿using Newtonsoft.Json;
+using StartedIn.CrossCutting.DTOs.BaseDTO;
 using System.Text.Json.Serialization;
 namespace StartedIn.CrossCutting.DTOs.ResponseDTO
 {
-    public class HeaderProfileDTO
+    public class HeaderProfileDTO : IdentityResponseDTO
     {
         [JsonProperty(PropertyName = "authorities")]
         [JsonPropertyName("authorities")]
