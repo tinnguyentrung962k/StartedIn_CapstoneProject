@@ -29,6 +29,7 @@ namespace StartedIn.Repository.Repositories
                 .ThenInclude(c=>c.Project)
                 .Include(d=>d.Investor)
                 .Include(d=>d.DisbursementAttachments)
+                .Where(x => x.DeletedTime == null && x.IsValidWithContract == true)
                 .FirstOrDefaultAsync();
         }
     }

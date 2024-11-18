@@ -32,6 +32,7 @@ public class ProjectRepository : GenericRepository<Project, string>, IProjectRep
             .Include(p => p.InvestmentCalls)
             .Include(p => p.ProjectCharter)
             .ThenInclude(pc => pc.Milestones)
+            .Where(x => x.DeletedTime == null)
             .FirstOrDefaultAsync();
         return project;
     }

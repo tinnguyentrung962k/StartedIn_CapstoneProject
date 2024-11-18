@@ -224,21 +224,30 @@ namespace StartedIn.Service.Services
             {
                 throw new UnmatchedException(MessageConstant.DisbursementNotBelongToInvestor);
             }
-            if (files is null)
+            if (files == null || !files.Any())
             {
                 throw new UploadFileException(MessageConstant.EmptyFileError);
             }
+
             try
             {
                 _unitOfWork.BeginTransaction();
+
+                // Upload files and store URLs with original filenames
                 var fileUrls = await _azureBlobService.UploadEvidencesOfDisbursement(files);
-                disbursement.DisbursementAttachments = fileUrls.Select(url => new DisbursementAttachment { EvidenceFile = url }).ToList();
+                disbursement.DisbursementAttachments = files.Select((file, index) => new DisbursementAttachment
+                {
+                    EvidenceFile = fileUrls[index],
+                    FileName = Path.GetFileName(file.FileName)
+                }).ToList();
+
                 disbursement.DisbursementStatus = CrossCutting.Enum.DisbursementStatusEnum.ACCEPTED;
+
                 _disbursementRepository.Update(disbursement);
                 await _unitOfWork.SaveChangesAsync();
                 await _unitOfWork.CommitAsync();
             }
-            catch (Exception ex) 
+            catch (Exception ex)
             {
                 _logger.LogError(ex, "Error while updating a disbursement");
                 await _unitOfWork.RollbackAsync();
@@ -481,10 +490,49 @@ namespace StartedIn.Service.Services
             _disbursementRepository.Update(disbursement);
             _financeRepository.Update(projectFinance);
             _transactionRepository.Add(newTransaction);
-            await _unitOfWork.SaveChangesAsync(); // Ensure the final status update is saved
+            await _unitOfWork.SaveChangesAsync();
             await _unitOfWork.CommitAsync();
         }
 
+        public async Task<Disbursement> GetADisbursementDetailForLeader(string userId, string projectId, string disbursementId)
+        {
+            var loginUser = await _userService.CheckIfUserInProject(userId, projectId);
+            var projectRole = await _projectRepository.GetUserRoleInProject(userId, projectId);
+            if (projectRole != CrossCutting.Enum.RoleInTeam.Leader)
+            {
+                throw new UnauthorizedProjectRoleException(MessageConstant.RolePermissionError);
+            }
+            var disbursement = await _disbursementRepository.GetDisbursementById(disbursementId);
+            if (disbursement == null)
+            {
+                throw new NotFoundException(MessageConstant.DisbursementNotFound);
+            }
+            if (disbursement.Contract.ProjectId != projectId)
+            {
+                throw new UnmatchedException(MessageConstant.DisbursementNotBelongToProject);
+            }
+            return disbursement;
+        }
+
+        public async Task<Disbursement> GetADisbursementDetailInvestor(string userId, string disbursementId)
+        {
+            var investor = await _userManager.FindByIdAsync(userId);
+            if (investor == null)
+            {
+                throw new NotFoundException(MessageConstant.NotFoundUserError);
+            }
+            var disbursement = await _disbursementRepository.GetDisbursementById(disbursementId);
+            if (disbursement == null)
+            {
+                throw new NotFoundException(MessageConstant.DisbursementNotFound);
+            }
+            if (disbursement.InvestorId != investor.Id)
+            {
+                throw new UnmatchedException(MessageConstant.DisbursementNotBelongToInvestor);
+            }
+            return disbursement;
+
+        }
 
     }
 }

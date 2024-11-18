@@ -25,6 +25,7 @@ namespace StartedIn.Repository.Repositories
                 .ThenInclude(x=>x.UserProjects)
                 .ThenInclude(x => x.User)
                 .Include(x => x.Investor)
+                .Where(x => x.DeletedTime == null)
                 .FirstOrDefaultAsync();
             return dealOffer;
         }

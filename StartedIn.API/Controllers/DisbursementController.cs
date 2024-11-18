@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Authorization;
+﻿using AutoMapper;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using StartedIn.CrossCutting.Constants;
@@ -20,11 +21,13 @@ namespace StartedIn.API.Controllers
         private readonly IPayOsService _payOsService;
         private readonly ILogger<DisbursementController> _logger;
         private readonly IDisbursementService _disbursementService;
-        public DisbursementController(IPayOsService payOsService, ILogger<DisbursementController> logger, IDisbursementService disbursementService)
+        private readonly IMapper _mapper;
+        public DisbursementController(IPayOsService payOsService, ILogger<DisbursementController> logger, IDisbursementService disbursementService, IMapper mapper)
         {
             _logger = logger;
             _payOsService = payOsService;
             _disbursementService = disbursementService;
+            _mapper = mapper;
         }
         [HttpPost("disbursements/{disbursementId}/payments")]
         [Authorize(Roles = RoleConstants.INVESTOR)]
@@ -225,6 +228,59 @@ namespace StartedIn.API.Controllers
                 return BadRequest(ex.Message);
             }
             catch (UploadFileException ex)
+            {
+                return BadRequest(ex.Message);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, MessageConstant.InternalServerError + ex.Message);
+            }
+        }
+        [HttpGet("projects/{projectId}/disbursements/{disbursementId}")]
+        [Authorize(Roles = RoleConstants.USER)]
+        public async Task<ActionResult<DisbursementDetailForLeaderInProjectResponseDTO>> GetADisbursementDetailInProjectForLeader([FromRoute] string projectId, [FromRoute] string disbursementId)
+        {
+            try
+            {
+                var userId = User.FindFirst(ClaimTypes.NameIdentifier).Value;
+                var disbursement = await _disbursementService.GetADisbursementDetailForLeader(userId, projectId, disbursementId);
+                var response = _mapper.Map<DisbursementDetailForLeaderInProjectResponseDTO>(disbursement);
+                return Ok(response);
+            }
+            catch (NotFoundException ex)
+            {
+                return BadRequest(ex.Message);
+            }
+            catch (UnmatchedException ex)
+            {
+                return BadRequest(ex.Message);
+            }
+            catch (UnauthorizedProjectRoleException ex)
+            {
+                return StatusCode(403, ex.Message);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, MessageConstant.InternalServerError + ex.Message);
+            }
+        }
+
+        [HttpGet("disbursements/{disbursementId}")]
+        [Authorize(Roles = RoleConstants.INVESTOR)]
+        public async Task<ActionResult<DisbursementDetailForInvestorResponseDTO>> GetADisbursementDetailInMenuForInvestor([FromRoute] string disbursementId)
+        {
+            try
+            {
+                var userId = User.FindFirst(ClaimTypes.NameIdentifier).Value;
+                var disbursement = await _disbursementService.GetADisbursementDetailInvestor(userId,disbursementId);
+                var response = _mapper.Map<DisbursementDetailForInvestorResponseDTO>(disbursement);
+                return Ok(response);
+            }
+            catch (NotFoundException ex)
+            {
+                return BadRequest(ex.Message);
+            }
+            catch (UnmatchedException ex)
             {
                 return BadRequest(ex.Message);
             }
