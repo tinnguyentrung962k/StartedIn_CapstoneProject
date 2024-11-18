@@ -178,7 +178,7 @@ namespace StartedIn.API.Controllers
                 return StatusCode(500, MessageConstant.InternalServerError + ex.Message);
             }
         }
-        [HttpPut("projects/{projectId}/disbursements/{disbursementId}/confirmation")]
+        [HttpPut("projects/{projectId}/disbursements/{disbursementId}/confirm")]
         [Authorize(Roles = RoleConstants.USER)]
         public async Task<IActionResult> ConfirmADisbursement([FromRoute] string projectId, [FromRoute] string disbursementId)
         {
@@ -209,7 +209,7 @@ namespace StartedIn.API.Controllers
                 return StatusCode(500, MessageConstant.InternalServerError + ex.Message);
             }
         }
-        [HttpPost("disbursements/{disbursementId}/acceptance")]
+        [HttpPost("disbursements/{disbursementId}/accept")]
         [Authorize(Roles = RoleConstants.INVESTOR)]
         public async Task<IActionResult> AcceptAndUploadEvidenceForADisbursement([FromRoute] string disbursementId, [FromForm] List<IFormFile> evidenceFiles)
         {
