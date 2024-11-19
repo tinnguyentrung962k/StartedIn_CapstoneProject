@@ -1,3 +1,4 @@
+using StartedIn.CrossCutting.DTOs.RequestDTO.EquityShare;
 using StartedIn.CrossCutting.DTOs.RequestDTO.InvestmentCall;
 using StartedIn.Domain.Entities;
 

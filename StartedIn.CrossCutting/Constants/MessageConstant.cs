@@ -64,5 +64,6 @@ namespace StartedIn.CrossCutting.Constants
         public const string EmptyFileError = "Vui lòng tải tập tin lên";
         public const string NotFoundShareEquityError = "Không tìm thấy cổ phần của dự án";
         public const string NotFoundInvestmentCall = "Không tìm thấy đợt gọi vốn của dự án";
+        public const string InvalidEquityShare = "Lượng cổ phần không hợp lệ";
     }
 }

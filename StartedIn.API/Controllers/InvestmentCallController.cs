@@ -3,6 +3,7 @@ using AutoMapper;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using StartedIn.CrossCutting.Constants;
+using StartedIn.CrossCutting.DTOs.RequestDTO.EquityShare;
 using StartedIn.CrossCutting.DTOs.RequestDTO.InvestmentCall;
 using StartedIn.CrossCutting.DTOs.ResponseDTO.InvestmentCall;
 using StartedIn.CrossCutting.Exceptions;
@@ -36,11 +37,16 @@ public class InvestmentCallController : ControllerBase
             var investmentCall =
                 await _investmentCallService.CreateNewInvestmentCall(userId, projectId, investmentCallCreateDto);
             var responseInvestmentCall = _mapper.Map<InvestmentCallResponseDTO>(investmentCall);
-            return CreatedAtAction(nameof(GetInvestmentCallById), new { projectId, investmentCallId = responseInvestmentCall.Id }, responseInvestmentCall);
+            return CreatedAtAction(nameof(GetInvestmentCallById),
+                new { projectId, investmentCallId = responseInvestmentCall.Id }, responseInvestmentCall);
         }
         catch (UnauthorizedProjectRoleException ex)
         {
             return StatusCode(403, ex);
+        }
+        catch (InvalidInputException ex)
+        {
+            return BadRequest(ex.Message);
         }
         catch (InvalidOperationException ex)
         {
