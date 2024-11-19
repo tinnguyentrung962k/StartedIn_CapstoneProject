@@ -515,7 +515,8 @@ namespace StartedIn.Service.Services
                 Disbursement = disbursement,
                 DisbursementId = disbursement.Id,
                 FinanceId = projectFinance.Id,
-                Type = CrossCutting.Enum.TransactionType.In,
+                Type = CrossCutting.Enum.TransactionType.Disbursement,
+                IsInFlow = true,
                 FromID = disbursement.InvestorId,
                 ToID = project.UserProjects.FirstOrDefault(x => x.ProjectId.Equals(project.Id) && x.RoleInTeam == CrossCutting.Enum.RoleInTeam.Leader).UserId
             };

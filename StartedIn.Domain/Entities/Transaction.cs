@@ -26,7 +26,7 @@ namespace StartedIn.Domain.Entities
         public string? FromID { get; set; }
         public string? ToID { get; set; }
         public TransactionType Type { get; set; }
-
+        public bool IsInFlow { get; set; }
         [MaxLength(500)]
         public string Content { get; set; }
         public string? EvidenceUrl { get; set; }

@@ -20,5 +20,6 @@ namespace StartedIn.CrossCutting.DTOs.ResponseDTO.Transaction
         public TransactionType Type { get; set; }
         public string Content { get; set; }
         public string EvidenceURl { get; set; }
+        public bool IsInFlow { get; set; }
     }
 }

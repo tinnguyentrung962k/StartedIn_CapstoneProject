@@ -8,7 +8,8 @@ namespace StartedIn.CrossCutting.Enum
 {
     public enum TransactionType
     {
-        In = 1,
-        Out = 2
+        Disbursement = 1,
+        AssetExpense = 2,
+        Other = 3 
     }
 }
