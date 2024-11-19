@@ -2,6 +2,7 @@
 using StartedIn.Domain.Entities.BaseEntities;
 using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using System.Linq;
 using System.Text;
@@ -25,6 +26,9 @@ namespace StartedIn.Domain.Entities
         public string? FromID { get; set; }
         public string? ToID { get; set; }
         public TransactionType Type { get; set; }
+
+        [MaxLength(500)]
+        public string Content { get; set; }
         public string? EvidenceUrl { get; set; }
         public Disbursement? Disbursement { get; set; }
         public Finance Finance { get; set; }

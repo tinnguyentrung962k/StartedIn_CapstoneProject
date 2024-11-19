@@ -18,6 +18,7 @@ namespace StartedIn.CrossCutting.DTOs.ResponseDTO.Transaction
         public string ToID { get; set; }
         public string ToUserName { get; set; }
         public TransactionType Type { get; set; }
+        public string Content { get; set; }
         public string EvidenceURl { get; set; }
     }
 }

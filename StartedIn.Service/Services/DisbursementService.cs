@@ -509,6 +509,7 @@ namespace StartedIn.Service.Services
             projectFinance.LastUpdatedTime = DateTime.UtcNow;
             var newTransaction = new Transaction
             {
+                Content = disbursement.Investor.FullName + " giải ngân: " + disbursement.Title,
                 Amount = disbursement.Amount,
                 Budget = disbursement.Amount,
                 Disbursement = disbursement,
