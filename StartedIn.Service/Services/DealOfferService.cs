@@ -28,13 +28,17 @@ namespace StartedIn.Service.Services
         private readonly IProjectRepository _projectRepository;
         private readonly IUserService _userService;
         private readonly IInvestmentCallService _investmentCallService;
-        public DealOfferService(IDealOfferRepository dealOfferRepository, 
-            IDealOfferHistoryRepository dealOfferHistoryRepository, 
+        private readonly IInvestmentCallRepository _investmentCallRepository;
+
+        public DealOfferService(IDealOfferRepository dealOfferRepository,
+            IDealOfferHistoryRepository dealOfferHistoryRepository,
             UserManager<User> userManager,
             ILogger<DealOffer> logger,
             IUnitOfWork unitOfWork,
             IProjectRepository projectRepository,
-            IUserService userService)
+            IUserService userService,
+            IInvestmentCallService investmentCallService,
+            IInvestmentCallRepository investmentCallRepository)
         {
             _dealOfferRepository = dealOfferRepository;
             _dealOfferHistoryRepository = dealOfferHistoryRepository;
@@ -43,6 +47,8 @@ namespace StartedIn.Service.Services
             _unitOfWork = unitOfWork;
             _projectRepository = projectRepository;
             _userService = userService;
+            _investmentCallService = investmentCallService;
+            _investmentCallRepository = investmentCallRepository;
         }
 
         public async Task<PaginationDTO<DealOfferForProjectResponseDTO>> GetDealOfferForAProject(string userId, string projectId, int page, int size)
@@ -216,6 +222,13 @@ namespace StartedIn.Service.Services
             try
             {
                 chosenDeal.DealStatus = DealStatusEnum.Accepted;
+                if (!string.IsNullOrWhiteSpace(chosenDeal.InvestmentCallId))
+                {
+                    var investmentCall = await _investmentCallService.GetInvestmentCallById(projectId, chosenDeal.InvestmentCallId);
+                    investmentCall.AmountRaised += chosenDeal.Amount;
+                    investmentCall.TotalInvestor++;
+                    _investmentCallRepository.Update(investmentCall);
+                }
                 _dealOfferRepository.Update(chosenDeal);
                 await _unitOfWork.SaveChangesAsync();
                 return chosenDeal;
