@@ -10,6 +10,7 @@ namespace StartedIn.CrossCutting.DTOs.ResponseDTO.Disbursement
 {
     public class DisbursementForInvestorInInvestorMenuResponseDTO : IdentityResponseDTO
     {
+        public string LogoUrl { get; set; }
         public string Title { get; set; }
         public DateOnly StartDate { get; set; }
         public DateOnly EndDate { get; set; }

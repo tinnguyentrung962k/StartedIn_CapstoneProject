@@ -11,6 +11,7 @@ namespace StartedIn.CrossCutting.DTOs.ResponseDTO.Disbursement
         public string InvestorId { get; set; }
         public string ContractId { get; set; }
         public string DeclineReason { get; set; }
+        public string Condition { get; set; }
         public List<DisbursementAttachmentResponseDTO> DisbursementAttachments { get; set; }
     }
 }
