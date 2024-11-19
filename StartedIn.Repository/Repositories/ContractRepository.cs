@@ -74,5 +74,12 @@ namespace StartedIn.Repository.Repositories
                .FirstOrDefaultAsync();
             return nearestExpiredContract;
         }
+        public IQueryable<Contract> GetContractListQuery(string userId, string projectId)
+        {
+            var query = _appDbContext.Contracts.Include(x => x.UserContracts)
+                .Where(x => x.ProjectId.Equals(projectId) && x.UserContracts.Any(us => us.UserId.Equals(userId)))
+                .OrderByDescending(x => x.LastUpdatedTime);
+            return query;
+        }
     }
 }

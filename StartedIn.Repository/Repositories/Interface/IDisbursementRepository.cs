@@ -12,6 +12,9 @@ namespace StartedIn.Repository.Repositories.Interface
     {
         Task<bool> ExistsAsync(long orderCode);
         Task<Disbursement> GetDisbursementById(string id);
-      
+        IQueryable<Disbursement> GetDisbursementListOfInvestorQuery(string userId);
+        IQueryable<Disbursement> GetDisbursementListOfAProjectQuery(string projectId);
+
+
     }
 }

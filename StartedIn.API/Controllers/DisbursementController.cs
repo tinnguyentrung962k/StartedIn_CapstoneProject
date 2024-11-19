@@ -131,7 +131,7 @@ namespace StartedIn.API.Controllers
         }
         [HttpGet("disbursements")]
         [Authorize(Roles = RoleConstants.INVESTOR)]
-        public async Task<ActionResult<PaginationDTO<DisbursementForLeaderInProjectResponseDTO>>> GetListDisbursementForInvestorInMenu(
+        public async Task<ActionResult<PaginationDTO<DisbursementForInvestorInInvestorMenuResponseDTO>>> GetListDisbursementForInvestorInMenu(
             [FromQuery] DisbursementFilterInvestorMenuDTO disbursementFilterDTO,
             [FromQuery] int page,
             [FromQuery] int size)

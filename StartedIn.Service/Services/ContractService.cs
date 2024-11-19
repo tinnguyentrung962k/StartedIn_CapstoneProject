@@ -633,18 +633,18 @@ namespace StartedIn.Service.Services
         public async Task<PaginationDTO<ContractSearchResponseDTO>> SearchContractWithFilters(string userId, string projectId, ContractSearchDTO search, int page, int size)
         {
             var userProject = await _userService.CheckIfUserInProject(userId, projectId);
-            var searchResult = _contractRepository.QueryHelper().Include(c => c.UserContracts).Filter(x=>x.ProjectId.Equals(projectId) && x.UserContracts.Any(us => us.UserId.Equals(userId))).OrderBy(x=>x.OrderByDescending(x=>x.LastUpdatedTime));
+            var searchResult = _contractRepository.GetContractListQuery(userId, projectId);
             // Filter by Contract Name
             if (!string.IsNullOrWhiteSpace(search.ContractName))
             {
                 string contractNameLower = search.ContractName.ToLower();
-                searchResult = searchResult.Filter(c => c.ContractName.ToLower().Contains(contractNameLower));
+                searchResult = searchResult.Where(c => c.ContractName.ToLower().Contains(contractNameLower));
             }
 
             // Filter by Contract Type Enum
             if (search.ContractTypeEnum.HasValue)
             {
-                searchResult = searchResult.Filter(c => c.ContractType == search.ContractTypeEnum.Value);
+                searchResult = searchResult.Where(c => c.ContractType == search.ContractTypeEnum.Value);
             }
 
             // Filter by Parties (User IDs)
@@ -653,7 +653,7 @@ namespace StartedIn.Service.Services
                 var partyIds = search.Parties;
 
                 // Filter contracts that contain all the specified parties
-                searchResult = searchResult.Filter(c =>
+                searchResult = searchResult.Where(c =>
                     partyIds.All(partyId => c.UserContracts.Any(uc => uc.UserId == partyId)));
             }
 
@@ -662,67 +662,55 @@ namespace StartedIn.Service.Services
             {
                 if (search.LastUpdatedStartDate != default)
                 {
-                    searchResult = searchResult.Filter(c => c.LastUpdatedTime >= search.LastUpdatedStartDate);
+                    searchResult = searchResult.Where(c => c.LastUpdatedTime >= search.LastUpdatedStartDate);
                 }
 
                 if (search.LastUpdatedEndDate != default)
                 {
-                    searchResult = searchResult.Filter(c => c.LastUpdatedTime <= search.LastUpdatedEndDate);
+                    searchResult = searchResult.Where(c => c.LastUpdatedTime <= search.LastUpdatedEndDate);
                 }
             }
 
             // Filter by Contract Status Enum
             if (search.ContractStatusEnum.HasValue)
             {
-                searchResult = searchResult.Filter(c => c.ContractStatus == search.ContractStatusEnum.Value);
+                searchResult = searchResult.Where(c => c.ContractStatus == search.ContractStatusEnum.Value);
             }
 
-            var searchResultList = await searchResult.GetPagingAsync(page,size);
-            
-            // Mapping contracts and their users to the DTOs
-            foreach (var contract in searchResultList)
+            int totalCount = await searchResult.CountAsync();
+
+            var pagedResult = await searchResult
+                .Skip((page - 1) * size)
+                .Take(size)
+                .Include(c => c.UserContracts)
+                .ThenInclude(uc => uc.User)
+                .ToListAsync();
+
+            var contractSearchResponseDTOs = pagedResult.Select(contract => new ContractSearchResponseDTO
             {
-                foreach (var userConstract in contract.UserContracts) {
-                    var userParty = await _userManager.FindByIdAsync(userConstract.UserId);
-                    userConstract.User = userParty;   
-                }
-            };
-            List<ContractSearchResponseDTO> contractSearchResponseDTOs = new List<ContractSearchResponseDTO>();
-            foreach (var contract in searchResultList) 
-            {
-                var usersInContractResponse = new List<UserInContractResponseDTO>();
-                foreach (var userConstract in contract.UserContracts)
+                Id = contract.Id,
+                ContractName = contract.ContractName,
+                ContractStatus = contract.ContractStatus,
+                ContractType = contract.ContractType,
+                LastUpdatedTime = contract.LastUpdatedTime,
+                Parties = contract.UserContracts.Select(userContract => new UserInContractResponseDTO
                 {
-                    UserInContractResponseDTO user = new UserInContractResponseDTO
-                    {
-                        Id = userConstract.User.Id,
-                        Email = userConstract.User.Email,
-                        FullName = userConstract.User.FullName,
-                        PhoneNumber = userConstract.User.PhoneNumber
-                    };
-                    usersInContractResponse.Add(user);
+                    Id = userContract.User.Id,
+                    Email = userContract.User.Email,
+                    FullName = userContract.User.FullName,
+                    PhoneNumber = userContract.User.PhoneNumber
+                }).ToList()
+            }).ToList();
 
-                }
-
-                ContractSearchResponseDTO contractResponseDTO = new ContractSearchResponseDTO
-                {
-                    Id = contract.Id,
-                    ContractName = contract.ContractName,
-                    ContractStatus = contract.ContractStatus,
-                    ContractType = contract.ContractType,
-                    LastUpdatedTime = contract.LastUpdatedTime,
-                    Parties = usersInContractResponse
-                };
-                contractSearchResponseDTOs.Add(contractResponseDTO);
-            }
-
+            // Construct pagination DTO
             var response = new PaginationDTO<ContractSearchResponseDTO>
             {
                 Data = contractSearchResponseDTOs,
-                Total = await searchResult.GetTotal(),
+                Total = totalCount,
                 Size = size,
                 Page = page
             };
+
             return response;
         }
 
