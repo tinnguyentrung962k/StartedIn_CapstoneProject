@@ -27,6 +27,7 @@ namespace StartedIn.Service.Services
         private readonly IUnitOfWork _unitOfWork;
         private readonly IProjectRepository _projectRepository;
         private readonly IUserService _userService;
+        private readonly IInvestmentCallService _investmentCallService;
         public DealOfferService(IDealOfferRepository dealOfferRepository, 
             IDealOfferHistoryRepository dealOfferHistoryRepository, 
             UserManager<User> userManager,
@@ -140,6 +141,17 @@ namespace StartedIn.Service.Services
             {
                 throw new NotFoundException(MessageConstant.NotFoundProjectError);
             }
+            
+            var investmentCall = await _investmentCallService.GetInvestmentCallById(dealOfferCreateDTO.ProjectId, dealOfferCreateDTO.InvestmentCallId);
+
+            if (!string.IsNullOrWhiteSpace(dealOfferCreateDTO.InvestmentCallId))
+            {
+                if (dealOfferCreateDTO.EquityShareOffer > investmentCall.EquityShare)
+                {
+                    throw new InvalidInputException(MessageConstant.InvalidEquityShare);
+                }
+            }
+            
             try
             {
                 _unitOfWork.BeginTransaction();
@@ -154,6 +166,12 @@ namespace StartedIn.Service.Services
                     Project = project,
                     TermCondition = dealOfferCreateDTO.TermCondition,
                 };
+                
+                if (!string.IsNullOrWhiteSpace(dealOfferCreateDTO.InvestmentCallId))
+                {
+                    dealOffer.InvestmentCallId = dealOfferCreateDTO.InvestmentCallId;
+                }
+                
                 var dealOfferEntity = _dealOfferRepository.Add(dealOffer);
                 string notification = "Nhà đầu tư " + user.FullName + "đã gửi cho bạn lời mời đầu tư mới";
                 DealOfferHistory dealOfferHistory = new DealOfferHistory

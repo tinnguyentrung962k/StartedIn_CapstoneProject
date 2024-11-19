@@ -1,5 +1,6 @@
 using Microsoft.Extensions.Logging;
 using StartedIn.CrossCutting.Constants;
+using StartedIn.CrossCutting.DTOs.RequestDTO.EquityShare;
 using StartedIn.CrossCutting.DTOs.RequestDTO.InvestmentCall;
 using StartedIn.CrossCutting.Enum;
 using StartedIn.CrossCutting.Exceptions;
@@ -16,15 +17,17 @@ public class InvestmentCallService : IInvestmentCallService
     private readonly IInvestmentCallRepository _investmentCallRepository;
     private readonly IUnitOfWork _unitOfWork;
     private readonly ILogger<InvestmentCall> _logger;
+    private readonly IShareEquityService _shareEquityService;
     
     public InvestmentCallService(IUserService userService, IProjectRepository projectRepository, IInvestmentCallRepository investmentCallRepository,
-        ILogger<InvestmentCall> logger, IUnitOfWork unitOfWork)
+        ILogger<InvestmentCall> logger, IUnitOfWork unitOfWork, IShareEquityService shareEquityService)
     {
         _userService = userService;
         _projectRepository = projectRepository;
         _investmentCallRepository = investmentCallRepository;
         _logger = logger;
         _unitOfWork = unitOfWork;
+        _shareEquityService = shareEquityService;
     }
 
     public async Task<InvestmentCall> CreateNewInvestmentCall(string userId, string projectId,
@@ -46,6 +49,11 @@ public class InvestmentCallService : IInvestmentCallService
             throw new NotFoundException(MessageConstant.NotFoundProjectError);
         }
         
+        if (investmentCallCreateDto.EquityShare > project.RemainingPercentOfShares || investmentCallCreateDto.EquityShare > 49)
+        {
+            throw new InvalidInputException(MessageConstant.InvalidEquityShare);
+        }
+        
         try
         {
             _unitOfWork.BeginTransaction();
@@ -55,6 +63,7 @@ public class InvestmentCallService : IInvestmentCallService
                 TargetCall = investmentCallCreateDto.TargetCall,
                 AmountRaised = 0,
                 TotalInvestor = 0,
+                EquityShare = investmentCallCreateDto.EquityShare,
                 StartDate = investmentCallCreateDto.StartDate,
                 EndDate = investmentCallCreateDto.EndDate,
                 Status = InvestmentCallStatus.Open
