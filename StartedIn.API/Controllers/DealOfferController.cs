@@ -132,6 +132,10 @@ namespace StartedIn.API.Controllers
             {
                 return BadRequest(ex.Message);
             }
+            catch (InvalidInputException ex)
+            {
+                return BadRequest(ex.Message);
+            }
             catch (Exception ex)
             {
                 return StatusCode(500, MessageConstant.InternalServerError);

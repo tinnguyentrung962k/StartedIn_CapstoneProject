@@ -8,7 +8,7 @@ public class InvestmentCallCreateDTO
     [Required]
     public decimal TargetCall { get; set; }
     [Required]
-    public decimal EquityShare { get; set; }
+    public decimal EquityShareCall { get; set; }
     [Required]
     public DateOnly StartDate { get; set; }
     [Required]

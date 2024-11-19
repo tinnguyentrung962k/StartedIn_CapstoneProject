@@ -21,7 +21,10 @@ namespace StartedIn.Domain.Entities
         public decimal AmountRaised { get; set; }
         
         [Column(TypeName = "decimal(5,2)")]
-        public decimal EquityShare { get; set; }
+        public decimal EquityShareCall { get; set; }
+
+        [Column(TypeName = "decimal(5,2)")]
+        public decimal RemainAvailableEquityShare { get; set; }
         public DateOnly StartDate { get; set; }
         public DateOnly EndDate { get; set; }
         public InvestmentCallStatus Status { get; set; }

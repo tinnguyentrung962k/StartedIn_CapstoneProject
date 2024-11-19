@@ -32,6 +32,7 @@ namespace StartedIn.Domain.Entities
         public string? EvidenceUrl { get; set; }
         public Disbursement? Disbursement { get; set; }
         public Finance Finance { get; set; }
+        public Asset Asset { get; set; }
 
     }
 }

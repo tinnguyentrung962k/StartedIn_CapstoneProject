@@ -205,7 +205,11 @@ namespace StartedIn.API.Configuration.AutoMapper
 
         private void InvestmentCallMappingProfile()
         {
-            CreateMap<InvestmentCall, InvestmentCallResponseDTO>().ReverseMap();
+            CreateMap<InvestmentCall, InvestmentCallResponseDTO>()
+                .ForMember(dest => dest.AmountRaised, opt => opt.MapFrom(src => src.AmountRaised.ToString()))
+                .ForMember(dest => dest.EquityShareCall, opt => opt.MapFrom(src => src.EquityShareCall.ToString()))
+                .ForMember(dest => dest.RemainAvailableEquityShare, opt => opt.MapFrom(src => src.RemainAvailableEquityShare.ToString()))
+                .ForMember(dest => dest.TargetCall, opt => opt.MapFrom(src => src.TargetCall.ToString()));
         }
         private void TransactionMappingProfile()
         {

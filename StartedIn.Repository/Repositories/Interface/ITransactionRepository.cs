@@ -4,5 +4,6 @@ namespace StartedIn.Repository.Repositories.Interface
 {
     public interface ITransactionRepository : IGenericRepository<Transaction,string>
     {
+        Task<Transaction> GetTransactionById(string transactionId);
     }
 }

@@ -49,7 +49,7 @@ public class InvestmentCallService : IInvestmentCallService
             throw new NotFoundException(MessageConstant.NotFoundProjectError);
         }
         
-        if (investmentCallCreateDto.EquityShare > project.RemainingPercentOfShares || investmentCallCreateDto.EquityShare > 49)
+        if (investmentCallCreateDto.EquityShareCall > project.RemainingPercentOfShares || investmentCallCreateDto.EquityShareCall > 49)
         {
             throw new InvalidInputException(MessageConstant.InvalidEquityShare);
         }
@@ -63,10 +63,11 @@ public class InvestmentCallService : IInvestmentCallService
                 TargetCall = investmentCallCreateDto.TargetCall,
                 AmountRaised = 0,
                 TotalInvestor = 0,
-                EquityShare = investmentCallCreateDto.EquityShare,
+                EquityShareCall = investmentCallCreateDto.EquityShareCall,
                 StartDate = investmentCallCreateDto.StartDate,
                 EndDate = investmentCallCreateDto.EndDate,
-                Status = InvestmentCallStatus.Open
+                Status = InvestmentCallStatus.Open,
+                RemainAvailableEquityShare = investmentCallCreateDto.EquityShareCall
             };
             _investmentCallRepository.Add(call);
             

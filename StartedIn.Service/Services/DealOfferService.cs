@@ -147,17 +147,17 @@ namespace StartedIn.Service.Services
             {
                 throw new NotFoundException(MessageConstant.NotFoundProjectError);
             }
-            
-            var investmentCall = await _investmentCallService.GetInvestmentCallById(dealOfferCreateDTO.ProjectId, dealOfferCreateDTO.InvestmentCallId);
 
-            if (!string.IsNullOrWhiteSpace(dealOfferCreateDTO.InvestmentCallId))
+            var investmentCall = await _investmentCallService.GetInvestmentCallById(dealOfferCreateDTO.ProjectId, project.ActiveCallId);
+            if (investmentCall.Status == InvestmentCallStatus.Closed)
             {
-                if (dealOfferCreateDTO.EquityShareOffer > investmentCall.EquityShare)
-                {
-                    throw new InvalidInputException(MessageConstant.InvalidEquityShare);
-                }
+                throw new InvalidDataException(MessageConstant.ClosedInvestmentCall);
             }
-            
+
+            if (dealOfferCreateDTO.EquityShareOffer > investmentCall.RemainAvailableEquityShare)
+            {
+                throw new InvalidInputException(MessageConstant.InvestmentCallEquitySoldOut);
+            }
             try
             {
                 _unitOfWork.BeginTransaction();
@@ -171,13 +171,9 @@ namespace StartedIn.Service.Services
                     Investor = user,
                     Project = project,
                     TermCondition = dealOfferCreateDTO.TermCondition,
+                    InvestmentCallId = project.ActiveCallId
                 };
-                
-                if (!string.IsNullOrWhiteSpace(dealOfferCreateDTO.InvestmentCallId))
-                {
-                    dealOffer.InvestmentCallId = dealOfferCreateDTO.InvestmentCallId;
-                }
-                
+
                 var dealOfferEntity = _dealOfferRepository.Add(dealOffer);
                 string notification = "Nhà đầu tư " + user.FullName + "đã gửi cho bạn lời mời đầu tư mới";
                 DealOfferHistory dealOfferHistory = new DealOfferHistory
@@ -210,6 +206,7 @@ namespace StartedIn.Service.Services
             }
             var chosenDeal = await _dealOfferRepository.QueryHelper()
                 .Include(x => x.Investor)
+                .Include(x => x.InvestmentCall)
                 .Filter(x => x.Id.Equals(dealId))
                 .GetOneAsync();
             if (chosenDeal == null) {
@@ -219,16 +216,13 @@ namespace StartedIn.Service.Services
             {
                 throw new UnmatchedException(MessageConstant.DealNotBelongToProjectError);
             }
+            if (chosenDeal.InvestmentCall.RemainAvailableEquityShare < chosenDeal.EquityShareOffer)
+            {
+                throw new InvalidInputException(MessageConstant.InvestmentCallEquitySoldOut);
+            }
             try
             {
                 chosenDeal.DealStatus = DealStatusEnum.Accepted;
-                if (!string.IsNullOrWhiteSpace(chosenDeal.InvestmentCallId))
-                {
-                    var investmentCall = await _investmentCallService.GetInvestmentCallById(projectId, chosenDeal.InvestmentCallId);
-                    investmentCall.AmountRaised += chosenDeal.Amount;
-                    investmentCall.TotalInvestor++;
-                    _investmentCallRepository.Update(investmentCall);
-                }
                 _dealOfferRepository.Update(chosenDeal);
                 await _unitOfWork.SaveChangesAsync();
                 return chosenDeal;

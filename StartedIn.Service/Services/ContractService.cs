@@ -40,6 +40,8 @@ namespace StartedIn.Service.Services
         private readonly IUserService _userService;
         private readonly IDealOfferRepository _dealOfferRepository;
         private readonly IFinanceRepository _financeRepository;
+        private readonly IInvestmentCallService _investmentCallService;
+        private readonly IInvestmentCallRepository _investmentCallRepository;
 
         public ContractService(IContractRepository contractRepository,
             IUnitOfWork unitOfWork,
@@ -55,7 +57,9 @@ namespace StartedIn.Service.Services
             IConfiguration configuration,
             IUserService userService,
             IDealOfferRepository dealOfferRepository,
-            IFinanceRepository financeRepository
+            IFinanceRepository financeRepository,
+            IInvestmentCallService investmentCallService,
+            IInvestmentCallRepository investmentCallRepository
             )
         {
             _contractRepository = contractRepository;
@@ -74,6 +78,9 @@ namespace StartedIn.Service.Services
             _dealOfferRepository = dealOfferRepository;
             _financeRepository = financeRepository;
             _apiDomain = _configuration.GetValue<string>("API_DOMAIN") ?? _configuration["Local_domain"];
+            _investmentCallService = investmentCallService;
+            _investmentCallRepository = investmentCallRepository;
+
         }
 
         public async Task<Contract> CreateInvestmentContract(string userId, string projectId, InvestmentContractCreateDTO investmentContractCreateDTO)
@@ -592,6 +599,18 @@ namespace StartedIn.Service.Services
                 {
                     disbursement.IsValidWithContract = true;
                     _disbursementRepository.Update(disbursement);
+                }
+                if (chosenContract.DealOffer.InvestmentCallId != null)
+                {
+                    var investmentCall = await _investmentCallService.GetInvestmentCallById(projectId, chosenContract.DealOffer.InvestmentCallId);
+                    investmentCall.AmountRaised += chosenContract.DealOffer.Amount;
+                    investmentCall.RemainAvailableEquityShare -= chosenContract.DealOffer.EquityShareOffer;
+                    investmentCall.TotalInvestor++;
+                    if (investmentCall.RemainAvailableEquityShare == 0)
+                    {
+                        investmentCall.Status = InvestmentCallStatus.Closed;
+                    }
+                    _investmentCallRepository.Update(investmentCall);
                 }
                 var totalDisbursement = chosenContract.Disbursements.Sum(e => e.Amount);
                 var projectFinance = await _financeRepository.QueryHelper()
