@@ -143,7 +143,6 @@ namespace StartedIn.Service.Services
                     StakeHolderType = RoleInTeam.Investor,
                     User = investor,
                     UserId = investor.Id,
-                    ShareQuantity = investmentContractCreateDTO.InvestorInfo.ShareQuantity,
                     SharePrice = investmentContractCreateDTO.InvestorInfo.BuyPrice
                 };
                 var contractEntity = _contractRepository.Add(contract);
@@ -246,8 +245,7 @@ namespace StartedIn.Service.Services
                         Percentage = shareEquityOfAMember.Percentage,
                         StakeHolderType = projectRoleOfMember,
                         User = userMemberInContract,
-                        UserId = shareEquityOfAMember.UserId,
-                        ShareQuantity = shareEquityOfAMember.ShareQuantity
+                        UserId = shareEquityOfAMember.UserId
                     };
                     shareEquitiesOfMembers.Add(shareEquity);
                 }
@@ -770,7 +768,6 @@ namespace StartedIn.Service.Services
                 {
                     // Update existing ShareEquity
                     existingShareEquity.Percentage = investmentContractUpdateDTO.InvestorInfo.Percentage;
-                    existingShareEquity.ShareQuantity = investmentContractUpdateDTO.InvestorInfo.ShareQuantity;
                     existingShareEquity.SharePrice = investmentContractUpdateDTO.InvestorInfo.BuyPrice;
                     existingShareEquity.LastUpdatedBy = leader.FullName;
                     _shareEquityRepository.Update(existingShareEquity);
@@ -784,7 +781,6 @@ namespace StartedIn.Service.Services
                         ContractId = contract.Id,
                         UserId = investor.Id,
                         Percentage = investmentContractUpdateDTO.InvestorInfo.Percentage,
-                        ShareQuantity = investmentContractUpdateDTO.InvestorInfo.ShareQuantity,
                         StakeHolderType = RoleInTeam.Investor,
                         CreatedBy = leader.FullName,
                     };
@@ -910,8 +906,7 @@ namespace StartedIn.Service.Services
                         Percentage = updatedShareEquity.Percentage,
                         StakeHolderType = projectRoleOfMember,
                         User = userMemberInContract,
-                        UserId = updatedShareEquity.UserId,
-                        ShareQuantity = updatedShareEquity.ShareQuantity
+                        UserId = updatedShareEquity.UserId
                     };
                     shareEquitiesOfMembers.Add(shareEquity);
                 }
