@@ -8,8 +8,8 @@ namespace StartedIn.CrossCutting.Enum
 {
     public enum DealStatusEnum
     {
-        Waiting,
-        Accepted,
-        Rejected,
+        Waiting = 1,
+        Accepted = 2,
+        Rejected = 3
     }
 }

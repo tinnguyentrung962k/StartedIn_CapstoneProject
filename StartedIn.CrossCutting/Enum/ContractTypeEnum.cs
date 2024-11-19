@@ -8,8 +8,7 @@ namespace StartedIn.CrossCutting.Enum
 {
     public enum ContractTypeEnum
     {
-        INVESTMENT,
-        INTERNAL,
-        TRADING 
+        INTERNAL = 1,
+        INVESTMENT = 2
     }
 }

@@ -28,9 +28,11 @@ public class ProjectRepository : GenericRepository<Project, string>, IProjectRep
     {
         var project = await _appDbContext.Projects.Where(p => p.Id.Equals(id))
             .Include(p => p.UserProjects)
+            .ThenInclude(up => up.User)
             .Include(p => p.InvestmentCalls)
             .Include(p => p.ProjectCharter)
             .ThenInclude(pc => pc.Milestones)
+            .Where(x => x.DeletedTime == null)
             .FirstOrDefaultAsync();
         return project;
     }

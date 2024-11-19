@@ -9,7 +9,6 @@ namespace StartedIn.CrossCutting.DTOs.RequestDTO.Project
 
         public string Description { get; set; }
         public IFormFile LogoFile { get; set; }
-        public int? TotalShares { get; set; }
         public string? CompanyIdNumer { get; set; }
         public DateOnly StartDate { get; set; }
         public DateOnly? EndDate { get; set; }

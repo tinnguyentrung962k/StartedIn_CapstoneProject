@@ -23,5 +23,7 @@ namespace StartedIn.Service.Services.Interface
         Task DisbursementConfirmation(string userId, string projectId, string disbursementId);
         Task AutoUpdateOverdueIfDisbursementsExpire();
         Task AcceptDisbursement(string userId, string disbursementId, List<IFormFile> files);
+        Task<Disbursement> GetADisbursementDetailForLeader(string userId, string projectId, string disbursementId);
+        Task<Disbursement> GetADisbursementDetailInvestor(string userId, string disbursementId);
     }
 }

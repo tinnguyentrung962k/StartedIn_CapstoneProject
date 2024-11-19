@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using StartedIn.Domain.Context;
@@ -11,9 +12,11 @@ using StartedIn.Domain.Context;
 namespace StartedIn.Domain.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20241119073637_11-19-2024_Migration_14AM40")]
+    partial class _11192024_Migration_14AM40
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -711,9 +714,6 @@ namespace StartedIn.Domain.Migrations
                     b.Property<DateOnly>("EndDate")
                         .HasColumnType("date");
 
-                    b.Property<decimal>("EquityShare")
-                        .HasColumnType("decimal(5,2)");
-
                     b.Property<string>("LastUpdatedBy")
                         .HasColumnType("text");
 
@@ -950,8 +950,14 @@ namespace StartedIn.Domain.Migrations
                     b.Property<decimal>("RemainingPercentOfShares")
                         .HasColumnType("decimal(5,2)");
 
+                    b.Property<int?>("RemainingShares")
+                        .HasColumnType("integer");
+
                     b.Property<DateOnly>("StartDate")
                         .HasColumnType("date");
+
+                    b.Property<int?>("TotalShares")
+                        .HasColumnType("integer");
 
                     b.HasKey("Id");
 
@@ -1138,6 +1144,9 @@ namespace StartedIn.Domain.Migrations
                     b.Property<decimal>("SharePrice")
                         .HasColumnType("decimal(14,3)");
 
+                    b.Property<int?>("ShareQuantity")
+                        .HasColumnType("integer");
+
                     b.Property<string>("StakeHolderType")
                         .IsRequired()
                         .HasColumnType("text");
@@ -1321,11 +1330,6 @@ namespace StartedIn.Domain.Migrations
                     b.Property<decimal?>("Budget")
                         .HasColumnType("decimal(14,3)");
 
-                    b.Property<string>("Content")
-                        .IsRequired()
-                        .HasMaxLength(500)
-                        .HasColumnType("character varying(500)");
-
                     b.Property<string>("CreatedBy")
                         .HasColumnType("text");
 
@@ -1347,9 +1351,6 @@ namespace StartedIn.Domain.Migrations
 
                     b.Property<string>("FromID")
                         .HasColumnType("text");
-
-                    b.Property<bool>("IsInFlow")
-                        .HasColumnType("boolean");
 
                     b.Property<string>("LastUpdatedBy")
                         .HasColumnType("text");

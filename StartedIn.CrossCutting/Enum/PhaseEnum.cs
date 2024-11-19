@@ -8,9 +8,9 @@ namespace StartedIn.CrossCutting.Enum
 {
     public enum PhaseEnum
     {
-        INITIALIZING,
-        PLANNING,
-        EXECUTING,
-        CLOSING
+        INITIALIZING = 1,
+        PLANNING = 2,
+        EXECUTING = 3,
+        CLOSING = 4
     }
 }

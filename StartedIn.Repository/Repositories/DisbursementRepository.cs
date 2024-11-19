@@ -29,7 +29,29 @@ namespace StartedIn.Repository.Repositories
                 .ThenInclude(c=>c.Project)
                 .Include(d=>d.Investor)
                 .Include(d=>d.DisbursementAttachments)
+                .Where(x => x.DeletedTime == null && x.IsValidWithContract == true)
                 .FirstOrDefaultAsync();
+        }
+
+        public IQueryable<Disbursement> GetDisbursementListOfInvestorQuery(string userId) 
+        {
+            var query = _appDbContext.Disbursements
+                .Include(x => x.Contract)
+                .ThenInclude(x => x.Project)
+                .Include(x => x.Investor)
+                .Where(x => x.InvestorId.Equals(userId) && x.IsValidWithContract == true)
+                .OrderBy(x => x.StartDate);
+            return query;
+        }
+
+        public IQueryable<Disbursement> GetDisbursementListOfAProjectQuery(string projectId)
+        {
+            var query = _appDbContext.Disbursements
+                .Include(x => x.Contract)
+                .Include(x => x.Investor)
+                .Where(x => x.Contract.ProjectId.Equals(projectId) && x.IsValidWithContract == true)
+                .OrderBy(x => x.StartDate);
+            return query;
         }
     }
 }

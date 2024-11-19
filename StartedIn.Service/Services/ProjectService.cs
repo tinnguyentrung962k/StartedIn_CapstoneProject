@@ -77,10 +77,6 @@ public class ProjectService : IProjectService
         {
             throw new InvalidDataException(MessageConstant.NullOrEmptyStartDate);
         }
-        if (projectCreateDTO.TotalShares < 0)
-        {
-            throw new InvalidDataException(MessageConstant.NegativeNumberError);
-        }
         try {
             _unitOfWork.BeginTransaction();
             var imgUrl = await _azureBlobService.UploadAvatarOrCover(projectCreateDTO.LogoFile);
@@ -90,7 +86,6 @@ public class ProjectService : IProjectService
                 Description = projectCreateDTO.Description,
                 LogoUrl = imgUrl,
                 ProjectStatus = ProjectStatusEnum.CONSTRUCTING,
-                TotalShares = projectCreateDTO.TotalShares,
                 EndDate = projectCreateDTO.EndDate,
                 StartDate = projectCreateDTO.StartDate,
                 CompanyIdNumber = projectCreateDTO.CompanyIdNumer
@@ -219,9 +214,7 @@ public class ProjectService : IProjectService
                 LogoUrl = project.LogoUrl,
                 ProjectName = project.ProjectName,
                 ProjectStatus = project.ProjectStatus,
-                TotalShares = project.TotalShares,
                 RemainingPercentOfShares = project.RemainingPercentOfShares,
-                RemainingShares = project.RemainingShares,
                 StartDate = project.StartDate,
                 EndDate = project.EndDate
             };
@@ -254,9 +247,7 @@ public class ProjectService : IProjectService
                 LogoUrl = project.LogoUrl,
                 ProjectName = project.ProjectName,
                 ProjectStatus = project.ProjectStatus,
-                TotalShares = project.TotalShares,
                 RemainingPercentOfShares = project.RemainingPercentOfShares,
-                RemainingShares = project.RemainingShares,
                 StartDate = project.StartDate,
                 EndDate = project.EndDate
             };

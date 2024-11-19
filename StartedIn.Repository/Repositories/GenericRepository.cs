@@ -49,13 +49,11 @@ namespace StartedIn.Repository.Repositories
 
         public async Task<IEnumerable<TEntity>> GetAllAsync()
         {
-            return await _dbSet.ToListAsync();
+            return await _dbSet.Where(x=>x.DeletedTime == null).ToListAsync();
         }
 
-        public async Task<TEntity> GetOneAsync(TKey id)
-        {
-            return await _dbSet.FindAsync(id);
-        }
+        public async Task<TEntity> GetOneAsync(TKey id) => await _dbSet.Where(x => x.DeletedTime == null)
+                .FirstOrDefaultAsync(x => x.Id.Equals(id));
 
         public IFluentRepository<TEntity> QueryHelper()
         {
@@ -83,7 +81,7 @@ namespace StartedIn.Repository.Repositories
         {
             pageIndex = pageIndex < 1 ? 0 : pageIndex - 1;
             pageSize = pageSize < 1 ? 10 : pageSize;
-            return await _dbSet.Skip(pageIndex * pageSize).Take(pageSize).ToListAsync();
+            return await _dbSet.Where(x => x.DeletedTime == null).Skip(pageIndex * pageSize).Take(pageSize).ToListAsync();
 
         }
         public async Task AddRangeAsync(IEnumerable<TEntity> entities)
@@ -98,7 +96,7 @@ namespace StartedIn.Repository.Repositories
             int pageNum = 1,
             int pageSize = 5)
         {
-            IQueryable<TEntity> query = _dbSet;
+            IQueryable<TEntity> query = _dbSet.Where(x => x.DeletedTime == null);
 
             if (filter != null)
             {

@@ -11,6 +11,8 @@ using StartedIn.CrossCutting.DTOs.ResponseDTO;
 using AutoMapper;
 using StartedIn.CrossCutting.DTOs.ResponseDTO.Tasks;
 using StartedIn.CrossCutting.DTOs.BaseDTO;
+using Microsoft.EntityFrameworkCore;
+using StartedIn.CrossCutting.DTOs.ResponseDTO.Disbursement;
 
 namespace StartedIn.Service.Services
 {
@@ -158,39 +160,61 @@ namespace StartedIn.Service.Services
         public async Task<PaginationDTO<TaskResponseDTO>> FilterTask(string userId, string projectId, TaskFilterDTO taskFilterDto, int size, int page)
         {
             var userInProject = await _userService.CheckIfUserInProject(userId, projectId);
-            var filterTasks = _taskRepository.QueryHelper().Include(t => t.UserTasks).Filter(t => t.ProjectId.Equals(projectId) && t.DeletedTime == null);
+            var filterTasks = _taskRepository.GetTaskListInAProjectQuery(projectId);
 
             if (!string.IsNullOrWhiteSpace(taskFilterDto.Title))
             {
-                filterTasks = filterTasks.Filter(t => t.Title != null &&
+                filterTasks = filterTasks.Where(t => t.Title != null &&
                                                      t.Title.ToLower().Contains(taskFilterDto.Title.ToLower()));
             }
 
             if (taskFilterDto.Status != null)
             {
-                filterTasks = filterTasks.Filter(t => t.Status == taskFilterDto.Status.Value);
+                filterTasks = filterTasks.Where(t => t.Status == taskFilterDto.Status.Value);
             }
 
             if (taskFilterDto.IsLate != null)
             {
-                filterTasks = filterTasks.Filter(t => t.IsLate == taskFilterDto.IsLate.Value);
+                filterTasks = filterTasks.Where(t => t.IsLate == taskFilterDto.IsLate.Value);
             }
 
             if (!string.IsNullOrWhiteSpace(taskFilterDto.AssigneeId))
             {
-                filterTasks = filterTasks.Filter(t => t.UserTasks.Any(ut => ut.UserId == taskFilterDto.AssigneeId));
+                filterTasks = filterTasks.Where(t => t.UserTasks.Any(ut => ut.UserId == taskFilterDto.AssigneeId));
             }
 
             if (!string.IsNullOrWhiteSpace(taskFilterDto.MilestoneId))
             {
-                filterTasks = filterTasks.Filter(t => t.MilestoneId == taskFilterDto.MilestoneId);
+                filterTasks = filterTasks.Where(t => t.MilestoneId == taskFilterDto.MilestoneId);
             }
 
+            int totalCount = await filterTasks.CountAsync();
+            
+            var pagedResult = await filterTasks
+                .Skip((page - 1) * size)
+                .Take(size)
+                .Include(d => d.UserTasks)
+                .ToListAsync();
+
+            var taskResponseDTOs = pagedResult.Select(task => new TaskResponseDTO
+            {
+                Id = task.Id,
+                CreatedBy = task.CreatedBy,
+                CreatedTime = task.CreatedTime,
+                Deadline = task.Deadline,
+                DeletedTime = task.DeletedTime,
+                Description = task.Description,
+                IsLate = task.IsLate,
+                LastUpdatedBy = task.LastUpdatedBy,
+                LastUpdatedTime = task.LastUpdatedTime,
+                Status = task.Status,
+                Title = task.Title
+            }).ToList();
 
             var pagination = new PaginationDTO<TaskResponseDTO>()
             {
-                Data = _mapper.Map<IEnumerable<TaskResponseDTO>>(await filterTasks.GetPagingAsync(page, size)),
-                Total = await filterTasks.GetTotal(),
+                Data = _mapper.Map<IEnumerable<TaskResponseDTO>>(pagedResult),
+                Total = totalCount,
                 Page = page,
                 Size = size
             };
