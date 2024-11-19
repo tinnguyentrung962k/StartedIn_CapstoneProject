@@ -150,7 +150,8 @@ namespace StartedIn.API.Configuration.AutoMapper
                 .ForMember(dest => dest.UserFullName, opt => opt.MapFrom(src => src.UserFullName))
                 .ForMember(dest => dest.Percentage, opt => opt.MapFrom(src => src.TotalPercentage))
                 .ForMember(dest => dest.DateAssigned, opt => opt.MapFrom(src => src.LatestShareDate))
-                .ForMember(dest => dest.UserId, opt => opt.MapFrom(src => src.UserId));
+                .ForMember(dest => dest.UserId, opt => opt.MapFrom(src => src.UserId))
+                .ForMember(dest => dest.StakeHolderType, opt => opt.MapFrom(src => src.StakeHolderType));
         }
         private void ProjectCharterMappingProfile()
         {
