@@ -9,6 +9,7 @@ namespace StartedIn.CrossCutting.DTOs.ResponseDTO.ShareEquity
 {
     public class ShareEquitiesOfMemberInAProject
     {
+        public string UserId { get; set; }
         public string UserFullName { get; set; }
         public int? ShareQuantity { get; set; }
         public string Percentage { get; set; }

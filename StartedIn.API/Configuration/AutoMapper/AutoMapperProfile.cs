@@ -147,9 +147,10 @@ namespace StartedIn.API.Configuration.AutoMapper
         {
             CreateMap<ShareEquity, UserShareEquityInContractResponseDTO>().ReverseMap();
             CreateMap<ShareEquitySummaryDTO, ShareEquitiesOfMemberInAProject>()
-                .ForMember(dest => dest.UserFullName, opt => opt.MapFrom(src => src.UserFullName)) // Assuming UserId maps to UserFullName
-                .ForMember(dest => dest.Percentage, opt => opt.MapFrom(src => src.TotalPercentage)) // Map TotalPercentage to Percentage as a string
-                .ForMember(dest => dest.DateAssigned, opt => opt.MapFrom(src => src.LatestShareDate)); // Map LatestShareDate
+                .ForMember(dest => dest.UserFullName, opt => opt.MapFrom(src => src.UserFullName))
+                .ForMember(dest => dest.Percentage, opt => opt.MapFrom(src => src.TotalPercentage))
+                .ForMember(dest => dest.DateAssigned, opt => opt.MapFrom(src => src.LatestShareDate))
+                .ForMember(dest => dest.UserId, opt => opt.MapFrom(src => src.UserId));
         }
         private void ProjectCharterMappingProfile()
         {

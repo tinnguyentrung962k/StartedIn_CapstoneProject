@@ -25,7 +25,6 @@ namespace StartedIn.Domain.Entities
         public string? FromID { get; set; }
         public string? ToID { get; set; }
         public TransactionType Type { get; set; }
-        public TransactionStatus Status { get; set; }
         public string? EvidenceUrl { get; set; }
         public Disbursement? Disbursement { get; set; }
         public Finance Finance { get; set; }

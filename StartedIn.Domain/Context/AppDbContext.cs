@@ -254,11 +254,6 @@ namespace StartedIn.Domain.Context
             modelBuilder.Entity<Transaction>()
                 .ToTable("Transaction");
             modelBuilder.Entity<Transaction>()
-            .Property(u => u.Status)
-            .HasConversion(
-            v => v.ToString(),
-                v => (TransactionStatus)Enum.Parse(typeof(TransactionStatus), v));
-            modelBuilder.Entity<Transaction>()
             .Property(u => u.Type)
             .HasConversion(
             v => v.ToString(),
