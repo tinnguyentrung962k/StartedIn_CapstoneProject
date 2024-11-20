@@ -4,9 +4,13 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using StartedIn.CrossCutting.Constants;
 using StartedIn.CrossCutting.DTOs.RequestDTO.Asset;
+using StartedIn.CrossCutting.DTOs.RequestDTO.Contract;
+using StartedIn.CrossCutting.DTOs.ResponseDTO;
 using StartedIn.CrossCutting.DTOs.ResponseDTO.Asset;
+using StartedIn.CrossCutting.DTOs.ResponseDTO.Contract;
 using StartedIn.CrossCutting.Exceptions;
 using StartedIn.Domain.Entities;
+using StartedIn.Service.Services;
 using StartedIn.Service.Services.Interface;
 using System.Security.Claims;
 
@@ -22,6 +26,30 @@ namespace StartedIn.API.Controllers
         {
             _assetService = assetService;
             _mapper = mapper;
+        }
+        [HttpGet("assets")]
+        [Authorize(Roles = RoleConstants.USER + "," + RoleConstants.INVESTOR)]
+        public async Task<ActionResult<PaginationDTO<AssetResponseDTO>>> SearchAssetWithFilters(
+    [FromRoute] string projectId, [FromQuery] AssetFilterDTO search, int page, int size)
+        {
+            try
+            {
+                var userId = User.FindFirst(ClaimTypes.NameIdentifier).Value;
+                var assets = await _assetService.FilterAssetInAProject(userId, projectId, page, size, search);
+                return Ok(assets);
+            }
+            catch (NotFoundException ex)
+            {
+                return BadRequest(ex.Message);   
+            }
+            catch (UnauthorizedProjectRoleException ex)
+            {
+                return StatusCode(403, ex.Message);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, MessageConstant.InternalServerError);
+            }
         }
 
         [HttpPost("assets")]
