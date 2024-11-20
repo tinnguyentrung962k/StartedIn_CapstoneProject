@@ -507,6 +507,8 @@ namespace StartedIn.Service.Services
             projectFinance.DisbursedAmount += disbursement.Amount;
             projectFinance.RemainingDisbursement -= disbursement.Amount;
             projectFinance.LastUpdatedTime = DateTime.UtcNow;
+            var investor = await _userManager.FindByIdAsync(disbursement.InvestorId);
+            var leader = project.UserProjects.FirstOrDefault(x => x.ProjectId.Equals(project.Id) && x.RoleInTeam == CrossCutting.Enum.RoleInTeam.Leader).User;
             var newTransaction = new Transaction
             {
                 Content = disbursement.Investor.FullName + " giải ngân: " + disbursement.Title,
@@ -518,7 +520,9 @@ namespace StartedIn.Service.Services
                 Type = CrossCutting.Enum.TransactionType.Disbursement,
                 IsInFlow = true,
                 FromID = disbursement.InvestorId,
-                ToID = project.UserProjects.FirstOrDefault(x => x.ProjectId.Equals(project.Id) && x.RoleInTeam == CrossCutting.Enum.RoleInTeam.Leader).UserId
+                ToID = leader.Id,
+                FromName = investor.FullName,
+                ToName = leader.FullName
             };
             disbursement.DisbursementStatus = CrossCutting.Enum.DisbursementStatusEnum.FINISHED;
             disbursement.LastUpdatedBy = user.FullName;
@@ -567,6 +571,20 @@ namespace StartedIn.Service.Services
             }
             return disbursement;
 
+        }
+        public async Task<Disbursement> GetADisbursementDetailInProject(string userId, string projectId, string disbursementId)
+        {
+            var loginUser = await _userService.CheckIfUserInProject(userId, projectId);
+            var disbursement = await _disbursementRepository.GetDisbursementById(disbursementId);
+            if (disbursement == null)
+            {
+                throw new NotFoundException(MessageConstant.DisbursementNotFound);
+            }
+            if (disbursement.Contract.ProjectId != projectId)
+            {
+                throw new UnmatchedException(MessageConstant.DisbursementNotBelongToProject);
+            }
+            return disbursement;
         }
 
     }

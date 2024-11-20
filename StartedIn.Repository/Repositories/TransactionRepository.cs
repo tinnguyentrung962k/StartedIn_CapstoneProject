@@ -16,7 +16,10 @@ namespace StartedIn.Repository.Repositories
             var transaction = await _dbSet.Where(x=>x.Id.Equals(transactionId)).Include(x => x.Asset)
                 .Include(x => x.Disbursement)
                 .ThenInclude(x => x.Investor)
+                .Include(x => x.Disbursement)
+                .ThenInclude(x => x.Contract)
                 .Include(x=>x.Finance)
+                .Include(x=>x.Asset)
                 .FirstOrDefaultAsync();
             return transaction;
         }

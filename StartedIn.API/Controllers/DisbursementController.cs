@@ -49,7 +49,7 @@ namespace StartedIn.API.Controllers
             }
         }
         [HttpGet("projects/{projectId}/disbursements/{disbursementId}/payment-info")]
-        [Authorize(Roles = RoleConstants.INVESTOR + RoleConstants.USER)]
+        [Authorize(Roles = RoleConstants.INVESTOR + "," + RoleConstants.USER)]
         public async Task<IActionResult> GetPaymentStatus([FromRoute] string disbursementId, [FromRoute] string projectId)
         {
             try
@@ -289,6 +289,36 @@ namespace StartedIn.API.Controllers
                 return StatusCode(500, MessageConstant.InternalServerError + ex.Message);
             }
         }
+        [HttpGet("projects/{projectId}/disbursements/{disbursementId}/transaction-detail")]
+        [Authorize(Roles = RoleConstants.INVESTOR + "," + RoleConstants.USER)]
+        public async Task<ActionResult<DisbursementDetailInATransactionResponseDTO>> GetADisbursementDetailInTransactionOfProject([FromRoute] string projectId, [FromRoute] string disbursementId)
+        {
+            try
+            {
+                var userId = User.FindFirst(ClaimTypes.NameIdentifier).Value;
+                var disbursement = await _disbursementService.GetADisbursementDetailForLeader(userId, projectId, disbursementId);
+                var response = _mapper.Map<DisbursementDetailInATransactionResponseDTO>(disbursement);
+                return Ok(response);
+            }
+            catch (NotFoundException ex)
+            {
+                return BadRequest(ex.Message);
+            }
+            catch (UnmatchedException ex)
+            {
+                return BadRequest(ex.Message);
+            }
+            catch (UnauthorizedProjectRoleException ex)
+            {
+                return StatusCode(403, ex.Message);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, MessageConstant.InternalServerError + ex.Message);
+            }
+        }
+
+
 
     }
 }

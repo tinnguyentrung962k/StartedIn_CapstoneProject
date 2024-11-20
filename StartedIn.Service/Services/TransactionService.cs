@@ -85,9 +85,9 @@ namespace StartedIn.Service.Services
             }
             try
             {
-                var project = await _projectRepository.GetProjectById(projectId);
                 _unitOfWork.BeginTransaction();
                 var fileUrl = await _azureBlobService.UploadEvidenceOfTransaction(transactionCreateDTO.EvidenceFile);
+                var project = await _projectRepository.GetProjectById(projectId);
                 var transaction = new Transaction
                 {
                     Amount = transactionCreateDTO.Amount,
@@ -95,12 +95,30 @@ namespace StartedIn.Service.Services
                     Content = transactionCreateDTO.Content,
                     CreatedBy = userInProject.User.FullName,
                     FinanceId = project.Finance.Id,
-                    FromID = userInProject.User.Id,
-                    ToID = transactionCreateDTO.ToInvestorID,
                     IsInFlow = transactionCreateDTO.IsInFlow,
                     Type = transactionCreateDTO.Type,
-                    EvidenceUrl = fileUrl,
+                    EvidenceUrl = fileUrl
                 };
+                if (transactionCreateDTO.ToId != null)
+                {
+                    var toUser = await _userManager.FindByIdAsync(transactionCreateDTO.ToId);
+                    transaction.ToID = transactionCreateDTO.ToId;
+                    transaction.ToName = toUser.FullName;
+                }
+                if (transactionCreateDTO.FromId != null)
+                {
+                    var fromUser = await _userManager.FindByIdAsync(transactionCreateDTO.FromId);
+                    transaction.FromID = transactionCreateDTO.FromId;
+                    transaction.ToName = fromUser.FullName;
+                }
+                if (transactionCreateDTO.FromId == null)
+                {
+                    transaction.FromName = transactionCreateDTO.FromName;
+                }
+                if (transactionCreateDTO.ToId == null)
+                {
+                    transaction.ToName = transactionCreateDTO.ToName;
+                }
                 var transactionEntity = _transactionRepository.Add(transaction);
                 await _unitOfWork.SaveChangesAsync();
                 await _unitOfWork.CommitAsync();

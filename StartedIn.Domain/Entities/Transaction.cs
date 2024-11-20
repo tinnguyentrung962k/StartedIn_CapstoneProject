@@ -26,6 +26,8 @@ namespace StartedIn.Domain.Entities
         public decimal? Budget { get; set; }
         public string? FromID { get; set; }
         public string? ToID { get; set; }
+        public string? FromName { get; set; }
+        public string? ToName { get; set; }
         public TransactionType Type { get; set; }
         public bool IsInFlow { get; set; }
         [MaxLength(500)]

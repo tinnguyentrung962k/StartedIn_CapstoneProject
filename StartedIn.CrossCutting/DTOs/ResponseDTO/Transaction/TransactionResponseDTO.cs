@@ -1,4 +1,6 @@
 ﻿using StartedIn.CrossCutting.DTOs.BaseDTO;
+using StartedIn.CrossCutting.DTOs.ResponseDTO.Asset;
+using StartedIn.CrossCutting.DTOs.ResponseDTO.Disbursement;
 using StartedIn.CrossCutting.Enum;
 using System;
 using System.Collections.Generic;
@@ -23,6 +25,8 @@ namespace StartedIn.CrossCutting.DTOs.ResponseDTO.Transaction
         public bool IsInFlow { get; set; }
         public string? DisbursementId { get; set; }
         public string? AssetId { get; set; }
+        public DisbursementDetailInATransactionResponseDTO? Disbursement { get; set; }
+        public AssetResponseDTO? Asset { get; set; }
 
     }
 }

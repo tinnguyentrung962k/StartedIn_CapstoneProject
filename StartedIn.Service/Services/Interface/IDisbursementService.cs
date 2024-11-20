@@ -25,5 +25,6 @@ namespace StartedIn.Service.Services.Interface
         Task AcceptDisbursement(string userId, string disbursementId, List<IFormFile> files);
         Task<Disbursement> GetADisbursementDetailForLeader(string userId, string projectId, string disbursementId);
         Task<Disbursement> GetADisbursementDetailInvestor(string userId, string disbursementId);
+        Task<Disbursement> GetADisbursementDetailInProject(string userId, string projectId, string disbursementId);
     }
 }

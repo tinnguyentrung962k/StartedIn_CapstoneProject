@@ -57,8 +57,6 @@ namespace StartedIn.API.Controllers
                 var userId = User.FindFirst(ClaimTypes.NameIdentifier).Value;
                 var transaction = await _transactionService.AddAnTransactionForProject(userId, projectId, transactionCreateDTO);
                 var response = _mapper.Map<TransactionResponseDTO>(transaction);
-                var fromUser = await _userService.GetUserWithId(response.FromID);
-                var toUser = await _userService.GetUserWithId(response.ToID);
                 return CreatedAtAction(nameof(GetTransactionById), new { projectId, transactionId = response.Id }, response);
             }
             catch (NotFoundException ex)
@@ -85,10 +83,6 @@ namespace StartedIn.API.Controllers
                 var userId = User.FindFirst(ClaimTypes.NameIdentifier).Value;
                 var transaction = await _transactionService.GetTransactionDetailById(userId, projectId, transactionId);
                 var response = _mapper.Map<TransactionResponseDTO>(transaction);
-                var fromUser = await _userService.GetUserWithId(response.FromID);
-                var toUser = await _userService.GetUserWithId(response.ToID);
-                response.FromUserName = fromUser.FullName;
-                response.ToUserName = toUser.FullName;
                 return Ok(response);
             }
             catch (NotFoundException ex)
