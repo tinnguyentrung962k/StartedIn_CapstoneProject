@@ -63,6 +63,10 @@ namespace StartedIn.CrossCutting.Constants
         public const string CannotRejectThisDisbursement = "Bạn không thể từ chối đợt giải ngân này";
         public const string EmptyFileError = "Vui lòng tải tập tin lên";
         public const string NotFoundShareEquityError = "Không tìm thấy cổ phần của dự án";
-
+        public const string NotFoundInvestmentCall = "Không tìm thấy đợt gọi vốn của dự án";
+        public const string InvalidEquityShare = "Lượng cổ phần không hợp lệ";
+        public const string InvestmentCallEquitySoldOut = "Lượng cổ phần có thể bán của đợt gọi vốn này không còn đủ.";
+        public const string ClosedInvestmentCall = "Đợt gọi vốn đã đóng.";
+        public const string TransactionNotFound = "Không tìm thấy giao dịch.";
     }
 }

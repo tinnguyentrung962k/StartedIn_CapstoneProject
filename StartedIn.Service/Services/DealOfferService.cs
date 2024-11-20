@@ -27,13 +27,18 @@ namespace StartedIn.Service.Services
         private readonly IUnitOfWork _unitOfWork;
         private readonly IProjectRepository _projectRepository;
         private readonly IUserService _userService;
-        public DealOfferService(IDealOfferRepository dealOfferRepository, 
-            IDealOfferHistoryRepository dealOfferHistoryRepository, 
+        private readonly IInvestmentCallService _investmentCallService;
+        private readonly IInvestmentCallRepository _investmentCallRepository;
+
+        public DealOfferService(IDealOfferRepository dealOfferRepository,
+            IDealOfferHistoryRepository dealOfferHistoryRepository,
             UserManager<User> userManager,
             ILogger<DealOffer> logger,
             IUnitOfWork unitOfWork,
             IProjectRepository projectRepository,
-            IUserService userService)
+            IUserService userService,
+            IInvestmentCallService investmentCallService,
+            IInvestmentCallRepository investmentCallRepository)
         {
             _dealOfferRepository = dealOfferRepository;
             _dealOfferHistoryRepository = dealOfferHistoryRepository;
@@ -42,6 +47,8 @@ namespace StartedIn.Service.Services
             _unitOfWork = unitOfWork;
             _projectRepository = projectRepository;
             _userService = userService;
+            _investmentCallService = investmentCallService;
+            _investmentCallRepository = investmentCallRepository;
         }
 
         public async Task<PaginationDTO<DealOfferForProjectResponseDTO>> GetDealOfferForAProject(string userId, string projectId, int page, int size)
@@ -140,6 +147,17 @@ namespace StartedIn.Service.Services
             {
                 throw new NotFoundException(MessageConstant.NotFoundProjectError);
             }
+
+            var investmentCall = await _investmentCallService.GetInvestmentCallById(dealOfferCreateDTO.ProjectId, project.ActiveCallId);
+            if (investmentCall.Status == InvestmentCallStatus.Closed)
+            {
+                throw new InvalidDataException(MessageConstant.ClosedInvestmentCall);
+            }
+
+            if (dealOfferCreateDTO.EquityShareOffer > investmentCall.RemainAvailableEquityShare)
+            {
+                throw new InvalidInputException(MessageConstant.InvestmentCallEquitySoldOut);
+            }
             try
             {
                 _unitOfWork.BeginTransaction();
@@ -153,7 +171,9 @@ namespace StartedIn.Service.Services
                     Investor = user,
                     Project = project,
                     TermCondition = dealOfferCreateDTO.TermCondition,
+                    InvestmentCallId = project.ActiveCallId
                 };
+
                 var dealOfferEntity = _dealOfferRepository.Add(dealOffer);
                 string notification = "Nhà đầu tư " + user.FullName + "đã gửi cho bạn lời mời đầu tư mới";
                 DealOfferHistory dealOfferHistory = new DealOfferHistory
@@ -186,6 +206,7 @@ namespace StartedIn.Service.Services
             }
             var chosenDeal = await _dealOfferRepository.QueryHelper()
                 .Include(x => x.Investor)
+                .Include(x => x.InvestmentCall)
                 .Filter(x => x.Id.Equals(dealId))
                 .GetOneAsync();
             if (chosenDeal == null) {
@@ -194,6 +215,10 @@ namespace StartedIn.Service.Services
             if (chosenDeal.ProjectId != projectId)
             {
                 throw new UnmatchedException(MessageConstant.DealNotBelongToProjectError);
+            }
+            if (chosenDeal.InvestmentCall.RemainAvailableEquityShare < chosenDeal.EquityShareOffer)
+            {
+                throw new InvalidInputException(MessageConstant.InvestmentCallEquitySoldOut);
             }
             try
             {

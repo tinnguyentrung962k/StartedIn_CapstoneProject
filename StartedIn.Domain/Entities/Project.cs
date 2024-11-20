@@ -10,11 +10,9 @@ public class Project : BaseAuditEntity<string>
     public string Description { get; set; }
     public string? LogoUrl { get; set; }
     public ProjectStatusEnum ProjectStatus { get; set; }
-    public int? TotalShares { get; set; }
 
     [Column(TypeName = "decimal(5,2)")]
     public decimal RemainingPercentOfShares { get; set; } = 100;
-    public int? RemainingShares { get; set; }
     public DateOnly StartDate { get; set; }
     public DateOnly? EndDate { get; set; }
     public string? ActiveCallId { get; set; }
@@ -26,5 +24,6 @@ public class Project : BaseAuditEntity<string>
     public ICollection<Milestone>? Milestones { get; set; }
     public ICollection<Contract>? Contracts { get; set; }
     public Finance Finance { get; set; }
+    public ProjectCharter ProjectCharter { get; set; }
     public ICollection<InvestmentCall> InvestmentCalls { get; set; }
 }

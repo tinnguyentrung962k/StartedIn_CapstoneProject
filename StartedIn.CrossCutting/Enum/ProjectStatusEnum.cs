@@ -8,8 +8,8 @@ namespace StartedIn.CrossCutting.Enum
 {
     public enum ProjectStatusEnum
     {
-        CONSTRUCTING,
-        ACTIVE,
-        CLOSED
+        CONSTRUCTING = 1,
+        ACTIVE = 2,
+        CLOSED = 3
     }
 }

@@ -28,6 +28,7 @@ namespace StartedIn.Repository.Repositories
                 .Include(x => x.ShareEquities)
                 .Include(x => x.Disbursements)
                 .Include(x => x.DealOffer)
+                .Where(x=>x.DeletedTime == null)
                 .FirstOrDefaultAsync();
             return contract;
         }
@@ -40,6 +41,7 @@ namespace StartedIn.Repository.Repositories
                 .Include(x => x.ShareEquities)
                 .Include(x => x.Disbursements)
                 .Include(x => x.DealOffer)
+                .Where(x => x.DeletedTime == null)
                 .ToListAsync();
             return contract;
         }
@@ -51,6 +53,7 @@ namespace StartedIn.Repository.Repositories
                 .Include(x => x.UserContracts)
                 .ThenInclude(x => x.User)
                 .Include(x => x.Project)
+                .Where(x => x.DeletedTime == null)
                 .Skip(pageIndex * pageSize).Take(pageSize)
                 .ToListAsync();
             return contract;
@@ -67,8 +70,16 @@ namespace StartedIn.Repository.Repositories
                .Where(x => x.ProjectId.Equals(projectId) && x.ContractType.Equals(ContractTypeEnum.INTERNAL))
                .Where(x => x.ExpiredDate < DateOnly.FromDateTime(DateTime.UtcNow))
                .OrderByDescending(x => x.ExpiredDate)
+               .Where(x => x.DeletedTime == null)
                .FirstOrDefaultAsync();
             return nearestExpiredContract;
+        }
+        public IQueryable<Contract> GetContractListQuery(string userId, string projectId)
+        {
+            var query = _appDbContext.Contracts.Include(x => x.UserContracts)
+                .Where(x => x.ProjectId.Equals(projectId) && x.UserContracts.Any(us => us.UserId.Equals(userId)))
+                .OrderByDescending(x => x.LastUpdatedTime);
+            return query;
         }
     }
 }

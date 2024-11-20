@@ -6,10 +6,11 @@ using System.Threading.Tasks;
 
 namespace StartedIn.CrossCutting.Enum
 {
-    public enum TransactionStatus
+    public enum AssetStatus
     {
-        Pending,
-        Processing,
-        Completed
+        RequestToBuy = 1,
+        Available = 2,
+        Sold = 3,
+        InMaintenance = 4
     }
 }

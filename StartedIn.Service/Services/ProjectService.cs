@@ -77,10 +77,6 @@ public class ProjectService : IProjectService
         {
             throw new InvalidDataException(MessageConstant.NullOrEmptyStartDate);
         }
-        if (projectCreateDTO.TotalShares < 0)
-        {
-            throw new InvalidDataException(MessageConstant.NegativeNumberError);
-        }
         try {
             _unitOfWork.BeginTransaction();
             var imgUrl = await _azureBlobService.UploadAvatarOrCover(projectCreateDTO.LogoFile);
@@ -90,7 +86,6 @@ public class ProjectService : IProjectService
                 Description = projectCreateDTO.Description,
                 LogoUrl = imgUrl,
                 ProjectStatus = ProjectStatusEnum.CONSTRUCTING,
-                TotalShares = projectCreateDTO.TotalShares,
                 EndDate = projectCreateDTO.EndDate,
                 StartDate = projectCreateDTO.StartDate,
                 CompanyIdNumber = projectCreateDTO.CompanyIdNumer
@@ -124,6 +119,12 @@ public class ProjectService : IProjectService
         }
 
         return project;
+    }
+
+    public async Task<List<Project>> GetAllProjectsForAdmin(int page, int size)
+    {
+        var projects = await _projectRepository.QueryHelper().GetPagingAsync(page, size);
+        return projects.ToList();
     }
 
     public async Task SendJoinProjectInvitation(string userId, List<ProjectInviteEmailAndRoleDTO> inviteUsers, string projectId)
@@ -213,9 +214,7 @@ public class ProjectService : IProjectService
                 LogoUrl = project.LogoUrl,
                 ProjectName = project.ProjectName,
                 ProjectStatus = project.ProjectStatus,
-                TotalShares = project.TotalShares,
                 RemainingPercentOfShares = project.RemainingPercentOfShares,
-                RemainingShares = project.RemainingShares,
                 StartDate = project.StartDate,
                 EndDate = project.EndDate
             };
@@ -248,9 +247,7 @@ public class ProjectService : IProjectService
                 LogoUrl = project.LogoUrl,
                 ProjectName = project.ProjectName,
                 ProjectStatus = project.ProjectStatus,
-                TotalShares = project.TotalShares,
                 RemainingPercentOfShares = project.RemainingPercentOfShares,
-                RemainingShares = project.RemainingShares,
                 StartDate = project.StartDate,
                 EndDate = project.EndDate
             };
@@ -357,6 +354,31 @@ public class ProjectService : IProjectService
             ClientKey = DecryptString(project.HarshClientIdPayOsKey)
         };
         return payOsPaymentGatewayResponseDTO;
+    }
+
+    public async Task<Project> ActivateProject(string projectId)
+    {
+        var project = await _projectRepository.QueryHelper().Filter(p => p.Id.Equals(projectId)).GetOneAsync();
+        if (project == null)
+        {
+            throw new NotFoundException(MessageConstant.NotFoundProjectError);
+        }
+
+        try
+        {
+            _unitOfWork.BeginTransaction();
+            project.ProjectStatus = ProjectStatusEnum.ACTIVE;
+            _projectRepository.Update(project);
+            await _unitOfWork.CommitAsync();
+            await _unitOfWork.SaveChangesAsync();
+            return project;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error while activating project.");
+            await _unitOfWork.RollbackAsync();
+            throw;
+        }
     }
     private string EncryptString(string plainText)
     {

@@ -8,10 +8,10 @@ namespace StartedIn.CrossCutting.Enum
 {
     public enum ContractStatusEnum
     {
-        DRAFT,
-        SENT,
-        COMPLETED,
-        CANCELLED,
-        EXPIRED
+        DRAFT = 1,
+        SENT = 2,
+        COMPLETED = 3,
+        CANCELLED = 4,
+        EXPIRED = 5
     }
 }

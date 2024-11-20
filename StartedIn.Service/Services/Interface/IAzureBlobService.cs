@@ -19,5 +19,6 @@ namespace StartedIn.Service.Services.Interface
         Task<BlobClient> GetBlobClientAsync(string blobName, BlobContainerEnum blobContainer);
         Task<string> UploadEvidenceOfDisbursement(IFormFile file);
         Task<IList<string>> UploadEvidencesOfDisbursement(IList<IFormFile> files);
+        Task<string> UploadEvidenceOfTransaction(IFormFile file);
     }
 }

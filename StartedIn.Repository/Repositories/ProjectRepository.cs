@@ -27,6 +27,13 @@ public class ProjectRepository : GenericRepository<Project, string>, IProjectRep
     public async Task<Project> GetProjectById(string id)
     {
         var project = await _appDbContext.Projects.Where(p => p.Id.Equals(id))
+            .Include(p => p.UserProjects)
+            .ThenInclude(up => up.User)
+            .Include(p => p.InvestmentCalls)
+            .Include(p => p.Finance)
+            .Include(p => p.ProjectCharter)
+            .ThenInclude(pc => pc.Milestones)
+            .Where(x => x.DeletedTime == null)
             .FirstOrDefaultAsync();
         return project;
     }

@@ -113,6 +113,52 @@ namespace StartedIn.Domain.Migrations
                     b.ToTable("UserTokens", (string)null);
                 });
 
+            modelBuilder.Entity("StartedIn.Domain.Entities.Application", b =>
+                {
+                    b.Property<string>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("text");
+
+                    b.Property<string>("CVUrl")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("CandidateId")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("CreatedBy")
+                        .HasColumnType("text");
+
+                    b.Property<DateTimeOffset>("CreatedTime")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<DateTimeOffset?>("DeletedTime")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("LastUpdatedBy")
+                        .HasColumnType("text");
+
+                    b.Property<DateTimeOffset>("LastUpdatedTime")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("RecruitmentId")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CandidateId");
+
+                    b.HasIndex("RecruitmentId");
+
+                    b.ToTable("Application", (string)null);
+                });
+
             modelBuilder.Entity("StartedIn.Domain.Entities.Appointment", b =>
                 {
                     b.Property<string>("Id")
@@ -169,6 +215,65 @@ namespace StartedIn.Domain.Migrations
                     b.HasIndex("ProjectId");
 
                     b.ToTable("Appointment", (string)null);
+                });
+
+            modelBuilder.Entity("StartedIn.Domain.Entities.Asset", b =>
+                {
+                    b.Property<string>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("text");
+
+                    b.Property<string>("AssetName")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
+
+                    b.Property<string>("CreatedBy")
+                        .HasColumnType("text");
+
+                    b.Property<DateTimeOffset>("CreatedTime")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<DateTimeOffset?>("DeletedTime")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("LastUpdatedBy")
+                        .HasColumnType("text");
+
+                    b.Property<DateTimeOffset>("LastUpdatedTime")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<decimal?>("Price")
+                        .HasColumnType("decimal(14,3)");
+
+                    b.Property<string>("ProjectId")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<DateOnly?>("PurchaseDate")
+                        .HasColumnType("date");
+
+                    b.Property<int?>("Quantity")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("SerialNumber")
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)");
+
+                    b.Property<string>("Status")
+                        .HasColumnType("text");
+
+                    b.Property<string>("TransactionId")
+                        .HasColumnType("text");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ProjectId");
+
+                    b.HasIndex("TransactionId")
+                        .IsUnique();
+
+                    b.ToTable("Asset", (string)null);
                 });
 
             modelBuilder.Entity("StartedIn.Domain.Entities.Contract", b =>
@@ -436,6 +541,10 @@ namespace StartedIn.Domain.Migrations
                         .IsRequired()
                         .HasColumnType("text");
 
+                    b.Property<string>("FileName")
+                        .IsRequired()
+                        .HasColumnType("text");
+
                     b.Property<string>("LastUpdatedBy")
                         .HasColumnType("text");
 
@@ -603,6 +712,9 @@ namespace StartedIn.Domain.Migrations
                     b.Property<DateOnly>("EndDate")
                         .HasColumnType("date");
 
+                    b.Property<decimal>("EquityShareCall")
+                        .HasColumnType("decimal(5,2)");
+
                     b.Property<string>("LastUpdatedBy")
                         .HasColumnType("text");
 
@@ -612,6 +724,9 @@ namespace StartedIn.Domain.Migrations
                     b.Property<string>("ProjectId")
                         .IsRequired()
                         .HasColumnType("text");
+
+                    b.Property<decimal>("RemainAvailableEquityShare")
+                        .HasColumnType("decimal(5,2)");
 
                     b.Property<DateOnly>("StartDate")
                         .HasColumnType("date");
@@ -839,14 +954,8 @@ namespace StartedIn.Domain.Migrations
                     b.Property<decimal>("RemainingPercentOfShares")
                         .HasColumnType("decimal(5,2)");
 
-                    b.Property<int?>("RemainingShares")
-                        .HasColumnType("integer");
-
                     b.Property<DateOnly>("StartDate")
                         .HasColumnType("date");
-
-                    b.Property<int?>("TotalShares")
-                        .HasColumnType("integer");
 
                     b.HasKey("Id");
 
@@ -908,9 +1017,69 @@ namespace StartedIn.Domain.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("ProjectId");
+                    b.HasIndex("ProjectId")
+                        .IsUnique();
 
                     b.ToTable("ProjectCharter", (string)null);
+                });
+
+            modelBuilder.Entity("StartedIn.Domain.Entities.Recruitment", b =>
+                {
+                    b.Property<string>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("text");
+
+                    b.Property<string>("Content")
+                        .IsRequired()
+                        .HasMaxLength(255)
+                        .HasColumnType("character varying(255)");
+
+                    b.Property<string>("CreatedBy")
+                        .HasColumnType("text");
+
+                    b.Property<DateTimeOffset>("CreatedTime")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<DateTimeOffset?>("DeletedTime")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("LastUpdatedBy")
+                        .HasColumnType("text");
+
+                    b.Property<DateTimeOffset>("LastUpdatedTime")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("ProjectId")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("Title")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ProjectId");
+
+                    b.ToTable("Recruitment", (string)null);
+                });
+
+            modelBuilder.Entity("StartedIn.Domain.Entities.RecruitmentImg", b =>
+                {
+                    b.Property<string>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("text");
+
+                    b.Property<string>("RecruitmentId")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("RecruitmentId");
+
+                    b.ToTable("RecruitmentImg", (string)null);
                 });
 
             modelBuilder.Entity("StartedIn.Domain.Entities.Role", b =>
@@ -972,9 +1141,6 @@ namespace StartedIn.Domain.Migrations
 
                     b.Property<decimal>("SharePrice")
                         .HasColumnType("decimal(14,3)");
-
-                    b.Property<int?>("ShareQuantity")
-                        .HasColumnType("integer");
 
                     b.Property<string>("StakeHolderType")
                         .IsRequired()
@@ -1156,8 +1322,16 @@ namespace StartedIn.Domain.Migrations
                     b.Property<decimal>("Amount")
                         .HasColumnType("decimal(14,3)");
 
+                    b.Property<string>("AssetId")
+                        .HasColumnType("text");
+
                     b.Property<decimal?>("Budget")
                         .HasColumnType("decimal(14,3)");
+
+                    b.Property<string>("Content")
+                        .IsRequired()
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)");
 
                     b.Property<string>("CreatedBy")
                         .HasColumnType("text");
@@ -1181,15 +1355,14 @@ namespace StartedIn.Domain.Migrations
                     b.Property<string>("FromID")
                         .HasColumnType("text");
 
+                    b.Property<bool>("IsInFlow")
+                        .HasColumnType("boolean");
+
                     b.Property<string>("LastUpdatedBy")
                         .HasColumnType("text");
 
                     b.Property<DateTimeOffset>("LastUpdatedTime")
                         .HasColumnType("timestamp with time zone");
-
-                    b.Property<string>("Status")
-                        .IsRequired()
-                        .HasColumnType("text");
 
                     b.Property<string>("ToID")
                         .HasColumnType("text");
@@ -1410,6 +1583,25 @@ namespace StartedIn.Domain.Migrations
                         .IsRequired();
                 });
 
+            modelBuilder.Entity("StartedIn.Domain.Entities.Application", b =>
+                {
+                    b.HasOne("StartedIn.Domain.Entities.User", "Candidate")
+                        .WithMany("Applications")
+                        .HasForeignKey("CandidateId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("StartedIn.Domain.Entities.Recruitment", "Recruitment")
+                        .WithMany("Applications")
+                        .HasForeignKey("RecruitmentId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Candidate");
+
+                    b.Navigation("Recruitment");
+                });
+
             modelBuilder.Entity("StartedIn.Domain.Entities.Appointment", b =>
                 {
                     b.HasOne("StartedIn.Domain.Entities.Milestone", "Milestone")
@@ -1427,6 +1619,23 @@ namespace StartedIn.Domain.Migrations
                     b.Navigation("Milestone");
 
                     b.Navigation("Project");
+                });
+
+            modelBuilder.Entity("StartedIn.Domain.Entities.Asset", b =>
+                {
+                    b.HasOne("StartedIn.Domain.Entities.Project", "Project")
+                        .WithMany()
+                        .HasForeignKey("ProjectId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("StartedIn.Domain.Entities.Transaction", "Transaction")
+                        .WithOne("Asset")
+                        .HasForeignKey("StartedIn.Domain.Entities.Asset", "TransactionId");
+
+                    b.Navigation("Project");
+
+                    b.Navigation("Transaction");
                 });
 
             modelBuilder.Entity("StartedIn.Domain.Entities.Contract", b =>
@@ -1453,7 +1662,7 @@ namespace StartedIn.Domain.Migrations
                         .HasForeignKey("InvestmentCallId");
 
                     b.HasOne("StartedIn.Domain.Entities.User", "Investor")
-                        .WithMany()
+                        .WithMany("DealOffers")
                         .HasForeignKey("InvestorId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
@@ -1474,7 +1683,7 @@ namespace StartedIn.Domain.Migrations
             modelBuilder.Entity("StartedIn.Domain.Entities.DealOfferHistory", b =>
                 {
                     b.HasOne("StartedIn.Domain.Entities.DealOffer", "DealOffer")
-                        .WithMany()
+                        .WithMany("DealOfferHistories")
                         .HasForeignKey("DealOfferId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
@@ -1491,7 +1700,7 @@ namespace StartedIn.Domain.Migrations
                         .IsRequired();
 
                     b.HasOne("StartedIn.Domain.Entities.User", "Investor")
-                        .WithMany()
+                        .WithMany("Disbursements")
                         .HasForeignKey("InvestorId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
@@ -1606,12 +1815,34 @@ namespace StartedIn.Domain.Migrations
             modelBuilder.Entity("StartedIn.Domain.Entities.ProjectCharter", b =>
                 {
                     b.HasOne("StartedIn.Domain.Entities.Project", "Project")
+                        .WithOne("ProjectCharter")
+                        .HasForeignKey("StartedIn.Domain.Entities.ProjectCharter", "ProjectId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Project");
+                });
+
+            modelBuilder.Entity("StartedIn.Domain.Entities.Recruitment", b =>
+                {
+                    b.HasOne("StartedIn.Domain.Entities.Project", "Project")
                         .WithMany()
                         .HasForeignKey("ProjectId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.Navigation("Project");
+                });
+
+            modelBuilder.Entity("StartedIn.Domain.Entities.RecruitmentImg", b =>
+                {
+                    b.HasOne("StartedIn.Domain.Entities.Recruitment", "Recruitment")
+                        .WithMany()
+                        .HasForeignKey("RecruitmentId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Recruitment");
                 });
 
             modelBuilder.Entity("StartedIn.Domain.Entities.ShareEquity", b =>
@@ -1623,7 +1854,7 @@ namespace StartedIn.Domain.Migrations
                         .IsRequired();
 
                     b.HasOne("StartedIn.Domain.Entities.User", "User")
-                        .WithMany()
+                        .WithMany("ShareEquities")
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
@@ -1794,6 +2025,8 @@ namespace StartedIn.Domain.Migrations
             modelBuilder.Entity("StartedIn.Domain.Entities.DealOffer", b =>
                 {
                     b.Navigation("Contract");
+
+                    b.Navigation("DealOfferHistories");
                 });
 
             modelBuilder.Entity("StartedIn.Domain.Entities.Disbursement", b =>
@@ -1829,12 +2062,20 @@ namespace StartedIn.Domain.Migrations
 
                     b.Navigation("Milestones");
 
+                    b.Navigation("ProjectCharter")
+                        .IsRequired();
+
                     b.Navigation("UserProjects");
                 });
 
             modelBuilder.Entity("StartedIn.Domain.Entities.ProjectCharter", b =>
                 {
                     b.Navigation("Milestones");
+                });
+
+            modelBuilder.Entity("StartedIn.Domain.Entities.Recruitment", b =>
+                {
+                    b.Navigation("Applications");
                 });
 
             modelBuilder.Entity("StartedIn.Domain.Entities.Role", b =>
@@ -1855,8 +2096,22 @@ namespace StartedIn.Domain.Migrations
                     b.Navigation("UserTasks");
                 });
 
+            modelBuilder.Entity("StartedIn.Domain.Entities.Transaction", b =>
+                {
+                    b.Navigation("Asset")
+                        .IsRequired();
+                });
+
             modelBuilder.Entity("StartedIn.Domain.Entities.User", b =>
                 {
+                    b.Navigation("Applications");
+
+                    b.Navigation("DealOffers");
+
+                    b.Navigation("Disbursements");
+
+                    b.Navigation("ShareEquities");
+
                     b.Navigation("UserContracts");
 
                     b.Navigation("UserProjects");

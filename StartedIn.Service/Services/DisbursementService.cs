@@ -1,12 +1,15 @@
 ﻿using AutoMapper;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Update.Internal;
 using Microsoft.Extensions.Logging;
+using Microsoft.OpenApi.Services;
 using StartedIn.CrossCutting.Constants;
 using StartedIn.CrossCutting.DTOs.RequestDTO.Disbursement;
 using StartedIn.CrossCutting.DTOs.RequestDTO.Tasks;
 using StartedIn.CrossCutting.DTOs.ResponseDTO;
+using StartedIn.CrossCutting.DTOs.ResponseDTO.Contract;
 using StartedIn.CrossCutting.DTOs.ResponseDTO.Disbursement;
 using StartedIn.CrossCutting.DTOs.ResponseDTO.Tasks;
 using StartedIn.CrossCutting.Exceptions;
@@ -224,21 +227,30 @@ namespace StartedIn.Service.Services
             {
                 throw new UnmatchedException(MessageConstant.DisbursementNotBelongToInvestor);
             }
-            if (files is null)
+            if (files == null || !files.Any())
             {
                 throw new UploadFileException(MessageConstant.EmptyFileError);
             }
+
             try
             {
                 _unitOfWork.BeginTransaction();
+
+                // Upload files and store URLs with original filenames
                 var fileUrls = await _azureBlobService.UploadEvidencesOfDisbursement(files);
-                disbursement.DisbursementAttachments = fileUrls.Select(url => new DisbursementAttachment { EvidenceFile = url }).ToList();
+                disbursement.DisbursementAttachments = files.Select((file, index) => new DisbursementAttachment
+                {
+                    EvidenceFile = fileUrls[index],
+                    FileName = Path.GetFileName(file.FileName)
+                }).ToList();
+
                 disbursement.DisbursementStatus = CrossCutting.Enum.DisbursementStatusEnum.ACCEPTED;
+
                 _disbursementRepository.Update(disbursement);
                 await _unitOfWork.SaveChangesAsync();
                 await _unitOfWork.CommitAsync();
             }
-            catch (Exception ex) 
+            catch (Exception ex)
             {
                 _logger.LogError(ex, "Error while updating a disbursement");
                 await _unitOfWork.RollbackAsync();
@@ -254,59 +266,76 @@ namespace StartedIn.Service.Services
             {
                 throw new UnauthorizedProjectRoleException(MessageConstant.RolePermissionError);
             }
-            var filterDisbursements = _disbursementRepository.QueryHelper()
-                .Include(x => x.Contract)
-                .Include(x => x.Investor)
-                .Filter(x => x.Contract.ProjectId.Equals(projectId) && x.IsValidWithContract == true).OrderBy(x=>x.OrderBy(x=>x.StartDate));
+            var filterDisbursements = _disbursementRepository.GetDisbursementListOfAProjectQuery(projectId);
             if (!string.IsNullOrWhiteSpace(disbursementFilterDTO.Title))
             {
-                filterDisbursements = filterDisbursements.Filter(d => d.Title != null && d.Title.ToLower().Contains(disbursementFilterDTO.Title.ToLower()));
+                filterDisbursements = filterDisbursements.Where(d => d.Title != null && d.Title.ToLower().Contains(disbursementFilterDTO.Title.ToLower()));
             }
             if (disbursementFilterDTO.PeriodFrom.HasValue && disbursementFilterDTO.PeriodTo.HasValue)
             {
-                filterDisbursements = filterDisbursements.Filter(d => d.StartDate >= disbursementFilterDTO.PeriodFrom.Value && d.EndDate <= disbursementFilterDTO.PeriodTo.Value);
+                filterDisbursements = filterDisbursements.Where(d => d.StartDate >= disbursementFilterDTO.PeriodFrom && d.EndDate <= disbursementFilterDTO.PeriodTo);
             }
             else if (disbursementFilterDTO.PeriodFrom.HasValue)
             {
-                filterDisbursements = filterDisbursements.Filter(d => d.StartDate >= disbursementFilterDTO.PeriodFrom.Value);
+                filterDisbursements = filterDisbursements.Where(d => d.StartDate >= disbursementFilterDTO.PeriodFrom);
             }
             else if (disbursementFilterDTO.PeriodTo.HasValue)
             {
-                filterDisbursements = filterDisbursements.Filter(d => d.EndDate <= disbursementFilterDTO.PeriodTo.Value);
+                filterDisbursements = filterDisbursements.Where(d => d.EndDate <= disbursementFilterDTO.PeriodTo);
             }
 
             // Amount range filter
             if (disbursementFilterDTO.AmountFrom.HasValue)
             {
-                filterDisbursements = filterDisbursements.Filter(d => d.Amount >= disbursementFilterDTO.AmountFrom.Value);
+                filterDisbursements = filterDisbursements.Where(d => d.Amount >= disbursementFilterDTO.AmountFrom);
             }
             if (disbursementFilterDTO.AmountTo.HasValue)
             {
-                filterDisbursements = filterDisbursements.Filter(d => d.Amount <= disbursementFilterDTO.AmountTo.Value);
+                filterDisbursements = filterDisbursements.Where(d => d.Amount <= disbursementFilterDTO.AmountTo);
             }
 
             // Status filter
             if (disbursementFilterDTO.DisbursementStatus.HasValue)
             {
-                filterDisbursements = filterDisbursements.Filter(d => d.DisbursementStatus == disbursementFilterDTO.DisbursementStatus.Value);
+                filterDisbursements = filterDisbursements.Where(d => d.DisbursementStatus == disbursementFilterDTO.DisbursementStatus);
             }
 
             // Investor filter
             if (!string.IsNullOrEmpty(disbursementFilterDTO.InvestorId))
             {
-                filterDisbursements = filterDisbursements.Filter(d => d.InvestorId.Equals(disbursementFilterDTO.InvestorId));
+                filterDisbursements = filterDisbursements.Where(d => d.InvestorId.Equals(disbursementFilterDTO.InvestorId));
             }
 
             // Contract filter
             if (!string.IsNullOrWhiteSpace(disbursementFilterDTO.ContractId))
             {
-                filterDisbursements = filterDisbursements.Filter(d => d.ContractId.Equals(disbursementFilterDTO.ContractId));
+                filterDisbursements = filterDisbursements.Where(d => d.ContractId.Equals(disbursementFilterDTO.ContractId));
             }
 
+            int totalCount = await filterDisbursements.CountAsync();
+
+            var pagedResult = await filterDisbursements
+                .Skip((page - 1) * size)
+                .Take(size)
+                .Include(c => c.Contract)
+                .Include(d => d.Investor)
+                .ToListAsync();
+
+            var disbursementResponseDTOs = pagedResult.Select(disbursement => new DisbursementForLeaderInProjectResponseDTO
+            {
+                Id = disbursement.Id,
+                Amount = disbursement.Amount.ToString(),
+                ContractIdNumber = disbursement.Contract.ContractIdNumber,
+                DisbursementStatus = disbursement.DisbursementStatus,
+                EndDate = disbursement.EndDate,
+                StartDate = disbursement.StartDate,
+                Title = disbursement.Title,
+                InvestorName = disbursement.Investor.FullName
+            }).ToList();
             var pagination = new PaginationDTO<DisbursementForLeaderInProjectResponseDTO>()
             {
-                Data = _mapper.Map<IEnumerable<DisbursementForLeaderInProjectResponseDTO>>(await filterDisbursements.GetPagingAsync(page, size)),
-                Total = await filterDisbursements.GetTotal(),
+                Data = _mapper.Map<IEnumerable<DisbursementForLeaderInProjectResponseDTO>>(disbursementResponseDTOs),
+                Total = totalCount,
                 Page = page,
                 Size = size
             };
@@ -321,65 +350,78 @@ namespace StartedIn.Service.Services
             {
                 throw new NotFoundException(MessageConstant.NotFoundUserError);
             }
-            var filterDisbursements = _disbursementRepository.QueryHelper()
-                .Include(x => x.Contract)
-                .Include(x => x.Investor)
-                .Filter(x => x.InvestorId.Equals(investor.Id) && x.IsValidWithContract == true)
-                .OrderBy(x => x.OrderBy(x => x.StartDate));
+            var filterDisbursements = _disbursementRepository.GetDisbursementListOfInvestorQuery(userId);
             if (!string.IsNullOrWhiteSpace(disbursementFilterDTO.Title))
             {
-                filterDisbursements = filterDisbursements.Filter(d => d.Title != null && d.Title.ToLower().Contains(disbursementFilterDTO.Title.ToLower()));
+                filterDisbursements = filterDisbursements.Where(d => d.Title != null && d.Title.ToLower().Contains(disbursementFilterDTO.Title.ToLower()) && d.IsValidWithContract == true);
             }
             if (disbursementFilterDTO.PeriodFrom.HasValue && disbursementFilterDTO.PeriodTo.HasValue)
             {
-                filterDisbursements = filterDisbursements.Filter(d => d.StartDate >= disbursementFilterDTO.PeriodFrom.Value && d.EndDate <= disbursementFilterDTO.PeriodTo.Value);
+                filterDisbursements = filterDisbursements.Where(d => d.StartDate >= disbursementFilterDTO.PeriodFrom && d.EndDate <= disbursementFilterDTO.PeriodTo && d.IsValidWithContract == true);
             }
             else if (disbursementFilterDTO.PeriodFrom.HasValue)
             {
-                filterDisbursements = filterDisbursements.Filter(d => d.StartDate >= disbursementFilterDTO.PeriodFrom.Value);
+                filterDisbursements = filterDisbursements.Where(d => d.StartDate >= disbursementFilterDTO.PeriodFrom);
             }
             else if (disbursementFilterDTO.PeriodTo.HasValue)
             {
-                filterDisbursements = filterDisbursements.Filter(d => d.EndDate <= disbursementFilterDTO.PeriodTo.Value);
+                filterDisbursements = filterDisbursements.Where(d => d.EndDate <= disbursementFilterDTO.PeriodTo);
             }
 
             // Amount range filter
             if (disbursementFilterDTO.AmountFrom.HasValue)
             {
-                filterDisbursements = filterDisbursements.Filter(d => d.Amount >= disbursementFilterDTO.AmountFrom.Value);
+                filterDisbursements = filterDisbursements.Where(d => d.Amount >= disbursementFilterDTO.AmountFrom);
             }
             if (disbursementFilterDTO.AmountTo.HasValue)
             {
-                filterDisbursements = filterDisbursements.Filter(d => d.Amount <= disbursementFilterDTO.AmountTo.Value);
+                filterDisbursements = filterDisbursements.Where(d => d.Amount <= disbursementFilterDTO.AmountTo);
             }
 
             // Status filter
             if (disbursementFilterDTO.DisbursementStatus.HasValue)
             {
-                filterDisbursements = filterDisbursements.Filter(d => d.DisbursementStatus == disbursementFilterDTO.DisbursementStatus.Value);
+                filterDisbursements = filterDisbursements.Where(d => d.DisbursementStatus == disbursementFilterDTO.DisbursementStatus);
             }
-
             // Project filter
             if (!string.IsNullOrEmpty(disbursementFilterDTO.ProjectId))
             {
-                filterDisbursements = filterDisbursements.Filter(d => d.Contract.ProjectId.Equals(disbursementFilterDTO.ProjectId));
+                filterDisbursements = filterDisbursements.Where(d => d.Contract.ProjectId.Equals(disbursementFilterDTO.ProjectId));
             }
-
             // Contract filter
             if (!string.IsNullOrWhiteSpace(disbursementFilterDTO.ContractId))
             {
-                filterDisbursements = filterDisbursements.Filter(d => d.ContractId.Equals(disbursementFilterDTO.ContractId));
+                filterDisbursements = filterDisbursements.Where(d => d.ContractId.Equals(disbursementFilterDTO.ContractId));
             }
-            var recordInPage = await filterDisbursements.GetPagingAsync(page, size);
-            foreach (var filterDisbursement in recordInPage)
+
+            int totalCount = await filterDisbursements.CountAsync();
+
+            var pagedResult = await filterDisbursements
+                .Skip((page - 1) * size)
+                .Take(size)
+                .Include(c=>c.Contract)
+                .ThenInclude(c=>c.Project)
+                .Include(d=>d.Investor)
+                .ToListAsync();
+
+            var disbursementResponseDTOs = pagedResult.Select(disbursement => new DisbursementForInvestorInInvestorMenuResponseDTO
             {
-                var project = await _projectRepository.GetProjectById(filterDisbursement.Contract.ProjectId);
-                filterDisbursement.Contract.Project = project;
-            }    
+                Id = disbursement.Id,
+                Amount = disbursement.Amount.ToString(),
+                ContractIdNumber = disbursement.Contract.ContractIdNumber,
+                DisbursementStatus = disbursement.DisbursementStatus,
+                EndDate = disbursement.EndDate,
+                LogoUrl = disbursement.Contract.Project.LogoUrl,
+                ProjectName = disbursement.Contract.Project.ProjectName,
+                StartDate = disbursement.StartDate,
+                Title = disbursement.Title
+
+            }).ToList();
+
             var pagination = new PaginationDTO<DisbursementForInvestorInInvestorMenuResponseDTO>()
             {
-                Data = _mapper.Map<IEnumerable<DisbursementForInvestorInInvestorMenuResponseDTO>>(recordInPage),
-                Total = await filterDisbursements.GetTotal(),
+                Data = _mapper.Map<IEnumerable<DisbursementForInvestorInInvestorMenuResponseDTO>>(disbursementResponseDTOs),
+                Total = totalCount,
                 Page = page,
                 Size = size
             };
@@ -467,12 +509,14 @@ namespace StartedIn.Service.Services
             projectFinance.LastUpdatedTime = DateTime.UtcNow;
             var newTransaction = new Transaction
             {
+                Content = disbursement.Investor.FullName + " giải ngân: " + disbursement.Title,
                 Amount = disbursement.Amount,
+                Budget = disbursement.Amount,
                 Disbursement = disbursement,
                 DisbursementId = disbursement.Id,
                 FinanceId = projectFinance.Id,
                 Type = CrossCutting.Enum.TransactionType.Disbursement,
-                Status = CrossCutting.Enum.TransactionStatus.Completed,
+                IsInFlow = true,
                 FromID = disbursement.InvestorId,
                 ToID = project.UserProjects.FirstOrDefault(x => x.ProjectId.Equals(project.Id) && x.RoleInTeam == CrossCutting.Enum.RoleInTeam.Leader).UserId
             };
@@ -481,10 +525,49 @@ namespace StartedIn.Service.Services
             _disbursementRepository.Update(disbursement);
             _financeRepository.Update(projectFinance);
             _transactionRepository.Add(newTransaction);
-            await _unitOfWork.SaveChangesAsync(); // Ensure the final status update is saved
+            await _unitOfWork.SaveChangesAsync();
             await _unitOfWork.CommitAsync();
         }
 
+        public async Task<Disbursement> GetADisbursementDetailForLeader(string userId, string projectId, string disbursementId)
+        {
+            var loginUser = await _userService.CheckIfUserInProject(userId, projectId);
+            var projectRole = await _projectRepository.GetUserRoleInProject(userId, projectId);
+            if (projectRole != CrossCutting.Enum.RoleInTeam.Leader)
+            {
+                throw new UnauthorizedProjectRoleException(MessageConstant.RolePermissionError);
+            }
+            var disbursement = await _disbursementRepository.GetDisbursementById(disbursementId);
+            if (disbursement == null)
+            {
+                throw new NotFoundException(MessageConstant.DisbursementNotFound);
+            }
+            if (disbursement.Contract.ProjectId != projectId)
+            {
+                throw new UnmatchedException(MessageConstant.DisbursementNotBelongToProject);
+            }
+            return disbursement;
+        }
+
+        public async Task<Disbursement> GetADisbursementDetailInvestor(string userId, string disbursementId)
+        {
+            var investor = await _userManager.FindByIdAsync(userId);
+            if (investor == null)
+            {
+                throw new NotFoundException(MessageConstant.NotFoundUserError);
+            }
+            var disbursement = await _disbursementRepository.GetDisbursementById(disbursementId);
+            if (disbursement == null)
+            {
+                throw new NotFoundException(MessageConstant.DisbursementNotFound);
+            }
+            if (disbursement.InvestorId != investor.Id)
+            {
+                throw new UnmatchedException(MessageConstant.DisbursementNotBelongToInvestor);
+            }
+            return disbursement;
+
+        }
 
     }
 }

@@ -12,6 +12,7 @@ namespace StartedIn.Domain.Entities
     {
         [ForeignKey(nameof(Disbursement))]
         public string DisbursementId { get; set; }
+        public string FileName { get; set; }
         public string EvidenceFile { get; set; }
         public Disbursement Disbursement { get; set; }
     }

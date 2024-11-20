@@ -1,4 +1,5 @@
-﻿using System;
+﻿using StartedIn.CrossCutting.Enum;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -12,5 +13,6 @@ namespace StartedIn.CrossCutting.DTOs.ResponseDTO.ShareEquity
         public string UserId { get; set; }
         public decimal TotalPercentage { get; set; }
         public DateOnly LatestShareDate { get; set; }
+        public RoleInTeam StakeHolderType { get; set; }
     }
 }

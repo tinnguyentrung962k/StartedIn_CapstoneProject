@@ -77,7 +77,8 @@ namespace StartedIn.Service.Services
                                 UserId = shareEquity.UserId,
                                 UserFullName = shareEquity.User.FullName,  // Lấy tên đầy đủ từ bảng User
                                 TotalPercentage = shareEquity.Percentage ?? 0,
-                                LatestShareDate = shareEquity.DateAssigned.Value
+                                LatestShareDate = shareEquity.DateAssigned.Value,
+                                StakeHolderType = shareEquity.StakeHolderType
                             });
                         }
                         else

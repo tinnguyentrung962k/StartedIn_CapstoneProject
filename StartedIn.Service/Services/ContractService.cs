@@ -40,6 +40,8 @@ namespace StartedIn.Service.Services
         private readonly IUserService _userService;
         private readonly IDealOfferRepository _dealOfferRepository;
         private readonly IFinanceRepository _financeRepository;
+        private readonly IInvestmentCallService _investmentCallService;
+        private readonly IInvestmentCallRepository _investmentCallRepository;
 
         public ContractService(IContractRepository contractRepository,
             IUnitOfWork unitOfWork,
@@ -55,7 +57,9 @@ namespace StartedIn.Service.Services
             IConfiguration configuration,
             IUserService userService,
             IDealOfferRepository dealOfferRepository,
-            IFinanceRepository financeRepository
+            IFinanceRepository financeRepository,
+            IInvestmentCallService investmentCallService,
+            IInvestmentCallRepository investmentCallRepository
             )
         {
             _contractRepository = contractRepository;
@@ -74,6 +78,9 @@ namespace StartedIn.Service.Services
             _dealOfferRepository = dealOfferRepository;
             _financeRepository = financeRepository;
             _apiDomain = _configuration.GetValue<string>("API_DOMAIN") ?? _configuration["Local_domain"];
+            _investmentCallService = investmentCallService;
+            _investmentCallRepository = investmentCallRepository;
+
         }
 
         public async Task<Contract> CreateInvestmentContract(string userId, string projectId, InvestmentContractCreateDTO investmentContractCreateDTO)
@@ -143,7 +150,6 @@ namespace StartedIn.Service.Services
                     StakeHolderType = RoleInTeam.Investor,
                     User = investor,
                     UserId = investor.Id,
-                    ShareQuantity = investmentContractCreateDTO.InvestorInfo.ShareQuantity,
                     SharePrice = investmentContractCreateDTO.InvestorInfo.BuyPrice
                 };
                 var contractEntity = _contractRepository.Add(contract);
@@ -246,8 +252,7 @@ namespace StartedIn.Service.Services
                         Percentage = shareEquityOfAMember.Percentage,
                         StakeHolderType = projectRoleOfMember,
                         User = userMemberInContract,
-                        UserId = shareEquityOfAMember.UserId,
-                        ShareQuantity = shareEquityOfAMember.ShareQuantity
+                        UserId = shareEquityOfAMember.UserId
                     };
                     shareEquitiesOfMembers.Add(shareEquity);
                 }
@@ -595,6 +600,18 @@ namespace StartedIn.Service.Services
                     disbursement.IsValidWithContract = true;
                     _disbursementRepository.Update(disbursement);
                 }
+                if (chosenContract.DealOffer.InvestmentCallId != null)
+                {
+                    var investmentCall = await _investmentCallService.GetInvestmentCallById(projectId, chosenContract.DealOffer.InvestmentCallId);
+                    investmentCall.AmountRaised += chosenContract.DealOffer.Amount;
+                    investmentCall.RemainAvailableEquityShare -= chosenContract.DealOffer.EquityShareOffer;
+                    investmentCall.TotalInvestor++;
+                    if (investmentCall.RemainAvailableEquityShare == 0)
+                    {
+                        investmentCall.Status = InvestmentCallStatus.Closed;
+                    }
+                    _investmentCallRepository.Update(investmentCall);
+                }
                 var totalDisbursement = chosenContract.Disbursements.Sum(e => e.Amount);
                 var projectFinance = await _financeRepository.QueryHelper()
                     .Filter(x => x.ProjectId.Equals(projectId))
@@ -633,18 +650,18 @@ namespace StartedIn.Service.Services
         public async Task<PaginationDTO<ContractSearchResponseDTO>> SearchContractWithFilters(string userId, string projectId, ContractSearchDTO search, int page, int size)
         {
             var userProject = await _userService.CheckIfUserInProject(userId, projectId);
-            var searchResult = _contractRepository.QueryHelper().Include(c => c.UserContracts).Filter(x=>x.ProjectId.Equals(projectId) && x.UserContracts.Any(us => us.UserId.Equals(userId))).OrderBy(x=>x.OrderByDescending(x=>x.LastUpdatedTime));
+            var searchResult = _contractRepository.GetContractListQuery(userId, projectId);
             // Filter by Contract Name
             if (!string.IsNullOrWhiteSpace(search.ContractName))
             {
                 string contractNameLower = search.ContractName.ToLower();
-                searchResult = searchResult.Filter(c => c.ContractName.ToLower().Contains(contractNameLower));
+                searchResult = searchResult.Where(c => c.ContractName.ToLower().Contains(contractNameLower));
             }
 
             // Filter by Contract Type Enum
             if (search.ContractTypeEnum.HasValue)
             {
-                searchResult = searchResult.Filter(c => c.ContractType == search.ContractTypeEnum.Value);
+                searchResult = searchResult.Where(c => c.ContractType == search.ContractTypeEnum.Value);
             }
 
             // Filter by Parties (User IDs)
@@ -653,7 +670,7 @@ namespace StartedIn.Service.Services
                 var partyIds = search.Parties;
 
                 // Filter contracts that contain all the specified parties
-                searchResult = searchResult.Filter(c =>
+                searchResult = searchResult.Where(c =>
                     partyIds.All(partyId => c.UserContracts.Any(uc => uc.UserId == partyId)));
             }
 
@@ -662,67 +679,55 @@ namespace StartedIn.Service.Services
             {
                 if (search.LastUpdatedStartDate != default)
                 {
-                    searchResult = searchResult.Filter(c => c.LastUpdatedTime >= search.LastUpdatedStartDate);
+                    searchResult = searchResult.Where(c => c.LastUpdatedTime >= search.LastUpdatedStartDate);
                 }
 
                 if (search.LastUpdatedEndDate != default)
                 {
-                    searchResult = searchResult.Filter(c => c.LastUpdatedTime <= search.LastUpdatedEndDate);
+                    searchResult = searchResult.Where(c => c.LastUpdatedTime <= search.LastUpdatedEndDate);
                 }
             }
 
             // Filter by Contract Status Enum
             if (search.ContractStatusEnum.HasValue)
             {
-                searchResult = searchResult.Filter(c => c.ContractStatus == search.ContractStatusEnum.Value);
+                searchResult = searchResult.Where(c => c.ContractStatus == search.ContractStatusEnum.Value);
             }
 
-            var searchResultList = await searchResult.GetPagingAsync(page,size);
-            
-            // Mapping contracts and their users to the DTOs
-            foreach (var contract in searchResultList)
+            int totalCount = await searchResult.CountAsync();
+
+            var pagedResult = await searchResult
+                .Skip((page - 1) * size)
+                .Take(size)
+                .Include(c => c.UserContracts)
+                .ThenInclude(uc => uc.User)
+                .ToListAsync();
+
+            var contractSearchResponseDTOs = pagedResult.Select(contract => new ContractSearchResponseDTO
             {
-                foreach (var userConstract in contract.UserContracts) {
-                    var userParty = await _userManager.FindByIdAsync(userConstract.UserId);
-                    userConstract.User = userParty;   
-                }
-            };
-            List<ContractSearchResponseDTO> contractSearchResponseDTOs = new List<ContractSearchResponseDTO>();
-            foreach (var contract in searchResultList) 
-            {
-                var usersInContractResponse = new List<UserInContractResponseDTO>();
-                foreach (var userConstract in contract.UserContracts)
+                Id = contract.Id,
+                ContractName = contract.ContractName,
+                ContractStatus = contract.ContractStatus,
+                ContractType = contract.ContractType,
+                LastUpdatedTime = contract.LastUpdatedTime,
+                Parties = contract.UserContracts.Select(userContract => new UserInContractResponseDTO
                 {
-                    UserInContractResponseDTO user = new UserInContractResponseDTO
-                    {
-                        Id = userConstract.User.Id,
-                        Email = userConstract.User.Email,
-                        FullName = userConstract.User.FullName,
-                        PhoneNumber = userConstract.User.PhoneNumber
-                    };
-                    usersInContractResponse.Add(user);
+                    Id = userContract.User.Id,
+                    Email = userContract.User.Email,
+                    FullName = userContract.User.FullName,
+                    PhoneNumber = userContract.User.PhoneNumber
+                }).ToList()
+            }).ToList();
 
-                }
-
-                ContractSearchResponseDTO contractResponseDTO = new ContractSearchResponseDTO
-                {
-                    Id = contract.Id,
-                    ContractName = contract.ContractName,
-                    ContractStatus = contract.ContractStatus,
-                    ContractType = contract.ContractType,
-                    LastUpdatedTime = contract.LastUpdatedTime,
-                    Parties = usersInContractResponse
-                };
-                contractSearchResponseDTOs.Add(contractResponseDTO);
-            }
-
+            // Construct pagination DTO
             var response = new PaginationDTO<ContractSearchResponseDTO>
             {
                 Data = contractSearchResponseDTOs,
-                Total = await searchResult.GetTotal(),
+                Total = totalCount,
                 Size = size,
                 Page = page
             };
+
             return response;
         }
 
@@ -782,7 +787,6 @@ namespace StartedIn.Service.Services
                 {
                     // Update existing ShareEquity
                     existingShareEquity.Percentage = investmentContractUpdateDTO.InvestorInfo.Percentage;
-                    existingShareEquity.ShareQuantity = investmentContractUpdateDTO.InvestorInfo.ShareQuantity;
                     existingShareEquity.SharePrice = investmentContractUpdateDTO.InvestorInfo.BuyPrice;
                     existingShareEquity.LastUpdatedBy = leader.FullName;
                     _shareEquityRepository.Update(existingShareEquity);
@@ -796,7 +800,6 @@ namespace StartedIn.Service.Services
                         ContractId = contract.Id,
                         UserId = investor.Id,
                         Percentage = investmentContractUpdateDTO.InvestorInfo.Percentage,
-                        ShareQuantity = investmentContractUpdateDTO.InvestorInfo.ShareQuantity,
                         StakeHolderType = RoleInTeam.Investor,
                         CreatedBy = leader.FullName,
                     };
@@ -922,8 +925,7 @@ namespace StartedIn.Service.Services
                         Percentage = updatedShareEquity.Percentage,
                         StakeHolderType = projectRoleOfMember,
                         User = userMemberInContract,
-                        UserId = updatedShareEquity.UserId,
-                        ShareQuantity = updatedShareEquity.ShareQuantity
+                        UserId = updatedShareEquity.UserId
                     };
                     shareEquitiesOfMembers.Add(shareEquity);
                 }

@@ -26,7 +26,12 @@ namespace StartedIn.Domain.Entities
         public DateTimeOffset? Verified { get; set; }
         public string? RefreshToken { get; set; }
         [JsonIgnore] public virtual IEnumerable<UserRole> UserRoles { get; }
-        public ICollection<UserProject> UserProjects { get; set; }
-        public IEnumerable<UserContract> UserContracts { get; set; }
+        public ICollection<UserProject>? UserProjects { get; set; }
+        public IEnumerable<UserContract>? UserContracts { get; set; }
+        public ICollection<ShareEquity>? ShareEquities { get; set; }
+        public ICollection<DealOffer>? DealOffers { get; set; }
+        public ICollection<Application>? Applications { get; set; }
+        public ICollection<Disbursement>? Disbursements { get; set; }
+
     }
 }

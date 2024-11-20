@@ -8,11 +8,11 @@ namespace StartedIn.CrossCutting.Enum
 {
     public enum DisbursementStatusEnum
     {
-        PENDING,
-        ACCEPTED,
-        REJECTED,
-        FINISHED,
-        OVERDUE,
-        ERROR
+        PENDING = 1,
+        ACCEPTED = 2,
+        REJECTED = 3,
+        FINISHED = 4,
+        OVERDUE = 5,
+        ERROR = 6
     }
 }

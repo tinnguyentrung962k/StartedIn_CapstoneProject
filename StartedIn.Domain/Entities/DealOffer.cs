@@ -33,6 +33,7 @@ namespace StartedIn.Domain.Entities
         public User Investor { get; set; }
         public Contract? Contract { get; set; }
         public InvestmentCall? InvestmentCall { get; set; }
+        public ICollection<DealOfferHistory>? DealOfferHistories { get; set; }
 
     }
 }

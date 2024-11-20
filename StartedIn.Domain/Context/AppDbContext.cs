@@ -50,6 +50,10 @@ namespace StartedIn.Domain.Context
         public DbSet<Finance> Finances { get; set; }
         public DbSet<Transaction> Transactions { get; set; }
         public DbSet<InvestmentCall> InvestmentCalls { get; set; }
+        public DbSet<Application> Applications { get; set; }
+        public DbSet<Recruitment> Recruitments { get; set; }
+        public DbSet<RecruitmentImg> RecruitmentImgs { get; set; }
+        public DbSet<Asset> Assets { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -250,15 +254,29 @@ namespace StartedIn.Domain.Context
             modelBuilder.Entity<Transaction>()
                 .ToTable("Transaction");
             modelBuilder.Entity<Transaction>()
-            .Property(u => u.Status)
-            .HasConversion(
-            v => v.ToString(),
-                v => (TransactionStatus)Enum.Parse(typeof(TransactionStatus), v));
-            modelBuilder.Entity<Transaction>()
             .Property(u => u.Type)
             .HasConversion(
             v => v.ToString(),
                 v => (TransactionType)Enum.Parse(typeof(TransactionType), v));
+
+            modelBuilder.Entity<Application>()
+                .ToTable("Application");
+            modelBuilder.Entity<Application>()
+            .Property(u => u.Status)
+            .HasConversion(
+            v => v.ToString(),
+                v => (ApplicationStatus)Enum.Parse(typeof(ApplicationStatus), v));
+            modelBuilder.Entity<Recruitment>()
+                .ToTable("Recruitment");
+            modelBuilder.Entity<RecruitmentImg>()
+                .ToTable("RecruitmentImg");
+            modelBuilder.Entity<Asset>()
+                .ToTable("Asset");
+            modelBuilder.Entity<Asset>()
+            .Property(u => u.Status)
+            .HasConversion(
+            v => v.ToString(),
+                v => (AssetStatus)Enum.Parse(typeof(AssetStatus), v));
 
             foreach (var entityType in modelBuilder.Model.GetEntityTypes())
             {
