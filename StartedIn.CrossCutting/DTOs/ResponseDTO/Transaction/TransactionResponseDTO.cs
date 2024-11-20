@@ -19,7 +19,7 @@ namespace StartedIn.CrossCutting.DTOs.ResponseDTO.Transaction
         public string ToUserName { get; set; }
         public TransactionType Type { get; set; }
         public string Content { get; set; }
-        public string EvidenceURl { get; set; }
+        public string EvidenceUrl { get; set; }
         public bool IsInFlow { get; set; }
         public string? DisbursementId { get; set; }
         public string? AssetId { get; set; }
