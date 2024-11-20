@@ -21,5 +21,8 @@ namespace StartedIn.CrossCutting.DTOs.ResponseDTO.Transaction
         public string Content { get; set; }
         public string EvidenceURl { get; set; }
         public bool IsInFlow { get; set; }
+        public string? DisbursementId { get; set; }
+        public string? AssetId { get; set; }
+
     }
 }

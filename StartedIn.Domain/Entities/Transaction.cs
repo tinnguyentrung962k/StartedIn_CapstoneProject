@@ -17,6 +17,7 @@ namespace StartedIn.Domain.Entities
         
         [ForeignKey(nameof(Disbursement))]
         public string? DisbursementId { get; set; }
+        public string? AssetId { get; set; }
 
         [Column(TypeName = "decimal(14,3)")]
         public decimal Amount { get; set; }
