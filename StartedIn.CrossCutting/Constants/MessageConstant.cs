@@ -69,5 +69,8 @@ namespace StartedIn.CrossCutting.Constants
         public const string InvestmentCallEquitySoldOut = "Lượng cổ phần có thể bán của đợt gọi vốn này không còn đủ.";
         public const string ClosedInvestmentCall = "Đợt gọi vốn đã đóng.";
         public const string TransactionNotFound = "Không tìm thấy giao dịch.";
+        public const string TransactionNotBelongToProject = "Giao dịch không thuộc dự án.";
+        public const string AssetNotFound = "Không tìm thấy tài sản.";
+        public const string AssetNotBelongToProject = "Tài sản không thuộc vào dự án.";
     }
 }

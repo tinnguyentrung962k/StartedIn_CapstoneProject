@@ -4,6 +4,7 @@ using Microsoft.Extensions.Hosting;
 using StartedIn.CrossCutting.DTOs.RequestDTO.Auth;
 using StartedIn.CrossCutting.DTOs.RequestDTO.Project;
 using StartedIn.CrossCutting.DTOs.ResponseDTO;
+using StartedIn.CrossCutting.DTOs.ResponseDTO.Asset;
 using StartedIn.CrossCutting.DTOs.ResponseDTO.Contract;
 using StartedIn.CrossCutting.DTOs.ResponseDTO.DealOffer;
 using StartedIn.CrossCutting.DTOs.ResponseDTO.Disbursement;
@@ -35,6 +36,7 @@ namespace StartedIn.API.Configuration.AutoMapper
             ShareEquityMappingProfile();
             InvestmentCallMappingProfile();
             TransactionMappingProfile();
+            AssetProfileMapping();
         }
 
 
@@ -200,6 +202,11 @@ namespace StartedIn.API.Configuration.AutoMapper
                 .ForMember(dr => dr.ProjectId, opt => opt.MapFrom(de => de.Contract.Project.Id))
                 .ForMember(dr => dr.LogoUrl, opt => opt.MapFrom(de => de.Contract.Project.LogoUrl));
             CreateMap<DisbursementAttachment, DisbursementAttachmentResponseDTO>().ReverseMap();
+            CreateMap<Disbursement, DisbursementDetailInATransactionResponseDTO>()
+                .ForMember(dr => dr.ContractIdNumber, opt => opt.MapFrom(de => de.Contract.ContractIdNumber))
+                .ForMember(dr => dr.DisbursementAttachments, opt => opt.MapFrom(de => de.DisbursementAttachments))
+                .ForMember(dr => dr.Amount, opt => opt.MapFrom(de => de.Amount.ToString()))
+                .ForMember(dr => dr.TransactionId, opt => opt.MapFrom(de => de.Transaction.Id));
         }
 
         private void InvestmentCallMappingProfile()
@@ -214,10 +221,17 @@ namespace StartedIn.API.Configuration.AutoMapper
         {
             CreateMap<Transaction, TransactionResponseDTO>()
                     .ForMember(dest => dest.Amount, opt => opt.MapFrom(src => src.Amount.ToString()))
-                    .ForMember(dest => dest.Budget, opt => opt.MapFrom(src => src.Budget.ToString()))
-                    .ForMember(dest => dest.ProjectId, opt => opt.MapFrom(src => src.Finance.ProjectId));
+                    .ForMember(dest => dest.ProjectId, opt => opt.MapFrom(src => src.Finance.ProjectId))
+                    .ForMember(dest => dest.FromUserName, opt => opt.MapFrom(src => src.FromName))
+                    .ForMember(dest => dest.ToUserName, opt => opt.MapFrom(src => src.ToName));
             
         }
+        private void AssetProfileMapping()
+        {
+            CreateMap<Asset, AssetResponseDTO>()
+                .ForMember(dest => dest.Price, opt => opt.MapFrom(src => src.Price.ToString()));  
+        }
+         
         
     }
 }

@@ -49,7 +49,7 @@ namespace StartedIn.API.Controllers
             }
         }
         [HttpGet("projects/{projectId}/disbursements/{disbursementId}/payment-info")]
-        [Authorize(Roles = RoleConstants.INVESTOR + RoleConstants.USER)]
+        [Authorize(Roles = RoleConstants.INVESTOR + "," + RoleConstants.USER)]
         public async Task<IActionResult> GetPaymentStatus([FromRoute] string disbursementId, [FromRoute] string projectId)
         {
             try
@@ -272,7 +272,7 @@ namespace StartedIn.API.Controllers
             try
             {
                 var userId = User.FindFirst(ClaimTypes.NameIdentifier).Value;
-                var disbursement = await _disbursementService.GetADisbursementDetailInvestor(userId,disbursementId);
+                var disbursement = await _disbursementService.GetADisbursementDetailInvestor(userId, disbursementId);
                 var response = _mapper.Map<DisbursementDetailForInvestorResponseDTO>(disbursement);
                 return Ok(response);
             }
@@ -289,6 +289,5 @@ namespace StartedIn.API.Controllers
                 return StatusCode(500, MessageConstant.InternalServerError + ex.Message);
             }
         }
-
     }
 }

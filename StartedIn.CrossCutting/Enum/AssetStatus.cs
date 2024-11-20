@@ -8,9 +8,8 @@ namespace StartedIn.CrossCutting.Enum
 {
     public enum AssetStatus
     {
-        RequestToBuy = 1,
-        Available = 2,
-        Sold = 3,
-        InMaintenance = 4
+        Available = 1,
+        Sold = 2,
+        InMaintenance = 3
     }
 }

@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using StartedIn.Domain.Context;
@@ -11,9 +12,11 @@ using StartedIn.Domain.Context;
 namespace StartedIn.Domain.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20241120132235_11-20-2024_Migration_08PM20")]
+    partial class _11202024_Migration_08PM20
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -263,14 +266,9 @@ namespace StartedIn.Domain.Migrations
                     b.Property<string>("Status")
                         .HasColumnType("text");
 
-                    b.Property<string>("TransactionId")
-                        .HasColumnType("text");
-
                     b.HasKey("Id");
 
                     b.HasIndex("ProjectId");
-
-                    b.HasIndex("TransactionId");
 
                     b.ToTable("Asset", (string)null);
                 });
@@ -820,7 +818,13 @@ namespace StartedIn.Domain.Migrations
                         .HasMaxLength(255)
                         .HasColumnType("character varying(255)");
 
-                    b.Property<DateOnly>("EndDate")
+                    b.Property<DateOnly>("DueDate")
+                        .HasColumnType("date");
+
+                    b.Property<int?>("ExtendedCount")
+                        .HasColumnType("integer");
+
+                    b.Property<DateOnly?>("ExtendedDate")
                         .HasColumnType("date");
 
                     b.Property<string>("LastUpdatedBy")
@@ -829,6 +833,9 @@ namespace StartedIn.Domain.Migrations
                     b.Property<DateTimeOffset>("LastUpdatedTime")
                         .HasColumnType("timestamp with time zone");
 
+                    b.Property<decimal?>("Percentage")
+                        .HasColumnType("decimal(5,2)");
+
                     b.Property<string>("PhaseName")
                         .IsRequired()
                         .HasColumnType("text");
@@ -836,9 +843,6 @@ namespace StartedIn.Domain.Migrations
                     b.Property<string>("ProjectId")
                         .IsRequired()
                         .HasColumnType("text");
-
-                    b.Property<DateOnly>("StartDate")
-                        .HasColumnType("date");
 
                     b.Property<string>("Title")
                         .IsRequired()
@@ -1239,9 +1243,6 @@ namespace StartedIn.Domain.Migrations
                     b.Property<DateTimeOffset>("LastUpdatedTime")
                         .HasColumnType("timestamp with time zone");
 
-                    b.Property<int>("ManHour")
-                        .HasColumnType("integer");
-
                     b.Property<string>("MilestoneId")
                         .HasColumnType("text");
 
@@ -1318,6 +1319,12 @@ namespace StartedIn.Domain.Migrations
                     b.Property<decimal>("Amount")
                         .HasColumnType("decimal(14,3)");
 
+                    b.Property<string>("AssetId")
+                        .HasColumnType("text");
+
+                    b.Property<decimal?>("Budget")
+                        .HasColumnType("decimal(14,3)");
+
                     b.Property<string>("Content")
                         .IsRequired()
                         .HasMaxLength(500)
@@ -1368,6 +1375,9 @@ namespace StartedIn.Domain.Migrations
                         .HasColumnType("text");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("AssetId")
+                        .IsUnique();
 
                     b.HasIndex("DisbursementId")
                         .IsUnique();
@@ -1625,13 +1635,7 @@ namespace StartedIn.Domain.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("StartedIn.Domain.Entities.Transaction", "Transaction")
-                        .WithMany("Assets")
-                        .HasForeignKey("TransactionId");
-
                     b.Navigation("Project");
-
-                    b.Navigation("Transaction");
                 });
 
             modelBuilder.Entity("StartedIn.Domain.Entities.Contract", b =>
@@ -1918,6 +1922,10 @@ namespace StartedIn.Domain.Migrations
 
             modelBuilder.Entity("StartedIn.Domain.Entities.Transaction", b =>
                 {
+                    b.HasOne("StartedIn.Domain.Entities.Asset", "Asset")
+                        .WithOne("Transaction")
+                        .HasForeignKey("StartedIn.Domain.Entities.Transaction", "AssetId");
+
                     b.HasOne("StartedIn.Domain.Entities.Disbursement", "Disbursement")
                         .WithOne("Transaction")
                         .HasForeignKey("StartedIn.Domain.Entities.Transaction", "DisbursementId");
@@ -1927,6 +1935,8 @@ namespace StartedIn.Domain.Migrations
                         .HasForeignKey("FinanceId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
+
+                    b.Navigation("Asset");
 
                     b.Navigation("Disbursement");
 
@@ -2007,6 +2017,11 @@ namespace StartedIn.Domain.Migrations
                     b.Navigation("Task");
 
                     b.Navigation("User");
+                });
+
+            modelBuilder.Entity("StartedIn.Domain.Entities.Asset", b =>
+                {
+                    b.Navigation("Transaction");
                 });
 
             modelBuilder.Entity("StartedIn.Domain.Entities.Contract", b =>
@@ -2090,11 +2105,6 @@ namespace StartedIn.Domain.Migrations
                     b.Navigation("TaskHistories");
 
                     b.Navigation("UserTasks");
-                });
-
-            modelBuilder.Entity("StartedIn.Domain.Entities.Transaction", b =>
-                {
-                    b.Navigation("Assets");
                 });
 
             modelBuilder.Entity("StartedIn.Domain.Entities.User", b =>

@@ -17,15 +17,13 @@ namespace StartedIn.Domain.Entities
         
         [ForeignKey(nameof(Disbursement))]
         public string? DisbursementId { get; set; }
-        public string? AssetId { get; set; }
 
         [Column(TypeName = "decimal(14,3)")]
         public decimal Amount { get; set; }
-
-        [Column(TypeName = "decimal(14,3)")]
-        public decimal? Budget { get; set; }
         public string? FromID { get; set; }
         public string? ToID { get; set; }
+        public string? FromName { get; set; }
+        public string? ToName { get; set; }
         public TransactionType Type { get; set; }
         public bool IsInFlow { get; set; }
         [MaxLength(500)]
@@ -33,7 +31,7 @@ namespace StartedIn.Domain.Entities
         public string? EvidenceUrl { get; set; }
         public Disbursement? Disbursement { get; set; }
         public Finance Finance { get; set; }
-        public Asset Asset { get; set; }
+        public ICollection<Asset>? Assets { get; set; }
 
     }
 }

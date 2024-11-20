@@ -17,6 +17,7 @@ namespace StartedIn.Domain.Entities
 
         [ForeignKey(nameof(Transaction))]
         public string? TransactionId { get; set; }
+
         [MaxLength(100)]
         public string AssetName { get; set; }
         

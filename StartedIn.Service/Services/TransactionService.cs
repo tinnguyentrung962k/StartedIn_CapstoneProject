@@ -1,5 +1,8 @@
 ﻿using AutoMapper;
+using DocumentFormat.OpenXml.Presentation;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using StartedIn.CrossCutting.Constants;
 using StartedIn.CrossCutting.DTOs.RequestDTO.Transaction;
@@ -29,6 +32,7 @@ namespace StartedIn.Service.Services
         private readonly IProjectRepository _projectRepository;
         private readonly IAzureBlobService _azureBlobService;
         private readonly ILogger<TransactionService> _logger;
+        private readonly IAssetRepository _assetRepository;
         public TransactionService(
             ITransactionRepository transactionRepository, 
             IUserService userService, 
@@ -37,7 +41,8 @@ namespace StartedIn.Service.Services
             IUnitOfWork unitOfWork,
             IProjectRepository projectRepository,
             IAzureBlobService azureBlobService,
-            ILogger<TransactionService> logger)
+            ILogger<TransactionService> logger,
+            IAssetRepository assetRepository)
         {
              _transactionRepository = transactionRepository;
             _userService = userService;
@@ -47,31 +52,23 @@ namespace StartedIn.Service.Services
             _projectRepository = projectRepository;
             _azureBlobService = azureBlobService;
             _logger = logger;
+            _assetRepository = assetRepository;
         }
         public async Task<PaginationDTO<TransactionResponseDTO>> GetListTransactionOfAProject(string userId, string projectId, int page, int size)
         {
             var userInProject = await _userService.CheckIfUserInProject(userId, projectId);
-            var transactions = _transactionRepository.QueryHelper()
-                .Include(x => x.Finance)
-                .Filter(x => x.Finance.ProjectId.Equals(projectId));
-            var recordInPage = await transactions.GetPagingAsync(page, size);
-            var response = _mapper.Map<List<TransactionResponseDTO>>(recordInPage);
-            if (response.Any())
-            {
-                foreach (var transaction in response)
-                {
-                    var from = await _userService.GetUserWithId(recordInPage.First(t => t.Id == transaction.Id).FromID);
-                    transaction.FromUserName = from.FullName;
-                    var to = await _userService.GetUserWithId(recordInPage.First(t => t.Id == transaction.Id).ToID);
-                    transaction.ToUserName = to.FullName;
-                }
-            }
+            var transactions = _transactionRepository.GetTransactionsListQuery(projectId);
+            int totalCount =  await transactions.CountAsync();
+            var pagedResult = await transactions
+                .Skip((page - 1) * size)
+                .Take(size).ToListAsync();
+            var response = _mapper.Map<List<TransactionResponseDTO>>(pagedResult);
             var pagination = new PaginationDTO<TransactionResponseDTO>
             {
                 Data = response,
                 Page = page,
                 Size = size,
-                Total = await transactions.GetTotal()
+                Total = totalCount
 
             };
             return pagination;
@@ -85,23 +82,61 @@ namespace StartedIn.Service.Services
             }
             try
             {
-                var project = await _projectRepository.GetProjectById(projectId);
                 _unitOfWork.BeginTransaction();
-                var fileUrl = await _azureBlobService.UploadEvidenceOfTransaction(transactionCreateDTO.EvidenceFile);
+                var project = await _projectRepository.GetProjectById(projectId);
                 var transaction = new Transaction
                 {
                     Amount = transactionCreateDTO.Amount,
-                    Budget = transactionCreateDTO.Budget,
                     Content = transactionCreateDTO.Content,
                     CreatedBy = userInProject.User.FullName,
                     FinanceId = project.Finance.Id,
-                    FromID = userInProject.User.Id,
-                    ToID = transactionCreateDTO.ToInvestorID,
                     IsInFlow = transactionCreateDTO.IsInFlow,
-                    Type = transactionCreateDTO.Type,
-                    EvidenceUrl = fileUrl,
+                    Type = transactionCreateDTO.Type
                 };
+                if (transactionCreateDTO.ToId != null)
+                {
+                    var toUser = await _userManager.FindByIdAsync(transactionCreateDTO.ToId);
+                    transaction.ToID = transactionCreateDTO.ToId;
+                    transaction.ToName = toUser.FullName;
+                }
+                if (transactionCreateDTO.FromId != null)
+                {
+                    var fromUser = await _userManager.FindByIdAsync(transactionCreateDTO.FromId);
+                    transaction.FromID = transactionCreateDTO.FromId;
+                    transaction.ToName = fromUser.FullName;
+                }
+                if (transactionCreateDTO.FromId == null)
+                {
+                    transaction.FromName = transactionCreateDTO.FromName;
+                }
+                if (transactionCreateDTO.ToId == null)
+                {
+                    transaction.ToName = transactionCreateDTO.ToName;
+                }
                 var transactionEntity = _transactionRepository.Add(transaction);
+                if (transactionCreateDTO.Assets != null)
+                {
+                    List<Asset> assets = new List<Asset>();
+                    foreach (var asset in transactionCreateDTO.Assets)
+                    {
+                        Asset newAsset = new Asset
+                        {
+                            AssetName = asset.AssetName,
+                            CreatedBy = userInProject.User.FullName,
+                            Price = asset.Price,
+                            Project = userInProject.Project,
+                            ProjectId = projectId,
+                            PurchaseDate = asset.PurchaseDate,
+                            Quantity = asset.Quantity,
+                            Status = AssetStatus.Available,
+                            SerialNumber = asset.SerialNumber,
+                            Transaction = transactionEntity,
+                            TransactionId = transactionEntity.Id
+                        };
+                        assets.Add(newAsset);
+                    }
+                    await _assetRepository.AddRangeAsync(assets); 
+                }
                 await _unitOfWork.SaveChangesAsync();
                 await _unitOfWork.CommitAsync();
                 return transactionEntity;
@@ -111,9 +146,40 @@ namespace StartedIn.Service.Services
                 _logger.LogError($"An error occurred while creating the transaction: {ex.Message}");
                 await _unitOfWork.RollbackAsync();
                 throw;
-            }
-            
+            }    
         }
+        public async Task<Transaction> UploadEvidenceFile(string userId, string projectId, string transactionId, IFormFile file)
+        {
+            var userInProject = await _userService.CheckIfUserInProject(userId, projectId);
+            if (userInProject.RoleInTeam != RoleInTeam.Leader)
+            {
+                throw new UnauthorizedProjectRoleException(MessageConstant.RolePermissionError);
+            }
+            var transaction = await _transactionRepository.GetTransactionById(transactionId);
+            if (transaction == null)
+            {
+                throw new NotFoundException(MessageConstant.TransactionNotFound);
+            }
+            if (transaction.Finance.ProjectId != projectId)
+            {
+                throw new UnmatchedException(MessageConstant.TransactionNotBelongToProject);
+            }
+            try
+            {
+                var fileUrl = await _azureBlobService.UploadEvidenceOfTransaction(file);
+                transaction.EvidenceUrl = fileUrl;
+                var updatedTransaction = _transactionRepository.Update(transaction);
+                await _unitOfWork.SaveChangesAsync();
+                return updatedTransaction;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError($"An error occurred while update the transaction: {ex.Message}");
+                await _unitOfWork.RollbackAsync();
+                throw;
+            }
+        }
+
         public async Task<Transaction> GetTransactionDetailById(string userId, string projectId, string transactionId)
         {
             var userInProject = await _userService.CheckIfUserInProject(userId, projectId);
@@ -121,6 +187,10 @@ namespace StartedIn.Service.Services
             if (transaction == null)
             {
                 throw new NotFoundException(MessageConstant.TransactionNotFound);
+            }
+            if (transaction.Finance.ProjectId != projectId)
+            {
+                throw new UnmatchedException(MessageConstant.TransactionNotBelongToProject);
             }
             return transaction;
         }
