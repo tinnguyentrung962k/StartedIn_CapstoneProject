@@ -222,7 +222,6 @@ namespace StartedIn.API.Configuration.AutoMapper
         {
             CreateMap<Transaction, TransactionResponseDTO>()
                     .ForMember(dest => dest.Amount, opt => opt.MapFrom(src => src.Amount.ToString()))
-                    .ForMember(dest => dest.Budget, opt => opt.MapFrom(src => src.Budget.ToString()))
                     .ForMember(dest => dest.ProjectId, opt => opt.MapFrom(src => src.Finance.ProjectId))
                     .ForMember(dest => dest.FromUserName, opt => opt.MapFrom(src => src.FromName))
                     .ForMember(dest => dest.ToUserName, opt => opt.MapFrom(src => src.ToName));

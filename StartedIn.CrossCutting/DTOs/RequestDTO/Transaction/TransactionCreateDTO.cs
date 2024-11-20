@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Http;
+using StartedIn.CrossCutting.DTOs.RequestDTO.Asset;
 using StartedIn.CrossCutting.Enum;
 using System;
 using System.Collections.Generic;
@@ -13,9 +14,6 @@ namespace StartedIn.CrossCutting.DTOs.RequestDTO.Transaction
     {
         [Required]
         public decimal Amount { get; set; }
-        
-        [Required]
-        public decimal Budget { get; set; }
         public string? FromId { get; set; }
         public string? ToId { get; set; }
         public string? FromName { get; set; }
@@ -28,8 +26,7 @@ namespace StartedIn.CrossCutting.DTOs.RequestDTO.Transaction
         public bool IsInFlow { get; set; }
         public string Content { get; set; }
         
-        [Required]
-        public IFormFile EvidenceFile { get; set; }
+        public List<AssetCreateDTO>? Assets { get; set; }
 
     }
 }

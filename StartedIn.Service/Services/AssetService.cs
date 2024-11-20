@@ -73,7 +73,7 @@ namespace StartedIn.Service.Services
                     Quantity = assetCreateDTO.Quantity,
                     Project = userInProject.Project,
                     SerialNumber = assetCreateDTO.SerialNumber,
-                    Status = assetCreateDTO.AssetStatus
+                    Status = AssetStatus.Available
                 };
                 var assetEntity = _assetRepository.Add(asset);
                 await _unitOfWork.SaveChangesAsync();
