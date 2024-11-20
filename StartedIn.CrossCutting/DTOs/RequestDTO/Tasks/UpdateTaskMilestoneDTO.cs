@@ -8,6 +8,6 @@ namespace StartedIn.CrossCutting.DTOs.RequestDTO.Tasks
 {
     public class UpdateTaskMilestoneDTO
     {
-        public string MilestoneId { get; set; }
+        public string? MilestoneId { get; set; }
     }
 }

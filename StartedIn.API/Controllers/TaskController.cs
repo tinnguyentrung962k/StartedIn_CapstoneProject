@@ -54,30 +54,6 @@ namespace StartedIn.API.Controllers
 
         [HttpGet]
         [Authorize(Roles = RoleConstants.USER)]
-        public async Task<ActionResult<PaginationDTO<TaskResponseDTO>>> getAllTasks(
-            [FromRoute] string projectId,
-            [FromQuery] int page,
-            [FromQuery] int size)
-        {
-            try
-            {
-                var userId = User.FindFirst(ClaimTypes.NameIdentifier).Value;
-                var taskPagination = await _taskService.GetAllTask(userId, projectId, size, page);
-
-                return taskPagination;
-            }
-            catch (NotFoundException ex)
-            {
-                return BadRequest(ex.Message);
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(500, MessageConstant.InternalServerError);
-            }
-        }
-
-        [HttpGet("catalog")]
-        [Authorize(Roles = RoleConstants.USER)]
         public async Task<ActionResult<PaginationDTO<TaskResponseDTO>>> getTaskCatalog(
             [FromRoute] string projectId,
             [FromQuery] TaskFilterDTO taskFilterDto,
@@ -240,6 +216,11 @@ namespace StartedIn.API.Controllers
             try
             {
                 var userId = User.FindFirst(ClaimTypes.NameIdentifier).Value;
+                if (String.IsNullOrEmpty(updateTaskMilestoneDTO.MilestoneId))
+                {
+                    updateTaskMilestoneDTO.MilestoneId = null;
+                }
+
                 var responseTask = _mapper.Map<TaskResponseDTO>(await _taskService.UpdateTaskMilestone(userId, taskId, projectId, updateTaskMilestoneDTO));
                 return Ok(responseTask);
             }
@@ -248,6 +229,10 @@ namespace StartedIn.API.Controllers
                 return StatusCode(403, ex.Message);
             }
             catch (NotFoundException ex)
+            {
+                return BadRequest(ex.Message);
+            }
+            catch (AssignParentTaskException ex)
             {
                 return BadRequest(ex.Message);
             }
@@ -275,6 +260,10 @@ namespace StartedIn.API.Controllers
                 return StatusCode(403, ex.Message);
             }
             catch (NotFoundException ex)
+            {
+                return BadRequest(ex.Message);
+            }
+            catch (AssignParentTaskException ex)
             {
                 return BadRequest(ex.Message);
             }

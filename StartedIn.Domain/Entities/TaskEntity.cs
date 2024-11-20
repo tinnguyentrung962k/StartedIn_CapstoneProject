@@ -19,14 +19,15 @@ public class TaskEntity : BaseAuditEntity<string>
     [MaxLength(18)]
     public TaskEntityStatus Status { get; set; }
     public bool IsLate { get; set; }
+    public int ManHour { get; set; } = 0;
     public DateTimeOffset? Deadline { get; set; }
     public Milestone Milestone { get; set; }
     public Project Project { get; set; }
     public TaskEntity ParentTask { get; set; }
-    public ICollection<UserTask> UserTasks { get; set; }
-    public ICollection<TaskEntity> SubTasks { get; set; }
-    public ICollection<TaskComment> TaskComments { get; set; }
-    public ICollection<TaskHistory> TaskHistories { get; set; }
-    public ICollection<TaskAttachment> TaskAttachments { get; set; }
+    public ICollection<UserTask> UserTasks { get; set; } = [];
+    public ICollection<TaskEntity> SubTasks { get; set; } = [];
+    public ICollection<TaskComment> TaskComments { get; set; } = [];
+    public ICollection<TaskHistory> TaskHistories { get; set; } = [];
+    public ICollection<TaskAttachment> TaskAttachments { get; set; } = [];
 
 }
