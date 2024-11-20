@@ -11,7 +11,6 @@ namespace StartedIn.CrossCutting.DTOs.ResponseDTO.Asset
     public class AssetResponseDTO : IdentityResponseDTO
     {
         public string ProjectId { get; set; }
-        public string TransactionId { get; set; }
         public string AssetName { get; set; }
         public string? Price { get; set; }
         public DateOnly? PurchaseDate { get; set; }

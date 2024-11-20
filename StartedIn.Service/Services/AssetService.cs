@@ -45,7 +45,7 @@ namespace StartedIn.Service.Services
             _logger = logger;
         }
 
-        public async Task<Asset> AddNewAssetToProject(string userId, string projectId, AssetAndTransactionCreateDTO assetAndTransactionCreateDTO)
+        public async Task<Asset> AddNewAssetToProject(string userId, string projectId, AssetCreateDTO assetCreateDTO)
         {
             var userInProject = await _userService.CheckIfUserInProject(userId, projectId);
             if (userInProject.RoleInTeam != RoleInTeam.Leader)
@@ -63,53 +63,21 @@ namespace StartedIn.Service.Services
                     throw new InvalidOperationException("The project does not have a finance entity associated.");
                 }
 
-                string fileUrl = null;
-                if (assetAndTransactionCreateDTO.Transaction?.EvidenceFile != null)
-                {
-                    fileUrl = await _azureBlobService.UploadEvidenceOfTransaction(assetAndTransactionCreateDTO.Transaction.EvidenceFile);
-                }
-
                 var asset = new Asset
                 {
-                    AssetName = assetAndTransactionCreateDTO.Asset.AssetName,
+                    AssetName = assetCreateDTO.AssetName,
                     CreatedBy = userInProject.User.FullName,
-                    Price = assetAndTransactionCreateDTO.Asset.Price,
+                    Price = assetCreateDTO.Price,
                     ProjectId = projectId,
-                    PurchaseDate = assetAndTransactionCreateDTO.Asset.PurchaseDate,
-                    Quantity = assetAndTransactionCreateDTO.Asset.Quantity,
+                    PurchaseDate = assetCreateDTO.PurchaseDate,
+                    Quantity = assetCreateDTO.Quantity,
                     Project = userInProject.Project,
-                    SerialNumber = assetAndTransactionCreateDTO.Asset.SerialNumber,
-                    Status = assetAndTransactionCreateDTO.Asset.AssetStatus
+                    SerialNumber = assetCreateDTO.SerialNumber,
+                    Status = assetCreateDTO.AssetStatus
                 };
-
-
-                if (assetAndTransactionCreateDTO.Transaction != null)
-                {
-                    var transaction = new Transaction
-                    {
-                        Amount = assetAndTransactionCreateDTO.Transaction.Amount,
-                        Asset = asset,
-                        AssetId = asset.Id,
-                        FinanceId = project.Finance.Id,
-                        Finance = project.Finance,
-                        Budget = assetAndTransactionCreateDTO.Transaction.Budget,
-                        Content = assetAndTransactionCreateDTO.Transaction.Content,
-                        CreatedBy = userInProject.User.FullName,
-                        IsInFlow = true,
-                        Type = TransactionType.AssetExpense,
-                        EvidenceUrl = fileUrl,
-                        ToName = assetAndTransactionCreateDTO.Transaction.ToName,
-                        FromID = userInProject.UserId,
-                        FromName = userInProject.User.FullName
-                    };
-
-                    var transactionEntity = _transactionRepository.Add(transaction);
-                    asset.TransactionId = transactionEntity.Id;
-                }
                 var assetEntity = _assetRepository.Add(asset);
                 await _unitOfWork.SaveChangesAsync();
                 await _unitOfWork.CommitAsync();
-
                 return assetEntity;
             }
             catch (Exception ex)

@@ -25,6 +25,7 @@ namespace StartedIn.CrossCutting.DTOs.ResponseDTO.Transaction
         public bool IsInFlow { get; set; }
         public string? DisbursementId { get; set; }
         public string? AssetId { get; set; }
+        public DateTimeOffset LastUpdatedTime { get; set; }
         public DisbursementDetailInATransactionResponseDTO? Disbursement { get; set; }
         public AssetResponseDTO? Asset { get; set; }
 

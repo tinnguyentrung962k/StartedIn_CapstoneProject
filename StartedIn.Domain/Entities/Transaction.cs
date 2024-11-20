@@ -17,6 +17,8 @@ namespace StartedIn.Domain.Entities
         
         [ForeignKey(nameof(Disbursement))]
         public string? DisbursementId { get; set; }
+
+        [ForeignKey(nameof(Asset))]
         public string? AssetId { get; set; }
 
         [Column(TypeName = "decimal(14,3)")]
@@ -35,7 +37,7 @@ namespace StartedIn.Domain.Entities
         public string? EvidenceUrl { get; set; }
         public Disbursement? Disbursement { get; set; }
         public Finance Finance { get; set; }
-        public Asset Asset { get; set; }
+        public Asset? Asset { get; set; }
 
     }
 }

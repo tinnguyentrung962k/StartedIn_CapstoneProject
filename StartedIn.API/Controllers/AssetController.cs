@@ -26,12 +26,12 @@ namespace StartedIn.API.Controllers
 
         [HttpPost("assets")]
         [Authorize(Roles = RoleConstants.USER)]
-        public async Task<ActionResult<AssetResponseDTO>> AddNewAssetToProject([FromRoute] string projectId, [FromForm] AssetAndTransactionCreateDTO assetAndTransactionCreateDTO) 
+        public async Task<ActionResult<AssetResponseDTO>> AddNewAssetToProject([FromRoute] string projectId, [FromForm] AssetCreateDTO assetCreateDTO) 
         {
             try 
             {
                 var userId = User.FindFirst(ClaimTypes.NameIdentifier).Value;
-                var asset = await _assetService.AddNewAssetToProject(userId,projectId,assetAndTransactionCreateDTO);
+                var asset = await _assetService.AddNewAssetToProject(userId,projectId,assetCreateDTO);
                 var response = _mapper.Map<AssetResponseDTO>(asset);
                 return CreatedAtAction(nameof(GetAssetDetailById), new { projectId, assetId = response.Id }, response);
             }

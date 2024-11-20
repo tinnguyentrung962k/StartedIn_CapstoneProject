@@ -11,6 +11,6 @@ namespace StartedIn.Service.Services.Interface
     public interface IAssetService
     {
         Task<Asset> GetAssetDetailById(string userId, string projectId, string assetId);
-        Task<Asset> AddNewAssetToProject(string userId, string projectId, AssetAndTransactionCreateDTO assetAndTransactionCreateDTO);
+        Task<Asset> AddNewAssetToProject(string userId, string projectId, AssetCreateDTO assetCreateDTO);
     }
 }

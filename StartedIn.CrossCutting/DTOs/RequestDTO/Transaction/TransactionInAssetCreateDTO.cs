@@ -10,6 +10,7 @@ namespace StartedIn.CrossCutting.DTOs.RequestDTO.Transaction
 {
     public class TransactionInAssetCreateDTO
     {
+        public string AssetId { get; set; }
         [Required]
         public decimal Amount { get; set; }
         [Required]
@@ -19,8 +20,5 @@ namespace StartedIn.CrossCutting.DTOs.RequestDTO.Transaction
         
         [Required]
         public IFormFile EvidenceFile { get; set; }
-
-
-
     }
 }
