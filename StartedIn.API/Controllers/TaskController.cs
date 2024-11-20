@@ -216,6 +216,11 @@ namespace StartedIn.API.Controllers
             try
             {
                 var userId = User.FindFirst(ClaimTypes.NameIdentifier).Value;
+                if (String.IsNullOrEmpty(updateTaskMilestoneDTO.MilestoneId))
+                {
+                    updateTaskMilestoneDTO.MilestoneId = null;
+                }
+
                 var responseTask = _mapper.Map<TaskResponseDTO>(await _taskService.UpdateTaskMilestone(userId, taskId, projectId, updateTaskMilestoneDTO));
                 return Ok(responseTask);
             }

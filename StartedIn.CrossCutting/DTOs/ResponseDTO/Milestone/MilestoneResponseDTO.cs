@@ -6,9 +6,9 @@ namespace StartedIn.CrossCutting.DTOs.ResponseDTO.Milestone
     {
         public string Title { get; set; }
         public string? Description { get; set; }
-        public DateOnly DueDate { get; set; }
-        public DateOnly? ExtendedDate { get; set; }
-        public int? ExtendedCount { get; set; }
+        public DateOnly StartDate { get; set; }
+        public DateOnly EndDate { get; set; }
+        public int? Progress { get; set; }
         public PhaseEnum PhaseName { get; set; }
     }
 }

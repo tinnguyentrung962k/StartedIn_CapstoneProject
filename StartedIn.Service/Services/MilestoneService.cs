@@ -34,8 +34,8 @@ namespace StartedIn.Service.Services
             IUnitOfWork unitOfWork,
             IMilestoneRepository milestoneRepository,
             ILogger<Milestone> logger,
-            ITaskRepository taskRepository, UserManager<User> userManager, 
-            IMilestoneHistoryRepository milestoneHistoryRepository, 
+            ITaskRepository taskRepository, UserManager<User> userManager,
+            IMilestoneHistoryRepository milestoneHistoryRepository,
             IProjectRepository projectRepository, IUserService userService,
             IMapper mapper)
         {
@@ -49,7 +49,7 @@ namespace StartedIn.Service.Services
             _userService = userService;
             _mapper = mapper;
         }
-        public async Task<Milestone> CreateNewMilestone(string userId, string projectId ,MilestoneCreateDTO milestoneCreateDto)
+        public async Task<Milestone> CreateNewMilestone(string userId, string projectId, MilestoneCreateDTO milestoneCreateDto)
         {
             var loginUser = await _userService.CheckIfUserInProject(userId, projectId);
             var projectRole = await _projectRepository.GetUserRoleInProject(userId, projectId);
@@ -58,7 +58,7 @@ namespace StartedIn.Service.Services
                 throw new UnauthorizedProjectRoleException(MessageConstant.RolePermissionError);
             }
             try
-            {  
+            {
                 _unitOfWork.BeginTransaction();
                 Milestone milestone = new Milestone
                 {
@@ -90,7 +90,7 @@ namespace StartedIn.Service.Services
             }
         }
 
-        public async Task<Milestone> GetMilestoneById(string userId, string projectId, string id)
+        public async Task<MilestoneDetailsResponseDTO> GetMilestoneById(string userId, string projectId, string id)
         {
             var loginUser = await _userService.CheckIfUserInProject(userId, projectId);
             var milestone = await _milestoneRepository.GetMilestoneDetailById(id);
@@ -102,30 +102,33 @@ namespace StartedIn.Service.Services
             {
                 throw new UnmatchedException(MessageConstant.MilestoneNotBelongToProjectError);
             }
-            return milestone;
+
+            var milestoneDTO = _mapper.Map<MilestoneDetailsResponseDTO>(milestone);
+            milestoneDTO.Progress = CalculateProgress(milestone);
+            return milestoneDTO;
         }
 
         public async Task<Milestone> UpdateMilestoneInfo(string userId, string projectId, string id, MilestoneInfoUpdateDTO updateMilestoneInfoDTO)
         {
             var loginUser = await _userService.CheckIfUserInProject(userId, projectId);
-            
+
             var chosenMilestone = await _milestoneRepository.QueryHelper()
-                .Include(x=>x.Project)
-                .Filter(x=>x.Id.Equals(id))
+                .Include(x => x.Project)
+                .Filter(x => x.Id.Equals(id))
                 .GetOneAsync();
-            
+
             var projectRole = await _projectRepository.GetUserRoleInProject(userId, projectId);
-            
+
             if (chosenMilestone == null)
             {
                 throw new NotFoundException(MessageConstant.NotFoundMilestoneError);
             }
-            
+
             if (chosenMilestone.ProjectId != projectId)
             {
                 throw new UnmatchedException(MessageConstant.MilestoneNotBelongToProjectError);
             }
-            
+
             if (projectRole != RoleInTeam.Leader)
             {
                 throw new UnauthorizedProjectRoleException(MessageConstant.RolePermissionError);
@@ -162,7 +165,7 @@ namespace StartedIn.Service.Services
         public async Task<PaginationDTO<MilestoneResponseDTO>> FilterMilestone(string userId, string projectId, MilestoneFilterDTO milestoneFilterDTO, int page, int size)
         {
             var userInProject = await _userService.CheckIfUserInProject(userId, projectId);
-            var filterMilestone = _milestoneRepository.QueryHelper().Filter(m => m.ProjectId.Equals(projectId) && m.DeletedTime == null)
+            var filterMilestone = _milestoneRepository.QueryHelper().Include(m => m.Tasks).Filter(m => m.ProjectId.Equals(projectId) && m.DeletedTime == null)
                 .OrderBy(m => m.OrderBy(m => m.CreatedTime));
 
             if (!string.IsNullOrEmpty(milestoneFilterDTO.Title))
@@ -175,13 +178,20 @@ namespace StartedIn.Service.Services
                 filterMilestone = filterMilestone.Filter(m => m.PhaseName == milestoneFilterDTO.PhaseName);
             }
 
+            var milestones = await filterMilestone.GetPagingAsync(page, size);
+
             var milestonePagination = new PaginationDTO<MilestoneResponseDTO>()
             {
-                Data = _mapper.Map<List<MilestoneResponseDTO>>(await filterMilestone.GetPagingAsync(page, size)),
+                Data = _mapper.Map<List<MilestoneResponseDTO>>(milestones),
                 Total = await filterMilestone.GetTotal(),
                 Page = page,
                 Size = size
             };
+
+            milestonePagination.Data.ToList().ForEach(m =>
+            {
+                m.Progress = CalculateProgress(milestones.Where(nm => nm.Id.Equals(m.Id)).First());
+            });
 
             return milestonePagination;
         }
@@ -224,6 +234,18 @@ namespace StartedIn.Service.Services
                 await _unitOfWork.RollbackAsync();
                 throw new Exception("Failed while delete milestone");
             }
+        }
+
+        private int? CalculateProgress(Milestone milestone)
+        {
+            // Get completed man hour of all tasks in a milestone / total man hour of all tasks in a milestone and if total man hour is 0, return 0
+            var totalManHour = milestone.Tasks.Sum(t => t.ManHour);
+            if (totalManHour == 0)
+            {
+                return null;
+            }
+            var completedManHour = milestone.Tasks.Where(t => t.Status == TaskEntityStatus.DONE).Sum(t => t.ManHour);
+            return (int)Math.Round((double)completedManHour / totalManHour * 100);
         }
     }
 }

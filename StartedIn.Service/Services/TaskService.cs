@@ -379,7 +379,7 @@ namespace StartedIn.Service.Services
             }
 
             // If parent task is already in a milestone then do not assign task to another milestone
-            if (chosenTask.ParentTask.MilestoneId != null)
+            if (chosenTask.ParentTask != null && chosenTask.ParentTask.MilestoneId != null)
             {
                 throw new AssignParentTaskException(MessageConstant.AssignChildTaskToMilestoneError);
             }
