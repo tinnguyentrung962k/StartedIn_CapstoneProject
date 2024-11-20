@@ -8,6 +8,7 @@ namespace StartedIn.CrossCutting.DTOs.RequestDTO.Milestone
 
         [Required(ErrorMessage = "Vui lòng nhập mô tả")]
         public string? Description { get; set; }
-        public DateOnly DueDate { get; set; }
+        public DateOnly StartDate { get; set; }
+        public DateOnly EndDate { get; set; }
     }
 }

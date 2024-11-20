@@ -20,12 +20,8 @@ public class Milestone : BaseAuditEntity<string>
 
     [MaxLength(255)]
     public string? Description { get; set; }
-    public DateOnly DueDate { get; set; }
-    public DateOnly? ExtendedDate { get; set; }
-    public int? ExtendedCount { get; set; }
-
-    [Column(TypeName = "decimal(5,2)")]
-    public decimal? Percentage { get; set; }
+    public DateOnly StartDate { get; set; }
+    public DateOnly EndDate { get; set; }
     public Project Project { get; set; }
     public ICollection<TaskEntity>? Tasks { get; set; }
     [JsonIgnore] public ProjectCharter ProjectCharter { get; set; }

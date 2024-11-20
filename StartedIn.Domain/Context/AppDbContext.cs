@@ -245,10 +245,6 @@ namespace StartedIn.Domain.Context
             .Property(p => p.RemainingPercentOfShares)
             .HasColumnType("decimal(5,2)");
 
-            modelBuilder.Entity<Milestone>()
-            .Property(p => p.Percentage)
-            .HasColumnType("decimal(5,2)");
-
             modelBuilder.Entity<Finance>()
                 .ToTable("Finance");
             modelBuilder.Entity<Transaction>()

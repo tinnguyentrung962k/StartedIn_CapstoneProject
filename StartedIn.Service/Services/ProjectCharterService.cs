@@ -92,7 +92,6 @@ namespace StartedIn.Service.Services
                             PhaseName = milestoneDto.PhaseEnum,
                             Title = milestoneDto.MilstoneTitle,
                             Description = milestoneDto.Description,
-                            DueDate = milestoneDto.DueDate,
                             ProjectCharter = projectCharterEntity
                         };
                         _milestoneRepository.Add(newMilestone);

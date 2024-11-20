@@ -19,6 +19,7 @@ public class TaskEntity : BaseAuditEntity<string>
     [MaxLength(18)]
     public TaskEntityStatus Status { get; set; }
     public bool IsLate { get; set; }
+    public int ManHour { get; set; } = 0;
     public DateTimeOffset? Deadline { get; set; }
     public Milestone Milestone { get; set; }
     public Project Project { get; set; }

@@ -14,6 +14,7 @@ namespace StartedIn.CrossCutting.DTOs.RequestDTO.Tasks
         public string Title { get; set; }
         public string? Description { get; set; }
         public DateTimeOffset? Deadline { get; set; }
+        public int? ManHour { get; set; }
         public string? MilestoneId { get; set; }
         public string? ParentTaskId { get; set; }
     }

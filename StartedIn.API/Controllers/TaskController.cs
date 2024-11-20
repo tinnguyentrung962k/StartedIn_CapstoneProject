@@ -227,6 +227,10 @@ namespace StartedIn.API.Controllers
             {
                 return BadRequest(ex.Message);
             }
+            catch (AssignParentTaskException ex)
+            {
+                return BadRequest(ex.Message);
+            }
             catch (Exception ex)
             {
                 return StatusCode(500, MessageConstant.InternalServerError);
@@ -251,6 +255,10 @@ namespace StartedIn.API.Controllers
                 return StatusCode(403, ex.Message);
             }
             catch (NotFoundException ex)
+            {
+                return BadRequest(ex.Message);
+            }
+            catch (AssignParentTaskException ex)
             {
                 return BadRequest(ex.Message);
             }

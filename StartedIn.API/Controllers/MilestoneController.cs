@@ -9,11 +9,12 @@ using StartedIn.API.Attributes;
 using StartedIn.CrossCutting.Constants;
 using StartedIn.CrossCutting.DTOs.RequestDTO.Milestone;
 using StartedIn.CrossCutting.DTOs.ResponseDTO.Milestone;
+using StartedIn.CrossCutting.DTOs.ResponseDTO;
 
 namespace StartedIn.API.Controllers
 {
     [ApiController]
-    [Route("api/projects/{projectId}")]
+    [Route("api/projects/{projectId}/milestones")]
     public class MilestoneController : ControllerBase
     {
         private readonly IMilestoneService _milestoneService;
@@ -27,14 +28,14 @@ namespace StartedIn.API.Controllers
             _logger = logger;
         }
 
-        [HttpPost("milestones")]
+        [HttpPost]
         [Authorize(Roles = RoleConstants.USER)]
-        public async Task<ActionResult<MilestoneResponseDTO>> CreateNewMileStone([FromRoute]string projectId, [FromBody] MilestoneCreateDTO milestoneCreateDto)
+        public async Task<ActionResult<MilestoneResponseDTO>> CreateNewMileStone([FromRoute] string projectId, [FromBody] MilestoneCreateDTO milestoneCreateDto)
         {
             try
             {
                 var userId = User.FindFirst(ClaimTypes.NameIdentifier).Value;
-                var milestone = await _milestoneService.CreateNewMilestone(userId,projectId,milestoneCreateDto);
+                var milestone = await _milestoneService.CreateNewMilestone(userId, projectId, milestoneCreateDto);
                 var responseMilestone = _mapper.Map<MilestoneResponseDTO>(milestone);
                 return CreatedAtAction(nameof(GetMilestoneById), new { projectId, milestoneId = responseMilestone.Id }, responseMilestone);
 
@@ -51,14 +52,14 @@ namespace StartedIn.API.Controllers
             }
         }
 
-        [HttpGet("milestones/{milestoneId}")]
+        [HttpGet("{milestoneId}")]
         [Authorize(Roles = RoleConstants.USER + "," + RoleConstants.INVESTOR)]
-        public async Task<ActionResult<MilestoneAndTaskResponseDTO>> GetMilestoneById([FromRoute]string projectId, [FromRoute] string milestoneId)
+        public async Task<ActionResult<MilestoneDetailsResponseDTO>> GetMilestoneById([FromRoute] string projectId, [FromRoute] string milestoneId)
         {
             try
             {
                 var userId = User.FindFirst(ClaimTypes.NameIdentifier).Value;
-                var responseMilestone = _mapper.Map<MilestoneAndTaskResponseDTO>(await _milestoneService.GetMilestoneById(userId, projectId, milestoneId));
+                var responseMilestone = _mapper.Map<MilestoneDetailsResponseDTO>(await _milestoneService.GetMilestoneById(userId, projectId, milestoneId));
                 return Ok(responseMilestone);
             }
             catch (NotFoundException ex)
@@ -79,14 +80,19 @@ namespace StartedIn.API.Controllers
                 return StatusCode(500, MessageConstant.InternalServerError);
             }
         }
-        
-        [HttpGet("milestones")]
+
+        [HttpGet]
         [Authorize(Roles = RoleConstants.USER + "," + RoleConstants.INVESTOR)]
-        public async Task<ActionResult<List<MilestoneResponseDTO>>> GetMilestonesForProject([FromRoute]string projectId)
+        public async Task<ActionResult<PaginationDTO<MilestoneResponseDTO>>> GetMilestonesForProject(
+            [FromRoute] string projectId,
+            [FromQuery] MilestoneFilterDTO milestoneFilterDTO,
+            [FromQuery] int page,
+            [FromQuery] int size)
         {
             try
             {
-                var responseMilestone = _mapper.Map<List<MilestoneResponseDTO>>(await _milestoneService.GetMilestoneListOfAProject(projectId));
+                var userId = User.FindFirst(ClaimTypes.NameIdentifier).Value;
+                var responseMilestone = await _milestoneService.FilterMilestone(userId, projectId, milestoneFilterDTO, page, size);
                 return Ok(responseMilestone);
             }
             catch (Exception ex)
@@ -95,14 +101,14 @@ namespace StartedIn.API.Controllers
             }
         }
 
-        [HttpPut("milestones/{milestoneId}")]
+        [HttpPut("{milestoneId}")]
         [Authorize(Roles = RoleConstants.USER)]
         public async Task<ActionResult<MilestoneResponseDTO>> EditInfoMilestone([FromRoute] string milestoneId, [FromRoute] string projectId, [FromBody] MilestoneInfoUpdateDTO milestoneInfoUpdateDTO)
         {
             try
             {
                 var userId = User.FindFirst(ClaimTypes.NameIdentifier).Value;
-                var responseMilestone = _mapper.Map<MilestoneResponseDTO>(await _milestoneService.UpdateMilestoneInfo(userId,projectId,milestoneId,milestoneInfoUpdateDTO));
+                var responseMilestone = _mapper.Map<MilestoneResponseDTO>(await _milestoneService.UpdateMilestoneInfo(userId, projectId, milestoneId, milestoneInfoUpdateDTO));
                 return Ok(responseMilestone);
             }
             catch (UnauthorizedProjectRoleException ex)
@@ -121,6 +127,35 @@ namespace StartedIn.API.Controllers
             catch (Exception ex)
             {
                 return BadRequest(MessageConstant.UpdateFailed);
+            }
+        }
+
+        [HttpDelete("{milestoneId}")]
+        [Authorize(Roles = RoleConstants.USER)]
+        public async Task<ActionResult> DeleteMilestone([FromRoute] string projectId, [FromRoute] string milestoneId)
+        {
+            try
+            {
+                var userId = User.FindFirst(ClaimTypes.NameIdentifier).Value;
+                await _milestoneService.DeleteMilestone(userId, projectId, milestoneId);
+                return Ok();
+            }
+            catch (UnauthorizedProjectRoleException ex)
+            {
+                _logger.LogError(ex, "Unauthorized Role");
+                return StatusCode(403, ex.Message);
+            }
+            catch (NotFoundException ex)
+            {
+                return BadRequest(ex.Message);
+            }
+            catch (UnmatchedException ex)
+            {
+                return BadRequest(ex.Message);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(MessageConstant.DeleteFailed);
             }
         }
     }
