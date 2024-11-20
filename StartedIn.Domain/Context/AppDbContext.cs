@@ -54,6 +54,7 @@ namespace StartedIn.Domain.Context
         public DbSet<Recruitment> Recruitments { get; set; }
         public DbSet<RecruitmentImg> RecruitmentImgs { get; set; }
         public DbSet<Asset> Assets { get; set; }
+        public DbSet<Phase> Phases { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {

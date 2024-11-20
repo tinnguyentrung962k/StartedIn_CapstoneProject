@@ -70,5 +70,7 @@ namespace StartedIn.CrossCutting.Constants
         public const string TransactionNotFound = "Không tìm thấy giao dịch.";
         public const string AssetNotFound = "Không tìm thấy tài sản.";
         public const string AssetNotBelongToProject = "Tài sản không thuộc vào dự án.";
+        public const string StartDateLaterThanEndDate = "Ngày kết thúc không được sớm hơn ngày bắt đầu";
+        public const string NotFoundPhaseError = "Không tìm thấy giai đoạn của dự án";
     }
 }
