@@ -50,7 +50,7 @@ namespace StartedIn.Service.Services
             // Bước 2: Lọc các hợp đồng còn hiệu lực (hoặc hết hạn nhưng có phân bổ cổ phần trước ngày tính)
             var allContracts = contracts.Where(c =>
                 (c.ContractStatus == CrossCutting.Enum.ContractStatusEnum.COMPLETED) ||  // Hợp đồng còn hiệu lực
-                (c.ContractStatus == CrossCutting.Enum.ContractStatusEnum.EXPIRED && c.ExpiredDate >= equityShareFilterDTO.ToDate)  // Hợp đồng hết hạn nhưng vẫn còn hiệu lực trong ngày tính
+                (c.ContractStatus == CrossCutting.Enum.ContractStatusEnum.EXPIRED && c.ExpiredDate > equityShareFilterDTO.ToDate)  // Hợp đồng hết hạn nhưng vẫn còn hiệu lực trong ngày tính
             ).ToList();
 
             // Bước 3: Tính tổng cổ phần cho từng thành viên
