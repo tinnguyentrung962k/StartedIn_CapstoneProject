@@ -159,9 +159,7 @@ namespace StartedIn.API.Configuration.AutoMapper
         }
         private void ProjectCharterMappingProfile()
         {
-            CreateMap<ProjectCharterResponseDTO, ProjectCharter>().ReverseMap()
-                .ForMember(dto => dto.Milestones, opt
-                    => opt.MapFrom(projectCharter => projectCharter.Milestones));
+            CreateMap<ProjectCharterResponseDTO, ProjectCharter>().ReverseMap();
         }
         private void DealOfferMappingProfile()
         {

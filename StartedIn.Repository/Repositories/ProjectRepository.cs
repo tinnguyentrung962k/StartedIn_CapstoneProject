@@ -32,7 +32,7 @@ public class ProjectRepository : GenericRepository<Project, string>, IProjectRep
             .Include(p => p.InvestmentCalls)
             .Include(p => p.Finance)
             .Include(p => p.ProjectCharter)
-            .ThenInclude(pc => pc.Milestones)
+            .ThenInclude(pc => pc.Phases)
             .Include(p => p.Contracts)
             .ThenInclude(c=>c.Disbursements)
             .Where(x => x.DeletedTime == null)

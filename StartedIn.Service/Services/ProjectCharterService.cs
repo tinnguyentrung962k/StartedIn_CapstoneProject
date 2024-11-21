@@ -112,7 +112,7 @@ namespace StartedIn.Service.Services
         public async Task<ProjectCharter> GetProjectCharterByCharterId(string id)
         {
             var projectCharter = await _projectCharterRepository.QueryHelper()
-                .Include(x => x.Milestones)
+                .Include(x => x.Phases)
                 .Filter(x => x.Id.Equals(id))
                 .GetOneAsync();
             if (projectCharter == null)
@@ -125,7 +125,7 @@ namespace StartedIn.Service.Services
         public async Task<ProjectCharter> GetProjectCharterByProjectId(string projectId)
         {
             var projectCharter = await _projectCharterRepository.QueryHelper()
-                .Include(x => x.Milestones)
+                .Include(x => x.Phases)
                 .Filter(x => x.ProjectId.Equals(projectId))
                 .GetOneAsync(); ;
             if (projectCharter == null)
