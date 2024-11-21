@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Hosting;
 using StartedIn.CrossCutting.DTOs.RequestDTO.Auth;
+using StartedIn.CrossCutting.DTOs.RequestDTO.EquityShare;
 using StartedIn.CrossCutting.DTOs.RequestDTO.Project;
 using StartedIn.CrossCutting.DTOs.ResponseDTO;
 using StartedIn.CrossCutting.DTOs.ResponseDTO.Asset;

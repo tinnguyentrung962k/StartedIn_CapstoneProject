@@ -205,13 +205,7 @@ namespace StartedIn.Domain.Context
 
             modelBuilder.Entity<Milestone>()
                 .ToTable("Milestone");
-
-            modelBuilder.Entity<Milestone>()
-            .Property(u => u.PhaseName)
-            .HasConversion(
-            v => v.ToString(),
-                v => (PhaseEnum)Enum.Parse(typeof(PhaseEnum), v));
-
+            
             modelBuilder.Entity<MilestoneHistory>()
                 .ToTable("MilestoneHistory");
 
