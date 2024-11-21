@@ -17,5 +17,6 @@ namespace StartedIn.Service.Services.Interface
         Task<Transaction> AddAnTransactionForProject(string userId, string projectId, TransactionCreateDTO transactionCreateDTO);
         Task<Transaction> GetTransactionDetailById(string userId, string projectId, string transactionId);
         Task<Transaction> UploadEvidenceFile(string userId, string projectId, string transactionId, IFormFile file);
+        Task<TransactionInAndOutMoneyDTO> GetInAndOutMoneyTransactionOfPreviousMonth(string projectId);
     }
 }

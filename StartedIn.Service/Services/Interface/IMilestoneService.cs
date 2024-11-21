@@ -18,5 +18,6 @@ namespace StartedIn.Service.Services.Interface
         Task<Milestone> UpdateMilestoneInfo(string userId, string projectId, string id, MilestoneInfoUpdateDTO updateMilestoneInfoDTO);
         Task<PaginationDTO<MilestoneResponseDTO>> FilterMilestone(string userId, string projectId, MilestoneFilterDTO milestoneFilterDTO, int page, int size);
         Task DeleteMilestone(string userId, string projectId, string id);
+        int? CalculateProgress(Milestone milestone);
     }
 }

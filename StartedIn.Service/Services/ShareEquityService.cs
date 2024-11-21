@@ -97,5 +97,13 @@ namespace StartedIn.Service.Services
             // Bước 4: Trả về kết quả
             return shareEquitySummary;
         }
+        public async Task<decimal?> GetShareEquityOfAUserInAProject(string userId, string projectId)
+        {
+            var userInProject = await _userService.CheckIfUserInProject(userId, projectId);
+            var contracts = await _contractRepository.GetContractByProjectId(projectId);
+            var contractsOfUser = contracts.Where(c => c.ContractStatus == CrossCutting.Enum.ContractStatusEnum.COMPLETED && c.UserContracts.Any(uc => uc.UserId.Equals(userId)));
+            decimal? totalUserEquity = contractsOfUser.Sum(c => c.ShareEquities.Sum(s => s.Percentage));
+            return totalUserEquity;
+        }
     }
 }

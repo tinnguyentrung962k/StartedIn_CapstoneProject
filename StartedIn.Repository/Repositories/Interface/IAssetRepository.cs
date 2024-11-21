@@ -10,5 +10,6 @@ namespace StartedIn.Repository.Repositories.Interface
     public interface IAssetRepository :  IGenericRepository<Asset, string>
     {
         Task<Asset> GetAssetDetailById(string assetId);
+        IQueryable<Asset> GetAssetListQuery(string projectId);
     }
 }

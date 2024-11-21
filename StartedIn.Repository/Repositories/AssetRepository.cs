@@ -22,5 +22,11 @@ namespace StartedIn.Repository.Repositories
                 .FirstOrDefaultAsync();
             return asset;
         }
+        public IQueryable<Asset> GetAssetListQuery(string projectId)
+        {
+            var query = _dbSet.Where(x => x.ProjectId.Equals(projectId));
+            return query;
+                
+        }
     }
 }

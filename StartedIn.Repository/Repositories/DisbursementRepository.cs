@@ -45,12 +45,23 @@ namespace StartedIn.Repository.Repositories
             return query;
         }
 
+
         public IQueryable<Disbursement> GetDisbursementListOfAProjectQuery(string projectId)
         {
             var query = _appDbContext.Disbursements
                 .Include(x => x.Contract)
                 .Include(x => x.Investor)
                 .Where(x => x.Contract.ProjectId.Equals(projectId) && x.IsValidWithContract == true)
+                .OrderBy(x => x.StartDate);
+            return query;
+        }
+
+        public IQueryable<Disbursement> GetDisbursementListOfAnInvestorInAProjectQuery(string userId, string projectId)
+        {
+            var query = _appDbContext.Disbursements
+                .Include(x => x.Contract)
+                .Include(x => x.Investor)
+                .Where(x => x.Contract.ProjectId.Equals(projectId) && x.IsValidWithContract == true && x.InvestorId.Equals(userId))
                 .OrderBy(x => x.StartDate);
             return query;
         }
