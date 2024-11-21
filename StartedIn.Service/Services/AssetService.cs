@@ -118,9 +118,9 @@ namespace StartedIn.Service.Services
             {
                 assetQuery = assetQuery.Where(x => x.SerialNumber.Equals(assetFilterDTO.SerialNumber));
             }
-            if (assetFilterDTO.AssetStatus.HasValue)
+            if (assetFilterDTO.AssetStatus != null)
             {
-                assetQuery = assetQuery.Where(x => x.Status.Equals(assetFilterDTO.AssetStatus.Value));
+                assetQuery = assetQuery.Where(x => x.Status.Equals(assetFilterDTO.AssetStatus));
             }
             if (assetFilterDTO.FromDate.HasValue)
             {
