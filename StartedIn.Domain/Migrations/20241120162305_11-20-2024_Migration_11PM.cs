@@ -5,7 +5,7 @@
 namespace StartedIn.Domain.Migrations
 {
     /// <inheritdoc />
-    public partial class _11202024_Migration_11PM : Migration
+    public partial class _11202024_Migration_11PM23 : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
