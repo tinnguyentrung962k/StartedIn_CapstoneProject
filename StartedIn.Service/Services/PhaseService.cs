@@ -16,14 +16,16 @@ public class PhaseService : IPhaseService
     private readonly IUnitOfWork _unitOfWork;
     private readonly IPhaseRepository _phaseRepository;
     private readonly ILogger<Phase> _logger;
+    private readonly IProjectCharterRepository _projectCharterRepository;
     public PhaseService(IUserService userService, IProjectRepository projectRepository, IUnitOfWork unitOfWork, IPhaseRepository phaseRepository,
-        ILogger<Phase> logger)
+        ILogger<Phase> logger, IProjectCharterRepository projectCharterRepository)
     {
         _userService = userService;
         _projectRepository = projectRepository;
         _unitOfWork = unitOfWork;
         _phaseRepository = phaseRepository;
         _logger = logger;
+        _projectCharterRepository = projectCharterRepository;
     }
     
     public async Task<Phase> CreateNewPhase(string userId, string projectId, string charterId, CreatePhaseDTO createPhaseDto)
@@ -64,8 +66,14 @@ public class PhaseService : IPhaseService
         
     }
 
-    public async Task<Phase> GetPhaseByPhaseId(string phaseId)
+    public async Task<Phase> GetPhaseByPhaseId(string charterId, string phaseId)
     {
+        var projectCharter =
+            await _projectCharterRepository.QueryHelper().Filter(p => p.Id.Equals(charterId)).GetOneAsync();
+        if (projectCharter == null)
+        {
+            throw new NotFoundException(MessageConstant.NotFoundProjectCharterError);
+        }
         var phase = await _phaseRepository.QueryHelper().Filter(p => p.Id.Equals(phaseId)).GetOneAsync();
         if (phase == null)
         {

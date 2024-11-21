@@ -10,6 +10,7 @@ using StartedIn.CrossCutting.DTOs.ResponseDTO.DealOffer;
 using StartedIn.CrossCutting.DTOs.ResponseDTO.Disbursement;
 using StartedIn.CrossCutting.DTOs.ResponseDTO.InvestmentCall;
 using StartedIn.CrossCutting.DTOs.ResponseDTO.Milestone;
+using StartedIn.CrossCutting.DTOs.ResponseDTO.Phase;
 using StartedIn.CrossCutting.DTOs.ResponseDTO.Project;
 using StartedIn.CrossCutting.DTOs.ResponseDTO.ProjectCharter;
 using StartedIn.CrossCutting.DTOs.ResponseDTO.ShareEquity;
@@ -37,6 +38,7 @@ namespace StartedIn.API.Configuration.AutoMapper
             InvestmentCallMappingProfile();
             TransactionMappingProfile();
             AssetProfileMapping();
+            PhaseProfileMapping();
         }
 
 
@@ -231,7 +233,11 @@ namespace StartedIn.API.Configuration.AutoMapper
             CreateMap<Asset, AssetResponseDTO>()
                 .ForMember(dest => dest.Price, opt => opt.MapFrom(src => src.Price.ToString()));  
         }
-         
+
+        private void PhaseProfileMapping()
+        {
+            CreateMap<Phase, PhaseResponseDTO>().ReverseMap();
+        }
         
     }
 }
