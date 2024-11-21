@@ -101,8 +101,13 @@ namespace StartedIn.Service.Services
         {
             var userInProject = await _userService.CheckIfUserInProject(userId, projectId);
             var contracts = await _contractRepository.GetContractByProjectId(projectId);
-            var contractsOfUser = contracts.Where(c => c.ContractStatus == CrossCutting.Enum.ContractStatusEnum.COMPLETED && c.UserContracts.Any(uc => uc.UserId.Equals(userId)));
-            decimal? totalUserEquity = contractsOfUser.Sum(c => c.ShareEquities.Sum(s => s.Percentage));
+            var contractsOfUser = contracts.Where(c => c.ContractStatus == CrossCutting.Enum.ContractStatusEnum.COMPLETED && c.ShareEquities.Any(se => se.UserId.Equals(userId))).ToList();
+            decimal totalUserEquity = 0;
+            foreach (var contract in contractsOfUser)
+            {
+                var equityOfUserInContract = contract.ShareEquities.FirstOrDefault(x => x.UserId.Equals(userId)).Percentage;
+                totalUserEquity += (decimal)equityOfUserInContract;
+            }
             return totalUserEquity;
         }
     }
