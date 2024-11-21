@@ -12,5 +12,6 @@ namespace StartedIn.Service.Services.Interface
     public interface IShareEquityService
     {
         Task<List<ShareEquitySummaryDTO>> GetShareEquityOfAllMembersInAProject(string userId, string projectId, EquityShareFilterDTO equityShareFilterDTO);
+        Task<decimal?> GetShareEquityOfAUserInAProject(string userId, string projectId);
     }
 }

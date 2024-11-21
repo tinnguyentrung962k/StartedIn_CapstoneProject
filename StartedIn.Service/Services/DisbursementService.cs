@@ -12,6 +12,7 @@ using StartedIn.CrossCutting.DTOs.ResponseDTO;
 using StartedIn.CrossCutting.DTOs.ResponseDTO.Contract;
 using StartedIn.CrossCutting.DTOs.ResponseDTO.Disbursement;
 using StartedIn.CrossCutting.DTOs.ResponseDTO.Tasks;
+using StartedIn.CrossCutting.Enum;
 using StartedIn.CrossCutting.Exceptions;
 using StartedIn.Domain.Entities;
 using StartedIn.Repository.Repositories.Interface;
@@ -427,6 +428,26 @@ namespace StartedIn.Service.Services
             };
 
             return pagination;
+        }
+
+        public async Task<SelfDisbursmentOfInvestorDTO> GetSelfDisbursementForInvestor(string userId, string projectId)
+        {
+            var userInProject = await _userService.CheckIfUserInProject(userId, projectId);
+            var disbursementsOfAnInvestor = await _disbursementRepository.GetDisbursementListOfAnInvestorInAProjectQuery(userId, projectId).ToListAsync();
+            var totalDisbursedAmount = disbursementsOfAnInvestor
+                .Where(d => d.DisbursementStatus == DisbursementStatusEnum.FINISHED) // Lọc các đợt đã giải ngân
+                .Sum(d => d.Amount); // Tổng số tiền đã giải ngân
+
+            var totalRemainingDisbursement = disbursementsOfAnInvestor
+                .Where(d => d.DisbursementStatus != DisbursementStatusEnum.FINISHED) // Lọc các đợt chưa giải ngân
+                .Sum(d => d.Amount); // Tổng số tiền chưa giải ngân
+
+            // Tạo DTO trả về
+            return new SelfDisbursmentOfInvestorDTO
+            {
+                SelfDisbursedAmount = totalDisbursedAmount.ToString(), // Chuyển đổi thành chuỗi
+                SelfRemainingDisbursement = totalRemainingDisbursement.ToString() // Chuyển đổi thành chuỗi
+            };
         }
 
         public async Task RejectADisbursement(string userId, string disbursementId, DisbursementRejectDTO disbursementRejectDTO)

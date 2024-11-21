@@ -327,4 +327,28 @@ public class ProjectController : ControllerBase
             return StatusCode(500, MessageConstant.InternalServerError);
         }
     }
+
+    [HttpGet("{projectId}/dashboard")]
+    [Authorize(Roles = RoleConstants.USER + "," + RoleConstants.INVESTOR)]
+    public async Task<ActionResult<ProjectDashboardDTO>> GetProjectDashboard([FromRoute] string projectId)
+    {
+        try
+        {
+            var userId = User.FindFirst(ClaimTypes.NameIdentifier).Value;
+            var dashboard = await _projectService.GetProjectDashboard(userId, projectId);
+            return Ok(dashboard);
+        }
+        catch (NotFoundException ex)
+        {
+            return BadRequest(ex.Message);
+        }
+        catch (UnauthorizedProjectRoleException ex)
+        {
+            return StatusCode(403, ex.Message);
+        }
+        catch (Exception ex)
+        {
+            return StatusCode(500, ex.Message);
+        }
+    }
 }
