@@ -804,6 +804,9 @@ namespace StartedIn.Domain.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("text");
 
+                    b.Property<string>("CharterId")
+                        .HasColumnType("text");
+
                     b.Property<string>("CreatedBy")
                         .HasColumnType("text");
 
@@ -826,11 +829,8 @@ namespace StartedIn.Domain.Migrations
                     b.Property<DateTimeOffset>("LastUpdatedTime")
                         .HasColumnType("timestamp with time zone");
 
-                    b.Property<string>("PhaseId")
+                    b.Property<string>("PhaseName")
                         .IsRequired()
-                        .HasColumnType("text");
-
-                    b.Property<string>("ProjectCharterId")
                         .HasColumnType("text");
 
                     b.Property<string>("ProjectId")
@@ -847,9 +847,7 @@ namespace StartedIn.Domain.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("PhaseId");
-
-                    b.HasIndex("ProjectCharterId");
+                    b.HasIndex("CharterId");
 
                     b.HasIndex("ProjectId");
 
@@ -1826,15 +1824,9 @@ namespace StartedIn.Domain.Migrations
 
             modelBuilder.Entity("StartedIn.Domain.Entities.Milestone", b =>
                 {
-                    b.HasOne("StartedIn.Domain.Entities.Phase", "Phase")
+                    b.HasOne("StartedIn.Domain.Entities.ProjectCharter", "ProjectCharter")
                         .WithMany("Milestones")
-                        .HasForeignKey("PhaseId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("StartedIn.Domain.Entities.ProjectCharter", null)
-                        .WithMany("Milestones")
-                        .HasForeignKey("ProjectCharterId");
+                        .HasForeignKey("CharterId");
 
                     b.HasOne("StartedIn.Domain.Entities.Project", "Project")
                         .WithMany("Milestones")
@@ -1842,9 +1834,9 @@ namespace StartedIn.Domain.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.Navigation("Phase");
-
                     b.Navigation("Project");
+
+                    b.Navigation("ProjectCharter");
                 });
 
             modelBuilder.Entity("StartedIn.Domain.Entities.MilestoneHistory", b =>
@@ -2106,11 +2098,6 @@ namespace StartedIn.Domain.Migrations
                     b.Navigation("MilestoneHistories");
 
                     b.Navigation("Tasks");
-                });
-
-            modelBuilder.Entity("StartedIn.Domain.Entities.Phase", b =>
-                {
-                    b.Navigation("Milestones");
                 });
 
             modelBuilder.Entity("StartedIn.Domain.Entities.Project", b =>
