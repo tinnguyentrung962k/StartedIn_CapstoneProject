@@ -67,7 +67,6 @@ namespace StartedIn.Service.Services
                     Description = milestoneCreateDto.Description,
                     StartDate = DateOnly.FromDateTime(milestoneCreateDto.StartDate),
                     EndDate = DateOnly.FromDateTime(milestoneCreateDto.EndDate),
-                    PhaseName = milestoneCreateDto.PhaseEnum
                 };
                 var milestoneEntity = _milestoneRepository.Add(milestone);
                 string notification = loginUser.User.FullName + " đã tạo ra cột mốc: " + milestone.Title;
@@ -136,7 +135,7 @@ namespace StartedIn.Service.Services
             try
             {
                 _unitOfWork.BeginTransaction();
-                chosenMilestone.Title = updateMilestoneInfoDTO.MilestoneTitle;
+                chosenMilestone.Title = updateMilestoneInfoDTO.Title;
                 chosenMilestone.Description = updateMilestoneInfoDTO.Description;
                 chosenMilestone.StartDate = updateMilestoneInfoDTO.StartDate;
                 chosenMilestone.EndDate = updateMilestoneInfoDTO.EndDate;

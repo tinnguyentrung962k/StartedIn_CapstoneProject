@@ -14,7 +14,6 @@ namespace StartedIn.CrossCutting.DTOs.RequestDTO.Milestone
         public DateTime StartDate { get; set; }
         [Required]
         public DateTime EndDate { get; set; }
-        [Required(ErrorMessage = "Vui lòng chọn giai đoạn của dự án")]
-        public PhaseEnum PhaseEnum { get; set; }
+        public string? PhaseId { get; set; }
     }
 }
