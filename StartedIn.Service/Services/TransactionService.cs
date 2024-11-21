@@ -73,6 +73,39 @@ namespace StartedIn.Service.Services
             };
             return pagination;
         }
+        public async Task<TransactionInAndOutMoneyDTO> GetInAndOutMoneyTransactionOfPreviousMonth(string projectId) 
+        {
+            var now = DateTimeOffset.UtcNow; // Lấy thời gian hiện tại theo UTC với kiểu DateTimeOffset
+            var startOfCurrentMonth = new DateTimeOffset(now.Year, now.Month, 1, 0, 0, 0, TimeSpan.Zero); // Ngày đầu tiên của tháng hiện tại
+            var startOfPreviousMonth = startOfCurrentMonth.AddMonths(-1); // Ngày đầu tiên của tháng trước
+            var endOfPreviousMonth = startOfCurrentMonth.AddTicks(-1); // Ngày cuối cùng của tháng trước
+
+            // Fetch transactions for the given project ID
+            var transactionsList = await _transactionRepository
+                .GetTransactionsListQuery(projectId)
+                .ToListAsync();
+
+            // Filter transactions for the previous month
+            var transactionsPreviousMonth = transactionsList
+                .Where(t => t.CreatedTime >= startOfPreviousMonth && t.CreatedTime <= endOfPreviousMonth);
+
+            // Calculate In and Out Money for the previous month
+            var totalInPreviousMonth = transactionsPreviousMonth
+                .Where(t => t.IsInFlow is true)
+                .Sum(t => t.Amount);
+
+            var totalOutPreviousMonth = transactionsPreviousMonth
+                .Where(t => t.IsInFlow is false)
+                .Sum(t => t.Amount);
+
+            // Return the DTO with the calculated values
+            return new TransactionInAndOutMoneyDTO
+            {
+                InMoney = totalInPreviousMonth.ToString(),
+                OutMoney = totalOutPreviousMonth.ToString()
+            };
+
+        }
         public async Task<Transaction> AddAnTransactionForProject(string userId, string projectId, TransactionCreateDTO transactionCreateDTO)
         {
             var userInProject = await _userService.CheckIfUserInProject(userId, projectId);

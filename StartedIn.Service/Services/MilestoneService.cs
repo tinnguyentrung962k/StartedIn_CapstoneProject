@@ -236,7 +236,7 @@ namespace StartedIn.Service.Services
             }
         }
 
-        private int? CalculateProgress(Milestone milestone)
+        public int? CalculateProgress(Milestone milestone)
         {
             // Get completed man hour of all tasks in a milestone / total man hour of all tasks in a milestone and if total man hour is 0, return 0
             var totalManHour = milestone.Tasks.Sum(t => t.ManHour);

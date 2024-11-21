@@ -21,4 +21,5 @@ public interface IProjectService
     Task<PayOsPaymentGatewayResponseDTO> GetPaymentGatewayInfoByProjectId(string userId, string projectId);
     Task<List<Project>> GetAllProjectsForAdmin(int page, int size);
     Task<Project> ActivateProject(string projectId);
+    Task<ProjectDashboardDTO> GetProjectDashboard(string userId, string projectId);
 }

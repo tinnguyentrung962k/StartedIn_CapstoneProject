@@ -14,7 +14,7 @@ namespace StartedIn.Repository.Repositories.Interface
         Task<Disbursement> GetDisbursementById(string id);
         IQueryable<Disbursement> GetDisbursementListOfInvestorQuery(string userId);
         IQueryable<Disbursement> GetDisbursementListOfAProjectQuery(string projectId);
-
+        IQueryable<Disbursement> GetDisbursementListOfAnInvestorInAProjectQuery(string userId, string projectId);
 
     }
 }

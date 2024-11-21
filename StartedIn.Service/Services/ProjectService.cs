@@ -5,6 +5,7 @@ using Microsoft.Extensions.Logging;
 using StartedIn.CrossCutting.Constants;
 using StartedIn.CrossCutting.DTOs.RequestDTO.Project;
 using StartedIn.CrossCutting.DTOs.ResponseDTO;
+using StartedIn.CrossCutting.DTOs.ResponseDTO.Milestone;
 using StartedIn.CrossCutting.DTOs.ResponseDTO.Project;
 using StartedIn.CrossCutting.Enum;
 using StartedIn.CrossCutting.Exceptions;
@@ -27,6 +28,10 @@ public class ProjectService : IProjectService
     private readonly IAzureBlobService _azureBlobService;
     private readonly IUserService _userService;
     private readonly IFinanceRepository _financeRepository;
+    private readonly IMilestoneService _milestoneService;
+    private readonly IShareEquityService _shareEquityService;
+    private readonly ITransactionService _transactionService;
+    private readonly IDisbursementService _disbursementService;
 
     public ProjectService(
         IProjectRepository projectRepository, 
@@ -37,7 +42,11 @@ public class ProjectService : IProjectService
         IUserRepository userRepository, 
         IAzureBlobService azureBlobService, 
         IUserService userService,
-        IFinanceRepository financeRepository)
+        IFinanceRepository financeRepository,
+        IMilestoneService milestoneService,
+        IShareEquityService shareEquityService,
+        ITransactionService transactionService,
+        IDisbursementService disbursementService)
     {
         _projectRepository = projectRepository;
         _unitOfWork = unitOfWork;
@@ -48,6 +57,10 @@ public class ProjectService : IProjectService
         _azureBlobService = azureBlobService;
         _userService = userService;
         _financeRepository = financeRepository;
+        _milestoneService = milestoneService;
+        _shareEquityService = shareEquityService;
+        _transactionService = transactionService;
+        _disbursementService = disbursementService;
     }
     public async Task<Project> CreateNewProject(string userId, ProjectCreateDTO projectCreateDTO)
     {
@@ -425,6 +438,43 @@ public class ProjectService : IProjectService
                 return reader.ReadToEnd();
             }
         }
+    }
+
+    public async Task<ProjectDashboardDTO> GetProjectDashboard(string userId, string projectId)
+    {
+        var userInProject = await _userService.CheckIfUserInProject(userId, projectId);
+        var project = await _projectRepository.GetProjectById(projectId);
+        var milestoneProgressList = new List<MilestoneProgressResponseDTO>();
+        if (project.Milestones != null)
+        {
+            milestoneProgressList = project.Milestones.Select(m => new MilestoneProgressResponseDTO
+            {
+                Id = m.Id,
+                Title = m.Title,
+                Progress = _milestoneService.CalculateProgress(m)
+            }).ToList();
+        }
+        var transactionStatisticOfPreviousMonth = await _transactionService.GetInAndOutMoneyTransactionOfPreviousMonth(projectId);
+        var userShareInProject = await _shareEquityService.GetShareEquityOfAUserInAProject(userId, projectId);
+        ProjectDashboardDTO projectDashboardDTO = new ProjectDashboardDTO
+        {
+            CurrentBudget = project.Finance.CurrentBudget.ToString(),
+            DisbursedAmount = project.Finance.DisbursedAmount.ToString(),
+            RemainingDisbursement = project.Finance.RemainingDisbursement.ToString(),
+            MilestoneProgress = milestoneProgressList,
+            ShareEquityPercentage = userShareInProject.ToString(),
+            InAmount = transactionStatisticOfPreviousMonth.InMoney.ToString(),
+            OutAmount = transactionStatisticOfPreviousMonth.OutMoney.ToString(),
+        };
+
+        if (userInProject.RoleInTeam == RoleInTeam.Investor)
+        {
+            var selfDisbursementsStatistic = await _disbursementService.GetSelfDisbursementForInvestor(userId, projectId);
+            projectDashboardDTO.SelfRemainingDisbursement = selfDisbursementsStatistic.SelfRemainingDisbursement;
+            projectDashboardDTO.SelfDisbursedAmount = selfDisbursementsStatistic.SelfDisbursedAmount;
+        }
+
+        return projectDashboardDTO;
     }
 
 }
