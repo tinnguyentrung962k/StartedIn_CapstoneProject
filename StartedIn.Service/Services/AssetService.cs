@@ -1,8 +1,13 @@
-﻿using Microsoft.AspNetCore.Identity;
+﻿using AutoMapper;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
+using Microsoft.OpenApi.Services;
 using StartedIn.CrossCutting.Constants;
 using StartedIn.CrossCutting.DTOs.RequestDTO.Asset;
 using StartedIn.CrossCutting.DTOs.RequestDTO.Transaction;
+using StartedIn.CrossCutting.DTOs.ResponseDTO;
+using StartedIn.CrossCutting.DTOs.ResponseDTO.Asset;
 using StartedIn.CrossCutting.Enum;
 using StartedIn.CrossCutting.Exceptions;
 using StartedIn.Domain.Entities;
@@ -26,6 +31,7 @@ namespace StartedIn.Service.Services
         private readonly UserManager<User> _userManager;
         private readonly IAzureBlobService _azureBlobService;
         private readonly ILogger<AssetService> _logger;
+        private readonly IMapper _mapper;
         public AssetService(IAssetRepository assetRepository, 
             IUserService userService, 
             IUnitOfWork unitOfWork, 
@@ -33,7 +39,8 @@ namespace StartedIn.Service.Services
             UserManager<User> userManager,
             ITransactionRepository transactionRepository,
             IAzureBlobService azureBlobService,
-            ILogger<AssetService> logger) 
+            ILogger<AssetService> logger,
+            IMapper mapper) 
         {
             _assetRepository = assetRepository;
             _userService = userService;
@@ -43,6 +50,7 @@ namespace StartedIn.Service.Services
             _transactionRepository = transactionRepository;
             _azureBlobService = azureBlobService;
             _logger = logger;
+            _mapper = mapper;
         }
 
         public async Task<Asset> AddNewAssetToProject(string userId, string projectId, AssetCreateDTO assetCreateDTO)
@@ -73,7 +81,7 @@ namespace StartedIn.Service.Services
                     Quantity = assetCreateDTO.Quantity,
                     Project = userInProject.Project,
                     SerialNumber = assetCreateDTO.SerialNumber,
-                    Status = assetCreateDTO.AssetStatus
+                    Status = AssetStatus.Available
                 };
                 var assetEntity = _assetRepository.Add(asset);
                 await _unitOfWork.SaveChangesAsync();
@@ -101,6 +109,56 @@ namespace StartedIn.Service.Services
                 throw new UnmatchedException(MessageConstant.AssetNotBelongToProject);
             }
             return asset;
+        }
+        public async Task<PaginationDTO<AssetResponseDTO>> FilterAssetInAProject(string userId, string projectId, int page, int size, AssetFilterDTO assetFilterDTO)
+        {
+            var userInProject = await _userService.CheckIfUserInProject(userId, projectId);
+            var assetQuery = _assetRepository.GetAssetListQuery(projectId);
+            if (!string.IsNullOrWhiteSpace(assetFilterDTO.SerialNumber))
+            {
+                assetQuery = assetQuery.Where(x => x.SerialNumber.Equals(assetFilterDTO.SerialNumber));
+            }
+            if (assetFilterDTO.AssetStatus.HasValue)
+            {
+                assetQuery = assetQuery.Where(x => x.Status.Equals(assetFilterDTO.AssetStatus.Value));
+            }
+            if (assetFilterDTO.FromDate.HasValue)
+            {
+                assetQuery = assetQuery.Where(x => x.PurchaseDate >= assetFilterDTO.FromDate.Value);
+            }
+            if (assetFilterDTO.ToDate.HasValue)
+            {
+                assetQuery = assetQuery.Where(x => x.PurchaseDate <= assetFilterDTO.ToDate.Value);
+            }
+            if (assetFilterDTO.FromPrice.HasValue)
+            {
+                assetQuery = assetQuery.Where(x => x.Price >= assetFilterDTO.FromPrice.Value);
+            }
+            if (assetFilterDTO.ToPrice.HasValue)
+            {
+                assetQuery = assetQuery.Where(x => x.Price <= assetFilterDTO.ToPrice.Value);
+            }
+            if (!string.IsNullOrWhiteSpace(assetFilterDTO.AssetName))
+            {
+                assetQuery = assetQuery.Where(x => x.AssetName.ToLower().Contains(assetFilterDTO.AssetName.ToLower()));
+            }
+            
+            int totalCount = await assetQuery.CountAsync();
+
+            var pagedResult = await assetQuery
+                .Skip((page - 1) * size)
+                .Take(size)
+                .ToListAsync();
+
+            var response = _mapper.Map<List<AssetResponseDTO>>(pagedResult);
+            var pagination = new PaginationDTO<AssetResponseDTO>
+            {
+                Total = totalCount,
+                Size = size,
+                Data = response,
+                Page = page
+            };
+            return pagination;
         }
     }
 }

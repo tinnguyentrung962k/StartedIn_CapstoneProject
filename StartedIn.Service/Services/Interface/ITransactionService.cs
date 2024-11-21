@@ -1,4 +1,5 @@
-﻿using StartedIn.CrossCutting.DTOs.RequestDTO.Transaction;
+﻿using Microsoft.AspNetCore.Http;
+using StartedIn.CrossCutting.DTOs.RequestDTO.Transaction;
 using StartedIn.CrossCutting.DTOs.ResponseDTO;
 using StartedIn.CrossCutting.DTOs.ResponseDTO.Transaction;
 using StartedIn.Domain.Entities;
@@ -15,5 +16,6 @@ namespace StartedIn.Service.Services.Interface
         Task<PaginationDTO<TransactionResponseDTO>> GetListTransactionOfAProject(string userId, string projectId, int page, int size);
         Task<Transaction> AddAnTransactionForProject(string userId, string projectId, TransactionCreateDTO transactionCreateDTO);
         Task<Transaction> GetTransactionDetailById(string userId, string projectId, string transactionId);
+        Task<Transaction> UploadEvidenceFile(string userId, string projectId, string transactionId, IFormFile file);
     }
 }

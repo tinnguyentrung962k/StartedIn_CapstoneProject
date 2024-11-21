@@ -513,7 +513,6 @@ namespace StartedIn.Service.Services
             {
                 Content = disbursement.Investor.FullName + " giải ngân: " + disbursement.Title,
                 Amount = disbursement.Amount,
-                Budget = disbursement.Amount,
                 Disbursement = disbursement,
                 DisbursementId = disbursement.Id,
                 FinanceId = projectFinance.Id,

@@ -14,7 +14,6 @@ namespace StartedIn.CrossCutting.DTOs.ResponseDTO.Transaction
     {
         public string ProjectId { get; set; }
         public string Amount { get; set; }
-        public string Budget { get; set; }
         public string FromID { get; set; }
         public string FromUserName { get; set; }
         public string ToID { get; set; }
@@ -24,10 +23,9 @@ namespace StartedIn.CrossCutting.DTOs.ResponseDTO.Transaction
         public string EvidenceUrl { get; set; }
         public bool IsInFlow { get; set; }
         public string? DisbursementId { get; set; }
-        public string? AssetId { get; set; }
         public DateTimeOffset LastUpdatedTime { get; set; }
         public DisbursementDetailInATransactionResponseDTO? Disbursement { get; set; }
-        public AssetResponseDTO? Asset { get; set; }
+        public List<AssetResponseDTO>? Assets { get; set; }
 
     }
 }

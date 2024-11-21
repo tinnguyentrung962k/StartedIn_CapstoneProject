@@ -15,7 +15,6 @@ namespace StartedIn.CrossCutting.DTOs.RequestDTO.Asset
         public decimal? Price { get; set; }
         public DateOnly? PurchaseDate { get; set; }
         public int? Quantity { get; set; }
-        public AssetStatus? AssetStatus { get; set; }
         public string? SerialNumber { get; set; }
     }
 }

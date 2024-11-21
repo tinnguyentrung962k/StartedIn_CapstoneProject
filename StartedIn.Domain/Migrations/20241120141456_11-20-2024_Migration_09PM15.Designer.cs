@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using StartedIn.Domain.Context;
@@ -11,9 +12,11 @@ using StartedIn.Domain.Context;
 namespace StartedIn.Domain.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20241120141456_11-20-2024_Migration_09PM15")]
+    partial class _11202024_Migration_09PM15
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -820,7 +823,13 @@ namespace StartedIn.Domain.Migrations
                         .HasMaxLength(255)
                         .HasColumnType("character varying(255)");
 
-                    b.Property<DateOnly>("EndDate")
+                    b.Property<DateOnly>("DueDate")
+                        .HasColumnType("date");
+
+                    b.Property<int?>("ExtendedCount")
+                        .HasColumnType("integer");
+
+                    b.Property<DateOnly?>("ExtendedDate")
                         .HasColumnType("date");
 
                     b.Property<string>("LastUpdatedBy")
@@ -829,6 +838,9 @@ namespace StartedIn.Domain.Migrations
                     b.Property<DateTimeOffset>("LastUpdatedTime")
                         .HasColumnType("timestamp with time zone");
 
+                    b.Property<decimal?>("Percentage")
+                        .HasColumnType("decimal(5,2)");
+
                     b.Property<string>("PhaseName")
                         .IsRequired()
                         .HasColumnType("text");
@@ -836,9 +848,6 @@ namespace StartedIn.Domain.Migrations
                     b.Property<string>("ProjectId")
                         .IsRequired()
                         .HasColumnType("text");
-
-                    b.Property<DateOnly>("StartDate")
-                        .HasColumnType("date");
 
                     b.Property<string>("Title")
                         .IsRequired()
@@ -888,48 +897,6 @@ namespace StartedIn.Domain.Migrations
                     b.HasIndex("MilestoneId");
 
                     b.ToTable("MilestoneHistory", (string)null);
-                });
-
-            modelBuilder.Entity("StartedIn.Domain.Entities.Phase", b =>
-                {
-                    b.Property<string>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("text");
-
-                    b.Property<string>("CreatedBy")
-                        .HasColumnType("text");
-
-                    b.Property<DateTimeOffset>("CreatedTime")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<DateTimeOffset?>("DeletedTime")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<DateOnly>("EndDate")
-                        .HasColumnType("date");
-
-                    b.Property<string>("LastUpdatedBy")
-                        .HasColumnType("text");
-
-                    b.Property<DateTimeOffset>("LastUpdatedTime")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<string>("PhaseName")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.Property<string>("ProjectCharterId")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.Property<DateOnly>("StartDate")
-                        .HasColumnType("date");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("ProjectCharterId");
-
-                    b.ToTable("Phases");
                 });
 
             modelBuilder.Entity("StartedIn.Domain.Entities.Project", b =>
@@ -1280,9 +1247,6 @@ namespace StartedIn.Domain.Migrations
 
                     b.Property<DateTimeOffset>("LastUpdatedTime")
                         .HasColumnType("timestamp with time zone");
-
-                    b.Property<int>("ManHour")
-                        .HasColumnType("integer");
 
                     b.Property<string>("MilestoneId")
                         .HasColumnType("text");
@@ -1848,17 +1812,6 @@ namespace StartedIn.Domain.Migrations
                         .IsRequired();
 
                     b.Navigation("Milestone");
-                });
-
-            modelBuilder.Entity("StartedIn.Domain.Entities.Phase", b =>
-                {
-                    b.HasOne("StartedIn.Domain.Entities.ProjectCharter", "ProjectCharter")
-                        .WithMany()
-                        .HasForeignKey("ProjectCharterId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("ProjectCharter");
                 });
 
             modelBuilder.Entity("StartedIn.Domain.Entities.ProjectCharter", b =>

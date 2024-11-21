@@ -675,17 +675,14 @@ namespace StartedIn.Service.Services
             }
 
             // Filter by Last Updated Date Range
-            if (search.LastUpdatedStartDate != default || search.LastUpdatedEndDate != default)
+            if (search.LastUpdatedStartDate.HasValue)
             {
-                if (search.LastUpdatedStartDate != default)
-                {
-                    searchResult = searchResult.Where(c => c.LastUpdatedTime >= search.LastUpdatedStartDate);
-                }
+                searchResult = searchResult.Where(c => c.LastUpdatedTime >= search.LastUpdatedStartDate.Value);
+            }
 
-                if (search.LastUpdatedEndDate != default)
-                {
-                    searchResult = searchResult.Where(c => c.LastUpdatedTime <= search.LastUpdatedEndDate);
-                }
+            if (search.LastUpdatedEndDate.HasValue)
+            {
+                searchResult = searchResult.Where(c => c.LastUpdatedTime <= search.LastUpdatedEndDate.Value);
             }
 
             // Filter by Contract Status Enum
