@@ -45,6 +45,14 @@ namespace StartedIn.API.Controllers
             {
                 return StatusCode(403, ex.Message);
             }
+            catch (AssignParentTaskException ex)
+            {
+                return BadRequest(ex.Message);
+            }
+            catch (NotFoundException ex)
+            {
+                return BadRequest(ex.Message);
+            }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error while creating new task.");
