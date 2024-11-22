@@ -338,7 +338,7 @@ public class ProjectService : IProjectService
         {
             var project = await _projectRepository.GetProjectById(projectId);
             project.HarshChecksumPayOsKey = EncryptString(payOsPaymentGatewayRegisterDTO.ChecksumKey);
-            project.HarshClientIdPayOsKey = EncryptString(payOsPaymentGatewayRegisterDTO.ClientIdKey);
+            project.HarshClientIdPayOsKey = EncryptString(payOsPaymentGatewayRegisterDTO.ClientKey);
             project.HarshPayOsApiKey = EncryptString(payOsPaymentGatewayRegisterDTO.ApiKey);
             var projectEntity = _projectRepository.Update(project);
             await _unitOfWork.SaveChangesAsync();
