@@ -746,10 +746,6 @@ namespace StartedIn.Service.Services
             {
                 throw new UpdateException(MessageConstant.CannotEditContractError);
             }
-            if (contract.DealOfferId != null)
-            {
-                throw new UpdateException(MessageConstant.CannotEditContractError);
-            }
             var project = await _projectRepository.GetProjectById(projectId);
             if (investmentContractUpdateDTO.InvestorInfo.Percentage > project.RemainingPercentOfShares)
             {
