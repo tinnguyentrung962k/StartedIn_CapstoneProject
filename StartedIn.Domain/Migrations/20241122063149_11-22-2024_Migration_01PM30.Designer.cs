@@ -12,8 +12,8 @@ using StartedIn.Domain.Context;
 namespace StartedIn.Domain.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20241104092436_041120241630")]
-    partial class _041120241630
+    [Migration("20241122063149_11-22-2024_Migration_01PM30")]
+    partial class _11222024_Migration_01PM30
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -116,6 +116,168 @@ namespace StartedIn.Domain.Migrations
                     b.ToTable("UserTokens", (string)null);
                 });
 
+            modelBuilder.Entity("StartedIn.Domain.Entities.Application", b =>
+                {
+                    b.Property<string>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("text");
+
+                    b.Property<string>("CVUrl")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("CandidateId")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("CreatedBy")
+                        .HasColumnType("text");
+
+                    b.Property<DateTimeOffset>("CreatedTime")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<DateTimeOffset?>("DeletedTime")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("LastUpdatedBy")
+                        .HasColumnType("text");
+
+                    b.Property<DateTimeOffset>("LastUpdatedTime")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("RecruitmentId")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CandidateId");
+
+                    b.HasIndex("RecruitmentId");
+
+                    b.ToTable("Application", (string)null);
+                });
+
+            modelBuilder.Entity("StartedIn.Domain.Entities.Appointment", b =>
+                {
+                    b.Property<string>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("text");
+
+                    b.Property<DateTime>("AppointmentTime")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("CreatedBy")
+                        .HasColumnType("text");
+
+                    b.Property<DateTimeOffset>("CreatedTime")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<DateTimeOffset?>("DeletedTime")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("Description")
+                        .HasMaxLength(255)
+                        .HasColumnType("character varying(255)");
+
+                    b.Property<string>("LastUpdatedBy")
+                        .HasColumnType("text");
+
+                    b.Property<DateTimeOffset>("LastUpdatedTime")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("MeetingLink")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("MilestoneId")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("ProjectId")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("Title")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("MilestoneId");
+
+                    b.HasIndex("ProjectId");
+
+                    b.ToTable("Appointment", (string)null);
+                });
+
+            modelBuilder.Entity("StartedIn.Domain.Entities.Asset", b =>
+                {
+                    b.Property<string>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("text");
+
+                    b.Property<string>("AssetName")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
+
+                    b.Property<string>("CreatedBy")
+                        .HasColumnType("text");
+
+                    b.Property<DateTimeOffset>("CreatedTime")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<DateTimeOffset?>("DeletedTime")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("LastUpdatedBy")
+                        .HasColumnType("text");
+
+                    b.Property<DateTimeOffset>("LastUpdatedTime")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<decimal?>("Price")
+                        .HasColumnType("decimal(14,3)");
+
+                    b.Property<string>("ProjectId")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<DateOnly?>("PurchaseDate")
+                        .HasColumnType("date");
+
+                    b.Property<int?>("Quantity")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("SerialNumber")
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)");
+
+                    b.Property<string>("Status")
+                        .HasColumnType("text");
+
+                    b.Property<string>("TransactionId")
+                        .HasColumnType("text");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ProjectId");
+
+                    b.HasIndex("TransactionId");
+
+                    b.ToTable("Asset", (string)null);
+                });
+
             modelBuilder.Entity("StartedIn.Domain.Entities.Contract", b =>
                 {
                     b.Property<string>("Id")
@@ -150,6 +312,9 @@ namespace StartedIn.Domain.Migrations
                     b.Property<DateTimeOffset>("CreatedTime")
                         .HasColumnType("timestamp with time zone");
 
+                    b.Property<string>("DealOfferId")
+                        .HasColumnType("text");
+
                     b.Property<DateTimeOffset?>("DeletedTime")
                         .HasColumnType("timestamp with time zone");
 
@@ -166,6 +331,9 @@ namespace StartedIn.Domain.Migrations
                         .IsRequired()
                         .HasColumnType("text");
 
+                    b.Property<DateTimeOffset?>("SignDeadline")
+                        .HasColumnType("timestamp with time zone");
+
                     b.Property<string>("SignNowDocumentId")
                         .HasColumnType("text");
 
@@ -174,7 +342,7 @@ namespace StartedIn.Domain.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("ContractIdNumber")
+                    b.HasIndex("DealOfferId")
                         .IsUnique();
 
                     b.HasIndex("ProjectId");
@@ -191,16 +359,34 @@ namespace StartedIn.Domain.Migrations
                     b.Property<decimal>("Amount")
                         .HasColumnType("decimal(14,3)");
 
+                    b.Property<string>("CreatedBy")
+                        .HasColumnType("text");
+
+                    b.Property<DateTimeOffset>("CreatedTime")
+                        .HasColumnType("timestamp with time zone");
+
                     b.Property<string>("DealStatus")
                         .IsRequired()
                         .HasColumnType("text");
 
+                    b.Property<DateTimeOffset?>("DeletedTime")
+                        .HasColumnType("timestamp with time zone");
+
                     b.Property<decimal>("EquityShareOffer")
                         .HasColumnType("decimal(5,2)");
+
+                    b.Property<string>("InvestmentCallId")
+                        .HasColumnType("text");
 
                     b.Property<string>("InvestorId")
                         .IsRequired()
                         .HasColumnType("text");
+
+                    b.Property<string>("LastUpdatedBy")
+                        .HasColumnType("text");
+
+                    b.Property<DateTimeOffset>("LastUpdatedTime")
+                        .HasColumnType("timestamp with time zone");
 
                     b.Property<string>("ProjectId")
                         .IsRequired()
@@ -211,6 +397,8 @@ namespace StartedIn.Domain.Migrations
                         .HasColumnType("character varying(500)");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("InvestmentCallId");
 
                     b.HasIndex("InvestorId");
 
@@ -292,8 +480,7 @@ namespace StartedIn.Domain.Migrations
 
                     b.Property<string>("DisbursementStatus")
                         .IsRequired()
-                        .HasMaxLength(50)
-                        .HasColumnType("character varying(50)");
+                        .HasColumnType("text");
 
                     b.Property<DateOnly>("EndDate")
                         .HasColumnType("date");
@@ -314,7 +501,7 @@ namespace StartedIn.Domain.Migrations
                     b.Property<DateTimeOffset>("LastUpdatedTime")
                         .HasColumnType("timestamp with time zone");
 
-                    b.Property<long>("OrderCode")
+                    b.Property<long?>("OrderCode")
                         .HasColumnType("bigint");
 
                     b.Property<DateOnly>("StartDate")
@@ -356,6 +543,10 @@ namespace StartedIn.Domain.Migrations
                         .IsRequired()
                         .HasColumnType("text");
 
+                    b.Property<string>("FileName")
+                        .IsRequired()
+                        .HasColumnType("text");
+
                     b.Property<string>("LastUpdatedBy")
                         .HasColumnType("text");
 
@@ -369,13 +560,251 @@ namespace StartedIn.Domain.Migrations
                     b.ToTable("DisbursementAttachment", (string)null);
                 });
 
-            modelBuilder.Entity("StartedIn.Domain.Entities.Milestone", b =>
+            modelBuilder.Entity("StartedIn.Domain.Entities.Document", b =>
                 {
                     b.Property<string>("Id")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("text");
 
-                    b.Property<string>("CharterId")
+                    b.Property<string>("AttachmentLink")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("CreatedBy")
+                        .HasColumnType("text");
+
+                    b.Property<DateTimeOffset>("CreatedTime")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<DateTimeOffset?>("DeletedTime")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("Description")
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)");
+
+                    b.Property<string>("DocumentName")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)");
+
+                    b.Property<string>("LastUpdatedBy")
+                        .HasColumnType("text");
+
+                    b.Property<DateTimeOffset>("LastUpdatedTime")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("ProjectId")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ProjectId");
+
+                    b.ToTable("Document", (string)null);
+                });
+
+            modelBuilder.Entity("StartedIn.Domain.Entities.DocumentComment", b =>
+                {
+                    b.Property<string>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("text");
+
+                    b.Property<string>("CommentUserId")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("Content")
+                        .IsRequired()
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)");
+
+                    b.Property<string>("CreatedBy")
+                        .HasColumnType("text");
+
+                    b.Property<DateTimeOffset>("CreatedTime")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<DateTimeOffset?>("DeletedTime")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("DocumentId")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("LastUpdatedBy")
+                        .HasColumnType("text");
+
+                    b.Property<DateTimeOffset>("LastUpdatedTime")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CommentUserId");
+
+                    b.HasIndex("DocumentId");
+
+                    b.ToTable("DocumentComment", (string)null);
+                });
+
+            modelBuilder.Entity("StartedIn.Domain.Entities.Finance", b =>
+                {
+                    b.Property<string>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("text");
+
+                    b.Property<string>("CreatedBy")
+                        .HasColumnType("text");
+
+                    b.Property<DateTimeOffset>("CreatedTime")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<decimal>("CurrentBudget")
+                        .HasColumnType("decimal(14,3)");
+
+                    b.Property<DateTimeOffset?>("DeletedTime")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<decimal>("DisbursedAmount")
+                        .HasColumnType("decimal(14,3)");
+
+                    b.Property<string>("LastUpdatedBy")
+                        .HasColumnType("text");
+
+                    b.Property<DateTimeOffset>("LastUpdatedTime")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("ProjectId")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<decimal>("RemainingDisbursement")
+                        .HasColumnType("decimal(14,3)");
+
+                    b.Property<decimal>("TotalExpense")
+                        .HasColumnType("decimal(14,3)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ProjectId")
+                        .IsUnique();
+
+                    b.ToTable("Finance", (string)null);
+                });
+
+            modelBuilder.Entity("StartedIn.Domain.Entities.InvestmentCall", b =>
+                {
+                    b.Property<string>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("text");
+
+                    b.Property<decimal>("AmountRaised")
+                        .HasColumnType("decimal(14,3)");
+
+                    b.Property<string>("CreatedBy")
+                        .HasColumnType("text");
+
+                    b.Property<DateTimeOffset>("CreatedTime")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<DateTimeOffset?>("DeletedTime")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<DateOnly>("EndDate")
+                        .HasColumnType("date");
+
+                    b.Property<decimal>("EquityShareCall")
+                        .HasColumnType("decimal(5,2)");
+
+                    b.Property<string>("LastUpdatedBy")
+                        .HasColumnType("text");
+
+                    b.Property<DateTimeOffset>("LastUpdatedTime")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("ProjectId")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<decimal>("RemainAvailableEquityShare")
+                        .HasColumnType("decimal(5,2)");
+
+                    b.Property<DateOnly>("StartDate")
+                        .HasColumnType("date");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<decimal>("TargetCall")
+                        .HasColumnType("decimal(14,3)");
+
+                    b.Property<int>("TotalInvestor")
+                        .HasColumnType("integer");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ProjectId");
+
+                    b.ToTable("InvestmentCall", (string)null);
+                });
+
+            modelBuilder.Entity("StartedIn.Domain.Entities.MeetingNote", b =>
+                {
+                    b.Property<string>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("text");
+
+                    b.Property<string>("AppointmentId")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("Conclusion")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("CreatedBy")
+                        .HasColumnType("text");
+
+                    b.Property<DateTimeOffset>("CreatedTime")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<DateTimeOffset?>("DeletedTime")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("HostId")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("LastUpdatedBy")
+                        .HasColumnType("text");
+
+                    b.Property<DateTimeOffset>("LastUpdatedTime")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("MeetingContent")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("SecretaryId")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("SignNowFileId")
+                        .HasColumnType("text");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("AppointmentId");
+
+                    b.ToTable("MeetingNote", (string)null);
+                });
+
+            modelBuilder.Entity("StartedIn.Domain.Entities.Milestone", b =>
+                {
+                    b.Property<string>("Id")
+                        .ValueGeneratedOnAdd()
                         .HasColumnType("text");
 
                     b.Property<string>("CreatedBy")
@@ -391,13 +820,7 @@ namespace StartedIn.Domain.Migrations
                         .HasMaxLength(255)
                         .HasColumnType("character varying(255)");
 
-                    b.Property<DateOnly>("DueDate")
-                        .HasColumnType("date");
-
-                    b.Property<int?>("ExtendedCount")
-                        .HasColumnType("integer");
-
-                    b.Property<DateOnly?>("ExtendedDate")
+                    b.Property<DateOnly>("EndDate")
                         .HasColumnType("date");
 
                     b.Property<string>("LastUpdatedBy")
@@ -406,17 +829,16 @@ namespace StartedIn.Domain.Migrations
                     b.Property<DateTimeOffset>("LastUpdatedTime")
                         .HasColumnType("timestamp with time zone");
 
-                    b.Property<decimal?>("Percentage")
-                        .HasColumnType("decimal(5,2)");
-
-                    b.Property<string>("PhaseName")
+                    b.Property<string>("PhaseId")
                         .IsRequired()
-                        .HasMaxLength(50)
-                        .HasColumnType("character varying(50)");
+                        .HasColumnType("text");
 
                     b.Property<string>("ProjectId")
                         .IsRequired()
                         .HasColumnType("text");
+
+                    b.Property<DateOnly>("StartDate")
+                        .HasColumnType("date");
 
                     b.Property<string>("Title")
                         .IsRequired()
@@ -425,7 +847,7 @@ namespace StartedIn.Domain.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("CharterId");
+                    b.HasIndex("PhaseId");
 
                     b.HasIndex("ProjectId");
 
@@ -468,10 +890,55 @@ namespace StartedIn.Domain.Migrations
                     b.ToTable("MilestoneHistory", (string)null);
                 });
 
+            modelBuilder.Entity("StartedIn.Domain.Entities.Phase", b =>
+                {
+                    b.Property<string>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("text");
+
+                    b.Property<string>("CreatedBy")
+                        .HasColumnType("text");
+
+                    b.Property<DateTimeOffset>("CreatedTime")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<DateTimeOffset?>("DeletedTime")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<DateOnly>("EndDate")
+                        .HasColumnType("date");
+
+                    b.Property<string>("LastUpdatedBy")
+                        .HasColumnType("text");
+
+                    b.Property<DateTimeOffset>("LastUpdatedTime")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("PhaseName")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("ProjectCharterId")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<DateOnly>("StartDate")
+                        .HasColumnType("date");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ProjectCharterId");
+
+                    b.ToTable("Phase", (string)null);
+                });
+
             modelBuilder.Entity("StartedIn.Domain.Entities.Project", b =>
                 {
                     b.Property<string>("Id")
                         .ValueGeneratedOnAdd()
+                        .HasColumnType("text");
+
+                    b.Property<string>("ActiveCallId")
                         .HasColumnType("text");
 
                     b.Property<string>("CompanyIdNumber")
@@ -493,6 +960,15 @@ namespace StartedIn.Domain.Migrations
                     b.Property<DateOnly?>("EndDate")
                         .HasColumnType("date");
 
+                    b.Property<string>("HarshChecksumPayOsKey")
+                        .HasColumnType("text");
+
+                    b.Property<string>("HarshClientIdPayOsKey")
+                        .HasColumnType("text");
+
+                    b.Property<string>("HarshPayOsApiKey")
+                        .HasColumnType("text");
+
                     b.Property<string>("LastUpdatedBy")
                         .HasColumnType("text");
 
@@ -513,14 +989,8 @@ namespace StartedIn.Domain.Migrations
                     b.Property<decimal>("RemainingPercentOfShares")
                         .HasColumnType("decimal(5,2)");
 
-                    b.Property<int?>("RemainingShares")
-                        .HasColumnType("integer");
-
                     b.Property<DateOnly>("StartDate")
                         .HasColumnType("date");
-
-                    b.Property<int?>("TotalShares")
-                        .HasColumnType("integer");
 
                     b.HasKey("Id");
 
@@ -582,9 +1052,69 @@ namespace StartedIn.Domain.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("ProjectId");
+                    b.HasIndex("ProjectId")
+                        .IsUnique();
 
                     b.ToTable("ProjectCharter", (string)null);
+                });
+
+            modelBuilder.Entity("StartedIn.Domain.Entities.Recruitment", b =>
+                {
+                    b.Property<string>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("text");
+
+                    b.Property<string>("Content")
+                        .IsRequired()
+                        .HasMaxLength(255)
+                        .HasColumnType("character varying(255)");
+
+                    b.Property<string>("CreatedBy")
+                        .HasColumnType("text");
+
+                    b.Property<DateTimeOffset>("CreatedTime")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<DateTimeOffset?>("DeletedTime")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("LastUpdatedBy")
+                        .HasColumnType("text");
+
+                    b.Property<DateTimeOffset>("LastUpdatedTime")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("ProjectId")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("Title")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ProjectId");
+
+                    b.ToTable("Recruitment", (string)null);
+                });
+
+            modelBuilder.Entity("StartedIn.Domain.Entities.RecruitmentImg", b =>
+                {
+                    b.Property<string>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("text");
+
+                    b.Property<string>("RecruitmentId")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("RecruitmentId");
+
+                    b.ToTable("RecruitmentImg", (string)null);
                 });
 
             modelBuilder.Entity("StartedIn.Domain.Entities.Role", b =>
@@ -644,10 +1174,11 @@ namespace StartedIn.Domain.Migrations
                     b.Property<decimal?>("Percentage")
                         .HasColumnType("decimal(5,2)");
 
-                    b.Property<int?>("ShareQuantity")
-                        .HasColumnType("integer");
+                    b.Property<decimal>("SharePrice")
+                        .HasColumnType("decimal(14,3)");
 
                     b.Property<string>("StakeHolderType")
+                        .IsRequired()
                         .HasColumnType("text");
 
                     b.Property<string>("UserId")
@@ -741,20 +1272,32 @@ namespace StartedIn.Domain.Migrations
                         .HasMaxLength(255)
                         .HasColumnType("character varying(255)");
 
+                    b.Property<bool>("IsLate")
+                        .HasColumnType("boolean");
+
                     b.Property<string>("LastUpdatedBy")
                         .HasColumnType("text");
 
                     b.Property<DateTimeOffset>("LastUpdatedTime")
                         .HasColumnType("timestamp with time zone");
 
+                    b.Property<int>("ManHour")
+                        .HasColumnType("integer");
+
                     b.Property<string>("MilestoneId")
+                        .HasColumnType("text");
+
+                    b.Property<string>("ParentTaskId")
+                        .HasColumnType("text");
+
+                    b.Property<string>("ProjectId")
                         .IsRequired()
                         .HasColumnType("text");
 
                     b.Property<string>("Status")
                         .IsRequired()
-                        .HasMaxLength(10)
-                        .HasColumnType("character varying(10)");
+                        .HasMaxLength(18)
+                        .HasColumnType("character varying(18)");
 
                     b.Property<string>("Title")
                         .IsRequired()
@@ -764,6 +1307,10 @@ namespace StartedIn.Domain.Migrations
                     b.HasKey("Id");
 
                     b.HasIndex("MilestoneId");
+
+                    b.HasIndex("ParentTaskId");
+
+                    b.HasIndex("ProjectId");
 
                     b.ToTable("Task", (string)null);
                 });
@@ -802,6 +1349,74 @@ namespace StartedIn.Domain.Migrations
                     b.HasIndex("TaskId");
 
                     b.ToTable("TaskHistory", (string)null);
+                });
+
+            modelBuilder.Entity("StartedIn.Domain.Entities.Transaction", b =>
+                {
+                    b.Property<string>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("text");
+
+                    b.Property<decimal>("Amount")
+                        .HasColumnType("decimal(14,3)");
+
+                    b.Property<string>("Content")
+                        .IsRequired()
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)");
+
+                    b.Property<string>("CreatedBy")
+                        .HasColumnType("text");
+
+                    b.Property<DateTimeOffset>("CreatedTime")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<DateTimeOffset?>("DeletedTime")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("DisbursementId")
+                        .HasColumnType("text");
+
+                    b.Property<string>("EvidenceUrl")
+                        .HasColumnType("text");
+
+                    b.Property<string>("FinanceId")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("FromID")
+                        .HasColumnType("text");
+
+                    b.Property<string>("FromName")
+                        .HasColumnType("text");
+
+                    b.Property<bool>("IsInFlow")
+                        .HasColumnType("boolean");
+
+                    b.Property<string>("LastUpdatedBy")
+                        .HasColumnType("text");
+
+                    b.Property<DateTimeOffset>("LastUpdatedTime")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("ToID")
+                        .HasColumnType("text");
+
+                    b.Property<string>("ToName")
+                        .HasColumnType("text");
+
+                    b.Property<string>("Type")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("DisbursementId")
+                        .IsUnique();
+
+                    b.HasIndex("FinanceId");
+
+                    b.ToTable("Transaction", (string)null);
                 });
 
             modelBuilder.Entity("StartedIn.Domain.Entities.User", b =>
@@ -955,6 +1570,21 @@ namespace StartedIn.Domain.Migrations
                     b.ToTable("UserRoles", (string)null);
                 });
 
+            modelBuilder.Entity("StartedIn.Domain.Entities.UserTask", b =>
+                {
+                    b.Property<string>("UserId")
+                        .HasColumnType("text");
+
+                    b.Property<string>("TaskId")
+                        .HasColumnType("text");
+
+                    b.HasKey("UserId", "TaskId");
+
+                    b.HasIndex("TaskId");
+
+                    b.ToTable("UserTasks");
+                });
+
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<string>", b =>
                 {
                     b.HasOne("StartedIn.Domain.Entities.Role", null)
@@ -991,7 +1621,45 @@ namespace StartedIn.Domain.Migrations
                         .IsRequired();
                 });
 
-            modelBuilder.Entity("StartedIn.Domain.Entities.Contract", b =>
+            modelBuilder.Entity("StartedIn.Domain.Entities.Application", b =>
+                {
+                    b.HasOne("StartedIn.Domain.Entities.User", "Candidate")
+                        .WithMany("Applications")
+                        .HasForeignKey("CandidateId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("StartedIn.Domain.Entities.Recruitment", "Recruitment")
+                        .WithMany("Applications")
+                        .HasForeignKey("RecruitmentId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Candidate");
+
+                    b.Navigation("Recruitment");
+                });
+
+            modelBuilder.Entity("StartedIn.Domain.Entities.Appointment", b =>
+                {
+                    b.HasOne("StartedIn.Domain.Entities.Milestone", "Milestone")
+                        .WithMany("Appointments")
+                        .HasForeignKey("MilestoneId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("StartedIn.Domain.Entities.Project", "Project")
+                        .WithMany()
+                        .HasForeignKey("ProjectId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Milestone");
+
+                    b.Navigation("Project");
+                });
+
+            modelBuilder.Entity("StartedIn.Domain.Entities.Asset", b =>
                 {
                     b.HasOne("StartedIn.Domain.Entities.Project", "Project")
                         .WithMany()
@@ -999,13 +1667,40 @@ namespace StartedIn.Domain.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
+                    b.HasOne("StartedIn.Domain.Entities.Transaction", "Transaction")
+                        .WithMany("Assets")
+                        .HasForeignKey("TransactionId");
+
+                    b.Navigation("Project");
+
+                    b.Navigation("Transaction");
+                });
+
+            modelBuilder.Entity("StartedIn.Domain.Entities.Contract", b =>
+                {
+                    b.HasOne("StartedIn.Domain.Entities.DealOffer", "DealOffer")
+                        .WithOne("Contract")
+                        .HasForeignKey("StartedIn.Domain.Entities.Contract", "DealOfferId");
+
+                    b.HasOne("StartedIn.Domain.Entities.Project", "Project")
+                        .WithMany("Contracts")
+                        .HasForeignKey("ProjectId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("DealOffer");
+
                     b.Navigation("Project");
                 });
 
             modelBuilder.Entity("StartedIn.Domain.Entities.DealOffer", b =>
                 {
+                    b.HasOne("StartedIn.Domain.Entities.InvestmentCall", "InvestmentCall")
+                        .WithMany("DealOffers")
+                        .HasForeignKey("InvestmentCallId");
+
                     b.HasOne("StartedIn.Domain.Entities.User", "Investor")
-                        .WithMany()
+                        .WithMany("DealOffers")
                         .HasForeignKey("InvestorId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
@@ -1016,6 +1711,8 @@ namespace StartedIn.Domain.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
+                    b.Navigation("InvestmentCall");
+
                     b.Navigation("Investor");
 
                     b.Navigation("Project");
@@ -1024,7 +1721,7 @@ namespace StartedIn.Domain.Migrations
             modelBuilder.Entity("StartedIn.Domain.Entities.DealOfferHistory", b =>
                 {
                     b.HasOne("StartedIn.Domain.Entities.DealOffer", "DealOffer")
-                        .WithMany()
+                        .WithMany("DealOfferHistories")
                         .HasForeignKey("DealOfferId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
@@ -1041,7 +1738,7 @@ namespace StartedIn.Domain.Migrations
                         .IsRequired();
 
                     b.HasOne("StartedIn.Domain.Entities.User", "Investor")
-                        .WithMany()
+                        .WithMany("Disbursements")
                         .HasForeignKey("InvestorId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
@@ -1062,11 +1759,76 @@ namespace StartedIn.Domain.Migrations
                     b.Navigation("Disbursement");
                 });
 
+            modelBuilder.Entity("StartedIn.Domain.Entities.Document", b =>
+                {
+                    b.HasOne("StartedIn.Domain.Entities.Project", "Project")
+                        .WithMany()
+                        .HasForeignKey("ProjectId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Project");
+                });
+
+            modelBuilder.Entity("StartedIn.Domain.Entities.DocumentComment", b =>
+                {
+                    b.HasOne("StartedIn.Domain.Entities.User", "CommentUser")
+                        .WithMany()
+                        .HasForeignKey("CommentUserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("StartedIn.Domain.Entities.Document", "Document")
+                        .WithMany()
+                        .HasForeignKey("DocumentId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("CommentUser");
+
+                    b.Navigation("Document");
+                });
+
+            modelBuilder.Entity("StartedIn.Domain.Entities.Finance", b =>
+                {
+                    b.HasOne("StartedIn.Domain.Entities.Project", "Project")
+                        .WithOne("Finance")
+                        .HasForeignKey("StartedIn.Domain.Entities.Finance", "ProjectId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Project");
+                });
+
+            modelBuilder.Entity("StartedIn.Domain.Entities.InvestmentCall", b =>
+                {
+                    b.HasOne("StartedIn.Domain.Entities.Project", "Project")
+                        .WithMany("InvestmentCalls")
+                        .HasForeignKey("ProjectId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Project");
+                });
+
+            modelBuilder.Entity("StartedIn.Domain.Entities.MeetingNote", b =>
+                {
+                    b.HasOne("StartedIn.Domain.Entities.Appointment", "Appointment")
+                        .WithMany()
+                        .HasForeignKey("AppointmentId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Appointment");
+                });
+
             modelBuilder.Entity("StartedIn.Domain.Entities.Milestone", b =>
                 {
-                    b.HasOne("StartedIn.Domain.Entities.ProjectCharter", "ProjectCharter")
+                    b.HasOne("StartedIn.Domain.Entities.Phase", "Phase")
                         .WithMany("Milestones")
-                        .HasForeignKey("CharterId");
+                        .HasForeignKey("PhaseId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
 
                     b.HasOne("StartedIn.Domain.Entities.Project", "Project")
                         .WithMany("Milestones")
@@ -1074,9 +1836,9 @@ namespace StartedIn.Domain.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.Navigation("Project");
+                    b.Navigation("Phase");
 
-                    b.Navigation("ProjectCharter");
+                    b.Navigation("Project");
                 });
 
             modelBuilder.Entity("StartedIn.Domain.Entities.MilestoneHistory", b =>
@@ -1090,7 +1852,29 @@ namespace StartedIn.Domain.Migrations
                     b.Navigation("Milestone");
                 });
 
+            modelBuilder.Entity("StartedIn.Domain.Entities.Phase", b =>
+                {
+                    b.HasOne("StartedIn.Domain.Entities.ProjectCharter", "ProjectCharter")
+                        .WithMany("Phases")
+                        .HasForeignKey("ProjectCharterId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("ProjectCharter");
+                });
+
             modelBuilder.Entity("StartedIn.Domain.Entities.ProjectCharter", b =>
+                {
+                    b.HasOne("StartedIn.Domain.Entities.Project", "Project")
+                        .WithOne("ProjectCharter")
+                        .HasForeignKey("StartedIn.Domain.Entities.ProjectCharter", "ProjectId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Project");
+                });
+
+            modelBuilder.Entity("StartedIn.Domain.Entities.Recruitment", b =>
                 {
                     b.HasOne("StartedIn.Domain.Entities.Project", "Project")
                         .WithMany()
@@ -1099,6 +1883,17 @@ namespace StartedIn.Domain.Migrations
                         .IsRequired();
 
                     b.Navigation("Project");
+                });
+
+            modelBuilder.Entity("StartedIn.Domain.Entities.RecruitmentImg", b =>
+                {
+                    b.HasOne("StartedIn.Domain.Entities.Recruitment", "Recruitment")
+                        .WithMany()
+                        .HasForeignKey("RecruitmentId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Recruitment");
                 });
 
             modelBuilder.Entity("StartedIn.Domain.Entities.ShareEquity", b =>
@@ -1110,7 +1905,7 @@ namespace StartedIn.Domain.Migrations
                         .IsRequired();
 
                     b.HasOne("StartedIn.Domain.Entities.User", "User")
-                        .WithMany()
+                        .WithMany("ShareEquities")
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
@@ -1146,11 +1941,23 @@ namespace StartedIn.Domain.Migrations
                 {
                     b.HasOne("StartedIn.Domain.Entities.Milestone", "Milestone")
                         .WithMany("Tasks")
-                        .HasForeignKey("MilestoneId")
+                        .HasForeignKey("MilestoneId");
+
+                    b.HasOne("StartedIn.Domain.Entities.TaskEntity", "ParentTask")
+                        .WithMany("SubTasks")
+                        .HasForeignKey("ParentTaskId");
+
+                    b.HasOne("StartedIn.Domain.Entities.Project", "Project")
+                        .WithMany()
+                        .HasForeignKey("ProjectId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.Navigation("Milestone");
+
+                    b.Navigation("ParentTask");
+
+                    b.Navigation("Project");
                 });
 
             modelBuilder.Entity("StartedIn.Domain.Entities.TaskHistory", b =>
@@ -1162,6 +1969,23 @@ namespace StartedIn.Domain.Migrations
                         .IsRequired();
 
                     b.Navigation("Task");
+                });
+
+            modelBuilder.Entity("StartedIn.Domain.Entities.Transaction", b =>
+                {
+                    b.HasOne("StartedIn.Domain.Entities.Disbursement", "Disbursement")
+                        .WithOne("Transaction")
+                        .HasForeignKey("StartedIn.Domain.Entities.Transaction", "DisbursementId");
+
+                    b.HasOne("StartedIn.Domain.Entities.Finance", "Finance")
+                        .WithMany()
+                        .HasForeignKey("FinanceId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Disbursement");
+
+                    b.Navigation("Finance");
                 });
 
             modelBuilder.Entity("StartedIn.Domain.Entities.UserContract", b =>
@@ -1221,6 +2045,25 @@ namespace StartedIn.Domain.Migrations
                     b.Navigation("User");
                 });
 
+            modelBuilder.Entity("StartedIn.Domain.Entities.UserTask", b =>
+                {
+                    b.HasOne("StartedIn.Domain.Entities.TaskEntity", "Task")
+                        .WithMany("UserTasks")
+                        .HasForeignKey("TaskId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("StartedIn.Domain.Entities.User", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Task");
+
+                    b.Navigation("User");
+                });
+
             modelBuilder.Entity("StartedIn.Domain.Entities.Contract", b =>
                 {
                     b.Navigation("Disbursements");
@@ -1230,28 +2073,65 @@ namespace StartedIn.Domain.Migrations
                     b.Navigation("UserContracts");
                 });
 
+            modelBuilder.Entity("StartedIn.Domain.Entities.DealOffer", b =>
+                {
+                    b.Navigation("Contract");
+
+                    b.Navigation("DealOfferHistories");
+                });
+
             modelBuilder.Entity("StartedIn.Domain.Entities.Disbursement", b =>
                 {
                     b.Navigation("DisbursementAttachments");
+
+                    b.Navigation("Transaction")
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("StartedIn.Domain.Entities.InvestmentCall", b =>
+                {
+                    b.Navigation("DealOffers");
                 });
 
             modelBuilder.Entity("StartedIn.Domain.Entities.Milestone", b =>
                 {
+                    b.Navigation("Appointments");
+
                     b.Navigation("MilestoneHistories");
 
                     b.Navigation("Tasks");
                 });
 
-            modelBuilder.Entity("StartedIn.Domain.Entities.Project", b =>
+            modelBuilder.Entity("StartedIn.Domain.Entities.Phase", b =>
                 {
                     b.Navigation("Milestones");
+                });
+
+            modelBuilder.Entity("StartedIn.Domain.Entities.Project", b =>
+                {
+                    b.Navigation("Contracts");
+
+                    b.Navigation("Finance")
+                        .IsRequired();
+
+                    b.Navigation("InvestmentCalls");
+
+                    b.Navigation("Milestones");
+
+                    b.Navigation("ProjectCharter")
+                        .IsRequired();
 
                     b.Navigation("UserProjects");
                 });
 
             modelBuilder.Entity("StartedIn.Domain.Entities.ProjectCharter", b =>
                 {
-                    b.Navigation("Milestones");
+                    b.Navigation("Phases");
+                });
+
+            modelBuilder.Entity("StartedIn.Domain.Entities.Recruitment", b =>
+                {
+                    b.Navigation("Applications");
                 });
 
             modelBuilder.Entity("StartedIn.Domain.Entities.Role", b =>
@@ -1261,15 +2141,32 @@ namespace StartedIn.Domain.Migrations
 
             modelBuilder.Entity("StartedIn.Domain.Entities.TaskEntity", b =>
                 {
+                    b.Navigation("SubTasks");
+
                     b.Navigation("TaskAttachments");
 
                     b.Navigation("TaskComments");
 
                     b.Navigation("TaskHistories");
+
+                    b.Navigation("UserTasks");
+                });
+
+            modelBuilder.Entity("StartedIn.Domain.Entities.Transaction", b =>
+                {
+                    b.Navigation("Assets");
                 });
 
             modelBuilder.Entity("StartedIn.Domain.Entities.User", b =>
                 {
+                    b.Navigation("Applications");
+
+                    b.Navigation("DealOffers");
+
+                    b.Navigation("Disbursements");
+
+                    b.Navigation("ShareEquities");
+
                     b.Navigation("UserContracts");
 
                     b.Navigation("UserProjects");

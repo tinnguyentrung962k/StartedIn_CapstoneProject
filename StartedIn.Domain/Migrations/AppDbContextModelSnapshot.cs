@@ -926,7 +926,7 @@ namespace StartedIn.Domain.Migrations
 
                     b.HasIndex("ProjectCharterId");
 
-                    b.ToTable("Phases");
+                    b.ToTable("Phase", (string)null);
                 });
 
             modelBuilder.Entity("StartedIn.Domain.Entities.Project", b =>
