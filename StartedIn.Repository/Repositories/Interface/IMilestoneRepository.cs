@@ -10,5 +10,6 @@ namespace StartedIn.Repository.Repositories.Interface
     public interface IMilestoneRepository : IGenericRepository<Milestone, string>
     {
         Task<Milestone> GetMilestoneDetailById(string milestoneId);
+        IQueryable<Milestone> GetMilestoneListQuery(string projectId);
     }
 }

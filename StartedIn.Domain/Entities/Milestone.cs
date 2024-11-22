@@ -24,7 +24,6 @@ public class Milestone : BaseAuditEntity<string>
     public Project Project { get; set; }
     public Phase? Phase { get; set; }
     public ICollection<TaskEntity>? Tasks { get; set; }
-
     public ICollection<MilestoneHistory>? MilestoneHistories { get; set; }
     public ICollection<Appointment>? Appointments { get; set; }
 }

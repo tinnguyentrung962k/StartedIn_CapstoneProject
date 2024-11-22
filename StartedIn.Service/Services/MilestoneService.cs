@@ -1,5 +1,6 @@
 ﻿using AutoMapper;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using StartedIn.CrossCutting.Constants;
 using StartedIn.CrossCutting.DTOs.RequestDTO.Milestone;
@@ -165,32 +166,34 @@ namespace StartedIn.Service.Services
         public async Task<PaginationDTO<MilestoneResponseDTO>> FilterMilestone(string userId, string projectId, MilestoneFilterDTO milestoneFilterDTO, int page, int size)
         {
             var userInProject = await _userService.CheckIfUserInProject(userId, projectId);
-            var filterMilestone = _milestoneRepository.QueryHelper().Include(m => m.Tasks).Filter(m => m.ProjectId.Equals(projectId) && m.DeletedTime == null)
-                .OrderBy(m => m.OrderBy(m => m.CreatedTime));
-
+            var filterMilestones = _milestoneRepository.GetMilestoneListQuery(projectId);
             if (!string.IsNullOrEmpty(milestoneFilterDTO.Title))
             {
-                filterMilestone = filterMilestone.Filter(m => m.Title.Contains(milestoneFilterDTO.Title));
+                filterMilestones = filterMilestones.Where(m => m.Title.Contains(milestoneFilterDTO.Title));
             }
 
             if (!string.IsNullOrWhiteSpace(milestoneFilterDTO.PhaseId))
             {
-                filterMilestone = filterMilestone.Filter(m => m.PhaseId.Equals(milestoneFilterDTO.PhaseId));
+                filterMilestones = filterMilestones.Where(m => m.PhaseId.Equals(milestoneFilterDTO.PhaseId));
             }
 
-            var milestones = await filterMilestone.GetPagingAsync(page, size);
+            int totalCount = await filterMilestones.CountAsync();
+            var pagedResult = await filterMilestones
+                .Skip((page - 1) * size)
+                .Take(size)
+                .ToListAsync();
 
             var milestonePagination = new PaginationDTO<MilestoneResponseDTO>()
             {
-                Data = _mapper.Map<List<MilestoneResponseDTO>>(milestones),
-                Total = await filterMilestone.GetTotal(),
+                Data = _mapper.Map<List<MilestoneResponseDTO>>(pagedResult),
+                Total = totalCount,
                 Page = page,
                 Size = size
             };
 
             milestonePagination.Data.ToList().ForEach(m =>
             {
-                m.Progress = CalculateProgress(milestones.Where(nm => nm.Id.Equals(m.Id)).First());
+                m.Progress = CalculateProgress(pagedResult.Where(nm => nm.Id.Equals(m.Id)).First());
             });
 
             return milestonePagination;

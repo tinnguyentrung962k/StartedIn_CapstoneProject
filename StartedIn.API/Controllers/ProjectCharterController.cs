@@ -86,7 +86,7 @@ namespace StartedIn.API.Controllers
         
         [HttpPut]
         [Authorize(Roles = RoleConstants.USER)]
-        public async Task<ActionResult<MilestoneResponseDTO>> EditProjectCharter([FromRoute] string projectId, [FromBody] EditProjectCharterDTO editProjectCharterDto)
+        public async Task<ActionResult<ProjectCharterResponseDTO>> EditProjectCharter([FromRoute] string projectId, [FromBody] EditProjectCharterDTO editProjectCharterDto)
         {
             try
             {

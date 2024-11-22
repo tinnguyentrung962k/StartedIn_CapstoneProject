@@ -17,7 +17,13 @@ namespace StartedIn.Repository.Repositories
         {
             _appDbContext = context;
         }
-
+        public IQueryable<Milestone> GetMilestoneListQuery(string projectId)
+        {
+            var query = _dbSet.Where(m => m.ProjectId.Equals(projectId) && m.DeletedTime == null)
+                .Include(m => m.Tasks)
+                .OrderBy(m => m.CreatedTime);
+            return query;
+        }
         public async Task<Milestone> GetMilestoneDetailById(string milestoneId)
         {
             var milestone = await _appDbContext.Milestones

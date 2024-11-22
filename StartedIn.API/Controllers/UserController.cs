@@ -25,28 +25,6 @@ namespace StartedIn.API.Controllers
             _logger = logger;
         }
 
-        [HttpGet]
-        [Authorize(Roles = RoleConstants.ADMIN)]
-        public async Task<ActionResult<IEnumerable<FullProfileDTO>>> GetUserLists([FromQuery] int pageIndex, int pageSize)
-        {
-            try
-            {
-                var userList = await _userService.GetUsersList(pageIndex, pageSize);
-                var responseUserList = _mapper.Map<List<FullProfileDTO>>(userList);
-                return responseUserList;
-            }
-            catch (NotFoundException ex)
-            {
-                _logger.LogError(ex, "No user found.");
-                return NotFound(ex.Message);
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error while getting users list.");
-                return StatusCode(500, MessageConstant.InternalServerError);
-            }
-        }
-
         [HttpGet("{userId}")]
         [Authorize]
         public async Task<ActionResult<FullProfileDTO>> GetUserById(string userId)
@@ -64,21 +42,6 @@ namespace StartedIn.API.Controllers
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error while getting user.");
-                return StatusCode(500, MessageConstant.InternalServerError);
-            }
-        }
-
-        [HttpPost("import")]
-        [Authorize(Roles = RoleConstants.ADMIN)]
-        public async Task<IActionResult> ImportStudentExcelList(IFormFile formFile)
-        {
-            try
-            {
-                await _userService.ImportUsersFromExcel(formFile);
-                return Ok("Hoàn thành tải file");
-            }
-            catch (Exception ex)
-            {
                 return StatusCode(500, MessageConstant.InternalServerError);
             }
         }
