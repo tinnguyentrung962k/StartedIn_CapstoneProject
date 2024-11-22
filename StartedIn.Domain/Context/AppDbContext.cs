@@ -54,6 +54,7 @@ namespace StartedIn.Domain.Context
         public DbSet<Recruitment> Recruitments { get; set; }
         public DbSet<RecruitmentImg> RecruitmentImgs { get; set; }
         public DbSet<Asset> Assets { get; set; }
+        public DbSet<Phase> Phases { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -204,13 +205,7 @@ namespace StartedIn.Domain.Context
 
             modelBuilder.Entity<Milestone>()
                 .ToTable("Milestone");
-
-            modelBuilder.Entity<Milestone>()
-            .Property(u => u.PhaseName)
-            .HasConversion(
-            v => v.ToString(),
-                v => (PhaseEnum)Enum.Parse(typeof(PhaseEnum), v));
-
+            
             modelBuilder.Entity<MilestoneHistory>()
                 .ToTable("MilestoneHistory");
 
@@ -273,6 +268,9 @@ namespace StartedIn.Domain.Context
             .HasConversion(
             v => v.ToString(),
                 v => (AssetStatus)Enum.Parse(typeof(AssetStatus), v));
+            
+            modelBuilder.Entity<Phase>()
+                .ToTable("Phase");
 
             foreach (var entityType in modelBuilder.Model.GetEntityTypes())
             {

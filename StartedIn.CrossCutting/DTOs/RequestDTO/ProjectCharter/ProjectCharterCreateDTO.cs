@@ -1,4 +1,5 @@
 ﻿using StartedIn.CrossCutting.DTOs.RequestDTO.Milestone;
+using StartedIn.CrossCutting.DTOs.RequestDTO.Phase;
 
 namespace StartedIn.CrossCutting.DTOs.RequestDTO.ProjectCharter
 {
@@ -11,6 +12,6 @@ namespace StartedIn.CrossCutting.DTOs.RequestDTO.ProjectCharter
         public string? Constraints { get; set; }
         public string? Assumptions { get; set; }
         public string? Deliverables { get; set; }
-        public List<MilestoneInCharterCreateDTO>? ListMilestoneCreateDto { get; set; }
+        public List<CreatePhaseDTO>? ListCreatePhaseDtos { get; set; }
     }
 }
