@@ -63,11 +63,11 @@ namespace StartedIn.Service.Services
                 Milestone milestone = new Milestone
                 {
                     ProjectId = projectId,
+                    PhaseId = milestoneCreateDto.PhaseId ?? null,
                     Title = milestoneCreateDto.Title,
                     Description = milestoneCreateDto.Description,
                     StartDate = DateOnly.FromDateTime(milestoneCreateDto.StartDate),
                     EndDate = DateOnly.FromDateTime(milestoneCreateDto.EndDate),
-                    PhaseName = milestoneCreateDto.PhaseEnum
                 };
                 var milestoneEntity = _milestoneRepository.Add(milestone);
                 string notification = loginUser.User.FullName + " đã tạo ra cột mốc: " + milestone.Title;
@@ -136,7 +136,7 @@ namespace StartedIn.Service.Services
             try
             {
                 _unitOfWork.BeginTransaction();
-                chosenMilestone.Title = updateMilestoneInfoDTO.MilestoneTitle;
+                chosenMilestone.Title = updateMilestoneInfoDTO.Title;
                 chosenMilestone.Description = updateMilestoneInfoDTO.Description;
                 chosenMilestone.StartDate = updateMilestoneInfoDTO.StartDate;
                 chosenMilestone.EndDate = updateMilestoneInfoDTO.EndDate;
@@ -173,9 +173,9 @@ namespace StartedIn.Service.Services
                 filterMilestone = filterMilestone.Filter(m => m.Title.Contains(milestoneFilterDTO.Title));
             }
 
-            if (milestoneFilterDTO.PhaseName != null)
+            if (!string.IsNullOrWhiteSpace(milestoneFilterDTO.PhaseId))
             {
-                filterMilestone = filterMilestone.Filter(m => m.PhaseName == milestoneFilterDTO.PhaseName);
+                filterMilestone = filterMilestone.Filter(m => m.PhaseId.Equals(milestoneFilterDTO.PhaseId));
             }
 
             var milestones = await filterMilestone.GetPagingAsync(page, size);

@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Hosting;
 using StartedIn.CrossCutting.DTOs.RequestDTO.Auth;
+using StartedIn.CrossCutting.DTOs.RequestDTO.EquityShare;
 using StartedIn.CrossCutting.DTOs.RequestDTO.Project;
 using StartedIn.CrossCutting.DTOs.ResponseDTO;
 using StartedIn.CrossCutting.DTOs.ResponseDTO.Asset;
@@ -10,6 +11,7 @@ using StartedIn.CrossCutting.DTOs.ResponseDTO.DealOffer;
 using StartedIn.CrossCutting.DTOs.ResponseDTO.Disbursement;
 using StartedIn.CrossCutting.DTOs.ResponseDTO.InvestmentCall;
 using StartedIn.CrossCutting.DTOs.ResponseDTO.Milestone;
+using StartedIn.CrossCutting.DTOs.ResponseDTO.Phase;
 using StartedIn.CrossCutting.DTOs.ResponseDTO.Project;
 using StartedIn.CrossCutting.DTOs.ResponseDTO.ProjectCharter;
 using StartedIn.CrossCutting.DTOs.ResponseDTO.ShareEquity;
@@ -37,6 +39,7 @@ namespace StartedIn.API.Configuration.AutoMapper
             InvestmentCallMappingProfile();
             TransactionMappingProfile();
             AssetProfileMapping();
+            PhaseProfileMapping();
         }
 
 
@@ -156,9 +159,7 @@ namespace StartedIn.API.Configuration.AutoMapper
         }
         private void ProjectCharterMappingProfile()
         {
-            CreateMap<ProjectCharterResponseDTO, ProjectCharter>().ReverseMap()
-                .ForMember(dto => dto.Milestones, opt
-                    => opt.MapFrom(projectCharter => projectCharter.Milestones));
+            CreateMap<ProjectCharterResponseDTO, ProjectCharter>().ReverseMap();
         }
         private void DealOfferMappingProfile()
         {
@@ -231,7 +232,11 @@ namespace StartedIn.API.Configuration.AutoMapper
             CreateMap<Asset, AssetResponseDTO>()
                 .ForMember(dest => dest.Price, opt => opt.MapFrom(src => src.Price.ToString()));  
         }
-         
+
+        private void PhaseProfileMapping()
+        {
+            CreateMap<Phase, PhaseResponseDTO>().ReverseMap();
+        }
         
     }
 }

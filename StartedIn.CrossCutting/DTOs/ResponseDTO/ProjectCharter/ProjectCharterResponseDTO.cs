@@ -5,6 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using StartedIn.CrossCutting.DTOs.BaseDTO;
 using StartedIn.CrossCutting.DTOs.ResponseDTO.Milestone;
+using StartedIn.CrossCutting.DTOs.ResponseDTO.Phase;
 
 
 namespace StartedIn.CrossCutting.DTOs.ResponseDTO.ProjectCharter
@@ -19,6 +20,6 @@ namespace StartedIn.CrossCutting.DTOs.ResponseDTO.ProjectCharter
         public string? Constraints { get; set; }
         public string? Assumptions { get; set; }
         public string? Deliverables { get; set; }
-        public IEnumerable<MilestoneResponseDTO>? Milestones { get; set; }
+        public IEnumerable<PhaseResponseDTO>? Phases { get; set; }
     }
 }

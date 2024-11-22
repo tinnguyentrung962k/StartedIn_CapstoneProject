@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using StartedIn.Domain.Context;
@@ -11,9 +12,11 @@ using StartedIn.Domain.Context;
 namespace StartedIn.Domain.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20241121152604_11-21-2024_Migration_1025PM")]
+    partial class _11212024_Migration_1025PM
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -830,6 +833,9 @@ namespace StartedIn.Domain.Migrations
                         .IsRequired()
                         .HasColumnType("text");
 
+                    b.Property<string>("ProjectCharterId")
+                        .HasColumnType("text");
+
                     b.Property<string>("ProjectId")
                         .IsRequired()
                         .HasColumnType("text");
@@ -845,6 +851,8 @@ namespace StartedIn.Domain.Migrations
                     b.HasKey("Id");
 
                     b.HasIndex("PhaseId");
+
+                    b.HasIndex("ProjectCharterId");
 
                     b.HasIndex("ProjectId");
 
@@ -1827,6 +1835,10 @@ namespace StartedIn.Domain.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
+                    b.HasOne("StartedIn.Domain.Entities.ProjectCharter", null)
+                        .WithMany("Milestones")
+                        .HasForeignKey("ProjectCharterId");
+
                     b.HasOne("StartedIn.Domain.Entities.Project", "Project")
                         .WithMany("Milestones")
                         .HasForeignKey("ProjectId")
@@ -1852,7 +1864,7 @@ namespace StartedIn.Domain.Migrations
             modelBuilder.Entity("StartedIn.Domain.Entities.Phase", b =>
                 {
                     b.HasOne("StartedIn.Domain.Entities.ProjectCharter", "ProjectCharter")
-                        .WithMany("Phases")
+                        .WithMany()
                         .HasForeignKey("ProjectCharterId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
@@ -2123,7 +2135,7 @@ namespace StartedIn.Domain.Migrations
 
             modelBuilder.Entity("StartedIn.Domain.Entities.ProjectCharter", b =>
                 {
-                    b.Navigation("Phases");
+                    b.Navigation("Milestones");
                 });
 
             modelBuilder.Entity("StartedIn.Domain.Entities.Recruitment", b =>

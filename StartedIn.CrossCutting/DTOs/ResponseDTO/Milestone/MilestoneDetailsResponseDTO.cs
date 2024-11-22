@@ -1,4 +1,5 @@
-﻿using StartedIn.CrossCutting.DTOs.ResponseDTO.Tasks;
+﻿using StartedIn.CrossCutting.DTOs.ResponseDTO.Phase;
+using StartedIn.CrossCutting.DTOs.ResponseDTO.Tasks;
 using StartedIn.CrossCutting.Enum;
 
 namespace StartedIn.CrossCutting.DTOs.ResponseDTO.Milestone
@@ -10,8 +11,7 @@ namespace StartedIn.CrossCutting.DTOs.ResponseDTO.Milestone
         public DateOnly StartDate { get; set; }
         public DateOnly EndDate { get; set; }
         public int? Progress { get; set; }
-        public PhaseEnum PhaseName { get; set; }
-        public string CharterId { get; set; }
         public IEnumerable<TaskResponseDTO> AssignedTasks { get; set; }
+        public PhaseResponseDTO Phase { get; set; }
     }
 }

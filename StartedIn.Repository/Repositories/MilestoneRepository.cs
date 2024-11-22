@@ -22,6 +22,7 @@ namespace StartedIn.Repository.Repositories
         {
             var milestone = await _appDbContext.Milestones
                 .Include(t => t.Tasks)
+                .Include(p => p.Phase)
                 .Where(x => x.DeletedTime == null)
                 .FirstOrDefaultAsync(p => p.Id.Equals(milestoneId));
             return milestone;

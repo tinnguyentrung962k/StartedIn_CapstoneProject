@@ -12,8 +12,8 @@ using StartedIn.Domain.Context;
 namespace StartedIn.Domain.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20241120162305_11-20-2024_Migration_11PM")]
-    partial class _11202024_Migration_11PM
+    [Migration("20241120162305_11-20-2024_Migration_11PM23")]
+    partial class _11202024_Migration_11PM23
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)

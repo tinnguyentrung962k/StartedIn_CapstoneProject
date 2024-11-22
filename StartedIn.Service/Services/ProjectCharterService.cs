@@ -26,10 +26,12 @@ namespace StartedIn.Service.Services
         private readonly IProjectRepository _projectRepository;
         private readonly UserManager<User> _userManager;
         private readonly IUserService _userService;
+        private readonly IPhaseRepository _phaseRepository;
 
         public ProjectCharterService(IUnitOfWork unitOfWork, IProjectCharterRepository projectCharterRepository,
             IMilestoneRepository milestoneRepository, ILogger<ProjectCharterService> logger, IMilestoneService milestoneService,
-            IProjectRepository projectRepository, UserManager<User> userManager, IUserService userService)
+            IProjectRepository projectRepository, UserManager<User> userManager, IUserService userService,
+            IPhaseRepository phaseRepository)
         {
             _unitOfWork = unitOfWork;
             _projectCharterRepository = projectCharterRepository;
@@ -81,20 +83,18 @@ namespace StartedIn.Service.Services
                 };
                 var projectCharterEntity = _projectCharterRepository.Add(newProjectCharter);
 
-                if (projectCharter.ListMilestoneCreateDto != null)
+                if (projectCharter.ListCreatePhaseDtos != null)
                 {
-                    foreach (var milestoneDto in projectCharter.ListMilestoneCreateDto)
+                    foreach (var createPhaseDto in projectCharter.ListCreatePhaseDtos)
                     {
-                        var newMilestone = new Milestone
+                        var newPhase = new Phase
                         {
-                            ProjectId = projectId,
-                            CharterId = newProjectCharter.Id,
-                            PhaseName = milestoneDto.PhaseEnum,
-                            Title = milestoneDto.MilstoneTitle,
-                            Description = milestoneDto.Description,
-                            ProjectCharter = projectCharterEntity
+                            PhaseName = createPhaseDto.PhaseName,
+                            StartDate = createPhaseDto.StartDate,
+                            EndDate = createPhaseDto.EndDate,
+                            ProjectCharterId = newProjectCharter.Id
                         };
-                        _milestoneRepository.Add(newMilestone);
+                        _phaseRepository.Add(newPhase);
                     }
                 }
                 await _unitOfWork.SaveChangesAsync();
@@ -103,7 +103,7 @@ namespace StartedIn.Service.Services
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error while creating project.");
+                _logger.LogError(ex, "Error while creating project charter.");
                 await _unitOfWork.RollbackAsync();
                 throw;
             }
@@ -112,7 +112,7 @@ namespace StartedIn.Service.Services
         public async Task<ProjectCharter> GetProjectCharterByCharterId(string id)
         {
             var projectCharter = await _projectCharterRepository.QueryHelper()
-                .Include(x => x.Milestones)
+                .Include(x => x.Phases)
                 .Filter(x => x.Id.Equals(id))
                 .GetOneAsync();
             if (projectCharter == null)
@@ -125,7 +125,7 @@ namespace StartedIn.Service.Services
         public async Task<ProjectCharter> GetProjectCharterByProjectId(string projectId)
         {
             var projectCharter = await _projectCharterRepository.QueryHelper()
-                .Include(x => x.Milestones)
+                .Include(x => x.Phases)
                 .Filter(x => x.ProjectId.Equals(projectId))
                 .GetOneAsync(); ;
             if (projectCharter == null)

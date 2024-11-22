@@ -35,6 +35,6 @@ namespace StartedIn.Domain.Entities
         public string? Deliverables { get; set; }
 
         public Project Project { get; set; }
-        public IEnumerable<Milestone>? Milestones { get; set; }
+        public ICollection<Phase> Phases { get; set; }
     }
 }

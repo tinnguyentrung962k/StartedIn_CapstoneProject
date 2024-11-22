@@ -68,21 +68,39 @@ namespace StartedIn.Service.Services
                 throw new NotFoundException(MessageConstant.UserNotInProjectError);
             }
 
+            TaskEntity task = new TaskEntity
+            {
+                Title = taskCreateDto.Title,
+                Description = taskCreateDto.Description,
+                Deadline = taskCreateDto.Deadline,
+                Status = TaskEntityStatus.NOT_STARTED,
+                ManHour = taskCreateDto.ManHour ?? 0,
+                IsLate = false,
+                ProjectId = projectId,
+                CreatedBy = userInProject.User.FullName,
+                CreatedTime = DateTimeOffset.UtcNow
+            };
+
+            if (!string.IsNullOrEmpty(taskCreateDto.Milestone))
+            {
+                task.MilestoneId = taskCreateDto.Milestone;
+            }
+
+            if (!string.IsNullOrEmpty(taskCreateDto.ParentTask))
+            {
+                var parentTask = await _taskRepository.GetOneAsync(taskCreateDto.ParentTask);
+                //if parent task is already in a milestone then do not assign task to another milestone
+                if (parentTask.MilestoneId != null && !string.IsNullOrEmpty(taskCreateDto.Milestone))
+                {
+                    throw new AssignParentTaskException(MessageConstant.MilestoneFromParentAndFromChildrenError);
+                }
+
+                task.ParentTaskId = taskCreateDto.ParentTask;
+            }
+
             try
             {
                 _unitOfWork.BeginTransaction();
-                TaskEntity task = new TaskEntity
-                {
-                    Title = taskCreateDto.Title,
-                    Description = taskCreateDto.Description,
-                    Deadline = taskCreateDto.Deadline,
-                    Status = TaskEntityStatus.NOT_STARTED,
-                    ManHour = taskCreateDto.ManHour ?? 0,
-                    IsLate = false,
-                    ProjectId = projectId,
-                    CreatedBy = userInProject.User.FullName,
-                    CreatedTime = DateTimeOffset.UtcNow
-                };
 
                 foreach (var assignee in taskCreateDto.Assignees)
                 {
@@ -91,16 +109,6 @@ namespace StartedIn.Service.Services
                         UserId = assignee,
                         TaskId = task.Id
                     });
-                }
-
-                if (!string.IsNullOrEmpty(taskCreateDto.Milestone))
-                {
-                    task.MilestoneId = taskCreateDto.Milestone;
-                }
-
-                if (!string.IsNullOrEmpty(taskCreateDto.ParentTask))
-                {
-                    task.ParentTaskId = taskCreateDto.ParentTask;
                 }
 
                 var taskEntity = _taskRepository.Add(task);
@@ -195,7 +203,7 @@ namespace StartedIn.Service.Services
             }
 
             int totalCount = await filterTasks.CountAsync();
-            
+
             var pagedResult = await filterTasks
                 .Skip((page - 1) * size)
                 .Take(size)
@@ -417,7 +425,7 @@ namespace StartedIn.Service.Services
                         CreatedBy = userInProject.User.FullName,
                         TaskId = chosenTask.Id
                     };
-                     _taskHistoryRepository.Add(history);
+                    _taskHistoryRepository.Add(history);
                 }
 
                 _taskRepository.Update(chosenTask);
@@ -490,6 +498,7 @@ namespace StartedIn.Service.Services
                 chosenTask.ParentTaskId = updateParentTaskDTO.ParentTaskId;
                 chosenTask.LastUpdatedBy = userInProject.User.FullName;
                 chosenTask.LastUpdatedTime = DateTimeOffset.UtcNow;
+                chosenTask.MilestoneId = parentTask.MilestoneId;
                 TaskHistory history = new TaskHistory
                 {
                     Content = $"{userInProject.User.FullName} đã gán task {chosenTask.Id} vào task cha {parentTask.Id}",

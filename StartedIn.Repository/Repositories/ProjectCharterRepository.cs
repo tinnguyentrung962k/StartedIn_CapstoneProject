@@ -18,7 +18,7 @@ namespace StartedIn.Repository.Repositories
         public async Task<ProjectCharter> GetProjectCharterByCharterId(string charterId)
         {
             var projectCharter = await _appDbContext.ProjectCharters
-                    .Include(pc => pc.Milestones)
+                    .Include(pc => pc.Phases)
                     .Where(x => x.DeletedTime == null)
                     .FirstOrDefaultAsync(p => p.Id.Equals(charterId));
             return projectCharter;
@@ -27,7 +27,7 @@ namespace StartedIn.Repository.Repositories
         public async Task<ProjectCharter> GetProjectCharterByProjectId(string projectId)
         {
             var projectCharter = await _appDbContext.ProjectCharters
-                .Include(pc => pc.Milestones)
+                .Include(pc => pc.Phases)
                 .Where(x => x.DeletedTime == null)
                 .FirstOrDefaultAsync(p => p.ProjectId.Equals(projectId));
             return projectCharter;

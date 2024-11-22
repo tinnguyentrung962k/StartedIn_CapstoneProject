@@ -10,6 +10,6 @@ namespace StartedIn.CrossCutting.DTOs.RequestDTO.Milestone
     public class MilestoneFilterDTO
     {
         public string? Title { get; set; }
-        public PhaseEnum? PhaseName { get; set; }
+        public string? PhaseId { get; set; }
     }
 }
