@@ -41,6 +41,7 @@ namespace StartedIn.Service.Services
             _projectRepository = projectRepository;
             _userManager = userManager;
             _userService = userService;
+            _phaseRepository = phaseRepository;
         }
 
         public async Task<ProjectCharter> CreateNewProjectCharter(string userId, string projectId, ProjectCharterCreateDTO projectCharter)

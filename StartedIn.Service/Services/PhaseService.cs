@@ -82,4 +82,12 @@ public class PhaseService : IPhaseService
 
         return phase;
     }
+
+    public async Task<List<Phase>> GetPhasesByProjectId(string projectId)
+    {
+        var projectCharter = await _projectCharterRepository.QueryHelper().Filter(pc => pc.ProjectId.Equals(projectId)).GetOneAsync();
+        var phases = await _phaseRepository.QueryHelper().Filter(p => p.ProjectCharterId.Equals(projectCharter.Id))
+            .GetAllAsync();
+        return phases.ToList();
+    }
 }
