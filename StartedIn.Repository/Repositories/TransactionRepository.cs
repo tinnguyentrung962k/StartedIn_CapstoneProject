@@ -29,7 +29,8 @@ namespace StartedIn.Repository.Repositories
                 .ThenInclude(x => x.Investor)
                 .Include(x => x.Disbursement)
                 .ThenInclude(x => x.Contract)
-                .Include(x => x.Finance);
+                .Include(x => x.Finance)
+                .OrderByDescending(x=>x.LastUpdatedTime);
             return query;
         }
     }
