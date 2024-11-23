@@ -168,8 +168,13 @@ public class ProjectService : IProjectService
             {
                 throw new NotFoundException(MessageConstant.NotFoundUserError + $" {inviteUser.Email}");
             }
-            else 
+            else
             {
+                var existedUserInProject = project.UserProjects.FirstOrDefault(up => up.User.Equals(existedUser));
+                if (existedUserInProject != null)
+                {
+                    throw new InviteException(MessageConstant.UserExistedInProject + $" {existedUser.FullName}, {existedUser.Email}");
+                }
                 await _emailService.SendInvitationToProjectAsync(inviteUser.Email, projectId, user.FullName, project.ProjectName, inviteUser.RoleInTeam);
             }
         }
