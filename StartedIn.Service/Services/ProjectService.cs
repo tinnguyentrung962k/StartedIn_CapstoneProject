@@ -308,8 +308,7 @@ public class ProjectService : IProjectService
     public async Task<PaginationDTO<ExploreProjectDTO>> GetProjectsForInvestor(string userId, int size, int page)
     {
         var projects = _projectRepository.QueryHelper().Include(p => p.UserProjects)
-            .Filter(p => !p.UserProjects.Any(up => up.UserId.Contains(userId)))
-            .Filter(p => p.ProjectStatus.Equals(ProjectStatusEnum.ACTIVE))
+            .Filter(p => !p.UserProjects.Any(up => up.UserId.Contains(userId)) && p.ProjectStatus.Equals(ProjectStatusEnum.ACTIVE))
             .OrderBy(x=>x.OrderByDescending(x=>x.StartDate));
         var result = await projects.GetPagingAsync(page, size);
         List<ExploreProjectDTO> exploreProjects = new List<ExploreProjectDTO>();
