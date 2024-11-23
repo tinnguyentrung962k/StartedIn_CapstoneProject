@@ -9,4 +9,5 @@ public interface IInvestmentCallService
     Task<InvestmentCall> CreateNewInvestmentCall(string userId, string projectId, InvestmentCallCreateDTO investmentCallCreateDto);
 
     Task<InvestmentCall> GetInvestmentCallById(string projectId, string investmentCallId);
+    Task<List<InvestmentCall>> GetInvestmentCallByProjectId(string projectId);
 }
