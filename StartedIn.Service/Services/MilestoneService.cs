@@ -181,6 +181,7 @@ namespace StartedIn.Service.Services
             var pagedResult = await filterMilestones
                 .Skip((page - 1) * size)
                 .Take(size)
+                .Include(x=>x.Phase)
                 .ToListAsync();
 
             var milestonePagination = new PaginationDTO<MilestoneResponseDTO>()

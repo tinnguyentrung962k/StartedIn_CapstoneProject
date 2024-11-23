@@ -23,7 +23,7 @@ public class PhaseController : ControllerBase
         _mapper = mapper;
     }
 
-    [HttpPost("{projectCharterId}/phase)")]
+    [HttpPost("{projectCharterId}/phase")]
     [Authorize(Roles = RoleConstants.USER)]
     public async Task<ActionResult<PhaseResponseDTO>> CreateNewPhase([FromRoute] string projectId, string projectCharterId, CreatePhaseDTO createPhaseDto)
     {
