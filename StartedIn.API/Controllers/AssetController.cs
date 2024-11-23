@@ -54,7 +54,7 @@ namespace StartedIn.API.Controllers
 
         [HttpPost("assets")]
         [Authorize(Roles = RoleConstants.USER)]
-        public async Task<ActionResult<AssetResponseDTO>> AddNewAssetToProject([FromRoute] string projectId, [FromForm] AssetCreateDTO assetCreateDTO) 
+        public async Task<ActionResult<AssetResponseDTO>> AddNewAssetToProject([FromRoute] string projectId, [FromBody] AssetCreateDTO assetCreateDTO) 
         {
             try 
             {
