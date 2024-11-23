@@ -103,7 +103,7 @@ namespace StartedIn.API.Controllers
             }
         }
 
-        [HttpPost("transactions/{transactionId}/upload-evidence")]
+        [HttpPost("transactions/{transactionId}/evidence")]
         [Authorize(Roles = RoleConstants.USER)]
         public async Task<ActionResult<TransactionResponseDTO>> UploadEvidenceForTransaction([FromRoute] string projectId, [FromRoute] string transactionId, IFormFile file)
         {
