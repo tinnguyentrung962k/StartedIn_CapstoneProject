@@ -32,7 +32,7 @@ public class PhaseController : ControllerBase
             var userId = User.FindFirst(ClaimTypes.NameIdentifier).Value;
             var phase = await _phaseService.CreateNewPhase(userId, projectId, projectCharterId, createPhaseDto);
             var response = _mapper.Map<PhaseResponseDTO>(phase);
-            return CreatedAtAction(nameof(GetPhaseByPhaseId), new { projectCharterId, phaseId = phase.Id }, phase);
+            return CreatedAtAction(nameof(GetPhaseByPhaseId), new { projectId, projectCharterId, phaseId = response.Id }, response);
         }
         catch (UnauthorizedProjectRoleException ex)
         {
@@ -49,18 +49,26 @@ public class PhaseController : ControllerBase
     }
 
     [HttpGet("{projectCharterId}/{phaseId}")]
-    public async Task<ActionResult<PhaseResponseDTO>> GetPhaseByPhaseId(string projectCharterId, string phaseId)
+    public async Task<ActionResult<PhaseResponseDTO>> GetPhaseByPhaseId([FromRoute]string projectCharterId, string phaseId)
     {
         try
         {
             var phase = await _phaseService.GetPhaseByPhaseId(projectCharterId, phaseId);
             var response = _mapper.Map<PhaseResponseDTO>(phase);
-            return Ok(phase);
+            return Ok(response);
         }
         catch (NotFoundException ex)
         {
             return BadRequest(ex.Message);
         }
         
+    }
+
+    [HttpGet("phases")]
+    public async Task<ActionResult<List<PhaseResponseDTO>>> GetPhasesByProjectId([FromRoute] string projectId)
+    {
+        var phases = await _phaseService.GetPhasesByProjectId(projectId);
+        var response = _mapper.Map<List<PhaseResponseDTO>>(phases);
+        return Ok(response);
     }
 }
