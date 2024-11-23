@@ -827,7 +827,6 @@ namespace StartedIn.Domain.Migrations
                         .HasColumnType("timestamp with time zone");
 
                     b.Property<string>("PhaseId")
-                        .IsRequired()
                         .HasColumnType("text");
 
                     b.Property<string>("ProjectId")
@@ -926,7 +925,7 @@ namespace StartedIn.Domain.Migrations
 
                     b.HasIndex("ProjectCharterId");
 
-                    b.ToTable("Phases");
+                    b.ToTable("Phase", (string)null);
                 });
 
             modelBuilder.Entity("StartedIn.Domain.Entities.Project", b =>
@@ -1823,9 +1822,7 @@ namespace StartedIn.Domain.Migrations
                 {
                     b.HasOne("StartedIn.Domain.Entities.Phase", "Phase")
                         .WithMany("Milestones")
-                        .HasForeignKey("PhaseId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                        .HasForeignKey("PhaseId");
 
                     b.HasOne("StartedIn.Domain.Entities.Project", "Project")
                         .WithMany("Milestones")

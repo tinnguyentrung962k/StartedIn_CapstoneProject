@@ -12,7 +12,7 @@ public class Milestone : BaseAuditEntity<string>
     public string ProjectId { get; set; }
 
     [ForeignKey(nameof(Phase))]
-    public string PhaseId { get; set; }
+    public string? PhaseId { get; set; }
     
     [MaxLength(50)]
     public string Title { get; set; }
@@ -22,9 +22,8 @@ public class Milestone : BaseAuditEntity<string>
     public DateOnly StartDate { get; set; }
     public DateOnly EndDate { get; set; }
     public Project Project { get; set; }
-    public Phase Phase { get; set; }
+    public Phase? Phase { get; set; }
     public ICollection<TaskEntity>? Tasks { get; set; }
-
     public ICollection<MilestoneHistory>? MilestoneHistories { get; set; }
     public ICollection<Appointment>? Appointments { get; set; }
 }

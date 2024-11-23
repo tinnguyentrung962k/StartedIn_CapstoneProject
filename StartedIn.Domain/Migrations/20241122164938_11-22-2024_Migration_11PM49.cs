@@ -5,28 +5,28 @@
 namespace StartedIn.Domain.Migrations
 {
     /// <inheritdoc />
-    public partial class _11202024_Migration_09PM15 : Migration
+    public partial class _11222024_Migration_11PM49 : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.DropForeignKey(
-                name: "FK_Asset_Transaction_TransactionId",
-                table: "Asset");
+                name: "FK_Milestone_Phase_PhaseId",
+                table: "Milestone");
 
             migrationBuilder.AlterColumn<string>(
-                name: "TransactionId",
-                table: "Asset",
+                name: "PhaseId",
+                table: "Milestone",
                 type: "text",
                 nullable: true,
                 oldClrType: typeof(string),
                 oldType: "text");
 
             migrationBuilder.AddForeignKey(
-                name: "FK_Asset_Transaction_TransactionId",
-                table: "Asset",
-                column: "TransactionId",
-                principalTable: "Transaction",
+                name: "FK_Milestone_Phase_PhaseId",
+                table: "Milestone",
+                column: "PhaseId",
+                principalTable: "Phase",
                 principalColumn: "Id");
         }
 
@@ -34,12 +34,12 @@ namespace StartedIn.Domain.Migrations
         protected override void Down(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.DropForeignKey(
-                name: "FK_Asset_Transaction_TransactionId",
-                table: "Asset");
+                name: "FK_Milestone_Phase_PhaseId",
+                table: "Milestone");
 
             migrationBuilder.AlterColumn<string>(
-                name: "TransactionId",
-                table: "Asset",
+                name: "PhaseId",
+                table: "Milestone",
                 type: "text",
                 nullable: false,
                 defaultValue: "",
@@ -48,10 +48,10 @@ namespace StartedIn.Domain.Migrations
                 oldNullable: true);
 
             migrationBuilder.AddForeignKey(
-                name: "FK_Asset_Transaction_TransactionId",
-                table: "Asset",
-                column: "TransactionId",
-                principalTable: "Transaction",
+                name: "FK_Milestone_Phase_PhaseId",
+                table: "Milestone",
+                column: "PhaseId",
+                principalTable: "Phase",
                 principalColumn: "Id",
                 onDelete: ReferentialAction.Cascade);
         }

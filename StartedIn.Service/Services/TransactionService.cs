@@ -33,6 +33,7 @@ namespace StartedIn.Service.Services
         private readonly IAzureBlobService _azureBlobService;
         private readonly ILogger<TransactionService> _logger;
         private readonly IAssetRepository _assetRepository;
+        private readonly IFinanceRepository _financeRepository;
         public TransactionService(
             ITransactionRepository transactionRepository, 
             IUserService userService, 
@@ -42,7 +43,8 @@ namespace StartedIn.Service.Services
             IProjectRepository projectRepository,
             IAzureBlobService azureBlobService,
             ILogger<TransactionService> logger,
-            IAssetRepository assetRepository)
+            IAssetRepository assetRepository,
+            IFinanceRepository financeRepository)
         {
              _transactionRepository = transactionRepository;
             _userService = userService;
@@ -53,6 +55,7 @@ namespace StartedIn.Service.Services
             _azureBlobService = azureBlobService;
             _logger = logger;
             _assetRepository = assetRepository;
+            _financeRepository = financeRepository;
         }
         public async Task<PaginationDTO<TransactionResponseDTO>> GetListTransactionOfAProject(string userId, string projectId, int page, int size)
         {
@@ -147,6 +150,16 @@ namespace StartedIn.Service.Services
                     transaction.ToName = transactionCreateDTO.ToName;
                 }
                 var transactionEntity = _transactionRepository.Add(transaction);
+                if (transactionEntity.IsInFlow == true)
+                {
+                    project.Finance.CurrentBudget += transactionEntity.Amount;
+                }
+                if (transactionEntity.IsInFlow == false)
+                {
+                    project.Finance.CurrentBudget -= transactionEntity.Amount;
+                    project.Finance.TotalExpense += transactionEntity.Amount;
+                }
+                var finance = _financeRepository.Update(project.Finance);
                 if (transactionCreateDTO.Assets != null)
                 {
                     List<Asset> assets = new List<Asset>();

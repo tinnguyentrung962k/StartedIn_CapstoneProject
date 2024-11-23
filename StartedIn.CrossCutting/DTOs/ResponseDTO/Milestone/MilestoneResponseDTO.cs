@@ -9,6 +9,6 @@ namespace StartedIn.CrossCutting.DTOs.ResponseDTO.Milestone
         public DateOnly StartDate { get; set; }
         public DateOnly EndDate { get; set; }
         public int? Progress { get; set; }
-        public PhaseEnum PhaseName { get; set; }
+        public string? PhaseName { get; set; }
     }
 }

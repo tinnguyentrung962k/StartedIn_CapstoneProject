@@ -76,5 +76,6 @@ namespace StartedIn.CrossCutting.Constants
         public const string StartDateLaterThanEndDate = "Ngày kết thúc không được sớm hơn ngày bắt đầu";
         public const string NotFoundPhaseError = "Không tìm thấy giai đoạn của dự án";
         public const string NotFoundProjectCharterError = "Không tìm thấy điều lệ của dự án";
+        public const string ProjectNotVerifiedError = "Dự án của bạn chưa được duyệt";
     }
 }

@@ -600,18 +600,22 @@ namespace StartedIn.Service.Services
                     disbursement.IsValidWithContract = true;
                     _disbursementRepository.Update(disbursement);
                 }
-                if (chosenContract.DealOffer.InvestmentCallId != null)
+                if (chosenContract.DealOffer != null)
                 {
-                    var investmentCall = await _investmentCallService.GetInvestmentCallById(projectId, chosenContract.DealOffer.InvestmentCallId);
-                    investmentCall.AmountRaised += chosenContract.DealOffer.Amount;
-                    investmentCall.RemainAvailableEquityShare -= chosenContract.DealOffer.EquityShareOffer;
-                    investmentCall.TotalInvestor++;
-                    if (investmentCall.RemainAvailableEquityShare == 0)
+                    if (chosenContract.DealOffer.InvestmentCallId != null)
                     {
-                        investmentCall.Status = InvestmentCallStatus.Closed;
+                        var investmentCall = await _investmentCallService.GetInvestmentCallById(projectId, chosenContract.DealOffer.InvestmentCallId);
+                        investmentCall.AmountRaised += chosenContract.DealOffer.Amount;
+                        investmentCall.RemainAvailableEquityShare -= chosenContract.DealOffer.EquityShareOffer;
+                        investmentCall.TotalInvestor++;
+                        if (investmentCall.RemainAvailableEquityShare == 0)
+                        {
+                            investmentCall.Status = InvestmentCallStatus.Closed;
+                        }
+                        _investmentCallRepository.Update(investmentCall);
                     }
-                    _investmentCallRepository.Update(investmentCall);
                 }
+                
                 var totalDisbursement = chosenContract.Disbursements.Sum(e => e.Amount);
                 var projectFinance = await _financeRepository.QueryHelper()
                     .Filter(x => x.ProjectId.Equals(projectId))
@@ -743,10 +747,6 @@ namespace StartedIn.Service.Services
                 throw new NotFoundException(MessageConstant.NotFoundContractError);
             }
             if (contract.ContractStatus != ContractStatusEnum.DRAFT)
-            {
-                throw new UpdateException(MessageConstant.CannotEditContractError);
-            }
-            if (contract.DealOfferId != null)
             {
                 throw new UpdateException(MessageConstant.CannotEditContractError);
             }

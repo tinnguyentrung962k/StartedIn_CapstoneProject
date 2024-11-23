@@ -48,6 +48,10 @@ public class InvestmentCallController : ControllerBase
         {
             return BadRequest(ex.Message);
         }
+        catch (ProjectStatusException ex)
+        {
+            return BadRequest(ex.Message);
+        }
         catch (InvalidOperationException ex)
         {
             return BadRequest(ex.Message);

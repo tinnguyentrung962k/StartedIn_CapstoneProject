@@ -8,7 +8,7 @@ namespace StartedIn.CrossCutting.DTOs.RequestDTO.Project
 {
     public class PayOsPaymentGatewayRegisterDTO
     {
-        public string ClientIdKey { get; set; }
+        public string ClientKey { get; set; }
         public string ApiKey { get; set; }
         public string ChecksumKey { get; set; }
     }

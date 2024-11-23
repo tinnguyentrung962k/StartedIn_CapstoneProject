@@ -48,6 +48,10 @@ public class InvestmentCallService : IInvestmentCallService
         {
             throw new NotFoundException(MessageConstant.NotFoundProjectError);
         }
+        if (project.ProjectStatus != ProjectStatusEnum.ACTIVE)
+        {
+            throw new ProjectStatusException(MessageConstant.ProjectNotVerifiedError);
+        }
         
         if (investmentCallCreateDto.EquityShareCall > project.RemainingPercentOfShares || investmentCallCreateDto.EquityShareCall > 49)
         {

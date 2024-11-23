@@ -28,6 +28,7 @@ namespace StartedIn.Repository.Repositories
                 .Include(x => x.ShareEquities)
                 .Include(x => x.Disbursements)
                 .Include(x => x.DealOffer)
+                .ThenInclude(x=>x.InvestmentCall)
                 .Where(x=>x.DeletedTime == null)
                 .FirstOrDefaultAsync();
             return contract;

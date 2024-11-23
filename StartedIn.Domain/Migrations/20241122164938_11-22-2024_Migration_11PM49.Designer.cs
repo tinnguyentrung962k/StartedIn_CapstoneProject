@@ -12,8 +12,8 @@ using StartedIn.Domain.Context;
 namespace StartedIn.Domain.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20241120132235_11-20-2024_Migration_08PM20")]
-    partial class _11202024_Migration_08PM20
+    [Migration("20241122164938_11-22-2024_Migration_11PM49")]
+    partial class _11222024_Migration_11PM49
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -266,9 +266,14 @@ namespace StartedIn.Domain.Migrations
                     b.Property<string>("Status")
                         .HasColumnType("text");
 
+                    b.Property<string>("TransactionId")
+                        .HasColumnType("text");
+
                     b.HasKey("Id");
 
                     b.HasIndex("ProjectId");
+
+                    b.HasIndex("TransactionId");
 
                     b.ToTable("Asset", (string)null);
                 });
@@ -802,9 +807,6 @@ namespace StartedIn.Domain.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("text");
 
-                    b.Property<string>("CharterId")
-                        .HasColumnType("text");
-
                     b.Property<string>("CreatedBy")
                         .HasColumnType("text");
 
@@ -818,13 +820,7 @@ namespace StartedIn.Domain.Migrations
                         .HasMaxLength(255)
                         .HasColumnType("character varying(255)");
 
-                    b.Property<DateOnly>("DueDate")
-                        .HasColumnType("date");
-
-                    b.Property<int?>("ExtendedCount")
-                        .HasColumnType("integer");
-
-                    b.Property<DateOnly?>("ExtendedDate")
+                    b.Property<DateOnly>("EndDate")
                         .HasColumnType("date");
 
                     b.Property<string>("LastUpdatedBy")
@@ -833,16 +829,15 @@ namespace StartedIn.Domain.Migrations
                     b.Property<DateTimeOffset>("LastUpdatedTime")
                         .HasColumnType("timestamp with time zone");
 
-                    b.Property<decimal?>("Percentage")
-                        .HasColumnType("decimal(5,2)");
-
-                    b.Property<string>("PhaseName")
-                        .IsRequired()
+                    b.Property<string>("PhaseId")
                         .HasColumnType("text");
 
                     b.Property<string>("ProjectId")
                         .IsRequired()
                         .HasColumnType("text");
+
+                    b.Property<DateOnly>("StartDate")
+                        .HasColumnType("date");
 
                     b.Property<string>("Title")
                         .IsRequired()
@@ -851,7 +846,7 @@ namespace StartedIn.Domain.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("CharterId");
+                    b.HasIndex("PhaseId");
 
                     b.HasIndex("ProjectId");
 
@@ -892,6 +887,48 @@ namespace StartedIn.Domain.Migrations
                     b.HasIndex("MilestoneId");
 
                     b.ToTable("MilestoneHistory", (string)null);
+                });
+
+            modelBuilder.Entity("StartedIn.Domain.Entities.Phase", b =>
+                {
+                    b.Property<string>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("text");
+
+                    b.Property<string>("CreatedBy")
+                        .HasColumnType("text");
+
+                    b.Property<DateTimeOffset>("CreatedTime")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<DateTimeOffset?>("DeletedTime")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<DateOnly>("EndDate")
+                        .HasColumnType("date");
+
+                    b.Property<string>("LastUpdatedBy")
+                        .HasColumnType("text");
+
+                    b.Property<DateTimeOffset>("LastUpdatedTime")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("PhaseName")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("ProjectCharterId")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<DateOnly>("StartDate")
+                        .HasColumnType("date");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ProjectCharterId");
+
+                    b.ToTable("Phase", (string)null);
                 });
 
             modelBuilder.Entity("StartedIn.Domain.Entities.Project", b =>
@@ -1243,6 +1280,9 @@ namespace StartedIn.Domain.Migrations
                     b.Property<DateTimeOffset>("LastUpdatedTime")
                         .HasColumnType("timestamp with time zone");
 
+                    b.Property<int>("ManHour")
+                        .HasColumnType("integer");
+
                     b.Property<string>("MilestoneId")
                         .HasColumnType("text");
 
@@ -1319,12 +1359,6 @@ namespace StartedIn.Domain.Migrations
                     b.Property<decimal>("Amount")
                         .HasColumnType("decimal(14,3)");
 
-                    b.Property<string>("AssetId")
-                        .HasColumnType("text");
-
-                    b.Property<decimal?>("Budget")
-                        .HasColumnType("decimal(14,3)");
-
                     b.Property<string>("Content")
                         .IsRequired()
                         .HasMaxLength(500)
@@ -1375,9 +1409,6 @@ namespace StartedIn.Domain.Migrations
                         .HasColumnType("text");
 
                     b.HasKey("Id");
-
-                    b.HasIndex("AssetId")
-                        .IsUnique();
 
                     b.HasIndex("DisbursementId")
                         .IsUnique();
@@ -1635,7 +1666,13 @@ namespace StartedIn.Domain.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
+                    b.HasOne("StartedIn.Domain.Entities.Transaction", "Transaction")
+                        .WithMany("Assets")
+                        .HasForeignKey("TransactionId");
+
                     b.Navigation("Project");
+
+                    b.Navigation("Transaction");
                 });
 
             modelBuilder.Entity("StartedIn.Domain.Entities.Contract", b =>
@@ -1786,9 +1823,9 @@ namespace StartedIn.Domain.Migrations
 
             modelBuilder.Entity("StartedIn.Domain.Entities.Milestone", b =>
                 {
-                    b.HasOne("StartedIn.Domain.Entities.ProjectCharter", "ProjectCharter")
+                    b.HasOne("StartedIn.Domain.Entities.Phase", "Phase")
                         .WithMany("Milestones")
-                        .HasForeignKey("CharterId");
+                        .HasForeignKey("PhaseId");
 
                     b.HasOne("StartedIn.Domain.Entities.Project", "Project")
                         .WithMany("Milestones")
@@ -1796,9 +1833,9 @@ namespace StartedIn.Domain.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.Navigation("Project");
+                    b.Navigation("Phase");
 
-                    b.Navigation("ProjectCharter");
+                    b.Navigation("Project");
                 });
 
             modelBuilder.Entity("StartedIn.Domain.Entities.MilestoneHistory", b =>
@@ -1810,6 +1847,17 @@ namespace StartedIn.Domain.Migrations
                         .IsRequired();
 
                     b.Navigation("Milestone");
+                });
+
+            modelBuilder.Entity("StartedIn.Domain.Entities.Phase", b =>
+                {
+                    b.HasOne("StartedIn.Domain.Entities.ProjectCharter", "ProjectCharter")
+                        .WithMany("Phases")
+                        .HasForeignKey("ProjectCharterId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("ProjectCharter");
                 });
 
             modelBuilder.Entity("StartedIn.Domain.Entities.ProjectCharter", b =>
@@ -1922,10 +1970,6 @@ namespace StartedIn.Domain.Migrations
 
             modelBuilder.Entity("StartedIn.Domain.Entities.Transaction", b =>
                 {
-                    b.HasOne("StartedIn.Domain.Entities.Asset", "Asset")
-                        .WithOne("Transaction")
-                        .HasForeignKey("StartedIn.Domain.Entities.Transaction", "AssetId");
-
                     b.HasOne("StartedIn.Domain.Entities.Disbursement", "Disbursement")
                         .WithOne("Transaction")
                         .HasForeignKey("StartedIn.Domain.Entities.Transaction", "DisbursementId");
@@ -1935,8 +1979,6 @@ namespace StartedIn.Domain.Migrations
                         .HasForeignKey("FinanceId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
-
-                    b.Navigation("Asset");
 
                     b.Navigation("Disbursement");
 
@@ -2019,11 +2061,6 @@ namespace StartedIn.Domain.Migrations
                     b.Navigation("User");
                 });
 
-            modelBuilder.Entity("StartedIn.Domain.Entities.Asset", b =>
-                {
-                    b.Navigation("Transaction");
-                });
-
             modelBuilder.Entity("StartedIn.Domain.Entities.Contract", b =>
                 {
                     b.Navigation("Disbursements");
@@ -2062,6 +2099,11 @@ namespace StartedIn.Domain.Migrations
                     b.Navigation("Tasks");
                 });
 
+            modelBuilder.Entity("StartedIn.Domain.Entities.Phase", b =>
+                {
+                    b.Navigation("Milestones");
+                });
+
             modelBuilder.Entity("StartedIn.Domain.Entities.Project", b =>
                 {
                     b.Navigation("Contracts");
@@ -2081,7 +2123,7 @@ namespace StartedIn.Domain.Migrations
 
             modelBuilder.Entity("StartedIn.Domain.Entities.ProjectCharter", b =>
                 {
-                    b.Navigation("Milestones");
+                    b.Navigation("Phases");
                 });
 
             modelBuilder.Entity("StartedIn.Domain.Entities.Recruitment", b =>
@@ -2105,6 +2147,11 @@ namespace StartedIn.Domain.Migrations
                     b.Navigation("TaskHistories");
 
                     b.Navigation("UserTasks");
+                });
+
+            modelBuilder.Entity("StartedIn.Domain.Entities.Transaction", b =>
+                {
+                    b.Navigation("Assets");
                 });
 
             modelBuilder.Entity("StartedIn.Domain.Entities.User", b =>

@@ -268,6 +268,9 @@ namespace StartedIn.Domain.Context
             .HasConversion(
             v => v.ToString(),
                 v => (AssetStatus)Enum.Parse(typeof(AssetStatus), v));
+            
+            modelBuilder.Entity<Phase>()
+                .ToTable("Phase");
 
             foreach (var entityType in modelBuilder.Model.GetEntityTypes())
             {
