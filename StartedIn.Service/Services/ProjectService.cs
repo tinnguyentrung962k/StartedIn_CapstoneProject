@@ -163,7 +163,15 @@ public class ProjectService : IProjectService
         }
         foreach (var inviteUser in inviteUsers)
         {
-            await _emailService.SendInvitationToProjectAsync(inviteUser.Email, projectId, user.FullName, project.ProjectName,inviteUser.RoleInTeam);
+            var existedUser = await _userManager.FindByEmailAsync(inviteUser.Email);
+            if (existedUser == null)
+            {
+                throw new NotFoundException(MessageConstant.NotFoundUserError + $" {inviteUser.Email}");
+            }
+            else 
+            {
+                await _emailService.SendInvitationToProjectAsync(inviteUser.Email, projectId, user.FullName, project.ProjectName, inviteUser.RoleInTeam);
+            }
         }
     }
     public async Task AddUserToProject(string projectId, string userId, RoleInTeam roleInTeam)

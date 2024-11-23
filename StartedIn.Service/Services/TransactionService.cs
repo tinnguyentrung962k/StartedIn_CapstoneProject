@@ -116,10 +116,31 @@ namespace StartedIn.Service.Services
             {
                 throw new UnauthorizedProjectRoleException(MessageConstant.RolePermissionError);
             }
+            var project = await _projectRepository.GetProjectById(projectId);
+            if (project.Finance.CurrentBudget < transactionCreateDTO.Amount)
+            {
+                throw new InvalidOperationException(MessageConstant.TransactionAmountOverProjectBudget);
+            }
+            if (transactionCreateDTO.Assets != null)
+            {
+                // Calculate the total price of all assets
+                var totalAssetPrice = transactionCreateDTO.Assets
+                    .Where(asset => asset.Price.HasValue && asset.Quantity.HasValue)
+                    .Sum(asset => asset.Price.Value * asset.Quantity.Value);
+
+                // Validate that the transaction amount matches the total asset price
+                if (transactionCreateDTO.Amount != totalAssetPrice)
+                {
+                    throw new UnmatchedException(MessageConstant.TransactionAmountNotMatchTotalPurchaseAssets);
+                }
+                if (project.Finance.CurrentBudget < totalAssetPrice)
+                {
+                    throw new InvalidOperationException(MessageConstant.TransactionAmountOverProjectBudget);
+                }
+            }
             try
             {
                 _unitOfWork.BeginTransaction();
-                var project = await _projectRepository.GetProjectById(projectId);
                 var transaction = new Transaction
                 {
                     Amount = transactionCreateDTO.Amount,
@@ -139,7 +160,7 @@ namespace StartedIn.Service.Services
                 {
                     var fromUser = await _userManager.FindByIdAsync(transactionCreateDTO.FromId);
                     transaction.FromID = transactionCreateDTO.FromId;
-                    transaction.ToName = fromUser.FullName;
+                    transaction.FromName = fromUser.FullName;
                 }
                 if (transactionCreateDTO.FromId == null)
                 {
@@ -172,7 +193,7 @@ namespace StartedIn.Service.Services
                             Price = asset.Price,
                             Project = userInProject.Project,
                             ProjectId = projectId,
-                            PurchaseDate = asset.PurchaseDate,
+                            PurchaseDate = DateOnly.FromDateTime(DateTime.Now),
                             Quantity = asset.Quantity,
                             Status = AssetStatus.Available,
                             SerialNumber = asset.SerialNumber,
