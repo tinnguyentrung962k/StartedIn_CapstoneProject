@@ -65,7 +65,6 @@ public class InvestmentCallController : ControllerBase
     [HttpGet("investment-call/{investmentCallId}")]
     [Authorize(Roles = RoleConstants.USER)]
     public async Task<ActionResult<InvestmentCallResponseDTO>> GetInvestmentCallById([FromRoute] string projectId, [FromRoute] string investmentCallId)
-
     {
         try
         {
@@ -81,6 +80,16 @@ public class InvestmentCallController : ControllerBase
         {
             return StatusCode(500, MessageConstant.InternalServerError); ;
         }
+    }
+
+    [HttpGet("investment-calls")]
+    [Authorize(Roles = RoleConstants.USER)]
+    public async Task<ActionResult<List<InvestmentCallResponseDTO>>> GetInvestmentCallsByProjectId(
+        [FromRoute] string projectId)
+    {
+        var calls = await _investmentCallService.GetInvestmentCallByProjectId(projectId);
+        var response = _mapper.Map<List<InvestmentCallResponseDTO>>(calls);
+        return Ok(response);
     }
 
 }

@@ -118,4 +118,10 @@ public class InvestmentCallService : IInvestmentCallService
 
         return investmentCall;
     }
+
+    public async Task<List<InvestmentCall>> GetInvestmentCallByProjectId(string projectId)
+    {
+        var calls = await _investmentCallRepository.QueryHelper().Filter(c => c.ProjectId.Equals(projectId)).GetAllAsync();
+        return calls.ToList();
+    }
 }
