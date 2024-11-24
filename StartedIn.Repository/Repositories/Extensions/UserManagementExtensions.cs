@@ -32,5 +32,13 @@ namespace StartedIn.Repository.Repositories.Extensions
                     .SingleOrDefaultAsync(it => it.UserContracts.Any(uc => uc.ContractId == contractId));
             return user;
         }
+        public static async Task<User?> GetAUserWithSystemRole(this UserManager<User> userManager, string userId)
+        {
+            var user = await userManager.Users
+                    .Include(it => it.UserRoles)                // Include the UserRoles navigation property
+                    .ThenInclude(r => r.Role)                    // Then include the Role property from UserRoles
+                    .SingleOrDefaultAsync(u => u.Id == userId);  // Filter by userId to get a specific user
+            return user;
+        }
     }
 }

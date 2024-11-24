@@ -10,6 +10,7 @@ using StartedIn.CrossCutting.DTOs.ResponseDTO.Project;
 using StartedIn.CrossCutting.Enum;
 using StartedIn.CrossCutting.Exceptions;
 using StartedIn.Domain.Entities;
+using StartedIn.Repository.Repositories.Extensions;
 using StartedIn.Repository.Repositories.Interface;
 using StartedIn.Service.Services.Interface;
 using System.Security.Cryptography;
@@ -169,16 +170,28 @@ public class ProjectService : IProjectService
             var existedUser = await _userManager.FindByEmailAsync(inviteUser.Email);
             if (existedUser == null)
             {
-                throw new NotFoundException(MessageConstant.NotFoundUserError + $" {inviteUser.Email}");
+                throw new NotFoundException(MessageConstant.NotFoundUserError + $"\n{inviteUser.Email}");
             }
             else
             {
+                // Get the user with their roles in the system
+                var userWithRole = await _userManager.GetAUserWithSystemRole(existedUser.Id);
+
+                // Check if the user has the 'INVESTOR' role
+                if (userWithRole != null && userWithRole.UserRoles.Any(ur => ur.Role.Name == RoleConstants.INVESTOR))
+                {
+                    throw new InviteException($"{MessageConstant.UserHasInvestorSystemRole}{existedUser.FullName},{existedUser.Email}");
+                }
+
+                // Check if the user is already part of the project
                 var existedUserInProject = project.UserProjects.FirstOrDefault(up => up.User.Equals(existedUser));
                 if (existedUserInProject != null)
                 {
-                    throw new InviteException(MessageConstant.UserExistedInProject + $" {existedUser.FullName}, {existedUser.Email}");
+                    throw new InviteException(MessageConstant.UserExistedInProject + $"\n{existedUser.FullName}, {existedUser.Email}");
                 }
-                await _emailService.SendInvitationToProjectAsync(inviteUser.Email, projectId, user.FullName, project.ProjectName, inviteUser.RoleInTeam);
+
+                // Send invitation email
+                await _emailService.SendInvitationToProjectAsync(inviteUser.Email, projectId, userWithRole?.FullName, project.ProjectName, inviteUser.RoleInTeam);
             }
         }
     }

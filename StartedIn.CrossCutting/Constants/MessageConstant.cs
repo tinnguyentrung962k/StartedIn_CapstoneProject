@@ -79,5 +79,6 @@ namespace StartedIn.CrossCutting.Constants
         public const string ProjectNotVerifiedError = "Dự án của bạn chưa được duyệt";
         public const string TransactionAmountOverProjectBudget = "Ngân sách dự án không cho phép.";
         public const string TransactionAmountNotMatchTotalPurchaseAssets = "Số tiền không khớp với tổng tiền tài sản.";
+        public const string UserHasInvestorSystemRole = "Người dùng có vai trò là nhà đầu tư:";
     }
 }
