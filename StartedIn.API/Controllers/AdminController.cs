@@ -5,9 +5,11 @@ using Microsoft.AspNetCore.Mvc;
 using StartedIn.CrossCutting.Constants;
 using StartedIn.CrossCutting.DTOs.ResponseDTO;
 using StartedIn.CrossCutting.DTOs.ResponseDTO.Project;
+using StartedIn.CrossCutting.DTOs.ResponseDTO.SignNowResponseDTO;
 using StartedIn.CrossCutting.Exceptions;
 using StartedIn.Service.Services;
 using StartedIn.Service.Services.Interface;
+using System.Security.Claims;
 
 namespace StartedIn.API.Controllers
 {
@@ -19,16 +21,19 @@ namespace StartedIn.API.Controllers
         private readonly IMapper _mapper;
         private readonly ILogger<AdminController> _logger;
         private readonly IProjectService _projectService;
+        private readonly IContractService _contractService;
         public AdminController(
             IUserService userService, 
             IMapper mapper, 
             ILogger<AdminController> logger,
-            IProjectService projectService)
+            IProjectService projectService,
+            IContractService contractService)
         {
             _mapper = mapper;
             _userService = userService;
             _logger = logger;
             _projectService = projectService;
+            _contractService = contractService;
         }
 
         [HttpGet("users")]
@@ -90,6 +95,31 @@ namespace StartedIn.API.Controllers
             catch (NotFoundException ex)
             {
                 return StatusCode(400, ex);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, MessageConstant.InternalServerError);
+            }
+        }
+
+        [HttpPost("projects/{projectId}/internal-contract/{contractId}/download")]
+        [Authorize(Roles = RoleConstants.ADMIN)]
+        public async Task<ActionResult<DocumentDownLoadResponseDTO>> DownLoadInternalContract([FromRoute] string projectId, [FromRoute] string contractId)
+        {
+
+            try
+            {
+                var userId = User.FindFirst(ClaimTypes.NameIdentifier).Value;
+                var downloadLink = await _contractService.DownLoadFileContract(userId, projectId, contractId);
+                return Ok(downloadLink);
+            }
+            catch (NotFoundException ex)
+            {
+                return BadRequest(ex.Message);
+            }
+            catch (UnauthorizedProjectRoleException ex)
+            {
+                return StatusCode(403, ex.Message);
             }
             catch (Exception ex)
             {
