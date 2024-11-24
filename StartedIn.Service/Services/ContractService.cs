@@ -634,6 +634,27 @@ namespace StartedIn.Service.Services
                 throw;
             }
         }
+        public async Task<DocumentDownLoadResponseDTO> DownloadContractForAdmin(string projectId, string contractId)
+        {
+            var contract = await _contractRepository.GetContractById(contractId);
+            if (contract == null)
+            {
+                throw new NotFoundException(MessageConstant.NotFoundContractError);
+            }
+            if (projectId != contract.ProjectId)
+            {
+                throw new UnmatchedException(MessageConstant.ContractNotBelongToProjectError);
+            }
+
+            if (contract.SignNowDocumentId == null)
+            {
+                throw new NotFoundException(MessageConstant.NotFoundDocumentError);
+            }
+            await _signNowService.AuthenticateAsync();
+            var documentDownloadinfo = await _signNowService.DownLoadDocument(contract.SignNowDocumentId);
+            return documentDownloadinfo;
+        }
+
         public async Task<DocumentDownLoadResponseDTO> DownLoadFileContract(string userId, string projectId, string contractId)
         {
             var contract = await _contractRepository.GetContractById(contractId);
@@ -646,6 +667,10 @@ namespace StartedIn.Service.Services
             }
             var userInProject = await _userService.CheckIfUserInProject(userId, projectId);
             var userInContract = await _userService.CheckIfUserBelongToContract(userId, contractId);
+            if (userInContract.Contract.SignNowDocumentId == null)
+            {
+                throw new NotFoundException(MessageConstant.NotFoundDocumentError);
+            }
             await _signNowService.AuthenticateAsync();
             var documentDownloadinfo = await _signNowService.DownLoadDocument(userInContract.Contract.SignNowDocumentId);
             return documentDownloadinfo;
@@ -1023,7 +1048,33 @@ namespace StartedIn.Service.Services
                 await _unitOfWork.RollbackAsync();
                 throw;
             }
-
+        }
+        public async Task DeleteContract(string userId, string projectId, string contractId)
+        {
+            var userInProject = await _userService.CheckIfUserInProject(userId, projectId);
+            if (userInProject.RoleInTeam != RoleInTeam.Leader)
+            {
+                throw new UnauthorizedProjectRoleException(MessageConstant.RolePermissionError);
+            }
+            var contract = await _contractRepository.GetContractById(contractId);
+            if (contract.ProjectId != projectId)
+            {
+                throw new UnmatchedException(MessageConstant.ContractNotBelongToProjectError);
+            }
+            var userInContract = await _userService.CheckIfUserBelongToContract(userId, contractId);
+            try
+            {
+                if (contract.ContractStatus == ContractStatusEnum.DRAFT)
+                {
+                    await _contractRepository.SoftDeleteById(contractId);
+                    await _unitOfWork.SaveChangesAsync();
+                }
+            }
+            catch (Exception ex)
+            {
+                await _unitOfWork.RollbackAsync();
+                throw new Exception(MessageConstant.DeleteFailed);
+            }
         }
 
         public async Task CancelContractAfterDueDate()

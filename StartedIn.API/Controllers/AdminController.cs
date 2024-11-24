@@ -108,9 +108,13 @@ namespace StartedIn.API.Controllers
             try
             {
                 var userId = User.FindFirst(ClaimTypes.NameIdentifier).Value;
-                var downloadLink = await _contractService.DownLoadFileContract(userId, projectId, contractId);
+                var downloadLink = await _contractService.DownloadContractForAdmin(projectId,contractId);
                 return Ok(downloadLink);
-            } 
+            }
+            catch (NotFoundException ex)
+            {
+                return BadRequest(ex.Message);
+            }
             catch (UnauthorizedProjectRoleException ex)
             {
                 return StatusCode(403, ex.Message);
