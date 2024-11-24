@@ -30,7 +30,7 @@ namespace StartedIn.API.Controllers
         [HttpGet("assets")]
         [Authorize(Roles = RoleConstants.USER + "," + RoleConstants.INVESTOR)]
         public async Task<ActionResult<PaginationDTO<AssetResponseDTO>>> SearchAssetWithFilters(
-    [FromRoute] string projectId, [FromQuery] AssetFilterDTO search, int page, int size)
+        [FromRoute] string projectId, [FromQuery] AssetFilterDTO search, int page, int size)
         {
             try
             {
