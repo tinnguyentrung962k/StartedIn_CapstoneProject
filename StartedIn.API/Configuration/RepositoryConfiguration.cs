@@ -27,6 +27,7 @@ namespace StartedIn.API.Configuration
             services.AddScoped<IInvestmentCallRepository, InvestmentCallRepository>();
             services.AddScoped<IAssetRepository, AssetRepository>();
             services.AddScoped<IPhaseRepository, PhaseRepository>();
+            services.AddScoped<IApplicationRepository, ApplicationRepository>();
             return services;
         }
     }
