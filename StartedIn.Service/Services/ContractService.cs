@@ -1013,6 +1013,10 @@ namespace StartedIn.Service.Services
             {
                 throw new UnmatchedException(MessageConstant.ContractNotBelongToProjectError);
             }
+            if (contract.ContractStatus != ContractStatusEnum.COMPLETED)
+            {
+                throw new UpdateException(MessageConstant.ContractIsNotValid);
+            }
             var userInContract = await _userService.CheckIfUserBelongToContract(userId, contractId);
             try
             {
