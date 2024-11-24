@@ -432,6 +432,38 @@ namespace StartedIn.API.Controllers
             {
                 return StatusCode(403, ex.Message);
             }
+            catch (UpdateException ex)
+            {
+                return BadRequest(ex.Message);
+            }
+            catch (NotFoundException ex)
+            {
+                return BadRequest(ex.Message);
+            }
+            catch (UnmatchedException ex)
+            {
+                return BadRequest(ex.Message);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, ex.Message);
+            }
+
+        }
+        [HttpDelete("contracts/{contractId}")]
+        [Authorize(Roles = RoleConstants.USER)]
+        public async Task<IActionResult> DeleteDraftContract([FromRoute] string projectId, [FromRoute] string contractId)
+        {
+            try
+            {
+                var userId = User.FindFirst(ClaimTypes.NameIdentifier).Value;
+                await _contractService.DeleteContract(userId, projectId, contractId);
+                return Ok("Xoá hợp đồng thành công");
+            }
+            catch (UnauthorizedProjectRoleException ex)
+            {
+                return StatusCode(403, ex.Message);
+            }
             catch (NotFoundException ex)
             {
                 return BadRequest(ex.Message);

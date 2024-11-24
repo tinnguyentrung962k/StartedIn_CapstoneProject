@@ -25,5 +25,7 @@ namespace StartedIn.Service.Services.Interface
         Task<Contract> CancelContract(string userId, string projectId, string contractId);
         Task CancelContractAfterDueDate();
         Task MarkExpiredContract(string userId, string projectId, string contractId);
+        Task<DocumentDownLoadResponseDTO> DownloadContractForAdmin(string projectId, string contractId);
+        Task DeleteContract(string userId, string projectId, string contractId);
     }
 }

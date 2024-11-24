@@ -75,10 +75,9 @@ namespace StartedIn.API.Controllers
 
         [HttpGet("projects")]
         [Authorize(Roles = RoleConstants.ADMIN)]
-        public async Task<ActionResult<List<ProjectResponseDTO>>> GetAllProjects(int page, int size)
+        public async Task<ActionResult<PaginationDTO<ProjectResponseDTO>>> GetAllProjects(int page, int size)
         {
-            var projects = await _projectService.GetAllProjectsForAdmin(page, size);
-            var response = _mapper.Map<List<ProjectResponseDTO>>(projects);
+            var response = await _projectService.GetAllProjectsForAdmin(page,size);
             return Ok(response);
         }
 
@@ -109,9 +108,13 @@ namespace StartedIn.API.Controllers
             try
             {
                 var userId = User.FindFirst(ClaimTypes.NameIdentifier).Value;
-                var downloadLink = await _contractService.DownLoadFileContract(userId, projectId, contractId);
+                var downloadLink = await _contractService.DownloadContractForAdmin(projectId,contractId);
                 return Ok(downloadLink);
-            } 
+            }
+            catch (NotFoundException ex)
+            {
+                return BadRequest(ex.Message);
+            }
             catch (UnauthorizedProjectRoleException ex)
             {
                 return StatusCode(403, ex.Message);
