@@ -24,13 +24,11 @@ namespace StartedIn.API.Controllers
         private readonly IContractService _contractService;
         private readonly IMapper _mapper;
         private readonly ILogger<ContractController> _logger;
-        private readonly ISignNowService _signNowService;
-        public ContractController(IContractService contractService, IMapper mapper, ILogger<ContractController> logger, ISignNowService signNowService)
+        public ContractController(IContractService contractService, IMapper mapper, ILogger<ContractController> logger)
         {
             _contractService = contractService;
             _mapper = mapper;
             _logger = logger;
-            _signNowService = signNowService;
         }
 
         [HttpPost("investment-contracts")]
