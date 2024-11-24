@@ -1,12 +1,16 @@
+using AutoMapper;
 using CrossCutting.Exceptions;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using StartedIn.CrossCutting.Constants;
 using StartedIn.CrossCutting.DTOs.RequestDTO.Project;
 using StartedIn.CrossCutting.DTOs.ResponseDTO;
+using StartedIn.CrossCutting.DTOs.ResponseDTO.DealOffer;
 using StartedIn.CrossCutting.DTOs.ResponseDTO.Milestone;
 using StartedIn.CrossCutting.DTOs.ResponseDTO.Project;
+using StartedIn.CrossCutting.DTOs.ResponseDTO.Tasks;
 using StartedIn.CrossCutting.Enum;
 using StartedIn.CrossCutting.Exceptions;
 using StartedIn.Domain.Entities;
@@ -34,6 +38,7 @@ public class ProjectService : IProjectService
     private readonly ITransactionService _transactionService;
     private readonly IDisbursementService _disbursementService;
     private readonly IContractRepository _contractRepository;
+    private readonly IMapper _mapper;
 
     public ProjectService(
         IProjectRepository projectRepository, 
@@ -49,7 +54,8 @@ public class ProjectService : IProjectService
         IShareEquityService shareEquityService,
         ITransactionService transactionService,
         IDisbursementService disbursementService,
-        IContractRepository contractRepository)
+        IContractRepository contractRepository,
+        IMapper mapper)
     {
         _projectRepository = projectRepository;
         _unitOfWork = unitOfWork;
@@ -65,6 +71,7 @@ public class ProjectService : IProjectService
         _transactionService = transactionService;
         _disbursementService = disbursementService;
         _contractRepository = contractRepository;
+        _mapper = mapper;
     }
     public async Task<Project> CreateNewProject(string userId, ProjectCreateDTO projectCreateDTO)
     {
@@ -138,10 +145,50 @@ public class ProjectService : IProjectService
         return project;
     }
 
-    public async Task<List<Project>> GetAllProjectsForAdmin(int page, int size)
+    public async Task<PaginationDTO<ProjectResponseDTO>> GetAllProjectsForAdmin(int page, int size)
     {
-        var projects = await _projectRepository.QueryHelper().GetPagingAsync(page, size);
-        return projects.ToList();
+        var projects = _projectRepository.GetProjectListQuery();
+        int totalCount = await projects.CountAsync();
+        var pagedResult = await projects
+            .Include(p => p.UserProjects)
+            .ThenInclude(up => up.User)
+            .Include(p => p.InvestmentCalls)
+            .Include(p => p.Finance)
+            .Include(p => p.ProjectCharter)
+            .ThenInclude(pc => pc.Phases)
+            .Include(p => p.Contracts)
+            .ThenInclude(c => c.Disbursements)
+            .Include(x => x.Milestones)
+            .ThenInclude(x => x.Tasks)
+            .Where(x => x.DeletedTime == null)
+            .Skip((page - 1) * size)
+            .Take(size)
+            .ToListAsync();
+
+        var projectResponseDTOs = pagedResult.Select(project => new ProjectResponseDTO
+        {
+            Description = project.Description,
+            Id = project.Id,
+            LeaderFullName = project.UserProjects.FirstOrDefault(x => x.RoleInTeam == RoleInTeam.Leader).User.FullName,
+            LeaderId = project.UserProjects.FirstOrDefault(x => x.RoleInTeam == RoleInTeam.Leader).User.Id,
+            LogoUrl = project.LogoUrl,
+            ProjectName = project.ProjectName,
+            ProjectStatus = project.ProjectStatus,
+            RemainingPercentOfShares = project.RemainingPercentOfShares,
+            StartDate = project.StartDate,
+            EndDate = project.EndDate
+        }).ToList();
+
+        var pagination = new PaginationDTO<ProjectResponseDTO>()
+        {
+            Data = _mapper.Map<IEnumerable<ProjectResponseDTO>>(pagedResult),
+            Total = totalCount,
+            Page = page,
+            Size = size
+        };
+
+        return pagination;
+
     }
 
     public async Task SendJoinProjectInvitation(string userId, List<ProjectInviteEmailAndRoleDTO> inviteUsers, string projectId)
