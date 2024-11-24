@@ -1041,6 +1041,17 @@ namespace StartedIn.Service.Services
                     userInProject.Project.RemainingPercentOfShares += investmentShare;
                     _logger.LogInformation($"Hợp đồng đầu tư hết hạn. Trả lại {investmentShare}% cổ phần cho dự án {userInProject.Project.ProjectName}. Tổng cổ phần còn lại: {userInProject.Project.RemainingPercentOfShares}%.");
                     _projectRepository.Update(userInProject.Project);
+                    if (contract.Disbursements != null)
+                    {
+                        foreach (var disbursement in contract.Disbursements)
+                        {
+                            if (disbursement.DisbursementStatus == DisbursementStatusEnum.PENDING)
+                            {
+                                disbursement.IsValidWithContract = false;
+                                _disbursementRepository.Update(disbursement);
+                            }
+                        }
+                    }
                     // Logic tuỳ chọn: Xử lý tài chính hoặc thông báo
                 }
                 await _unitOfWork.SaveChangesAsync();
