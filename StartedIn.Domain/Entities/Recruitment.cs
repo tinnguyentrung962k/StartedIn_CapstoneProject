@@ -17,7 +17,8 @@ namespace StartedIn.Domain.Entities
         public string Title { get; set; }
         [MaxLength(255)]
         public string Content { get; set; }
+        public bool IsOpen { get; set; }
         public Project Project { get; set; }
-        public ICollection<Application> Applications { get; set; }
+        public ICollection<RecruitmentImg> RecruitmentImgs { get; set; }
     }
 }

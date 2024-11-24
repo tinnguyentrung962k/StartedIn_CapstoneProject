@@ -205,7 +205,7 @@ namespace StartedIn.Domain.Context
 
             modelBuilder.Entity<Milestone>()
                 .ToTable("Milestone");
-            
+
             modelBuilder.Entity<MilestoneHistory>()
                 .ToTable("MilestoneHistory");
 
@@ -257,6 +257,17 @@ namespace StartedIn.Domain.Context
             .HasConversion(
             v => v.ToString(),
                 v => (ApplicationStatus)Enum.Parse(typeof(ApplicationStatus), v));
+            modelBuilder.Entity<Application>()
+            .Property(u => u.Type)
+            .HasConversion(
+            v => v.ToString(),
+                v => (ApplicationTypeEnum)Enum.Parse(typeof(ApplicationTypeEnum), v));
+            modelBuilder.Entity<Application>()
+            .Property(u => u.Role)
+            .HasConversion(
+            v => v.ToString(),
+                v => (RoleInTeam)Enum.Parse(typeof(RoleInTeam), v));
+
             modelBuilder.Entity<Recruitment>()
                 .ToTable("Recruitment");
             modelBuilder.Entity<RecruitmentImg>()
@@ -268,7 +279,7 @@ namespace StartedIn.Domain.Context
             .HasConversion(
             v => v.ToString(),
                 v => (AssetStatus)Enum.Parse(typeof(AssetStatus), v));
-            
+
             modelBuilder.Entity<Phase>()
                 .ToTable("Phase");
 

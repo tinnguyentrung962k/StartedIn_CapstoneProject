@@ -80,6 +80,7 @@ namespace StartedIn.CrossCutting.Constants
         public const string TransactionAmountOverProjectBudget = "Ngân sách dự án không cho phép.";
         public const string TransactionAmountNotMatchTotalPurchaseAssets = "Số tiền không khớp với tổng tiền tài sản.";
         public const string UserHasInvestorSystemRole = "Người dùng có vai trò là nhà đầu tư:";
+        public const string NotInvitedError = "Bạn chưa được mời gia nhập dự án.";
         public const string ContractIsNotValid = "Hợp đồng này chưa được kích hoạt/ký kết.";
     }
 }

@@ -28,7 +28,6 @@ public class ProjectService : IProjectService
     private readonly IUnitOfWork _unitOfWork;
     private readonly UserManager<User> _userManager;
     private readonly ILogger<ProjectService> _logger;
-    private readonly IEmailService _emailService;
     private readonly IUserRepository _userRepository;
     private readonly IAzureBlobService _azureBlobService;
     private readonly IUserService _userService;
@@ -41,13 +40,12 @@ public class ProjectService : IProjectService
     private readonly IMapper _mapper;
 
     public ProjectService(
-        IProjectRepository projectRepository, 
-        IUnitOfWork unitOfWork, 
-        UserManager<User> userManager, 
-        ILogger<ProjectService> logger, 
-        IEmailService emailService, 
-        IUserRepository userRepository, 
-        IAzureBlobService azureBlobService, 
+        IProjectRepository projectRepository,
+        IUnitOfWork unitOfWork,
+        UserManager<User> userManager,
+        ILogger<ProjectService> logger,
+        IUserRepository userRepository,
+        IAzureBlobService azureBlobService,
         IUserService userService,
         IFinanceRepository financeRepository,
         IMilestoneService milestoneService,
@@ -61,7 +59,6 @@ public class ProjectService : IProjectService
         _unitOfWork = unitOfWork;
         _userManager = userManager;
         _logger = logger;
-        _emailService = emailService;
         _userRepository = userRepository;
         _azureBlobService = azureBlobService;
         _userService = userService;
@@ -81,6 +78,7 @@ public class ProjectService : IProjectService
              .Include(x => x.UserProjects)
              .Filter(p => p.UserProjects.Any(up => up.UserId == userId && up.RoleInTeam == RoleInTeam.Leader))
              .GetOneAsync();
+
         if (createdProject is not null)
         {
             throw new ExistedRecordException(MessageConstant.CreateMoreProjectError);
@@ -101,7 +99,8 @@ public class ProjectService : IProjectService
         {
             throw new InvalidDataException(MessageConstant.NullOrEmptyStartDate);
         }
-        try {
+        try
+        {
             _unitOfWork.BeginTransaction();
             var imgUrl = await _azureBlobService.UploadAvatarOrCover(projectCreateDTO.LogoFile);
             var newProject = new Project
@@ -126,7 +125,7 @@ public class ProjectService : IProjectService
             await _unitOfWork.CommitAsync();
             return projectEntity;
         }
-        catch (Exception ex) 
+        catch (Exception ex)
         {
             _logger.LogError(ex, "Error while creating project.");
             await _unitOfWork.RollbackAsync();
@@ -191,87 +190,10 @@ public class ProjectService : IProjectService
 
     }
 
-    public async Task SendJoinProjectInvitation(string userId, List<ProjectInviteEmailAndRoleDTO> inviteUsers, string projectId)
-    {
-        var user = await _userManager.FindByIdAsync(userId);
-        if (user == null)
-        {
-            throw new NotFoundException(MessageConstant.NotFoundUserError);
-        }
-        var project = await _projectRepository.GetProjectAndMemberByProjectId(projectId);
-        if (project == null)
-        {
-            throw new NotFoundException(MessageConstant.NotFoundProjectError);
-        }
-        var userProject = project.UserProjects.FirstOrDefault(up => up.UserId.Equals(userId));
-        if (userProject == null)
-        {
-            throw new NotFoundException(MessageConstant.UserNotInProjectError);
-        }
-        if (userProject.RoleInTeam != CrossCutting.Enum.RoleInTeam.Leader)
-        {
-            throw new InviteException(MessageConstant.RolePermissionError);
-        }
-        foreach (var inviteUser in inviteUsers)
-        {
-            var existedUser = await _userManager.FindByEmailAsync(inviteUser.Email);
-            if (existedUser == null)
-            {
-                throw new NotFoundException(MessageConstant.NotFoundUserError + $"\n{inviteUser.Email}");
-            }
-            else
-            {
-                // Get the user with their roles in the system
-                var userWithRole = await _userManager.GetAUserWithSystemRole(existedUser.Id);
-
-                // Check if the user has the 'INVESTOR' role
-                if (userWithRole != null && userWithRole.UserRoles.Any(ur => ur.Role.Name == RoleConstants.INVESTOR))
-                {
-                    throw new InviteException($"{MessageConstant.UserHasInvestorSystemRole}{existedUser.FullName},{existedUser.Email}");
-                }
-
-                // Check if the user is already part of the project
-                var existedUserInProject = project.UserProjects.FirstOrDefault(up => up.User.Equals(existedUser));
-                if (existedUserInProject != null)
-                {
-                    throw new InviteException(MessageConstant.UserExistedInProject + $"\n{existedUser.FullName}, {existedUser.Email}");
-                }
-
-                // Send invitation email
-                await _emailService.SendInvitationToProjectAsync(inviteUser.Email, projectId, userWithRole?.FullName, project.ProjectName, inviteUser.RoleInTeam);
-            }
-        }
-    }
-    public async Task AddUserToProject(string projectId, string userId, RoleInTeam roleInTeam)
-    {
-        var user = await _userManager.FindByIdAsync(userId);
-        if (user == null)
-        {
-            throw new NotFoundException(MessageConstant.NotFoundUserError);
-        }
-        var project = await _projectRepository.QueryHelper().Include(x=>x.UserProjects).Filter(x=>x.Id.Equals(projectId)).GetOneAsync();
-        if (project == null)
-        {
-            throw new NotFoundException(MessageConstant.NotFoundProjectError);
-        }
-        var existingLeader = project.UserProjects.FirstOrDefault(x => x.RoleInTeam == RoleInTeam.Leader);
-        if (roleInTeam == RoleInTeam.Leader && existingLeader != null)
-        {
-            throw new InviteException(MessageConstant.JoinGroupWithLeaderRoleError);
-        }
-        var userInTeam = await _userRepository.GetAUserInProject(projectId, user.Id);
-        if (userInTeam != null)
-        {
-            return;
-        }
-        await _userRepository.AddUserToProject(userId, projectId, roleInTeam);
-        await _unitOfWork.SaveChangesAsync();
-    }
-
     public async Task<Project> GetProjectAndMemberById(string id)
     {
         var project = await _projectRepository.GetProjectAndMemberByProjectId(id);
-        if (project == null) 
+        if (project == null)
         {
             throw new NotFoundException(MessageConstant.NotFoundProjectError);
         }
@@ -372,7 +294,7 @@ public class ProjectService : IProjectService
     {
         var projects = _projectRepository.QueryHelper().Include(p => p.UserProjects)
             .Filter(p => !p.UserProjects.Any(up => up.UserId.Contains(userId)) && p.ProjectStatus.Equals(ProjectStatusEnum.ACTIVE))
-            .OrderBy(x=>x.OrderByDescending(x=>x.StartDate));
+            .OrderBy(x => x.OrderByDescending(x => x.StartDate));
         var result = await projects.GetPagingAsync(page, size);
         List<ExploreProjectDTO> exploreProjects = new List<ExploreProjectDTO>();
         foreach (var project in result)
@@ -553,5 +475,5 @@ public class ProjectService : IProjectService
 
         return projectDashboardDTO;
     }
-    
+
 }

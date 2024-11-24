@@ -14,6 +14,7 @@ using StartedIn.CrossCutting.DTOs.ResponseDTO.Milestone;
 using StartedIn.CrossCutting.DTOs.ResponseDTO.Phase;
 using StartedIn.CrossCutting.DTOs.ResponseDTO.Project;
 using StartedIn.CrossCutting.DTOs.ResponseDTO.ProjectCharter;
+using StartedIn.CrossCutting.DTOs.ResponseDTO.RecruitInvite;
 using StartedIn.CrossCutting.DTOs.ResponseDTO.ShareEquity;
 using StartedIn.CrossCutting.DTOs.ResponseDTO.Tasks;
 using StartedIn.CrossCutting.DTOs.ResponseDTO.Transaction;
@@ -89,7 +90,7 @@ namespace StartedIn.API.Configuration.AutoMapper
             CreateMap<User, MemberWithRoleInProjectResponseDTO>()
                     .ForMember(dest => dest.Id, opt => opt.MapFrom(src => src.Id))
                     .ReverseMap();
-
+            CreateMap<User, ProjectInviteUserDTO>().ReverseMap();
         }
         private void ProjectMappingProfile()
         {
@@ -135,6 +136,8 @@ namespace StartedIn.API.Configuration.AutoMapper
                     opt => opt.MapFrom(src =>
                         src.UserProjects.FirstOrDefault(up => up.RoleInTeam == RoleInTeam.Leader).User.FullName))
                 .ReverseMap();
+
+            CreateMap<Project, ProjectInviteOverviewDTO>().ReverseMap();
         }
         private void ContractMappingProfile()
         {

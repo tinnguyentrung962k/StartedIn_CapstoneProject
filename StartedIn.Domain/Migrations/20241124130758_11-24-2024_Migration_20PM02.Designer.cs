@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using StartedIn.Domain.Context;
@@ -11,9 +12,11 @@ using StartedIn.Domain.Context;
 namespace StartedIn.Domain.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20241124130758_11-24-2024_Migration_20PM02")]
+    partial class _11242024_Migration_20PM02
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -1080,9 +1083,6 @@ namespace StartedIn.Domain.Migrations
                     b.Property<DateTimeOffset?>("DeletedTime")
                         .HasColumnType("timestamp with time zone");
 
-                    b.Property<bool>("IsOpen")
-                        .HasColumnType("boolean");
-
                     b.Property<string>("LastUpdatedBy")
                         .HasColumnType("text");
 
@@ -1635,7 +1635,7 @@ namespace StartedIn.Domain.Migrations
                         .IsRequired();
 
                     b.HasOne("StartedIn.Domain.Entities.Recruitment", "Recruitment")
-                        .WithMany()
+                        .WithMany("Applications")
                         .HasForeignKey("RecruitmentId");
 
                     b.Navigation("Candidate");
@@ -1889,7 +1889,7 @@ namespace StartedIn.Domain.Migrations
             modelBuilder.Entity("StartedIn.Domain.Entities.RecruitmentImg", b =>
                 {
                     b.HasOne("StartedIn.Domain.Entities.Recruitment", "Recruitment")
-                        .WithMany("RecruitmentImgs")
+                        .WithMany()
                         .HasForeignKey("RecruitmentId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
@@ -2132,7 +2132,7 @@ namespace StartedIn.Domain.Migrations
 
             modelBuilder.Entity("StartedIn.Domain.Entities.Recruitment", b =>
                 {
-                    b.Navigation("RecruitmentImgs");
+                    b.Navigation("Applications");
                 });
 
             modelBuilder.Entity("StartedIn.Domain.Entities.Role", b =>

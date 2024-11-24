@@ -10,8 +10,6 @@ public interface IProjectService
 {
     Task<Project> CreateNewProject(string userId, ProjectCreateDTO projectCreateDTO);
     Task<Project> GetProjectById(string id);
-    Task SendJoinProjectInvitation(string userId, List<ProjectInviteEmailAndRoleDTO> inviteUsers, string projectId);
-    Task AddUserToProject(string projectId, string userId, RoleInTeam roleInTeam);
     Task<Project> GetProjectAndMemberById(string id);
     Task<List<ProjectResponseDTO>> GetListOwnProjects(string userId);
     Task<List<ProjectResponseDTO>> GetListParticipatedProjects(string userId);
