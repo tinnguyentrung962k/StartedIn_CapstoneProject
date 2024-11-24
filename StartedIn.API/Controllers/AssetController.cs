@@ -30,7 +30,7 @@ namespace StartedIn.API.Controllers
         [HttpGet("assets")]
         [Authorize(Roles = RoleConstants.USER + "," + RoleConstants.INVESTOR)]
         public async Task<ActionResult<PaginationDTO<AssetResponseDTO>>> SearchAssetWithFilters(
-    [FromRoute] string projectId, [FromQuery] AssetFilterDTO search, int page, int size)
+        [FromRoute] string projectId, [FromQuery] AssetFilterDTO search, int page, int size)
         {
             try
             {
@@ -54,7 +54,7 @@ namespace StartedIn.API.Controllers
 
         [HttpPost("assets")]
         [Authorize(Roles = RoleConstants.USER)]
-        public async Task<ActionResult<AssetResponseDTO>> AddNewAssetToProject([FromRoute] string projectId, [FromForm] AssetCreateDTO assetCreateDTO) 
+        public async Task<ActionResult<AssetResponseDTO>> AddNewAssetToProject([FromRoute] string projectId, [FromBody] AssetCreateDTO assetCreateDTO) 
         {
             try 
             {

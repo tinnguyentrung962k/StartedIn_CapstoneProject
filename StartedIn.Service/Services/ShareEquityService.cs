@@ -95,7 +95,7 @@ namespace StartedIn.Service.Services
             }
 
             // Bước 4: Trả về kết quả
-            return shareEquitySummary;
+            return shareEquitySummary.OrderByDescending(x=>x.TotalPercentage).ToList();
         }
         public async Task<decimal?> GetShareEquityOfAUserInAProject(string userId, string projectId)
         {

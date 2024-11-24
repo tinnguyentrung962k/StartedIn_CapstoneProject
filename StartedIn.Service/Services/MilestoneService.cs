@@ -143,6 +143,7 @@ namespace StartedIn.Service.Services
                 chosenMilestone.EndDate = updateMilestoneInfoDTO.EndDate;
                 chosenMilestone.LastUpdatedTime = DateTimeOffset.UtcNow;
                 chosenMilestone.LastUpdatedBy = loginUser.User.FullName;
+                chosenMilestone.PhaseId = updateMilestoneInfoDTO.PhaseId;
                 _milestoneRepository.Update(chosenMilestone);
                 string notification = loginUser.User.FullName + " đã cập nhật cột mốc: " + chosenMilestone.Title;
                 MilestoneHistory history = new MilestoneHistory
@@ -181,6 +182,7 @@ namespace StartedIn.Service.Services
             var pagedResult = await filterMilestones
                 .Skip((page - 1) * size)
                 .Take(size)
+                .Include(x=>x.Phase)
                 .ToListAsync();
 
             var milestonePagination = new PaginationDTO<MilestoneResponseDTO>()

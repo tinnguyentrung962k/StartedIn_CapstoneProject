@@ -163,7 +163,20 @@ public class ProjectService : IProjectService
         }
         foreach (var inviteUser in inviteUsers)
         {
-            await _emailService.SendInvitationToProjectAsync(inviteUser.Email, projectId, user.FullName, project.ProjectName,inviteUser.RoleInTeam);
+            var existedUser = await _userManager.FindByEmailAsync(inviteUser.Email);
+            if (existedUser == null)
+            {
+                throw new NotFoundException(MessageConstant.NotFoundUserError + $" {inviteUser.Email}");
+            }
+            else
+            {
+                var existedUserInProject = project.UserProjects.FirstOrDefault(up => up.User.Equals(existedUser));
+                if (existedUserInProject != null)
+                {
+                    throw new InviteException(MessageConstant.UserExistedInProject + $" {existedUser.FullName}, {existedUser.Email}");
+                }
+                await _emailService.SendInvitationToProjectAsync(inviteUser.Email, projectId, user.FullName, project.ProjectName, inviteUser.RoleInTeam);
+            }
         }
     }
     public async Task AddUserToProject(string projectId, string userId, RoleInTeam roleInTeam)
@@ -295,7 +308,8 @@ public class ProjectService : IProjectService
     public async Task<PaginationDTO<ExploreProjectDTO>> GetProjectsForInvestor(string userId, int size, int page)
     {
         var projects = _projectRepository.QueryHelper().Include(p => p.UserProjects)
-            .Filter(p => !p.UserProjects.Any(up => up.UserId.Contains(userId))).OrderBy(x=>x.OrderByDescending(x=>x.StartDate));
+            .Filter(p => !p.UserProjects.Any(up => up.UserId.Contains(userId)) && p.ProjectStatus.Equals(ProjectStatusEnum.ACTIVE))
+            .OrderBy(x=>x.OrderByDescending(x=>x.StartDate));
         var result = await projects.GetPagingAsync(page, size);
         List<ExploreProjectDTO> exploreProjects = new List<ExploreProjectDTO>();
         foreach (var project in result)

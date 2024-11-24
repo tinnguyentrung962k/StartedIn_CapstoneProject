@@ -28,7 +28,7 @@ public class PhaseService : IPhaseService
         _projectCharterRepository = projectCharterRepository;
     }
     
-    public async Task<Phase> CreateNewPhase(string userId, string projectId, string charterId, CreatePhaseDTO createPhaseDto)
+    public async Task<Phase> CreateNewPhase(string userId, string projectId, CreatePhaseDTO createPhaseDto)
     {
         var userInProject = await _userService.CheckIfUserInProject(userId, projectId);
         var projectRole = await _projectRepository.GetUserRoleInProject(userId, projectId);
@@ -44,13 +44,14 @@ public class PhaseService : IPhaseService
 
         try
         {
+            var project = await _projectRepository.GetProjectById(projectId);
             _unitOfWork.BeginTransaction();
             Phase phase = new Phase
             {
                 PhaseName = createPhaseDto.PhaseName,
                 StartDate = createPhaseDto.StartDate,
                 EndDate = createPhaseDto.EndDate,
-                ProjectCharterId = charterId
+                ProjectCharterId = project.ProjectCharter.Id
             };
             _phaseRepository.Add(phase);
             await _unitOfWork.SaveChangesAsync();
@@ -66,26 +67,30 @@ public class PhaseService : IPhaseService
         
     }
 
-    public async Task<Phase> GetPhaseByPhaseId(string charterId, string phaseId)
+    public async Task<Phase> GetPhaseByPhaseId(string projectId, string phaseId)
     {
-        var projectCharter =
-            await _projectCharterRepository.QueryHelper().Filter(p => p.Id.Equals(charterId)).GetOneAsync();
-        if (projectCharter == null)
+        var project = await _projectRepository.GetProjectById(projectId);
+        if (project == null)
         {
-            throw new NotFoundException(MessageConstant.NotFoundProjectCharterError);
+            throw new NotFoundException(MessageConstant.NotFoundProjectError);
         }
-        var phase = await _phaseRepository.QueryHelper().Filter(p => p.Id.Equals(phaseId)).GetOneAsync();
+        var phase = await _phaseRepository.QueryHelper()
+            .Filter(p => p.Id.Equals(phaseId) && p.ProjectCharter.ProjectId.Equals(projectId))
+            .GetOneAsync();
         if (phase == null)
         {
             throw new NotFoundException(MessageConstant.NotFoundPhaseError);
         }
-
         return phase;
     }
 
     public async Task<List<Phase>> GetPhasesByProjectId(string projectId)
     {
         var projectCharter = await _projectCharterRepository.QueryHelper().Filter(pc => pc.ProjectId.Equals(projectId)).GetOneAsync();
+        if (projectCharter == null)
+        {
+            throw new NotFoundException(MessageConstant.NotFoundCharterError);
+        }
         var phases = await _phaseRepository.QueryHelper().Filter(p => p.ProjectCharterId.Equals(projectCharter.Id))
             .GetAllAsync();
         return phases.ToList();

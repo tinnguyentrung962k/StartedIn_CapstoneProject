@@ -77,5 +77,7 @@ namespace StartedIn.CrossCutting.Constants
         public const string NotFoundPhaseError = "Không tìm thấy giai đoạn của dự án";
         public const string NotFoundProjectCharterError = "Không tìm thấy điều lệ của dự án";
         public const string ProjectNotVerifiedError = "Dự án của bạn chưa được duyệt";
+        public const string TransactionAmountOverProjectBudget = "Ngân sách dự án không cho phép.";
+        public const string TransactionAmountNotMatchTotalPurchaseAssets = "Số tiền không khớp với tổng tiền tài sản.";
     }
 }

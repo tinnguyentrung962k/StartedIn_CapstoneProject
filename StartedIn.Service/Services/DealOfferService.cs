@@ -147,13 +147,15 @@ namespace StartedIn.Service.Services
             {
                 throw new NotFoundException(MessageConstant.NotFoundProjectError);
             }
-
+            if (project.ActiveCallId == null)
+            {
+                throw new NotFoundException(MessageConstant.NotFoundInvestmentCall);   
+            }
             var investmentCall = await _investmentCallService.GetInvestmentCallById(dealOfferCreateDTO.ProjectId, project.ActiveCallId);
             if (investmentCall.Status == InvestmentCallStatus.Closed)
             {
                 throw new InvalidDataException(MessageConstant.ClosedInvestmentCall);
             }
-
             if (dealOfferCreateDTO.EquityShareOffer > investmentCall.RemainAvailableEquityShare)
             {
                 throw new InvalidInputException(MessageConstant.InvestmentCallEquitySoldOut);

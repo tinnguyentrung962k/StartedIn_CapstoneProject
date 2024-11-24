@@ -1,10 +1,11 @@
-﻿using StartedIn.CrossCutting.DTOs.ResponseDTO.Phase;
+﻿using StartedIn.CrossCutting.DTOs.BaseDTO;
+using StartedIn.CrossCutting.DTOs.ResponseDTO.Phase;
 using StartedIn.CrossCutting.DTOs.ResponseDTO.Tasks;
 using StartedIn.CrossCutting.Enum;
 
 namespace StartedIn.CrossCutting.DTOs.ResponseDTO.Milestone
 {
-    public class MilestoneDetailsResponseDTO
+    public class MilestoneDetailsResponseDTO : IdentityResponseDTO
     {
         public string Title { get; set; }
         public string? Description { get; set; }

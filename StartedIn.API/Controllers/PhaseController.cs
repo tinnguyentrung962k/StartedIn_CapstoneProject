@@ -23,16 +23,16 @@ public class PhaseController : ControllerBase
         _mapper = mapper;
     }
 
-    [HttpPost("{projectCharterId}/phase)")]
+    [HttpPost("phases")]
     [Authorize(Roles = RoleConstants.USER)]
-    public async Task<ActionResult<PhaseResponseDTO>> CreateNewPhase([FromRoute] string projectId, string projectCharterId, CreatePhaseDTO createPhaseDto)
+    public async Task<ActionResult<PhaseResponseDTO>> CreateNewPhase([FromRoute] string projectId, CreatePhaseDTO createPhaseDto)
     {
         try
         {
             var userId = User.FindFirst(ClaimTypes.NameIdentifier).Value;
-            var phase = await _phaseService.CreateNewPhase(userId, projectId, projectCharterId, createPhaseDto);
+            var phase = await _phaseService.CreateNewPhase(userId, projectId, createPhaseDto);
             var response = _mapper.Map<PhaseResponseDTO>(phase);
-            return CreatedAtAction(nameof(GetPhaseByPhaseId), new { projectId, projectCharterId, phaseId = response.Id }, response);
+            return CreatedAtAction(nameof(GetPhaseByPhaseId), new { projectId, phaseId = response.Id }, response);
         }
         catch (UnauthorizedProjectRoleException ex)
         {
@@ -48,12 +48,13 @@ public class PhaseController : ControllerBase
         }
     }
 
-    [HttpGet("{projectCharterId}/{phaseId}")]
-    public async Task<ActionResult<PhaseResponseDTO>> GetPhaseByPhaseId([FromRoute]string projectCharterId, string phaseId)
+    [HttpGet("phases/{phaseId}")]
+    [Authorize]
+    public async Task<ActionResult<PhaseResponseDTO>> GetPhaseByPhaseId([FromRoute]string projectId, string phaseId)
     {
         try
         {
-            var phase = await _phaseService.GetPhaseByPhaseId(projectCharterId, phaseId);
+            var phase = await _phaseService.GetPhaseByPhaseId(projectId, phaseId);
             var response = _mapper.Map<PhaseResponseDTO>(phase);
             return Ok(response);
         }
@@ -61,14 +62,30 @@ public class PhaseController : ControllerBase
         {
             return BadRequest(ex.Message);
         }
-        
+        catch (Exception ex)
+        {
+            return StatusCode(500, MessageConstant.InternalServerError);
+        }
+
     }
 
     [HttpGet("phases")]
+    [Authorize]
     public async Task<ActionResult<List<PhaseResponseDTO>>> GetPhasesByProjectId([FromRoute] string projectId)
     {
-        var phases = await _phaseService.GetPhasesByProjectId(projectId);
-        var response = _mapper.Map<List<PhaseResponseDTO>>(phases);
-        return Ok(response);
+        try
+        {
+            var phases = await _phaseService.GetPhasesByProjectId(projectId);
+            var response = _mapper.Map<List<PhaseResponseDTO>>(phases);
+            return Ok(response);
+        }
+        catch (NotFoundException ex)
+        {
+            return BadRequest(ex.Message);
+        }
+        catch (Exception ex)
+        {
+            return StatusCode(500, MessageConstant.InternalServerError);
+        }
     }
 }

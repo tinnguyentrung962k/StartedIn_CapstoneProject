@@ -9,7 +9,7 @@ namespace StartedIn.CrossCutting.DTOs.ResponseDTO.Milestone
 {
     public class MilestoneProgressResponseDTO : IdentityResponseDTO
     {
-        public string Title { get; set; }
+        public string? Title { get; set; }
         public int? Progress { get; set; }
     }
 }
