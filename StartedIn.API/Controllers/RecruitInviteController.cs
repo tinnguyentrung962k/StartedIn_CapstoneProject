@@ -138,5 +138,11 @@ namespace StartedIn.API.Controllers
                 return StatusCode(500, MessageConstant.InternalServerError);
             }
         }
+
+        // Update Recruitment Info, if not existed, create new one
+
+        // Update Recruitment Visibility
+
+        // Update/Delete Recruitment Image
     }
 }
