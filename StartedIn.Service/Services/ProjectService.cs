@@ -32,6 +32,7 @@ public class ProjectService : IProjectService
     private readonly IShareEquityService _shareEquityService;
     private readonly ITransactionService _transactionService;
     private readonly IDisbursementService _disbursementService;
+    private readonly IContractRepository _contractRepository;
 
     public ProjectService(
         IProjectRepository projectRepository, 
@@ -46,7 +47,8 @@ public class ProjectService : IProjectService
         IMilestoneService milestoneService,
         IShareEquityService shareEquityService,
         ITransactionService transactionService,
-        IDisbursementService disbursementService)
+        IDisbursementService disbursementService,
+        IContractRepository contractRepository)
     {
         _projectRepository = projectRepository;
         _unitOfWork = unitOfWork;
@@ -61,6 +63,7 @@ public class ProjectService : IProjectService
         _shareEquityService = shareEquityService;
         _transactionService = transactionService;
         _disbursementService = disbursementService;
+        _contractRepository = contractRepository;
     }
     public async Task<Project> CreateNewProject(string userId, ProjectCreateDTO projectCreateDTO)
     {
@@ -490,5 +493,5 @@ public class ProjectService : IProjectService
 
         return projectDashboardDTO;
     }
-
+    
 }

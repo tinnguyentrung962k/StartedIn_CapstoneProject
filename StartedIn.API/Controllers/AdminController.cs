@@ -44,7 +44,7 @@ namespace StartedIn.API.Controllers
             catch (NotFoundException ex)
             {
                 _logger.LogError(ex, "No user found.");
-                return NotFound(ex.Message);
+                return BadRequest(ex.Message);
             }
             catch (Exception ex)
             {
@@ -89,11 +89,27 @@ namespace StartedIn.API.Controllers
             }
             catch (NotFoundException ex)
             {
-                return StatusCode(400, ex);
+                return StatusCode(400, ex.Message);
             }
             catch (Exception ex)
             {
                 return StatusCode(500, MessageConstant.InternalServerError);
+            }
+        }
+
+        [HttpGet("projects/{projectId}")]
+        [Authorize(Roles = RoleConstants.ADMIN)]
+        public async Task<ActionResult<ProjectDetailForAdminDTO>> GetProjectDetail([FromRoute] string projectId)
+        {
+            try
+            {
+                var project = await _projectService.GetProjectById(projectId);
+                var response = _mapper.Map<ProjectDetailForAdminDTO>(project);
+                return Ok(response);
+            }
+            catch (NotFoundException ex)
+            {
+                return BadRequest(ex.Message);
             }
         }
     }
