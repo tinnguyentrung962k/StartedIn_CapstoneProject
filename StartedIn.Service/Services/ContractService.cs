@@ -613,9 +613,21 @@ namespace StartedIn.Service.Services
                             investmentCall.Status = InvestmentCallStatus.Closed;
                         }
                         _investmentCallRepository.Update(investmentCall);
+                        if (investmentCall.DealOffers != null)
+                        {
+                            foreach (var dealOffer in investmentCall.DealOffers)
+                            {
+                                if (investmentCall.RemainAvailableEquityShare < dealOffer.EquityShareOffer && dealOffer.DealStatus == DealStatusEnum.Waiting)
+                                {
+                                    dealOffer.DealStatus = DealStatusEnum.Rejected;
+                                    _dealOfferRepository.Update(dealOffer);
+                                }
+                            }
+                        }
+                        
                     }
                 }
-                
+
                 var totalDisbursement = chosenContract.Disbursements.Sum(e => e.Amount);
                 var projectFinance = await _financeRepository.QueryHelper()
                     .Filter(x => x.ProjectId.Equals(projectId))

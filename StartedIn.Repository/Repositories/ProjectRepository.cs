@@ -30,6 +30,7 @@ public class ProjectRepository : GenericRepository<Project, string>, IProjectRep
             .Include(p => p.UserProjects)
             .ThenInclude(up => up.User)
             .Include(p => p.InvestmentCalls)
+            .ThenInclude(p=>p.DealOffers)
             .Include(p => p.Finance)
             .Include(p => p.ProjectCharter)
             .ThenInclude(pc => pc.Phases)
