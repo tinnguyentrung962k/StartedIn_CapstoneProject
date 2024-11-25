@@ -28,7 +28,7 @@ namespace StartedIn.Service.Services.Interface
         //Task<User> UpdateCoverPhoto(IFormFile coverPhoto, string userId);
 
         Task<User> GetUserWithId(string id);
-        Task<PaginationDTO<FullProfileDTO>> GetUsersList(int pageIndex, int pageSize);
+        Task<PaginationDTO<FullProfileDTO>> GetUsersListForAdmin(int page, int size);
         Task ImportUsersFromExcel(IFormFile file);
         Task RequestResetPassword(string email);
         Task ResetPassword(ResetPasswordDTO resetPasswordDTO);

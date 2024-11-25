@@ -54,5 +54,12 @@ namespace StartedIn.Repository.Repositories
             // TODO check deleted
             return await _appDbContext.Users.CountAsync();
         }
+        public IQueryable<User> GetUsersInTheSystemQuery()
+        {
+            var query = _appDbContext.Users
+                .Include(it => it.UserRoles)
+                .ThenInclude(r => r.Role);
+            return query;
+        }
     }
 }

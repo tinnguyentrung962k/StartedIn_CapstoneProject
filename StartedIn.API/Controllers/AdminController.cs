@@ -38,11 +38,11 @@ namespace StartedIn.API.Controllers
 
         [HttpGet("users")]
         [Authorize(Roles = RoleConstants.ADMIN)]
-        public async Task<ActionResult<PaginationDTO<FullProfileDTO>>> GetUserLists([FromQuery] int pageIndex, int pageSize)
+        public async Task<ActionResult<PaginationDTO<FullProfileDTO>>> GetUserLists([FromQuery] int page, int size)
         {
             try
             {
-                var userResponse = await _userService.GetUsersList(pageIndex, pageSize);
+                var userResponse = await _userService.GetUsersListForAdmin(page, size);
                 return userResponse;
             }
             catch (NotFoundException ex)
@@ -133,7 +133,6 @@ namespace StartedIn.API.Controllers
                 var project = await _projectService.GetProjectById(projectId);
                 var response = _mapper.Map<ProjectDetailForAdminDTO>(project);
                 return Ok(response);
-
             }
             catch (NotFoundException ex)
             {

@@ -12,5 +12,6 @@ namespace StartedIn.Repository.Repositories.Interface
         Task<bool> CheckIfUserInProject(string userId, string projectId);
         Task<bool> IsUserBelongToAContract(string userId, string contractId);
         Task<int> Count();
+        IQueryable<User> GetUsersInTheSystemQuery();
     }
 }

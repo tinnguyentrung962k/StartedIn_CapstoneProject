@@ -220,20 +220,25 @@ namespace StartedIn.Service.Services
             return user;
         }
 
-        public async Task<PaginationDTO<FullProfileDTO>> GetUsersList(int pageIndex, int pageSize)
+        public async Task<PaginationDTO<FullProfileDTO>> GetUsersListForAdmin(int page, int size)
         {
-            var userList = await _userManager.GetUsersAsync(pageIndex, pageSize);
-            var totalCount = await _userRepository.Count();
-            if (!userList.Any())
-            {
-                throw new NotFoundException("Không có người dùng nào trong danh sách");
-            }
+            var userListQuery = _userRepository.GetUsersInTheSystemQuery()
+                .Where(x => x.UserRoles.Any(u=>u.RoleId != "role_admin"));
+
+            int totalCount = await userListQuery.CountAsync();
+            var pagedResult = await userListQuery
+                .Skip((page - 1) * size)
+                .Take(size)
+                .Include(it => it.UserRoles)
+                .ThenInclude(r => r.Role)
+                .ToListAsync();
+
             var pagination = new PaginationDTO<FullProfileDTO>()
             {
-                Data = _mapper.Map<List<FullProfileDTO>>(userList),
+                Data = _mapper.Map<List<FullProfileDTO>>(pagedResult),
                 Total = totalCount,
-                Page = pageIndex,
-                Size = pageSize
+                Page = page,
+                Size = size
             };
             return pagination;
         }
