@@ -130,6 +130,10 @@ namespace StartedIn.API.Controllers
                 await _userService.ActivateUser(userId);
                 return Ok("Kích hoạt thành công!");
             }
+            catch (ActivateException ex)
+            {
+                return BadRequest(ex.Message);
+            }
             catch (Exception ex)
             {
                 return StatusCode(500, MessageConstant.InternalServerError);

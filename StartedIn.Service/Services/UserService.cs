@@ -164,6 +164,10 @@ namespace StartedIn.Service.Services
             {
                 throw new NotFoundException($"Unable to activate user {userId}");
             }
+            if (user.EmailConfirmed == true)
+            {
+                throw new ActivateException(MessageConstant.AccountAlreadyActivate);
+            }
             user.EmailConfirmed = true;
             user.IsActive = true;
             user.Verified = DateTimeOffset.UtcNow;
