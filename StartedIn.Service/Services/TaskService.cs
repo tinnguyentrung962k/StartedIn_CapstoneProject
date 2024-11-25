@@ -72,7 +72,8 @@ namespace StartedIn.Service.Services
             {
                 Title = taskCreateDto.Title,
                 Description = taskCreateDto.Description,
-                Deadline = taskCreateDto.Deadline,
+                StartDate = taskCreateDto.StartDate,
+                EndDate = taskCreateDto.EndDate,
                 Status = TaskEntityStatus.NOT_STARTED,
                 ManHour = taskCreateDto.ManHour ?? 0,
                 IsLate = false,
@@ -147,7 +148,8 @@ namespace StartedIn.Service.Services
                 _unitOfWork.BeginTransaction();
                 chosenTask.Title = updateTaskInfoDTO.Title;
                 chosenTask.Description = updateTaskInfoDTO.Description;
-                chosenTask.Deadline = updateTaskInfoDTO.Deadline;
+                chosenTask.StartDate = updateTaskInfoDTO.StartDate;
+                chosenTask.EndDate = updateTaskInfoDTO.EndDate;
                 chosenTask.ManHour = updateTaskInfoDTO.ManHour ?? 0;
                 chosenTask.LastUpdatedTime = DateTimeOffset.UtcNow;
                 chosenTask.LastUpdatedBy = userInProject.User.FullName;
@@ -215,7 +217,8 @@ namespace StartedIn.Service.Services
                 Id = task.Id,
                 CreatedBy = task.CreatedBy,
                 CreatedTime = task.CreatedTime,
-                Deadline = task.Deadline,
+                StartDate = task.StartDate,
+                EndDate = task.EndDate,
                 DeletedTime = task.DeletedTime,
                 Description = task.Description,
                 IsLate = task.IsLate,
@@ -537,6 +540,21 @@ namespace StartedIn.Service.Services
             {
                 await _unitOfWork.RollbackAsync();
                 throw new Exception(MessageConstant.DeleteFailed);
+            }
+        }
+
+        public async Task MarkTaskAsLate()
+        {
+            var tasks = await _taskRepository.QueryHelper()
+                .Filter(c => c.IsLate == false &&
+                             ((c.Status == TaskEntityStatus.NOT_STARTED && c.StartDate < DateTimeOffset.UtcNow)
+                              || (c.Status == TaskEntityStatus.IN_PROGRESS && c.EndDate < DateTimeOffset.UtcNow)))
+                .GetAllAsync();
+            foreach (var task in tasks)
+            {
+                task.IsLate = true;
+                _taskRepository.Update(task);
+                await _unitOfWork.SaveChangesAsync();
             }
         }
     }

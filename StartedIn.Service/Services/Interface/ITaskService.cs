@@ -23,5 +23,6 @@ namespace StartedIn.Service.Services.Interface
         Task<TaskEntity> GetTaskDetail(string userId, string taskId, string projectId);
         Task<PaginationDTO<TaskResponseDTO>> FilterTask(string userId, string projectId, TaskFilterDTO taskFilterDto, int size, int page);
         Task DeleteTask(string userId, string taskId, string projectId);
+        Task MarkTaskAsLate();
     }
 }
