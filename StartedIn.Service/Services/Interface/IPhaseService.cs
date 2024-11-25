@@ -8,4 +8,6 @@ public interface IPhaseService
     Task<Phase> CreateNewPhase(string userId, string projectId, CreatePhaseDTO createPhaseDto);
     Task<Phase> GetPhaseByPhaseId(string projectId, string phaseId);
     Task<List<Phase>> GetPhasesByProjectId(string projectId);
+    Task<Phase> UpdatePhase(string userId, string projectId, string id, UpdatePhaseDTO updatePhaseDto);
+
 }
