@@ -15,6 +15,8 @@ using StartedIn.Repository.Repositories;
 using StartedIn.CrossCutting.DTOs.ResponseDTO.Authentication;
 using StartedIn.CrossCutting.DTOs.RequestDTO.Auth;
 using StartedIn.CrossCutting.Enum;
+using StartedIn.CrossCutting.DTOs.ResponseDTO;
+using AutoMapper;
 
 namespace StartedIn.Service.Services
 {
@@ -30,13 +32,15 @@ namespace StartedIn.Service.Services
         private readonly IProjectRepository _projectRepository;
         private readonly IContractRepository _contractRepository;
         private readonly IUserRepository _userRepository;
+        private readonly IMapper _mapper;
         public UserService(ITokenService tokenService,
             UserManager<User> userManager, IUnitOfWork unitOfWork,
             IConfiguration configuration, IEmailService emailService,
             ILogger<UserService> logger, IHttpContextAccessor httpContextAccessor,
             RoleManager<Role> roleManager,
             IProjectRepository projectRepository,IContractRepository contractRepository,
-            IUserRepository userRepository
+            IUserRepository userRepository,
+            IMapper mapper
         )
         {
             _tokenService = tokenService;
@@ -49,6 +53,7 @@ namespace StartedIn.Service.Services
             _projectRepository = projectRepository;
             _contractRepository = contractRepository;
             _userRepository = userRepository;
+            _mapper = mapper;
         }
 
         public async Task<LoginResponseDTO> Login(string email, string password)
@@ -65,6 +70,10 @@ namespace StartedIn.Service.Services
             if (loginUser.EmailConfirmed == false)
             {
                 throw new NotActivateException("Tài khoản chưa được xác thực");
+            }
+            if (loginUser.IsActive == false)
+            {
+                throw new NotActivateException("Tài khoản đã bị vô hiệu hoá");
             }
             var user = await _userManager.FindByIdAsync(loginUser.Id);
             string jwtToken;
@@ -155,7 +164,12 @@ namespace StartedIn.Service.Services
             {
                 throw new NotFoundException($"Unable to activate user {userId}");
             }
+            if (user.EmailConfirmed == true)
+            {
+                throw new ActivateException(MessageConstant.AccountAlreadyActivate);
+            }
             user.EmailConfirmed = true;
+            user.IsActive = true;
             user.Verified = DateTimeOffset.UtcNow;
             await _userManager.UpdateAsync(user);
         }
@@ -206,14 +220,22 @@ namespace StartedIn.Service.Services
             return user;
         }
 
-        public async Task<IEnumerable<User>> GetUsersList(int pageIndex, int pageSize)
+        public async Task<PaginationDTO<FullProfileDTO>> GetUsersList(int pageIndex, int pageSize)
         {
             var userList = await _userManager.GetUsersAsync(pageIndex, pageSize);
+            var totalCount = await _userRepository.Count();
             if (!userList.Any())
             {
                 throw new NotFoundException("Không có người dùng nào trong danh sách");
             }
-            return userList;
+            var pagination = new PaginationDTO<FullProfileDTO>()
+            {
+                Data = _mapper.Map<List<FullProfileDTO>>(userList),
+                Total = totalCount,
+                Page = pageIndex,
+                Size = pageSize
+            };
+            return pagination;
         }
         public async Task ImportUsersFromExcel(IFormFile file)
         {
@@ -288,7 +310,8 @@ namespace StartedIn.Service.Services
                                 EmailConfirmed = true, // Set default, adjust as needed
                                 ProfilePicture = ProfileConstant.defaultAvatarUrl, // Default avatar
                                 PhoneNumber = phoneNumber,
-                                StudentCode = studentCode
+                                StudentCode = studentCode,
+                                IsActive = true
                             };
 
                             var result = await _userManager.CreateAsync(newUser, password);
@@ -435,6 +458,17 @@ namespace StartedIn.Service.Services
         public async Task<bool> IsUserInProject(string userId, string projectId)
         {
             return await _userRepository.CheckIfUserInProject(userId, projectId);
+        }
+
+        public async Task ToggleUserStatus(string userId)
+        {
+            var user = await _userManager.FindByIdAsync(userId);
+            if (user == null)
+            {
+                throw new NotFoundException($"Unable to deacactivate user {userId}");
+            }
+            user.IsActive = !user.IsActive;
+            await _userManager.UpdateAsync(user);
         }
     }
 }

@@ -20,6 +20,7 @@ namespace StartedIn.Domain.Entities
         public string? StudentCode { get; set; }
         public string? IdCardNumber { get; set; }
         public string? Address { get; set; }
+        public bool IsActive { get; set; }
 
         [StringLength(120)]
         public string? Bio { get; set; }

@@ -38,13 +38,12 @@ namespace StartedIn.API.Controllers
 
         [HttpGet("users")]
         [Authorize(Roles = RoleConstants.ADMIN)]
-        public async Task<ActionResult<IEnumerable<FullProfileDTO>>> GetUserLists([FromQuery] int pageIndex, int pageSize)
+        public async Task<ActionResult<PaginationDTO<FullProfileDTO>>> GetUserLists([FromQuery] int pageIndex, int pageSize)
         {
             try
             {
-                var userList = await _userService.GetUsersList(pageIndex, pageSize);
-                var responseUserList = _mapper.Map<List<FullProfileDTO>>(userList);
-                return responseUserList;
+                var userResponse = await _userService.GetUsersList(pageIndex, pageSize);
+                return userResponse;
             }
             catch (NotFoundException ex)
             {
@@ -139,6 +138,21 @@ namespace StartedIn.API.Controllers
             catch (NotFoundException ex)
             {
                 return BadRequest(ex.Message);
+            }
+        }
+
+        [HttpPut("toggle-status/{userId}")]
+        [Authorize(Roles = RoleConstants.ADMIN)]
+        public async Task<IActionResult> ToggleUserStatus(string userId)
+        {
+            try
+            {
+                await _userService.ToggleUserStatus(userId);
+                return Ok("Cập nhật trạng thái thành công.");
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, MessageConstant.InternalServerError);
             }
         }
     }

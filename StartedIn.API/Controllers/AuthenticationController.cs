@@ -41,7 +41,7 @@ namespace StartedIn.API.Controllers
             }
             catch (NotActivateException ex)
             {
-                return BadRequest(ex.Message);
+                return StatusCode(403, ex.Message);
             }
             catch (Exception ex)
             {
@@ -129,6 +129,10 @@ namespace StartedIn.API.Controllers
             {
                 await _userService.ActivateUser(userId);
                 return Ok("Kích hoạt thành công!");
+            }
+            catch (ActivateException ex)
+            {
+                return BadRequest(ex.Message);
             }
             catch (Exception ex)
             {

@@ -49,5 +49,10 @@ namespace StartedIn.Repository.Repositories
             var isUserBelongContract = await _appDbContext.UserContracts.AnyAsync(x => x.UserId.Equals(userId) && x.ContractId.Equals(contractId));
             return isUserBelongContract;
         }
+        public async Task<int> Count()
+        {
+            // TODO check deleted
+            return await _appDbContext.Users.CountAsync();
+        }
     }
 }
