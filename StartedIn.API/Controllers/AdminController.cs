@@ -140,5 +140,20 @@ namespace StartedIn.API.Controllers
                 return BadRequest(ex.Message);
             }
         }
+
+        [HttpPut("deactivate-user/{userId}")]
+        [Authorize(Roles = RoleConstants.ADMIN)]
+        public async Task<IActionResult> DeactivateUser(string userId)
+        {
+            try
+            {
+                await _userService.DeactiveUser(userId);
+                return Ok("Vô hiệu hoá người dùng thành công.");
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, MessageConstant.InternalServerError);
+            }
+        }
     }
 }

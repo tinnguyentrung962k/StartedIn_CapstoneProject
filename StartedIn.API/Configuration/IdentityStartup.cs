@@ -43,7 +43,8 @@ namespace StartedIn.API.Configuration
                     FullName = "Administrator",
                     PasswordHash = "AQAAAAIAAYagAAAAEDVvGpkikGvRZ56Ri2MKtaJTlb+tqMqrUG0TM7irCuj430fot1Qiq5eopSnTR+vbew==",
                     Email = "admin@gmail.com",
-                    EmailConfirmed = true
+                    EmailConfirmed = true,
+                    IsActive = true
                 },
                 new User
                 {
@@ -52,7 +53,8 @@ namespace StartedIn.API.Configuration
                     FullName = "User Demo",
                     PasswordHash = "AQAAAAIAAYagAAAAEDVvGpkikGvRZ56Ri2MKtaJTlb+tqMqrUG0TM7irCuj430fot1Qiq5eopSnTR+vbew==",
                     Email = "user@gmail.com",
-                    EmailConfirmed = true
+                    EmailConfirmed = true,
+                    IsActive = true
                 },
             };
         }

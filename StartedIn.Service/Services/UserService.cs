@@ -71,6 +71,10 @@ namespace StartedIn.Service.Services
             {
                 throw new NotActivateException("Tài khoản chưa được xác thực");
             }
+            if (loginUser.IsActive == false)
+            {
+                throw new NotActivateException("Tài khoản đã bị vô hiệu hoá");
+            }
             var user = await _userManager.FindByIdAsync(loginUser.Id);
             string jwtToken;
             string refreshToken;
@@ -161,6 +165,7 @@ namespace StartedIn.Service.Services
                 throw new NotFoundException($"Unable to activate user {userId}");
             }
             user.EmailConfirmed = true;
+            user.IsActive = true;
             user.Verified = DateTimeOffset.UtcNow;
             await _userManager.UpdateAsync(user);
         }
@@ -301,7 +306,8 @@ namespace StartedIn.Service.Services
                                 EmailConfirmed = true, // Set default, adjust as needed
                                 ProfilePicture = ProfileConstant.defaultAvatarUrl, // Default avatar
                                 PhoneNumber = phoneNumber,
-                                StudentCode = studentCode
+                                StudentCode = studentCode,
+                                IsActive = true
                             };
 
                             var result = await _userManager.CreateAsync(newUser, password);
@@ -448,6 +454,17 @@ namespace StartedIn.Service.Services
         public async Task<bool> IsUserInProject(string userId, string projectId)
         {
             return await _userRepository.CheckIfUserInProject(userId, projectId);
+        }
+
+        public async Task DeactiveUser(string userId)
+        {
+            var user = await _userManager.FindByIdAsync(userId);
+            if (user == null)
+            {
+                throw new NotFoundException($"Unable to deacactivate user {userId}");
+            }
+            user.IsActive = false;
+            await _userManager.UpdateAsync(user);
         }
     }
 }

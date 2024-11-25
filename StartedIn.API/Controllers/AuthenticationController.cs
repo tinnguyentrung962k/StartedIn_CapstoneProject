@@ -41,7 +41,7 @@ namespace StartedIn.API.Controllers
             }
             catch (NotActivateException ex)
             {
-                return BadRequest(ex.Message);
+                return StatusCode(403, ex.Message);
             }
             catch (Exception ex)
             {
