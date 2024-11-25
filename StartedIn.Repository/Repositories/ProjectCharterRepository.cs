@@ -27,7 +27,8 @@ namespace StartedIn.Repository.Repositories
         public async Task<ProjectCharter> GetProjectCharterByProjectId(string projectId)
         {
             var projectCharter = await _appDbContext.ProjectCharters
-                .Include(pc => pc.Phases)
+                .Include(pc => pc.Phases.OrderBy(p => p.StartDate))
+                .ThenInclude(p => p.Milestones)
                 .Where(x => x.DeletedTime == null)
                 .FirstOrDefaultAsync(p => p.ProjectId.Equals(projectId));
             return projectCharter;

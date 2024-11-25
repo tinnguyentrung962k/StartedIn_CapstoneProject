@@ -33,10 +33,10 @@ public class ProjectRepository : GenericRepository<Project, string>, IProjectRep
             .Include(p => p.Finance)
             .Include(p => p.ProjectCharter)
             .ThenInclude(pc => pc.Phases)
+            .ThenInclude(p => p.Milestones)
+            .ThenInclude(x => x.Tasks)
             .Include(p => p.Contracts)
             .ThenInclude(c => c.Disbursements)
-            .Include(x => x.Milestones)
-            .ThenInclude(x => x.Tasks)
             .Where(x => x.DeletedTime == null)
             .FirstOrDefaultAsync();
         return project;
