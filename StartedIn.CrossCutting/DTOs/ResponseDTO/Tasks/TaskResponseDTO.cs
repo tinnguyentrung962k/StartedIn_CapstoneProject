@@ -9,6 +9,7 @@ namespace StartedIn.CrossCutting.DTOs.ResponseDTO.Tasks
         public bool IsLate { get; set; }
         public int ManHour { get; set; }
         public TaskEntityStatus Status { get; set; }
-        public DateTimeOffset? Deadline { get; set; }
+        public DateTimeOffset? StartDate { get; set; }
+        public DateTimeOffset? EndDate { get; set; }
     }
 }
