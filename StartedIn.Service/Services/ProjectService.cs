@@ -453,7 +453,7 @@ public class ProjectService : IProjectService
                 Progress = _milestoneService.CalculateProgress(m)
             }).ToList();
         }
-        var transactionStatisticOfPreviousMonth = await _transactionService.GetInAndOutMoneyTransactionOfPreviousMonth(projectId);
+        var transactionStatisticOfCurrentMonth = await _transactionService.GetInAndOutMoneyTransactionOfCurrentMonth(projectId);
         var userShareInProject = await _shareEquityService.GetShareEquityOfAUserInAProject(userId, projectId);
         ProjectDashboardDTO projectDashboardDTO = new ProjectDashboardDTO
         {
@@ -462,8 +462,8 @@ public class ProjectService : IProjectService
             RemainingDisbursement = project.Finance.RemainingDisbursement.ToString(),
             MilestoneProgress = milestoneProgressList,
             ShareEquityPercentage = userShareInProject.ToString(),
-            InAmount = transactionStatisticOfPreviousMonth.InMoney.ToString(),
-            OutAmount = transactionStatisticOfPreviousMonth.OutMoney.ToString(),
+            InAmount = transactionStatisticOfCurrentMonth.InMoney.ToString(),
+            OutAmount = transactionStatisticOfCurrentMonth.OutMoney.ToString(),
         };
 
         if (userInProject.RoleInTeam == RoleInTeam.Investor)

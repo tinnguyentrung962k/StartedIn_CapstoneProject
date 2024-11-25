@@ -634,26 +634,6 @@ namespace StartedIn.Service.Services
                 throw;
             }
         }
-        public async Task<DocumentDownLoadResponseDTO> DownloadContractForAdmin(string projectId, string contractId)
-        {
-            var contract = await _contractRepository.GetContractById(contractId);
-            if (contract == null)
-            {
-                throw new NotFoundException(MessageConstant.NotFoundContractError);
-            }
-            if (projectId != contract.ProjectId)
-            {
-                throw new UnmatchedException(MessageConstant.ContractNotBelongToProjectError);
-            }
-
-            if (contract.SignNowDocumentId == null)
-            {
-                throw new NotFoundException(MessageConstant.NotFoundDocumentError);
-            }
-            await _signNowService.AuthenticateAsync();
-            var documentDownloadinfo = await _signNowService.DownLoadDocument(contract.SignNowDocumentId);
-            return documentDownloadinfo;
-        }
 
         public async Task<DocumentDownLoadResponseDTO> DownLoadFileContract(string userId, string projectId, string contractId)
         {
@@ -1041,18 +1021,23 @@ namespace StartedIn.Service.Services
                     userInProject.Project.RemainingPercentOfShares += investmentShare;
                     _logger.LogInformation($"Hợp đồng đầu tư hết hạn. Trả lại {investmentShare}% cổ phần cho dự án {userInProject.Project.ProjectName}. Tổng cổ phần còn lại: {userInProject.Project.RemainingPercentOfShares}%.");
                     _projectRepository.Update(userInProject.Project);
+                    decimal totalPendingAmount = 0;
                     if (contract.Disbursements != null)
                     {
                         foreach (var disbursement in contract.Disbursements)
                         {
                             if (disbursement.DisbursementStatus == DisbursementStatusEnum.PENDING)
                             {
+                                totalPendingAmount += disbursement.Amount; // Sum pending disbursement amounts
                                 disbursement.IsValidWithContract = false;
                                 _disbursementRepository.Update(disbursement);
                             }
                         }
                     }
-                    // Logic tuỳ chọn: Xử lý tài chính hoặc thông báo
+                    var project = await _projectRepository.GetProjectById(projectId);
+                    project.Finance.RemainingDisbursement -= totalPendingAmount;
+                    _financeRepository.Update(project.Finance);
+                    _logger.LogInformation($"Tổng số tiền chưa giải ngân bị tắt: {totalPendingAmount}.");
                 }
                 await _unitOfWork.SaveChangesAsync();
                 await _unitOfWork.CommitAsync();
