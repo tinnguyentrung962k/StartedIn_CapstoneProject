@@ -16,11 +16,13 @@ public class PhaseController : ControllerBase
 {
     private readonly IPhaseService _phaseService;
     private readonly IMapper _mapper;
+    private readonly ILogger<PhaseController> _logger;
 
-    public PhaseController(IPhaseService phaseService, IMapper mapper)
+    public PhaseController(IPhaseService phaseService, IMapper mapper, ILogger<PhaseController> logger)
     {
         _phaseService = phaseService;
         _mapper = mapper;
+        _logger = logger;
     }
 
     [HttpPost("phases")]
@@ -86,6 +88,31 @@ public class PhaseController : ControllerBase
         catch (Exception ex)
         {
             return StatusCode(500, MessageConstant.InternalServerError);
+        }
+    }
+    
+    [HttpPut("{phaseId}")]
+    [Authorize(Roles = RoleConstants.USER)]
+    public async Task<ActionResult<PhaseResponseDTO>> EditInfoMilestone([FromRoute] string phaseId, [FromRoute] string projectId, [FromBody] UpdatePhaseDTO updatePhaseDto)
+    {
+        try
+        {
+            var userId = User.FindFirst(ClaimTypes.NameIdentifier).Value;
+            var responseMilestone = _mapper.Map<PhaseResponseDTO>(await _phaseService.UpdatePhase(userId, projectId, phaseId, updatePhaseDto));
+            return Ok(responseMilestone);
+        }
+        catch (UnauthorizedProjectRoleException ex)
+        {
+            _logger.LogError(ex, "Unauthorized Role");
+            return StatusCode(403, ex.Message);
+        }
+        catch (NotFoundException ex)
+        {
+            return BadRequest(ex.Message);
+        }
+        catch (Exception ex)
+        {
+            return BadRequest(MessageConstant.UpdateFailed);
         }
     }
 }
