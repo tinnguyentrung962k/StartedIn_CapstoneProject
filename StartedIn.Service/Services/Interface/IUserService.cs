@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Http;
 using StartedIn.CrossCutting.DTOs.RequestDTO.Auth;
+using StartedIn.CrossCutting.DTOs.ResponseDTO;
 using StartedIn.CrossCutting.DTOs.ResponseDTO.Authentication;
 using StartedIn.Domain.Entities;
 
@@ -27,7 +28,7 @@ namespace StartedIn.Service.Services.Interface
         //Task<User> UpdateCoverPhoto(IFormFile coverPhoto, string userId);
 
         Task<User> GetUserWithId(string id);
-        Task<IEnumerable<User>> GetUsersList(int pageIndex, int pageSize);
+        Task<PaginationDTO<FullProfileDTO>> GetUsersList(int pageIndex, int pageSize);
         Task ImportUsersFromExcel(IFormFile file);
         Task RequestResetPassword(string email);
         Task ResetPassword(ResetPasswordDTO resetPasswordDTO);

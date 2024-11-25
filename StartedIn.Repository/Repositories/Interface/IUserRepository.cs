@@ -1,11 +1,6 @@
 ﻿using Microsoft.AspNetCore.Identity;
 using StartedIn.CrossCutting.Enum;
 using StartedIn.Domain.Entities;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace StartedIn.Repository.Repositories.Interface
 {
@@ -16,6 +11,6 @@ namespace StartedIn.Repository.Repositories.Interface
         Task<List<UserContract>> GetUsersListRelevantToContractsInAProject(string projectId);
         Task<bool> CheckIfUserInProject(string userId, string projectId);
         Task<bool> IsUserBelongToAContract(string userId, string contractId);
-
+        Task<int> Count();
     }
 }

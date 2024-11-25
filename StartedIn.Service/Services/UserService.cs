@@ -15,6 +15,8 @@ using StartedIn.Repository.Repositories;
 using StartedIn.CrossCutting.DTOs.ResponseDTO.Authentication;
 using StartedIn.CrossCutting.DTOs.RequestDTO.Auth;
 using StartedIn.CrossCutting.Enum;
+using StartedIn.CrossCutting.DTOs.ResponseDTO;
+using AutoMapper;
 
 namespace StartedIn.Service.Services
 {
@@ -30,13 +32,15 @@ namespace StartedIn.Service.Services
         private readonly IProjectRepository _projectRepository;
         private readonly IContractRepository _contractRepository;
         private readonly IUserRepository _userRepository;
+        private readonly IMapper _mapper;
         public UserService(ITokenService tokenService,
             UserManager<User> userManager, IUnitOfWork unitOfWork,
             IConfiguration configuration, IEmailService emailService,
             ILogger<UserService> logger, IHttpContextAccessor httpContextAccessor,
             RoleManager<Role> roleManager,
             IProjectRepository projectRepository,IContractRepository contractRepository,
-            IUserRepository userRepository
+            IUserRepository userRepository,
+            IMapper mapper
         )
         {
             _tokenService = tokenService;
@@ -49,6 +53,7 @@ namespace StartedIn.Service.Services
             _projectRepository = projectRepository;
             _contractRepository = contractRepository;
             _userRepository = userRepository;
+            _mapper = mapper;
         }
 
         public async Task<LoginResponseDTO> Login(string email, string password)
@@ -206,14 +211,22 @@ namespace StartedIn.Service.Services
             return user;
         }
 
-        public async Task<IEnumerable<User>> GetUsersList(int pageIndex, int pageSize)
+        public async Task<PaginationDTO<FullProfileDTO>> GetUsersList(int pageIndex, int pageSize)
         {
             var userList = await _userManager.GetUsersAsync(pageIndex, pageSize);
+            var totalCount = await _userRepository.Count();
             if (!userList.Any())
             {
                 throw new NotFoundException("Không có người dùng nào trong danh sách");
             }
-            return userList;
+            var pagination = new PaginationDTO<FullProfileDTO>()
+            {
+                Data = _mapper.Map<List<FullProfileDTO>>(userList),
+                Total = totalCount,
+                Page = pageIndex,
+                Size = pageSize
+            };
+            return pagination;
         }
         public async Task ImportUsersFromExcel(IFormFile file)
         {
