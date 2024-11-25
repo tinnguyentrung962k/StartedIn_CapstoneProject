@@ -16,7 +16,8 @@ namespace StartedIn.CrossCutting.DTOs.ResponseDTO.Tasks
         public string? Description { get; set; }
         public bool IsLate { get; set; }
         public TaskEntityStatus Status { get; set; }
-        public DateTimeOffset? Deadline { get; set; }
+        public DateTimeOffset? StartDate { get; set; }
+        public DateTimeOffset? EndDate { get; set; }
         public int ManHour { get; set; }
         public TaskResponseDTO ParentTask { get; set; }
         public MilestoneResponseDTO Milestone { get; set; }
