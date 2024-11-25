@@ -141,14 +141,14 @@ namespace StartedIn.API.Controllers
             }
         }
 
-        [HttpPut("deactivate-user/{userId}")]
+        [HttpPut("toggle-status/{userId}")]
         [Authorize(Roles = RoleConstants.ADMIN)]
-        public async Task<IActionResult> DeactivateUser(string userId)
+        public async Task<IActionResult> ToggleUserStatus(string userId)
         {
             try
             {
-                await _userService.DeactiveUser(userId);
-                return Ok("Vô hiệu hoá người dùng thành công.");
+                await _userService.ToggleUserStatus(userId);
+                return Ok("Cập nhật trạng thái thành công.");
             }
             catch (Exception ex)
             {

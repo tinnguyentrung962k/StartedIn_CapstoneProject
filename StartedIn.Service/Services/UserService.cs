@@ -460,14 +460,14 @@ namespace StartedIn.Service.Services
             return await _userRepository.CheckIfUserInProject(userId, projectId);
         }
 
-        public async Task DeactiveUser(string userId)
+        public async Task ToggleUserStatus(string userId)
         {
             var user = await _userManager.FindByIdAsync(userId);
             if (user == null)
             {
                 throw new NotFoundException($"Unable to deacactivate user {userId}");
             }
-            user.IsActive = false;
+            user.IsActive = !user.IsActive;
             await _userManager.UpdateAsync(user);
         }
     }
