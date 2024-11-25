@@ -62,6 +62,8 @@ namespace StartedIn.API.Configuration.AutoMapper
                 .ReverseMap();
             CreateMap<Milestone, MilestoneDetailsResponseDTO>()
                 .ForMember(rms => rms.AssignedTasks, opt => opt.MapFrom(ms => ms.Tasks));
+            CreateMap<Milestone, MilestoneInPhaseResponseDTO>()
+                .ReverseMap();
         }
 
         private void UserMappingProfile()
@@ -174,7 +176,9 @@ namespace StartedIn.API.Configuration.AutoMapper
         }
         private void ProjectCharterMappingProfile()
         {
-            CreateMap<ProjectCharterResponseDTO, ProjectCharter>().ReverseMap();
+            CreateMap<ProjectCharter, ProjectCharterResponseDTO>()
+                .ForMember(dest => dest.Phases, opt => opt.MapFrom(src => src.Phases))
+                .ReverseMap();
         }
         private void DealOfferMappingProfile()
         {
@@ -250,7 +254,9 @@ namespace StartedIn.API.Configuration.AutoMapper
 
         private void PhaseProfileMapping()
         {
-            CreateMap<Phase, PhaseResponseDTO>().ReverseMap();
+            CreateMap<Phase, PhaseResponseDTO>()
+                .ForMember(dest => dest.Milestones, opt => opt.MapFrom(src => src.Milestones))
+                .ReverseMap();
         }
         
     }

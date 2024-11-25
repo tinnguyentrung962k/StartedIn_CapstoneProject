@@ -91,7 +91,7 @@ public class PhaseService : IPhaseService
         {
             throw new NotFoundException(MessageConstant.NotFoundCharterError);
         }
-        var phases = await _phaseRepository.QueryHelper().Filter(p => p.ProjectCharterId.Equals(projectCharter.Id))
+        var phases = await _phaseRepository.QueryHelper().Filter(p => p.ProjectCharterId.Equals(projectCharter.Id)).Include(p => p.Milestones)
             .GetAllAsync();
         return phases.ToList();
     }
