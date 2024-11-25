@@ -95,4 +95,44 @@ public class PhaseService : IPhaseService
             .GetAllAsync();
         return phases.ToList();
     }
+
+    public async Task<Phase> UpdatePhase(string userId, string projectId, string id, UpdatePhaseDTO updatePhaseDto)
+    {
+        var loginUser = await _userService.CheckIfUserInProject(userId, projectId);
+
+        var chosenPhase = await _phaseRepository.QueryHelper()
+            .Include(x => x.Milestones)
+            .Filter(x => x.Id.Equals(id))
+            .GetOneAsync();
+
+        var projectRole = await _projectRepository.GetUserRoleInProject(userId, projectId);
+
+        if (chosenPhase == null)
+        {
+            throw new NotFoundException(MessageConstant.NotFoundMilestoneError);
+        }
+
+        if (projectRole != RoleInTeam.Leader)
+        {
+            throw new UnauthorizedProjectRoleException(MessageConstant.RolePermissionError);
+        }
+
+        try
+        {
+            _unitOfWork.BeginTransaction();
+            chosenPhase.PhaseName = updatePhaseDto.PhaseName;
+            chosenPhase.StartDate = updatePhaseDto.StartDate;
+            chosenPhase.EndDate = updatePhaseDto.EndDate;
+            chosenPhase.ProjectCharterId = updatePhaseDto.ProjectCharterId;
+            _phaseRepository.Update(chosenPhase);
+            await _unitOfWork.SaveChangesAsync();
+            await _unitOfWork.CommitAsync();
+            return chosenPhase;
+        }
+        catch (Exception ex)
+        {
+            await _unitOfWork.RollbackAsync();
+            throw new Exception("Failed while update milestone");
+        }
+    }
 }
