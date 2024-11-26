@@ -28,6 +28,8 @@ namespace StartedIn.API.Configuration
             services.AddScoped<IAssetService, AssetService>();
             services.AddScoped<IPhaseService, PhaseService>();
             services.AddScoped<IRecruitInviteService, RecruitInviteService>();
+            services.AddScoped<ITaskCommentService, TaskCommentService>();
+            services.AddScoped<ITaskAttachmentService, TaskAttachmentService>();
             return services;
         }
     }

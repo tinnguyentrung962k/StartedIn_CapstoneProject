@@ -1,13 +1,11 @@
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
+using StartedIn.Domain.Entities.BaseEntities;
 
 namespace StartedIn.Domain.Entities;
 
-public class TaskAttachment 
+public class TaskAttachment : BaseAuditEntity<string>
 {
-    [Key]
-    [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
-    public string Id { get; set; } 
     [ForeignKey(nameof(TaskEntity))]
     public string TaskId { get; set; }
     public string? AttachmentUrl { get; set; }
