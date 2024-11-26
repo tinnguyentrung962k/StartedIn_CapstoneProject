@@ -39,7 +39,8 @@ public class TaskAttachmentService : ITaskAttachmentService
             var newAttachment = new TaskAttachment
             {
                 TaskId = taskId,
-                AttachmentUrl = fileUrl
+                AttachmentUrl = fileUrl,
+                FileName = Path.GetFileName(taskAttachmentCreateDto.Attachment.FileName)
             };
             var attachmentEntity = _taskAttachmentRepository.Add(newAttachment);
             await _unitOfWork.SaveChangesAsync();
