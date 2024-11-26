@@ -24,11 +24,11 @@ public class TaskAttachmentController : ControllerBase
 
     [HttpPost]
     [Authorize(Roles = RoleConstants.USER)]
-    public async Task<ActionResult<TaskAttachmentResponseDTO>> CreateTaskAttachment(TaskAttachmentCreateDTO taskAttachmentCreateDto)
+    public async Task<ActionResult<TaskAttachmentResponseDTO>> CreateTaskAttachment([FromRoute] string projectId, string taskId, [FromForm] TaskAttachmentCreateDTO taskAttachmentCreateDto)
     {
         try
         {
-            var taskAttachment = await _taskAttachmentService.AddTaskAttachment(taskAttachmentCreateDto);
+            var taskAttachment = await _taskAttachmentService.AddTaskAttachment(taskId, projectId, taskAttachmentCreateDto);
             var response = _mapper.Map<TaskAttachmentResponseDTO>(taskAttachment);
             return Ok(response);
         }

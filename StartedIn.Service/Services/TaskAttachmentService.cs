@@ -11,27 +11,34 @@ namespace StartedIn.Service.Services;
 public class TaskAttachmentService : ITaskAttachmentService
 {
     private readonly ITaskAttachmentRepository _taskAttachmentRepository;
+    private readonly IProjectRepository _projectRepository;
     private readonly IAzureBlobService _azureBlobService;
     private readonly IUnitOfWork _unitOfWork;
     private readonly ILogger<TaskAttachmentService> _logger;
 
     public TaskAttachmentService(ITaskAttachmentRepository taskAttachmentRepository, IAzureBlobService azureBlobService, IUnitOfWork unitOfWork,
-        ILogger<TaskAttachmentService> logger)
+        ILogger<TaskAttachmentService> logger, IProjectRepository projectRepository)
     {
         _taskAttachmentRepository = taskAttachmentRepository;
         _azureBlobService = azureBlobService;
         _unitOfWork = unitOfWork;
         _logger = logger;
+        _projectRepository = projectRepository;
     }
-    public async Task<TaskAttachment> AddTaskAttachment(TaskAttachmentCreateDTO taskAttachmentCreateDto)
+    public async Task<TaskAttachment> AddTaskAttachment(string taskId, string projectId, TaskAttachmentCreateDTO taskAttachmentCreateDto)
     {
+        var project = await _projectRepository.QueryHelper().Filter(p => p.Id.Equals(projectId)).GetOneAsync();
+        if (project == null)
+        {
+            throw new NotFoundException(MessageConstant.NotFoundProjectError);
+        }
         try
         {
             _unitOfWork.BeginTransaction();
             var fileUrl = await _azureBlobService.UploadTaskAttachment(taskAttachmentCreateDto.Attachment);
             var newAttachment = new TaskAttachment
             {
-                TaskId = taskAttachmentCreateDto.TaskId,
+                TaskId = taskId,
                 AttachmentUrl = fileUrl
             };
             var attachmentEntity = _taskAttachmentRepository.Add(newAttachment);

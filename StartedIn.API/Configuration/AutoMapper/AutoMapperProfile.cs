@@ -42,6 +42,7 @@ namespace StartedIn.API.Configuration.AutoMapper
             TransactionMappingProfile();
             AssetProfileMapping();
             PhaseProfileMapping();
+            TaskAttachmentMappingProfile();
         }
 
 
