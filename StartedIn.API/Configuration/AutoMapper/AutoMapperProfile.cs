@@ -16,6 +16,7 @@ using StartedIn.CrossCutting.DTOs.ResponseDTO.Project;
 using StartedIn.CrossCutting.DTOs.ResponseDTO.ProjectCharter;
 using StartedIn.CrossCutting.DTOs.ResponseDTO.RecruitInvite;
 using StartedIn.CrossCutting.DTOs.ResponseDTO.ShareEquity;
+using StartedIn.CrossCutting.DTOs.ResponseDTO.TaskComment;
 using StartedIn.CrossCutting.DTOs.ResponseDTO.TaskAttachment;
 using StartedIn.CrossCutting.DTOs.ResponseDTO.Tasks;
 using StartedIn.CrossCutting.DTOs.ResponseDTO.Transaction;
@@ -33,6 +34,7 @@ namespace StartedIn.API.Configuration.AutoMapper
             ProjectMappingProfile();
             MilestoneMappingProfile();
             TaskMappingProfile();
+            TaskCommentProfile();
             ContractMappingProfile();
             ProjectCharterMappingProfile();
             DealOfferMappingProfile();
@@ -126,7 +128,7 @@ namespace StartedIn.API.Configuration.AutoMapper
                     opt => opt.MapFrom(src =>
                         src.UserProjects.FirstOrDefault(up => up.RoleInTeam == RoleInTeam.Leader).User.FullName))
                 .ReverseMap();
-            
+
             CreateMap<Project, ProjectDetailForAdminDTO>()
                 .ForMember(p => p.ProjectCharterResponseDto, opt => opt.MapFrom(src => src.ProjectCharter))
                 .ForMember(dest => dest.LeaderId,
@@ -135,7 +137,7 @@ namespace StartedIn.API.Configuration.AutoMapper
                 .ForMember(dest => dest.LeaderFullName,
                     opt => opt.MapFrom(src =>
                         src.UserProjects.FirstOrDefault(up => up.RoleInTeam == RoleInTeam.Leader).User.FullName))
-                .ForMember(dest => dest.IsSignedInternalContract, opt => opt.MapFrom(src => src.Contracts.Any(c=>c.ContractType == ContractTypeEnum.INTERNAL && c.ContractStatus == ContractStatusEnum.COMPLETED)))
+                .ForMember(dest => dest.IsSignedInternalContract, opt => opt.MapFrom(src => src.Contracts.Any(c => c.ContractType == ContractTypeEnum.INTERNAL && c.ContractStatus == ContractStatusEnum.COMPLETED)))
                 .ReverseMap();
 
             CreateMap<Project, ProjectInviteOverviewDTO>().ReverseMap();
@@ -247,12 +249,12 @@ namespace StartedIn.API.Configuration.AutoMapper
                     .ForMember(dest => dest.ProjectId, opt => opt.MapFrom(src => src.Finance.ProjectId))
                     .ForMember(dest => dest.FromUserName, opt => opt.MapFrom(src => src.FromName))
                     .ForMember(dest => dest.ToUserName, opt => opt.MapFrom(src => src.ToName));
-            
+
         }
         private void AssetProfileMapping()
         {
             CreateMap<Asset, AssetResponseDTO>()
-                .ForMember(dest => dest.Price, opt => opt.MapFrom(src => src.Price.ToString()));  
+                .ForMember(dest => dest.Price, opt => opt.MapFrom(src => src.Price.ToString()));
         }
 
         private void PhaseProfileMapping()
@@ -262,11 +264,15 @@ namespace StartedIn.API.Configuration.AutoMapper
                 .ReverseMap();
         }
 
+        private void TaskCommentProfile()
+        {
+            CreateMap<TaskComment, TaskCommentDTO>().ReverseMap();
+        }
+
         private void TaskAttachmentMappingProfile()
         {
             CreateMap<TaskAttachment, TaskAttachmentResponseDTO>()
                 .ReverseMap();
         }
-        
     }
 }

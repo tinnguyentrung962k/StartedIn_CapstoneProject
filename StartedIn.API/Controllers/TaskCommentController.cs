@@ -3,13 +3,14 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using StartedIn.CrossCutting.Constants;
 using StartedIn.CrossCutting.DTOs.RequestDTO.TaskComment;
+using StartedIn.CrossCutting.DTOs.ResponseDTO.TaskComment;
 using StartedIn.Service.Services.Interface;
 using System.Security.Claims;
 
 namespace StartedIn.API.Controllers
 {
     [ApiController]
-    [Route("api/projects/{projectId}/tasks/{taskId}/comment")]
+    [Route("api/projects/{projectId}/tasks/{taskId}/comments")]
     public class TaskCommentController : ControllerBase
     {
         private readonly ITaskCommentService _taskCommentService;
@@ -29,7 +30,7 @@ namespace StartedIn.API.Controllers
             {
                 var userId = User.FindFirst(ClaimTypes.NameIdentifier).Value;
                 var taskComment = await _taskCommentService.AddComment(projectId, taskId, userId, taskCommentCreateDTO);
-                var responseTaskComment = _mapper.Map<TaskCommentCreateDTO>(taskComment);
+                var responseTaskComment = _mapper.Map<TaskCommentDTO>(taskComment);
                 return Ok(responseTaskComment);
             }
             catch (Exception ex)
