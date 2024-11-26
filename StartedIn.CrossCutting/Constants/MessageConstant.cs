@@ -83,5 +83,6 @@ namespace StartedIn.CrossCutting.Constants
         public const string NotInvitedError = "Bạn chưa được mời gia nhập dự án.";
         public const string ContractIsNotValid = "Hợp đồng này chưa được kích hoạt/ký kết.";
         public const string AccountAlreadyActivate = "Tài khoản này đã được kích hoạt trước đó.";
+        public const string NotFoundTaskAttachmentError = "Không tìm thấy tệp đính kèm tác vụ.";
     }
 }

@@ -16,6 +16,7 @@ using StartedIn.CrossCutting.DTOs.ResponseDTO.Project;
 using StartedIn.CrossCutting.DTOs.ResponseDTO.ProjectCharter;
 using StartedIn.CrossCutting.DTOs.ResponseDTO.RecruitInvite;
 using StartedIn.CrossCutting.DTOs.ResponseDTO.ShareEquity;
+using StartedIn.CrossCutting.DTOs.ResponseDTO.TaskAttachment;
 using StartedIn.CrossCutting.DTOs.ResponseDTO.Tasks;
 using StartedIn.CrossCutting.DTOs.ResponseDTO.Transaction;
 using StartedIn.CrossCutting.Enum;
@@ -257,6 +258,12 @@ namespace StartedIn.API.Configuration.AutoMapper
         {
             CreateMap<Phase, PhaseResponseDTO>()
                 .ForMember(dest => dest.Milestones, opt => opt.MapFrom(src => src.Milestones))
+                .ReverseMap();
+        }
+
+        private void TaskAttachmentMappingProfile()
+        {
+            CreateMap<TaskAttachment, TaskAttachmentResponseDTO>()
                 .ReverseMap();
         }
         

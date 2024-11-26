@@ -17,6 +17,7 @@ namespace StartedIn.Service.Services
         private readonly BlobContainerClient _pictureContainerClient;
         private readonly BlobContainerClient _postImgContainerClient;
         private readonly BlobContainerClient _documentContainerClient;
+        private readonly BlobContainerClient _taskAttachmentContainerClient;
         private readonly string _azureBlobStorageKey;
 
         public AzureBlobService(IConfiguration configuration)
@@ -29,6 +30,7 @@ namespace StartedIn.Service.Services
             _pictureContainerClient = blobServiceClient.GetBlobContainerClient("avatars");
             _postImgContainerClient = blobServiceClient.GetBlobContainerClient("post-images");
             _documentContainerClient = blobServiceClient.GetBlobContainerClient("documents");
+            _taskAttachmentContainerClient = blobServiceClient.GetBlobContainerClient("task-attachments");
         }
         public async Task<string> UploadAvatarOrCover(IFormFile image)
         {
@@ -66,6 +68,17 @@ namespace StartedIn.Service.Services
         }
 
         public async Task<string> UploadEvidenceOfTransaction(IFormFile file)
+        {
+            var fileName = Guid.NewGuid() + Path.GetExtension(file.FileName);
+            var blobClient = _documentContainerClient.GetBlobClient(fileName);
+            using (var stream = file.OpenReadStream())
+            {
+                await blobClient.UploadAsync(stream, new BlobHttpHeaders { ContentType = file.ContentType });
+            }
+            return blobClient.Uri.ToString();
+        }
+
+        public async Task<string> UploadTaskAttachment(IFormFile file)
         {
             var fileName = Guid.NewGuid() + Path.GetExtension(file.FileName);
             var blobClient = _documentContainerClient.GetBlobClient(fileName);
@@ -200,6 +213,9 @@ namespace StartedIn.Service.Services
                     break;
                 case BlobContainerEnum.Documents:
                     containerClient = _documentContainerClient;
+                    break;
+                case BlobContainerEnum.TaskAttachments:
+                    containerClient = _taskAttachmentContainerClient;
                     break;
                 default:
                     throw new ArgumentOutOfRangeException(nameof(blobContainer), "Invalid blob container specified.");
