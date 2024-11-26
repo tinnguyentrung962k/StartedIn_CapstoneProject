@@ -20,5 +20,6 @@ namespace StartedIn.Service.Services.Interface
         Task<string> UploadEvidenceOfDisbursement(IFormFile file);
         Task<IList<string>> UploadEvidencesOfDisbursement(IList<IFormFile> files);
         Task<string> UploadEvidenceOfTransaction(IFormFile file);
+        Task<string> UploadTaskAttachment(IFormFile file);
     }
 }

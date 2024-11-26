@@ -10,6 +10,7 @@ namespace StartedIn.CrossCutting.Enum
     {
         Avatars = 1,
         PostImgs = 2,
-        Documents = 3
+        Documents = 3,
+        TaskAttachments = 4
     }
 }
