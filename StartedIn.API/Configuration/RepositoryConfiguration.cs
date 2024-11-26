@@ -29,6 +29,7 @@ namespace StartedIn.API.Configuration
             services.AddScoped<IPhaseRepository, PhaseRepository>();
             services.AddScoped<IApplicationRepository, ApplicationRepository>();
             services.AddScoped<ITaskCommentRepository, TaskCommentRepository>();
+            services.AddScoped<ITaskAttachmentRepository, TaskAttachmentRepository>();
             return services;
         }
     }
