@@ -36,7 +36,8 @@ namespace StartedIn.Service.Services
                 {
                     Content = taskCommentCreateDTO.Content,
                     UserId = userId,
-                    CreatedTime = DateTime.Now,
+                    TaskId = taskId,
+                    CreatedTime = DateTimeOffset.UtcNow,
                 };
                 _taskCommentRepository.Add(taskComment);
                 await _unitOfWork.SaveChangesAsync();

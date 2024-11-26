@@ -16,6 +16,7 @@ using StartedIn.CrossCutting.DTOs.ResponseDTO.Project;
 using StartedIn.CrossCutting.DTOs.ResponseDTO.ProjectCharter;
 using StartedIn.CrossCutting.DTOs.ResponseDTO.RecruitInvite;
 using StartedIn.CrossCutting.DTOs.ResponseDTO.ShareEquity;
+using StartedIn.CrossCutting.DTOs.ResponseDTO.TaskComment;
 using StartedIn.CrossCutting.DTOs.ResponseDTO.Tasks;
 using StartedIn.CrossCutting.DTOs.ResponseDTO.Transaction;
 using StartedIn.CrossCutting.Enum;
@@ -32,6 +33,7 @@ namespace StartedIn.API.Configuration.AutoMapper
             ProjectMappingProfile();
             MilestoneMappingProfile();
             TaskMappingProfile();
+            TaskCommentProfile();
             ContractMappingProfile();
             ProjectCharterMappingProfile();
             DealOfferMappingProfile();
@@ -259,6 +261,11 @@ namespace StartedIn.API.Configuration.AutoMapper
                 .ForMember(dest => dest.Milestones, opt => opt.MapFrom(src => src.Milestones))
                 .ReverseMap();
         }
-        
+
+        private void TaskCommentProfile()
+        {
+            CreateMap<TaskComment, TaskCommentDTO>().ReverseMap();
+        }
+
     }
 }
