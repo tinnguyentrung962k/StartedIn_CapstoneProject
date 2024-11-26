@@ -21,28 +21,25 @@ namespace StartedIn.API.Controllers
         private readonly IMapper _mapper;
         private readonly ILogger<AdminController> _logger;
         private readonly IProjectService _projectService;
-        private readonly IContractService _contractService;
         public AdminController(
             IUserService userService, 
             IMapper mapper, 
             ILogger<AdminController> logger,
-            IProjectService projectService,
-            IContractService contractService)
+            IProjectService projectService)
         {
             _mapper = mapper;
             _userService = userService;
             _logger = logger;
             _projectService = projectService;
-            _contractService = contractService;
         }
 
         [HttpGet("users")]
         [Authorize(Roles = RoleConstants.ADMIN)]
-        public async Task<ActionResult<PaginationDTO<FullProfileDTO>>> GetUserLists([FromQuery] int pageIndex, int pageSize)
+        public async Task<ActionResult<PaginationDTO<FullProfileDTO>>> GetUserLists([FromQuery] int page, int size)
         {
             try
             {
-                var userResponse = await _userService.GetUsersList(pageIndex, pageSize);
+                var userResponse = await _userService.GetUsersListForAdmin(page, size);
                 return userResponse;
             }
             catch (NotFoundException ex)
@@ -100,30 +97,6 @@ namespace StartedIn.API.Controllers
             }
         }
 
-        [HttpPost("projects/{projectId}/internal-contract/{contractId}/download")]
-        [Authorize(Roles = RoleConstants.ADMIN)]
-        public async Task<ActionResult<DocumentDownLoadResponseDTO>> DownLoadInternalContract([FromRoute] string projectId, [FromRoute] string contractId)
-        {
-            try
-            {
-                var userId = User.FindFirst(ClaimTypes.NameIdentifier).Value;
-                var downloadLink = await _contractService.DownloadContractForAdmin(projectId,contractId);
-                return Ok(downloadLink);
-            }
-            catch (NotFoundException ex)
-            {
-                return BadRequest(ex.Message);
-            }
-            catch (UnauthorizedProjectRoleException ex)
-            {
-                return StatusCode(403, ex.Message);
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(500, MessageConstant.InternalServerError);
-            }
-        }
-
         [HttpGet("projects/{projectId}")]
         [Authorize(Roles = RoleConstants.ADMIN)]
         public async Task<ActionResult<ProjectDetailForAdminDTO>> GetProjectDetail([FromRoute] string projectId)
@@ -133,7 +106,6 @@ namespace StartedIn.API.Controllers
                 var project = await _projectService.GetProjectById(projectId);
                 var response = _mapper.Map<ProjectDetailForAdminDTO>(project);
                 return Ok(response);
-
             }
             catch (NotFoundException ex)
             {
@@ -141,7 +113,7 @@ namespace StartedIn.API.Controllers
             }
         }
 
-        [HttpPut("toggle-status/{userId}")]
+        [HttpPut("users/{userId}/toggle")]
         [Authorize(Roles = RoleConstants.ADMIN)]
         public async Task<IActionResult> ToggleUserStatus(string userId)
         {

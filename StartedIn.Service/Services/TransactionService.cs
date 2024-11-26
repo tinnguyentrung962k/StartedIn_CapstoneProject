@@ -76,38 +76,36 @@ namespace StartedIn.Service.Services
             };
             return pagination;
         }
-        public async Task<TransactionInAndOutMoneyDTO> GetInAndOutMoneyTransactionOfPreviousMonth(string projectId) 
+        public async Task<TransactionInAndOutMoneyDTO> GetInAndOutMoneyTransactionOfCurrentMonth(string projectId) 
         {
-            var now = DateTimeOffset.UtcNow; // Lấy thời gian hiện tại theo UTC với kiểu DateTimeOffset
-            var startOfCurrentMonth = new DateTimeOffset(now.Year, now.Month, 1, 0, 0, 0, TimeSpan.Zero); // Ngày đầu tiên của tháng hiện tại
-            var startOfPreviousMonth = startOfCurrentMonth.AddMonths(-1); // Ngày đầu tiên của tháng trước
-            var endOfPreviousMonth = startOfCurrentMonth.AddTicks(-1); // Ngày cuối cùng của tháng trước
+            var now = DateTimeOffset.UtcNow; // Current time in UTC
+            var startOfCurrentMonth = new DateTimeOffset(now.Year, now.Month, 1, 0, 0, 0, TimeSpan.Zero); // Start of the current month
+            var startOfNextMonth = startOfCurrentMonth.AddMonths(1); // Start of the next month
 
             // Fetch transactions for the given project ID
             var transactionsList = await _transactionRepository
                 .GetTransactionsListQuery(projectId)
                 .ToListAsync();
 
-            // Filter transactions for the previous month
-            var transactionsPreviousMonth = transactionsList
-                .Where(t => t.CreatedTime >= startOfPreviousMonth && t.CreatedTime <= endOfPreviousMonth);
+            // Filter transactions for the current month
+            var transactionsCurrentMonth = transactionsList
+                .Where(t => t.CreatedTime >= startOfCurrentMonth && t.CreatedTime < startOfNextMonth);
 
-            // Calculate In and Out Money for the previous month
-            var totalInPreviousMonth = transactionsPreviousMonth
+            // Calculate In and Out Money for the current month
+            var totalInCurrentMonth = transactionsCurrentMonth
                 .Where(t => t.IsInFlow is true)
                 .Sum(t => t.Amount);
 
-            var totalOutPreviousMonth = transactionsPreviousMonth
+            var totalOutCurrentMonth = transactionsCurrentMonth
                 .Where(t => t.IsInFlow is false)
                 .Sum(t => t.Amount);
 
             // Return the DTO with the calculated values
             return new TransactionInAndOutMoneyDTO
             {
-                InMoney = totalInPreviousMonth.ToString(),
-                OutMoney = totalOutPreviousMonth.ToString()
+                InMoney = totalInCurrentMonth.ToString(),
+                OutMoney = totalOutCurrentMonth.ToString()
             };
-
         }
         public async Task<Transaction> AddAnTransactionForProject(string userId, string projectId, TransactionCreateDTO transactionCreateDTO)
         {

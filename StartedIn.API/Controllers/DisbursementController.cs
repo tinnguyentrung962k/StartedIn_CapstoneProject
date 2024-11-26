@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using StartedIn.API.Attributes;
 using StartedIn.CrossCutting.Constants;
 using StartedIn.CrossCutting.DTOs.RequestDTO.Disbursement;
 using StartedIn.CrossCutting.DTOs.ResponseDTO;
@@ -287,6 +288,49 @@ namespace StartedIn.API.Controllers
             catch (Exception ex)
             {
                 return StatusCode(500, MessageConstant.InternalServerError + ex.Message);
+            }
+        }
+
+        [HttpGet("projects/{projectId}/disbursements/project-info")]
+        [Authorize(Roles = RoleConstants.USER), RequireProjectAccess]
+        public async Task<ActionResult<List<DisbursementOverviewOfProject>>> GetDisbursementOverviewOfProject([FromRoute] string projectId)
+        {
+            try
+            {
+                var currentMonthInfo = await _disbursementService.GetADisbursementTotalInAMonth(projectId, DateTime.Now);
+                var nextMonthInfo = await _disbursementService.GetADisbursementTotalInAMonth(projectId, DateTime.Now.AddMonths(1));
+
+                var result = new List<DisbursementOverviewOfProject>
+                {
+                    currentMonthInfo,
+                    nextMonthInfo
+                };
+
+                return Ok(result);
+            }
+            catch (UnauthorizedProjectRoleException ex)
+            {
+                return StatusCode(403, ex.Message);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500,ex.Message);
+            }
+        }
+
+        [HttpGet("disbursements/investor-info")]
+        [Authorize(Roles = RoleConstants.INVESTOR)]
+        public async Task<ActionResult<List<DisbursementOverviewOfProjectForInvestor>>> GetDisbursementOverviewOfProjectForInvestor([FromQuery] int page, int size)
+        {
+            try
+            {
+                var userId = User.FindFirst(ClaimTypes.NameIdentifier).Value;
+                var result = await _disbursementService.GetADisbursementOverviewForInvestor(userId,page,size);
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, ex.Message);
             }
         }
     }

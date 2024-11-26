@@ -109,6 +109,7 @@ public class InvestmentCallService : IInvestmentCallService
         }
         
         var investmentCall = await _investmentCallRepository.QueryHelper()
+            .Include(p => p.DealOffers)
             .Filter(ic => ic.Id.Equals(callId)).GetOneAsync();
         
         if (investmentCall == null)
