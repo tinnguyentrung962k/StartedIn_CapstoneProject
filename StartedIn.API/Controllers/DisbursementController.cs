@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using StartedIn.API.Attributes;
 using StartedIn.CrossCutting.Constants;
 using StartedIn.CrossCutting.DTOs.RequestDTO.Disbursement;
 using StartedIn.CrossCutting.DTOs.ResponseDTO;
@@ -291,14 +292,13 @@ namespace StartedIn.API.Controllers
         }
 
         [HttpGet("projects/{projectId}/disbursements/project-info")]
-        [Authorize(Roles = RoleConstants.USER)]
+        [Authorize(Roles = RoleConstants.USER), RequireProjectAccess]
         public async Task<ActionResult<List<DisbursementOverviewOfProject>>> GetDisbursementOverviewOfProject([FromRoute] string projectId)
         {
             try
             {
-                var userId = User.FindFirst(ClaimTypes.NameIdentifier).Value;
-                var currentMonthInfo = await _disbursementService.GetADisbursementTotalInAMonth(userId, projectId, DateTime.Now);
-                var nextMonthInfo = await _disbursementService.GetADisbursementTotalInAMonth(userId, projectId, DateTime.Now.AddMonths(1));
+                var currentMonthInfo = await _disbursementService.GetADisbursementTotalInAMonth(projectId, DateTime.Now);
+                var nextMonthInfo = await _disbursementService.GetADisbursementTotalInAMonth(projectId, DateTime.Now.AddMonths(1));
 
                 var result = new List<DisbursementOverviewOfProject>
                 {

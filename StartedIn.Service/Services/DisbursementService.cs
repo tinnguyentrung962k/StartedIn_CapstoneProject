@@ -608,13 +608,8 @@ namespace StartedIn.Service.Services
             return disbursement;
         }
 
-        public async Task<DisbursementOverviewOfProject> GetADisbursementTotalInAMonth(string userId, string projectId, DateTime dateTime)
+        public async Task<DisbursementOverviewOfProject> GetADisbursementTotalInAMonth(string projectId, DateTime dateTime)
         {
-            var loginUser = await _userService.CheckIfUserInProject(userId, projectId);
-            if (loginUser.RoleInTeam != RoleInTeam.Leader)
-            {
-                throw new UnauthorizedProjectRoleException(MessageConstant.RolePermissionError);
-            }
             var disbursementOverview = await GetADisbursementOverviewInMonth(projectId, dateTime);
             return disbursementOverview;
         }
