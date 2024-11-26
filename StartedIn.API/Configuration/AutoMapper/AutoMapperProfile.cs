@@ -133,6 +133,7 @@ namespace StartedIn.API.Configuration.AutoMapper
                 .ForMember(dest => dest.LeaderFullName,
                     opt => opt.MapFrom(src =>
                         src.UserProjects.FirstOrDefault(up => up.RoleInTeam == RoleInTeam.Leader).User.FullName))
+                .ForMember(dest => dest.IsSignedInternalContract, opt => opt.MapFrom(src => src.Contracts.Any(c=>c.ContractType == ContractTypeEnum.INTERNAL && c.ContractStatus == ContractStatusEnum.COMPLETED)))
                 .ReverseMap();
 
             CreateMap<Project, ProjectInviteOverviewDTO>().ReverseMap();
