@@ -1,5 +1,6 @@
 ﻿using AutoMapper;
 using DocumentFormat.OpenXml.InkML;
+using DocumentFormat.OpenXml.Spreadsheet;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
@@ -610,21 +611,45 @@ namespace StartedIn.Service.Services
 
         public async Task<DisbursementOverviewOfProject> GetADisbursementTotalInAMonth(string projectId, DateTime dateTime)
         {
-            var disbursementOverview = await GetADisbursementOverviewInMonth(projectId, dateTime);
-            return disbursementOverview;
-        }
-        public async Task<DisbursementOverviewOfProject> GetADisbursementOverviewInMonth(string projectId, DateTime dateTime)
-        {
             var startOfMonth = new DateOnly(dateTime.Year, dateTime.Month, 1);
             var endOfMonth = startOfMonth.AddMonths(1).AddDays(-1);
             var doneDisbursements = await _disbursementRepository.GetDisbursementListOfAProjectQuery(projectId)
-                    .Where(x => x.EndDate <= endOfMonth && x.EndDate >= startOfMonth && x.DisbursementStatus == DisbursementStatusEnum.FINISHED)
+                    .Where(x => x.EndDate <= endOfMonth
+                    && x.EndDate >= startOfMonth
+                    && x.DisbursementStatus == DisbursementStatusEnum.FINISHED)
                     .ToListAsync();
             var remainingDisbursements = await _disbursementRepository.GetDisbursementListOfAProjectQuery(projectId)
                 .Where(x => x.EndDate <= endOfMonth
                 && x.EndDate >= startOfMonth
                 && x.DisbursementStatus != DisbursementStatusEnum.FINISHED
-                && x.DisbursementStatus != DisbursementStatusEnum.REJECTED).ToListAsync();
+                && x.DisbursementStatus != DisbursementStatusEnum.REJECTED
+                && x.IsValidWithContract == true).ToListAsync();
+            decimal totalDisbursedAmount = doneDisbursements.Sum(d => d.Amount);
+            decimal totalRemainingDisbursement = remainingDisbursements.Sum(d => d.Amount);
+
+            return new DisbursementOverviewOfProject
+            {
+                DisbursedAmount = totalDisbursedAmount.ToString(),
+                RemainingDisbursement = totalRemainingDisbursement.ToString(),
+            };
+        }
+        public async Task<DisbursementOverviewOfProject> GetADisbursementOverviewInMonthOfInvestor(string userId, string projectId, DateTime dateTime)
+        {
+            var startOfMonth = new DateOnly(dateTime.Year, dateTime.Month, 1);
+            var endOfMonth = startOfMonth.AddMonths(1).AddDays(-1);
+            var doneDisbursements = await _disbursementRepository.GetDisbursementListOfAProjectQuery(projectId)
+                    .Where(x => x.EndDate <= endOfMonth 
+                    && x.EndDate >= startOfMonth 
+                    && x.DisbursementStatus == DisbursementStatusEnum.FINISHED 
+                    && x.InvestorId.Equals(userId))
+                    .ToListAsync();
+            var remainingDisbursements = await _disbursementRepository.GetDisbursementListOfAProjectQuery(projectId)
+                .Where(x => x.EndDate <= endOfMonth
+                && x.EndDate >= startOfMonth
+                && x.DisbursementStatus != DisbursementStatusEnum.FINISHED
+                && x.DisbursementStatus != DisbursementStatusEnum.REJECTED
+                && x.IsValidWithContract == true
+                && x.InvestorId.Equals(userId)).ToListAsync();
 
             decimal totalDisbursedAmount = doneDisbursements.Sum(d => d.Amount);
             decimal totalRemainingDisbursement = remainingDisbursements.Sum(d => d.Amount);
@@ -656,9 +681,9 @@ namespace StartedIn.Service.Services
             foreach (var project in projectList)
             {
                 // Get overviews for the previous, current, and next month
-                var currentMonthOverview = await GetADisbursementOverviewInMonth(project.Id, DateTime.Now);
-                var previousMonthOverview = await GetADisbursementOverviewInMonth(project.Id, DateTime.Now.AddMonths(-1));
-                var nextMonthOverview = await GetADisbursementOverviewInMonth(project.Id, DateTime.Now.AddMonths(1));
+                var currentMonthOverview = await GetADisbursementOverviewInMonthOfInvestor(userId,project.Id, DateTime.Now);
+                var previousMonthOverview = await GetADisbursementOverviewInMonthOfInvestor(userId, project.Id, DateTime.Now.AddMonths(-1));
+                var nextMonthOverview = await GetADisbursementOverviewInMonthOfInvestor(userId, project.Id, DateTime.Now.AddMonths(1));
 
                 // Create overview for each project
                 var overview = new DisbursementOverviewOfProjectForInvestor
