@@ -1,6 +1,7 @@
 ﻿using StartedIn.CrossCutting.DTOs.BaseDTO;
 using StartedIn.CrossCutting.DTOs.ResponseDTO.Milestone;
 using StartedIn.CrossCutting.DTOs.ResponseDTO.Project;
+using StartedIn.CrossCutting.DTOs.ResponseDTO.TaskAttachment;
 using StartedIn.CrossCutting.DTOs.ResponseDTO.TaskComment;
 using StartedIn.CrossCutting.Enum;
 using System;
@@ -25,5 +26,6 @@ namespace StartedIn.CrossCutting.DTOs.ResponseDTO.Tasks
         public ICollection<TaskResponseDTO> SubTasks { get; set; }
         public ICollection<MemberWithRoleInProjectResponseDTO> Assignees { get; set; }
         public ICollection<TaskCommentDTO> TaskComments { get; set; }
+        public ICollection<TaskAttachmentResponseDTO> TaskAttachments { get; set; }
     }
 }
