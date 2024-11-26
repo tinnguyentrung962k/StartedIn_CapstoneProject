@@ -16,7 +16,7 @@ namespace StartedIn.Repository.Repositories
             return _dbSet.Include(x => x.Milestone)
                 .Include(x => x.UserTasks).ThenInclude(x => x.User)
                 .Include(x => x.ParentTask)
-                .Include(t => t.TaskComments)
+                .Include(t => t.TaskComments).ThenInclude(t => t.User)
                 .Include(t => t.TaskAttachments)
                 .Where(x => x.DeletedTime == null)
                 .FirstOrDefaultAsync(x => x.Id == taskId);

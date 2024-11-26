@@ -55,8 +55,6 @@ namespace StartedIn.Service.Services
 
             chosenTask.SubTasks = (ICollection<TaskEntity>)subTasks;
 
-            //TODO: Get all comments, attachments 
-
             return chosenTask;
         }
 
