@@ -113,7 +113,7 @@ namespace StartedIn.API.Controllers
             }
         }
 
-        [HttpPut("toggle-status/{userId}")]
+        [HttpPut("users/{userId}/toggle")]
         [Authorize(Roles = RoleConstants.ADMIN)]
         public async Task<IActionResult> ToggleUserStatus(string userId)
         {
