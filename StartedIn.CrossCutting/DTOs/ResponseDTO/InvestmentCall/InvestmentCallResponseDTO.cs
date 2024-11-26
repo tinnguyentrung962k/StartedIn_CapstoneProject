@@ -1,4 +1,5 @@
 using StartedIn.CrossCutting.DTOs.BaseDTO;
+using StartedIn.CrossCutting.DTOs.ResponseDTO.DealOffer;
 using StartedIn.CrossCutting.Enum;
 
 namespace StartedIn.CrossCutting.DTOs.ResponseDTO.InvestmentCall;
@@ -14,4 +15,5 @@ public class InvestmentCallResponseDTO : IdentityResponseDTO
     public DateOnly EndDate { get; set; }
     public InvestmentCallStatus Status { get; set; }
     public int TotalInvestor { get; set; }
+    public List<DealOfferForProjectResponseDTO> DealOffers { get; set; }
 }
