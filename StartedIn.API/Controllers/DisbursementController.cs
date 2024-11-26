@@ -289,5 +289,49 @@ namespace StartedIn.API.Controllers
                 return StatusCode(500, MessageConstant.InternalServerError + ex.Message);
             }
         }
+
+        [HttpGet("projects/{projectId}/disbursements/project-info")]
+        [Authorize(Roles = RoleConstants.USER)]
+        public async Task<ActionResult<List<DisbursementOverviewOfProject>>> GetDisbursementOverviewOfProject([FromRoute] string projectId)
+        {
+            try
+            {
+                var userId = User.FindFirst(ClaimTypes.NameIdentifier).Value;
+                var currentMonthInfo = await _disbursementService.GetADisbursementTotalInAMonth(userId, projectId, DateTime.Now);
+                var nextMonthInfo = await _disbursementService.GetADisbursementTotalInAMonth(userId, projectId, DateTime.Now.AddMonths(1));
+
+                var result = new List<DisbursementOverviewOfProject>
+                {
+                    currentMonthInfo,
+                    nextMonthInfo
+                };
+
+                return Ok(result);
+            }
+            catch (UnauthorizedProjectRoleException ex)
+            {
+                return StatusCode(403, ex.Message);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500,ex.Message);
+            }
+        }
+
+        [HttpGet("disbursements/investor-info")]
+        [Authorize(Roles = RoleConstants.INVESTOR)]
+        public async Task<ActionResult<List<DisbursementOverviewOfProjectForInvestor>>> GetDisbursementOverviewOfProjectForInvestor([FromQuery] int page, int size)
+        {
+            try
+            {
+                var userId = User.FindFirst(ClaimTypes.NameIdentifier).Value;
+                var result = await _disbursementService.GetADisbursementOverviewForInvestor(userId,page,size);
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, ex.Message);
+            }
+        }
     }
 }

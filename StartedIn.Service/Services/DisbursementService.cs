@@ -1,4 +1,5 @@
 ﻿using AutoMapper;
+using DocumentFormat.OpenXml.InkML;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
@@ -439,7 +440,7 @@ namespace StartedIn.Service.Services
                 .Sum(d => d.Amount); // Tổng số tiền đã giải ngân
 
             var totalRemainingDisbursement = disbursementsOfAnInvestor
-                .Where(d => d.DisbursementStatus != DisbursementStatusEnum.FINISHED) // Lọc các đợt chưa giải ngân
+                .Where(d => d.DisbursementStatus != DisbursementStatusEnum.FINISHED && d.DisbursementStatus != DisbursementStatusEnum.REJECTED) // Lọc các đợt chưa giải ngân
                 .Sum(d => d.Amount); // Tổng số tiền chưa giải ngân
 
             // Tạo DTO trả về
@@ -605,6 +606,90 @@ namespace StartedIn.Service.Services
                 throw new UnmatchedException(MessageConstant.DisbursementNotBelongToProject);
             }
             return disbursement;
+        }
+
+        public async Task<DisbursementOverviewOfProject> GetADisbursementTotalInAMonth(string userId, string projectId, DateTime dateTime)
+        {
+            var loginUser = await _userService.CheckIfUserInProject(userId, projectId);
+            if (loginUser.RoleInTeam != RoleInTeam.Leader)
+            {
+                throw new UnauthorizedProjectRoleException(MessageConstant.RolePermissionError);
+            }
+            var disbursementOverview = await GetADisbursementOverviewInMonth(projectId, dateTime);
+            return disbursementOverview;
+        }
+        public async Task<DisbursementOverviewOfProject> GetADisbursementOverviewInMonth(string projectId, DateTime dateTime)
+        {
+            var startOfMonth = new DateOnly(dateTime.Year, dateTime.Month, 1);
+            var endOfMonth = startOfMonth.AddMonths(1).AddDays(-1);
+            var doneDisbursements = await _disbursementRepository.GetDisbursementListOfAProjectQuery(projectId)
+                    .Where(x => x.EndDate <= endOfMonth && x.EndDate >= startOfMonth && x.DisbursementStatus == DisbursementStatusEnum.FINISHED)
+                    .ToListAsync();
+            var remainingDisbursements = await _disbursementRepository.GetDisbursementListOfAProjectQuery(projectId)
+                .Where(x => x.EndDate <= endOfMonth
+                && x.EndDate >= startOfMonth
+                && x.DisbursementStatus != DisbursementStatusEnum.FINISHED
+                && x.DisbursementStatus != DisbursementStatusEnum.REJECTED).ToListAsync();
+
+            decimal totalDisbursedAmount = doneDisbursements.Sum(d => d.Amount);
+            decimal totalRemainingDisbursement = remainingDisbursements.Sum(d => d.Amount);
+
+            return new DisbursementOverviewOfProject
+            {
+                DisbursedAmount = totalDisbursedAmount.ToString(),
+                RemainingDisbursement = totalRemainingDisbursement.ToString(),
+            };
+        }
+
+        public async Task<PaginationDTO<DisbursementOverviewOfProjectForInvestor>> GetADisbursementOverviewForInvestor(string userId, int page, int size)
+        {
+            // Fetch projects where the user is an investor
+            var projectQuery = _projectRepository.GetProjectListQuery()
+                .Where(x => x.UserProjects.Any(up => up.UserId.Equals(userId) && up.RoleInTeam.Equals(RoleInTeam.Investor)));
+
+            // Total record count for pagination
+            var totalRecords = await projectQuery.CountAsync();
+
+            // Paginate the project list
+            var projectList = await projectQuery
+                .Skip((page - 1) * size)
+                .Take(size)
+                .ToListAsync();
+
+            var result = new List<DisbursementOverviewOfProjectForInvestor>();
+
+            foreach (var project in projectList)
+            {
+                // Get overviews for the previous, current, and next month
+                var currentMonthOverview = await GetADisbursementOverviewInMonth(project.Id, DateTime.Now);
+                var previousMonthOverview = await GetADisbursementOverviewInMonth(project.Id, DateTime.Now.AddMonths(-1));
+                var nextMonthOverview = await GetADisbursementOverviewInMonth(project.Id, DateTime.Now.AddMonths(1));
+
+                // Create overview for each project
+                var overview = new DisbursementOverviewOfProjectForInvestor
+                {
+                    Id = project.Id,
+                    LogoUrl = project.LogoUrl,
+                    ProjectName = project.ProjectName,
+                    DisbursementInfo = new List<DisbursementOverviewOfProject>
+                    {
+                        previousMonthOverview,
+                        currentMonthOverview,
+                        nextMonthOverview
+                    },
+                };
+
+                result.Add(overview);
+            }
+
+            // Return as paginated result
+            return new PaginationDTO<DisbursementOverviewOfProjectForInvestor>
+            {
+                Data = result,
+                Total = totalRecords,
+                Page = page,
+                Size = size
+            };
         }
 
     }
