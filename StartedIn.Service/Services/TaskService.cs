@@ -97,6 +97,7 @@ namespace StartedIn.Service.Services
                 }
 
                 task.ParentTaskId = taskCreateDto.ParentTask;
+                task.MilestoneId = parentTask.MilestoneId;
             }
 
             try

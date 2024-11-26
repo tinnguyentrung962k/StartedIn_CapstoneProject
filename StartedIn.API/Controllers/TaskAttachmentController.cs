@@ -10,7 +10,7 @@ using StartedIn.Service.Services.Interface;
 namespace StartedIn.API.Controllers;
 
 [ApiController]
-[Route("api/projects/{projectId}/tasks/{taskId}/task-attachment")]
+[Route("api/projects/{projectId}/tasks/{taskId}/attachments")]
 public class TaskAttachmentController : ControllerBase
 {
     private readonly ITaskAttachmentService _taskAttachmentService;

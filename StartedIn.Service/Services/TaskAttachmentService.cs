@@ -68,6 +68,7 @@ public class TaskAttachmentService : ITaskAttachmentService
             attachment.TaskId = null;
             await _taskAttachmentRepository.SoftDeleteById(taskAttachmentId);
             await _unitOfWork.SaveChangesAsync();
+            //TODO: Delete file from Azure Blob Storage
         }
         catch (Exception ex)
         {
