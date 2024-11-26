@@ -5,5 +5,6 @@ namespace StartedIn.Service.Services.Interface;
 
 public interface ITaskAttachmentService
 {
-    Task<TaskAttachment> AddTaskAttachment(TaskAttachmentCreateDTO taskAttachmentCreateDto);
+    Task<TaskAttachment> AddTaskAttachment(string taskId, string projectId, TaskAttachmentCreateDTO taskAttachmentCreateDto);
+    Task DeleteTaskAttachment(string taskAttachmentId);
 }

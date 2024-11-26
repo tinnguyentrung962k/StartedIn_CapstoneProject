@@ -42,6 +42,7 @@ namespace StartedIn.API.Configuration
                     UserName = "admin@gmail.com",
                     FullName = "Administrator",
                     PasswordHash = "AQAAAAIAAYagAAAAEDVvGpkikGvRZ56Ri2MKtaJTlb+tqMqrUG0TM7irCuj430fot1Qiq5eopSnTR+vbew==",
+                    ProfilePicture = ProfileConstant.defaultAvatarUrl,
                     Email = "admin@gmail.com",
                     EmailConfirmed = true,
                     IsActive = true
@@ -52,6 +53,7 @@ namespace StartedIn.API.Configuration
                     UserName = "user@gmail.com",
                     FullName = "User Demo",
                     PasswordHash = "AQAAAAIAAYagAAAAEDVvGpkikGvRZ56Ri2MKtaJTlb+tqMqrUG0TM7irCuj430fot1Qiq5eopSnTR+vbew==",
+                    ProfilePicture = ProfileConstant.defaultAvatarUrl,
                     Email = "user@gmail.com",
                     EmailConfirmed = true,
                     IsActive = true
