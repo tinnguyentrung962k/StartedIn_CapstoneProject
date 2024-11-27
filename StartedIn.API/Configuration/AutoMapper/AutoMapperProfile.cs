@@ -260,7 +260,7 @@ namespace StartedIn.API.Configuration.AutoMapper
         private void PhaseProfileMapping()
         {
             CreateMap<Phase, PhaseResponseDTO>()
-                .ForMember(dest => dest.Milestones, opt => opt.MapFrom(src => src.Milestones))
+                .ForMember(dest => dest.Milestones, opt => opt.MapFrom(src => src.Milestones.OrderBy(x=>x.StartDate)))
                 .ReverseMap();
         }
 

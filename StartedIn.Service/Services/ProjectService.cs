@@ -99,6 +99,10 @@ public class ProjectService : IProjectService
         {
             throw new InvalidDataException(MessageConstant.NullOrEmptyStartDate);
         }
+        if (projectCreateDTO.MinMember <= 0 || projectCreateDTO.MaxMember <= 0 || projectCreateDTO.MinMember > projectCreateDTO.MaxMember)
+        {
+            throw new InvalidDataException(MessageConstant.InvalidNumberOfMembersInProject);
+        }
         try
         {
             _unitOfWork.BeginTransaction();
@@ -111,7 +115,9 @@ public class ProjectService : IProjectService
                 ProjectStatus = ProjectStatusEnum.CONSTRUCTING,
                 EndDate = projectCreateDTO.EndDate,
                 StartDate = projectCreateDTO.StartDate,
-                CompanyIdNumber = projectCreateDTO.CompanyIdNumer
+                CompanyIdNumber = projectCreateDTO.CompanyIdNumer,
+                MaxMember = projectCreateDTO.MaxMember,
+                MinMember = projectCreateDTO.MinMember
             };
             var projectEntity = _projectRepository.Add(newProject);
             await _userRepository.AddUserToProject(userId, projectEntity.Id, RoleInTeam.Leader);

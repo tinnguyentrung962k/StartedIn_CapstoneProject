@@ -85,5 +85,7 @@ namespace StartedIn.CrossCutting.Constants
         public const string AccountAlreadyActivate = "Tài khoản này đã được kích hoạt trước đó.";
         public const string NotFoundTaskAttachmentError = "Không tìm thấy tệp đính kèm tác vụ.";
         public const string CannotAcceptDeal = "Bạn không thể chấp nhận thoả thuận này.";
+        public const string InvalidNumberOfMembersInProject = "Số lượng thành viên không hợp lệ";
+        public const string FullMembersOfTeam = "Dự án đã đạt số lượng thành viên tối đa.";
     }
 }

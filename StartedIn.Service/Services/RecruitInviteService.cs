@@ -61,6 +61,11 @@ namespace StartedIn.Service.Services
             {
                 throw new InviteException(MessageConstant.RolePermissionError);
             }
+            var currentMemberInProject = project.UserProjects.Where(x => x.RoleInTeam == RoleInTeam.Leader || x.RoleInTeam == RoleInTeam.Member).Count();
+            if (currentMemberInProject == project.MaxMember)
+            {
+                throw new InviteException(MessageConstant.FullMembersOfTeam);
+            }
 
             _unitOfWork.BeginTransaction();
             foreach (var inviteUser in inviteUsers)
