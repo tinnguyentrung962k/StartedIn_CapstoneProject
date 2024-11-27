@@ -1095,6 +1095,14 @@ namespace StartedIn.Service.Services
             {
                 contract.ContractStatus = ContractStatusEnum.CANCELLED; 
                 _contractRepository.Update(contract);
+                if (contract.DealOfferId != null)
+                {
+                    var dealOffer = await _dealOfferRepository.QueryHelper()
+                        .Filter(x => x.Id.Equals(contract.DealOfferId))
+                        .GetOneAsync();
+                    dealOffer.DealStatus = DealStatusEnum.Rejected;
+                    _dealOfferRepository.Update(dealOffer);
+                }
                 await _unitOfWork.SaveChangesAsync();
             }
         }
