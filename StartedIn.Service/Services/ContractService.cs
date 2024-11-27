@@ -392,6 +392,8 @@ namespace StartedIn.Service.Services
                 await _signNowService.AuthenticateAsync();
                 contract.SignNowDocumentId = await _signNowService
                     .UploadInvestmentContractToSignNowAsync(contract, investor, leader, userInProject.Project, shareEquity, disbursementList);
+                chosenDeal.DealStatus = DealStatusEnum.ContractCreated;
+                _dealOfferRepository.Update(chosenDeal);
                 await _unitOfWork.SaveChangesAsync();
                 await _unitOfWork.CommitAsync();
                 return contract;

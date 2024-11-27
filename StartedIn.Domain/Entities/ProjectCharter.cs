@@ -15,23 +15,23 @@ namespace StartedIn.Domain.Entities
         [ForeignKey(nameof(Project))]
         public string ProjectId { get; set; }
         
-        [MaxLength(255)]
+        [MaxLength(4000)]
         public string? BusinessCase { get; set; }
-        [MaxLength(255)]
+        [MaxLength(4000)]
         public string? Goal { get; set; }
 
-        [MaxLength(255)]
+        [MaxLength(4000)]
         public string? Objective { get; set; }
         
-        [MaxLength(255)]
+        [MaxLength(4000)]
         public string? Scope { get; set; }
         
-        [MaxLength(255)]
+        [MaxLength(4000)]
         public string? Constraints { get; set; }
         
-        [MaxLength(255)]
+        [MaxLength(4000)]
         public string? Assumptions { get; set; }
-        [MaxLength(255)]
+        [MaxLength(4000)]
         public string? Deliverables { get; set; }
 
         public Project Project { get; set; }

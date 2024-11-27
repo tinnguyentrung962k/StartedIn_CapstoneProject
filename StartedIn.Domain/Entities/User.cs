@@ -21,6 +21,7 @@ namespace StartedIn.Domain.Entities
         public string? IdCardNumber { get; set; }
         public string? Address { get; set; }
         public bool IsActive { get; set; }
+        public string? AcademicYear { get; set; }
 
         [StringLength(120)]
         public string? Bio { get; set; }
