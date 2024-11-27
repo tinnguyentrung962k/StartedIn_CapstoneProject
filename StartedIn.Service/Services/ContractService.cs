@@ -613,18 +613,6 @@ namespace StartedIn.Service.Services
                             investmentCall.Status = InvestmentCallStatus.Closed;
                         }
                         _investmentCallRepository.Update(investmentCall);
-                        if (investmentCall.DealOffers != null)
-                        {
-                            foreach (var dealOffer in investmentCall.DealOffers)
-                            {
-                                if (investmentCall.RemainAvailableEquityShare < dealOffer.EquityShareOffer && dealOffer.DealStatus == DealStatusEnum.Waiting)
-                                {
-                                    dealOffer.DealStatus = DealStatusEnum.Rejected;
-                                    _dealOfferRepository.Update(dealOffer);
-                                }
-                            }
-                        }
-                        
                     }
                 }
 
@@ -982,6 +970,14 @@ namespace StartedIn.Service.Services
                 _unitOfWork.BeginTransaction();
                 chosenContract.ContractStatus = ContractStatusEnum.CANCELLED;
                 _contractRepository.Update(chosenContract);
+                if (chosenContract.DealOfferId != null) 
+                {
+                    var dealOffer = await _dealOfferRepository.QueryHelper()
+                        .Filter(x => x.Id.Equals(chosenContract.DealOfferId))
+                        .GetOneAsync();
+                    dealOffer.DealStatus = DealStatusEnum.Rejected;
+                    _dealOfferRepository.Update(dealOffer);
+                }
                 await _unitOfWork.SaveChangesAsync();
                 await _unitOfWork.CommitAsync();
                 return chosenContract;

@@ -218,14 +218,38 @@ namespace StartedIn.Service.Services
             {
                 throw new UnmatchedException(MessageConstant.DealNotBelongToProjectError);
             }
-            if (chosenDeal.InvestmentCall.RemainAvailableEquityShare < chosenDeal.EquityShareOffer)
+
+            var dealOffersAcceptedOfInvesmentCall = await _dealOfferRepository.QueryHelper()
+                .Filter(x => x.InvestmentCallId.Equals(chosenDeal.InvestmentCallId) && x.DealStatus == DealStatusEnum.Accepted)
+                .GetAllAsync();
+
+            var sumAcceptedPercentage = dealOffersAcceptedOfInvesmentCall.Sum(x => x.EquityShareOffer);
+            if (sumAcceptedPercentage + chosenDeal.EquityShareOffer > chosenDeal.InvestmentCall.EquityShareCall)
             {
-                throw new InvalidInputException(MessageConstant.InvestmentCallEquitySoldOut);
+                throw new UpdateException(MessageConstant.CannotAcceptDeal);
+            }
+            if (chosenDeal.DealStatus != DealStatusEnum.Waiting)
+            {
+                throw new UpdateException(MessageConstant.CannotAcceptDeal); 
             }
             try
             {
                 chosenDeal.DealStatus = DealStatusEnum.Accepted;
                 _dealOfferRepository.Update(chosenDeal);
+                if (chosenDeal.InvestmentCall != null)
+                {
+                    var dealOfferList = await _dealOfferRepository.QueryHelper()
+                        .Filter(x => x.InvestmentCallId.Equals(chosenDeal.InvestmentCallId))
+                        .GetAllAsync();
+                    foreach (var deal in dealOfferList)
+                    {
+                        if (deal.DealStatus == DealStatusEnum.Waiting)
+                        {
+                            deal.DealStatus = DealStatusEnum.Rejected;
+                            _dealOfferRepository.Update(deal);
+                        }
+                    }
+                }
                 await _unitOfWork.SaveChangesAsync();
                 return chosenDeal;
             }

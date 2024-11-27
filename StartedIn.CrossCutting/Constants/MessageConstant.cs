@@ -48,7 +48,7 @@ namespace StartedIn.CrossCutting.Constants
         public const string DealNotAccepted = "Thỏa thuận chưa được chấp nhận.";
         public const string TotalDistributePercentageGreaterThanRemainingPercentage = "Tỉ lệ cổ phần chia cho các thành viên không thể vượt quá tỉ lệ cổ phần còn lại.";
         public const string ValidShareDistributionContractExisted = "Hợp đồng chia cổ phần hợp lệ của dự án đã tồn tại.";
-        public const string CannotCancelContractError = "Bạn không thể huỷ hợp đồng này.";
+        public const string CannotCancelContractError = "Bạn không thể huỷ ký hợp đồng này.";
         public const string CannotInviteToSign = "Tài liệu này không thể được mời ký.";
         public const string NullOrWhiteSpaceProjectName = "Tên dự án không được để trống.";
         public const string NullOrWhiteSpaceDescription = "Mô tả dự án không được để trống.";
@@ -84,5 +84,6 @@ namespace StartedIn.CrossCutting.Constants
         public const string ContractIsNotValid = "Hợp đồng này chưa được kích hoạt/ký kết.";
         public const string AccountAlreadyActivate = "Tài khoản này đã được kích hoạt trước đó.";
         public const string NotFoundTaskAttachmentError = "Không tìm thấy tệp đính kèm tác vụ.";
+        public const string CannotAcceptDeal = "Bạn không thể chấp nhận thoả thuận này.";
     }
 }

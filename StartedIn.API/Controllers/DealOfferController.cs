@@ -124,6 +124,10 @@ namespace StartedIn.API.Controllers
                 _logger.LogError(ex, "Unauthorized Role");
                 return StatusCode(403, ex.Message);
             }
+            catch (UpdateException ex)
+            {
+                return BadRequest(ex.Message);
+            }
             catch (NotFoundException ex)
             {
                 return BadRequest(ex.Message);
