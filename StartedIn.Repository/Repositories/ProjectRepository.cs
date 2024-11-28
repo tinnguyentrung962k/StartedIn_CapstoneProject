@@ -76,4 +76,12 @@ public class ProjectRepository : GenericRepository<Project, string>, IProjectRep
         return project;
     }
 
+    public async Task<UserProject> GetAProjectByUserId(string userId)
+    {
+        var userProject = await _appDbContext.UserProjects
+            .Where(p => p.UserId.Equals(userId) && p.RoleInTeam.Equals(RoleInTeam.Leader) || p.RoleInTeam.Equals(RoleInTeam.Member))
+            .FirstOrDefaultAsync();
+        return userProject;
+    }
+
 }

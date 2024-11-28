@@ -10,4 +10,5 @@ public interface IProjectRepository : IGenericRepository<Project, string>
     Task<RoleInTeam> GetUserRoleInProject(string userId, string projectId);
     Task<Project> GetProjectWithOnlyLeader(string projectId);
     IQueryable<Project> GetProjectListQuery();
+    Task<UserProject> GetAProjectByUserId(string userId);
 }

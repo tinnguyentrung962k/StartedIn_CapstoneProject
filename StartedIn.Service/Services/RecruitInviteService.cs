@@ -66,7 +66,7 @@ namespace StartedIn.Service.Services
             {
                 throw new InviteException(MessageConstant.FullMembersOfTeam);
             }
-
+            
             _unitOfWork.BeginTransaction();
             foreach (var inviteUser in inviteUsers)
             {
@@ -91,6 +91,12 @@ namespace StartedIn.Service.Services
                     if (existedUserInProject != null)
                     {
                         throw new InviteException(MessageConstant.UserExistedInProject + $"\n{existedUser.FullName}, {existedUser.Email}");
+                    }
+
+                    var userInOtherProjects = await _projectRepository.GetAProjectByUserId(existedUser.Id);
+                    if (userInOtherProjects != null)
+                    {
+                        throw new InviteException(MessageConstant.UserInOtherProjectError +$"\n{ existedUser.Email}");
                     }
                 }
 
