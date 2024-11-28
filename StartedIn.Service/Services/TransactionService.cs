@@ -196,7 +196,8 @@ namespace StartedIn.Service.Services
                             Status = AssetStatus.Available,
                             SerialNumber = asset.SerialNumber,
                             Transaction = transactionEntity,
-                            TransactionId = transactionEntity.Id
+                            TransactionId = transactionEntity.Id,
+                            RemainQuantity = asset.Quantity
                         };
                         assets.Add(newAsset);
                     }

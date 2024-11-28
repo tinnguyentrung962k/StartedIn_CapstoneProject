@@ -26,6 +26,7 @@ namespace StartedIn.Domain.Entities
 
         public DateOnly? PurchaseDate { get; set; }
         public int? Quantity { get; set; }
+        public int? RemainQuantity { get; set; }
         public AssetStatus? Status { get; set; }
         
         [MaxLength(50)]
