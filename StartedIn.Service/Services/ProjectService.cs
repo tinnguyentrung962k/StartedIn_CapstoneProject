@@ -78,8 +78,8 @@ public class ProjectService : IProjectService
              .Include(x => x.UserProjects)
              .Filter(p => p.UserProjects.Any(up => up.UserId == userId && up.RoleInTeam == RoleInTeam.Leader))
              .GetOneAsync();
-
-        if (createdProject is not null)
+        var userInProject = await _projectRepository.GetAProjectByUserId(user.Id);
+        if (createdProject != null || userInProject != null)
         {
             throw new ExistedRecordException(MessageConstant.CreateMoreProjectError);
         }
@@ -103,6 +103,7 @@ public class ProjectService : IProjectService
         {
             throw new InvalidDataException(MessageConstant.InvalidNumberOfMembersInProject);
         }
+        
         try
         {
             _unitOfWork.BeginTransaction();
