@@ -18,5 +18,6 @@ namespace StartedIn.CrossCutting.DTOs.ResponseDTO.Asset
         public AssetStatus Status { get; set; }
         public string SerialNumber { get; set; }
         public int? RemainQuantity { get; set; }
+        public string? TransactionId { get; set; }
     }
 }
