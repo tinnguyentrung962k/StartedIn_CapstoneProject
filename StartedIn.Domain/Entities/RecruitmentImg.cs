@@ -12,6 +12,8 @@ namespace StartedIn.Domain.Entities
     {
         [ForeignKey(nameof(Recruitment))]
         public string RecruitmentId { get; set; }
+        public string FileName { get; set; }
+        public string ImageUrl { get; set; }
         public Recruitment Recruitment { get; set; }
     }
 }

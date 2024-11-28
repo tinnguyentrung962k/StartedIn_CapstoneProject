@@ -13,9 +13,9 @@ namespace StartedIn.Domain.Entities
     {
         [ForeignKey(nameof(Project))]
         public string ProjectId { get; set; }
-        [MaxLength(50)]
-        public string Title { get; set; }
         [MaxLength(255)]
+        public string Title { get; set; }
+        [MaxLength(4000)]
         public string Content { get; set; }
         public bool IsOpen { get; set; }
         public Project Project { get; set; }
