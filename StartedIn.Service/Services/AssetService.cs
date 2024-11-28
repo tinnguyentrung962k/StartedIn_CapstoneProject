@@ -176,6 +176,10 @@ namespace StartedIn.Service.Services
             if (chosenAsset.ProjectId != projectId) { 
                 throw new UnmatchedException(MessageConstant.AssetNotBelongToProject);
             }
+            if (chosenAsset.TransactionId != null)
+            {
+                throw new Exception(MessageConstant.AssetBelongToTransaction + chosenAsset.TransactionId);
+            }
             try
             {
                 _unitOfWork.BeginTransaction();
