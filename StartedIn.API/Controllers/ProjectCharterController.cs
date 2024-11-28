@@ -10,6 +10,7 @@ using CrossCutting.Exceptions;
 using StartedIn.CrossCutting.DTOs.RequestDTO.ProjectCharter;
 using StartedIn.CrossCutting.DTOs.ResponseDTO.Milestone;
 using StartedIn.CrossCutting.DTOs.ResponseDTO.ProjectCharter;
+using System.ComponentModel.DataAnnotations;
 
 namespace StartedIn.API.Controllers
 {
@@ -40,6 +41,11 @@ namespace StartedIn.API.Controllers
                 var projectCharterResponse = _mapper.Map<ProjectCharterResponseDTO>(projectCharter);
                 return CreatedAtAction(nameof(GetProjectCharterByProjectId), new { projectId },
                     projectCharterResponse);
+            }
+            catch (ValidationException ex)
+            {
+                _logger.LogError(ex.Message);
+                return BadRequest(ex.Message);
             }
             catch (UnauthorizedProjectRoleException ex)
             {

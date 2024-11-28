@@ -13,6 +13,7 @@ using System.Threading.Tasks;
 using CrossCutting.Exceptions;
 using StartedIn.CrossCutting.Enum;
 using StartedIn.CrossCutting.DTOs.RequestDTO.ProjectCharter;
+using System.ComponentModel.DataAnnotations;
 
 namespace StartedIn.Service.Services
 {
@@ -67,6 +68,28 @@ namespace StartedIn.Service.Services
             if (existing != null)
             {
                 throw new ExistedRecordException(MessageConstant.CharterExistedError);
+            }
+            if (projectCharter.ListCreatePhaseDtos != null)
+            {
+                foreach (var createPhaseDto in projectCharter.ListCreatePhaseDtos)
+                {
+                    // Check if start date is after project's start date
+                    if (createPhaseDto.StartDate < project.StartDate)
+                    {
+                        throw new ValidationException($"Giai đoạn '{createPhaseDto.PhaseName}' phải bắt đầu sau hoặc bằng ngày bắt đầu dự án {project.StartDate}");
+                    }
+                    if (createPhaseDto.StartDate > createPhaseDto.EndDate)
+                    {
+                        throw new ValidationException($"Giai đoạn '{createPhaseDto.PhaseName}' ngày bắt đầu không được lớn hơn ngày kết thúc");
+                    }
+                    var overlapsWithNewPhases = projectCharter.ListCreatePhaseDtos
+                        .Where(p => p != createPhaseDto) // Exclude the current phase being validated
+                        .Any(p => createPhaseDto.StartDate < p.EndDate && createPhaseDto.EndDate > p.StartDate);
+                    if (overlapsWithNewPhases)
+                    {
+                        throw new ValidationException($"Giai đoạn '{createPhaseDto.PhaseName}' bị trùng lặp với một giai đoạn khác trong danh sách.");
+                    }
+                }
             }
             try
             {
