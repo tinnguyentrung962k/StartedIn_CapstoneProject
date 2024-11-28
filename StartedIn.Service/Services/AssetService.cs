@@ -161,5 +161,34 @@ namespace StartedIn.Service.Services
             };
             return pagination;
         }
+        public async Task DeleteAsset(string userId, string projectId, string assetId)
+        {
+            var userInProject = await _userService.CheckIfUserInProject(userId, projectId);
+            if (userInProject.RoleInTeam != RoleInTeam.Leader)
+            {
+                throw new UnauthorizedProjectRoleException(MessageConstant.RolePermissionError);
+            }
+            var chosenAsset = await _assetRepository.GetOneAsync(assetId);
+            if (chosenAsset == null)
+            {
+                throw new NotFoundException(MessageConstant.AssetNotFound);
+            }
+            if (chosenAsset.ProjectId != projectId) { 
+                throw new UnmatchedException(MessageConstant.AssetNotBelongToProject);
+            }
+            try
+            {
+                _unitOfWork.BeginTransaction();
+                await _assetRepository.SoftDeleteById(assetId);
+                await _unitOfWork.SaveChangesAsync();
+                await _unitOfWork.CommitAsync();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError("Xoá thất bại", ex.Message);
+                throw new Exception(ex.Message);
+            }
+
+        }
     }
 }

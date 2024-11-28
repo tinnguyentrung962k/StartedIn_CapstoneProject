@@ -24,7 +24,7 @@ namespace StartedIn.Repository.Repositories
         }
         public IQueryable<Asset> GetAssetListQuery(string projectId)
         {
-            var query = _dbSet.Where(x => x.ProjectId.Equals(projectId));
+            var query = _dbSet.Where(x => x.ProjectId.Equals(projectId) && x.DeletedTime == null);
             return query;
                 
         }

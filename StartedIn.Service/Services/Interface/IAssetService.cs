@@ -15,5 +15,6 @@ namespace StartedIn.Service.Services.Interface
         Task<Asset> GetAssetDetailById(string userId, string projectId, string assetId);
         Task<Asset> AddNewAssetToProject(string userId, string projectId, AssetCreateDTO assetCreateDTO);
         Task<PaginationDTO<AssetResponseDTO>> FilterAssetInAProject(string userId, string projectId, int page, int size, AssetFilterDTO assetFilterDTO);
+        Task DeleteAsset(string userId, string projectId, string assetId);
     }
 }
