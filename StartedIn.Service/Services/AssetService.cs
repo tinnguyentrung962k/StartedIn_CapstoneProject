@@ -1,4 +1,5 @@
 ﻿using AutoMapper;
+using CrossCutting.Exceptions;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
@@ -178,7 +179,7 @@ namespace StartedIn.Service.Services
             }
             if (chosenAsset.TransactionId != null)
             {
-                throw new Exception(MessageConstant.AssetBelongToTransaction + chosenAsset.TransactionId);
+                throw new ExistedRecordException(MessageConstant.AssetBelongToTransaction + chosenAsset.TransactionId);
             }
             try
             {

@@ -1,4 +1,5 @@
 ﻿using AutoMapper;
+using CrossCutting.Exceptions;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -115,6 +116,10 @@ namespace StartedIn.API.Controllers
                 var userId = User.FindFirst(ClaimTypes.NameIdentifier).Value;
                 await _assetService.DeleteAsset(userId, projectId, assetId);
                 return Ok("Xoá tài sản thành công");
+            }
+            catch (ExistedRecordException ex)
+            {
+                return BadRequest(ex.Message);
             }
             catch (UnauthorizedProjectRoleException ex)
             {
