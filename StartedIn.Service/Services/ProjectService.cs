@@ -181,12 +181,14 @@ public class ProjectService : IProjectService
             ProjectStatus = project.ProjectStatus,
             RemainingPercentOfShares = project.RemainingPercentOfShares,
             StartDate = project.StartDate,
-            EndDate = project.EndDate
+            EndDate = project.EndDate,
+            MaxMember = project.MaxMember,
+            MinMember = project.MinMember,
+            CurrentMember = project.UserProjects.Where(x => x.RoleInTeam == RoleInTeam.Leader || x.RoleInTeam == RoleInTeam.Member).Count()
         }).ToList();
-
         var pagination = new PaginationDTO<ProjectResponseDTO>()
         {
-            Data = _mapper.Map<IEnumerable<ProjectResponseDTO>>(pagedResult),
+            Data = _mapper.Map<List<ProjectResponseDTO>>(pagedResult),
             Total = totalCount,
             Page = page,
             Size = size
@@ -233,7 +235,10 @@ public class ProjectService : IProjectService
                 ProjectStatus = project.ProjectStatus,
                 RemainingPercentOfShares = project.RemainingPercentOfShares,
                 StartDate = project.StartDate,
-                EndDate = project.EndDate
+                EndDate = project.EndDate,
+                MaxMember = project.MaxMember,
+                MinMember = project.MinMember,
+                CurrentMember = project.UserProjects.Count()
             };
             listProjects.Add(responseDto);
         }
@@ -266,7 +271,10 @@ public class ProjectService : IProjectService
                 ProjectStatus = project.ProjectStatus,
                 RemainingPercentOfShares = project.RemainingPercentOfShares,
                 StartDate = project.StartDate,
-                EndDate = project.EndDate
+                EndDate = project.EndDate,
+                MaxMember = project.MaxMember,
+            MinMember = project.MinMember,
+            CurrentMember = project.UserProjects.Count()
             };
             listProjects.Add(responseDto);
         }
@@ -317,7 +325,7 @@ public class ProjectService : IProjectService
                 LeaderFullName = project.UserProjects.FirstOrDefault(x => x.RoleInTeam == RoleInTeam.Leader).User.FullName,
                 LeaderId = project.UserProjects.FirstOrDefault(x => x.RoleInTeam == RoleInTeam.Leader).User.Id,
                 LogoUrl = project.LogoUrl,
-                ProjectName = project.ProjectName,
+                ProjectName = project.ProjectName
             };
             exploreProjects.Add(exploreProjectDTO);
         }

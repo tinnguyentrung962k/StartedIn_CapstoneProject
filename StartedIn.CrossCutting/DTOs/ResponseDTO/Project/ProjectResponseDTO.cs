@@ -15,4 +15,8 @@ public class ProjectResponseDTO : IdentityResponseDTO
     public decimal RemainingPercentOfShares { get; set; }
     public DateOnly StartDate { get; set; }
     public DateOnly? EndDate { get; set; }
+    public int MinMember { get; set; }
+    public int MaxMember { get; set; }
+    public int CurrentMember { get; set; }
+
 }

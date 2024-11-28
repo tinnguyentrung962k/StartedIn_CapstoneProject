@@ -107,6 +107,7 @@ namespace StartedIn.API.Configuration.AutoMapper
                 .ForMember(dest => dest.LeaderFullName,
                     opt => opt.MapFrom(src =>
                         src.UserProjects.FirstOrDefault(up => up.RoleInTeam == RoleInTeam.Leader).User.FullName))
+                .ForMember(dest => dest.CurrentMember, opt => opt.MapFrom(src => src.UserProjects.Count(x => x.RoleInTeam == RoleInTeam.Leader || x.RoleInTeam == RoleInTeam.Member)))
                 .ReverseMap();
             CreateMap<Project, ExploreProjectDTO>()
                 .ForMember(dest => dest.LeaderId,
@@ -115,6 +116,7 @@ namespace StartedIn.API.Configuration.AutoMapper
                 .ForMember(dest => dest.LeaderFullName,
                     opt => opt.MapFrom(src =>
                         src.UserProjects.FirstOrDefault(up => up.RoleInTeam == RoleInTeam.Leader).User.FullName))
+
                 .ReverseMap();
             CreateMap<UserProject, UserRoleInATeamResponseDTO>()
                 .ForMember(dest => dest.RoleInTeam, opt => opt.MapFrom(src => src.RoleInTeam));
@@ -127,6 +129,7 @@ namespace StartedIn.API.Configuration.AutoMapper
                 .ForMember(dest => dest.LeaderFullName,
                     opt => opt.MapFrom(src =>
                         src.UserProjects.FirstOrDefault(up => up.RoleInTeam == RoleInTeam.Leader).User.FullName))
+                .ForMember(dest => dest.CurrentMember, opt => opt.MapFrom(src => src.UserProjects.Count(x=>x.RoleInTeam == RoleInTeam.Leader || x.RoleInTeam == RoleInTeam.Member)))
                 .ReverseMap();
 
             CreateMap<Project, ProjectDetailForAdminDTO>()
@@ -138,6 +141,7 @@ namespace StartedIn.API.Configuration.AutoMapper
                     opt => opt.MapFrom(src =>
                         src.UserProjects.FirstOrDefault(up => up.RoleInTeam == RoleInTeam.Leader).User.FullName))
                 .ForMember(dest => dest.IsSignedInternalContract, opt => opt.MapFrom(src => src.Contracts.Any(c => c.ContractType == ContractTypeEnum.INTERNAL && c.ContractStatus == ContractStatusEnum.COMPLETED)))
+                .ForMember(dest => dest.CurrentMember, opt => opt.MapFrom(src => src.UserProjects.Count(x => x.RoleInTeam == RoleInTeam.Leader || x.RoleInTeam == RoleInTeam.Member)))
                 .ReverseMap();
 
             CreateMap<Project, ProjectInviteOverviewDTO>().ReverseMap();
