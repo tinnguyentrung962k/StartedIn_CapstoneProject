@@ -14,8 +14,8 @@ namespace StartedIn.Service.Services.Interface
         Task<string> UploadAvatarOrCover(IFormFile image);
         Task<MemoryStream> DownloadDocumentToMemoryStreamAsync(string blobName);
         Task<string> UploadDocumentFromMemoryStreamAsync(MemoryStream memoryStream, string blobName);
-        Task<string> UploadPostImage(IFormFile image);
-        Task<IList<string>> UploadPostImages(IList<IFormFile> image);
+        Task<string> UploadRecruitmentImage(IFormFile image);
+        Task<IList<string>> UploadRecruitmentImages(IList<IFormFile> image);
         Task<BlobClient> GetBlobClientAsync(string blobName, BlobContainerEnum blobContainer);
         Task<string> UploadEvidenceOfDisbursement(IFormFile file);
         Task<IList<string>> UploadEvidencesOfDisbursement(IList<IFormFile> files);

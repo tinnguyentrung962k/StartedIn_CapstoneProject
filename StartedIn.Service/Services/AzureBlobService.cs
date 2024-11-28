@@ -6,6 +6,7 @@ using Microsoft.Extensions.Configuration;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.Formats.Jpeg;
 using SixLabors.ImageSharp.Processing;
+using StartedIn.CrossCutting.Constants;
 using StartedIn.CrossCutting.Enum;
 using StartedIn.Service.Services.Interface;
 
@@ -18,6 +19,7 @@ namespace StartedIn.Service.Services
         private readonly BlobContainerClient _postImgContainerClient;
         private readonly BlobContainerClient _documentContainerClient;
         private readonly BlobContainerClient _taskAttachmentContainerClient;
+        private readonly BlobContainerClient _recruitmentImageContainerClient;
         private readonly string _azureBlobStorageKey;
 
         public AzureBlobService(IConfiguration configuration)
@@ -31,6 +33,7 @@ namespace StartedIn.Service.Services
             _postImgContainerClient = blobServiceClient.GetBlobContainerClient("post-images");
             _documentContainerClient = blobServiceClient.GetBlobContainerClient("documents");
             _taskAttachmentContainerClient = blobServiceClient.GetBlobContainerClient("task-attachments");
+            _recruitmentImageContainerClient = blobServiceClient.GetBlobContainerClient("recruitment-images");
         }
         public async Task<string> UploadAvatarOrCover(IFormFile image)
         {
@@ -102,20 +105,20 @@ namespace StartedIn.Service.Services
             return fileUrls;
         }
 
-        public async Task<string> UploadPostImage(IFormFile image)
+        public async Task<string> UploadRecruitmentImage(IFormFile image)
         {
             if (!IsValidImageFile(image))
             {
                 throw new ArgumentException("The uploaded file is not a valid image.");
             }
             var fileName = Guid.NewGuid().ToString() + Path.GetExtension(image.FileName);
-            var blobClient = _postImgContainerClient.GetBlobClient(fileName);
+            var blobClient = _recruitmentImageContainerClient.GetBlobClient(fileName);
 
             using (var stream = image.OpenReadStream())
             using (var imageSharp = await Image.LoadAsync(stream))
             {
-                imageSharp.Mutate(x => x.Resize(1400, 1400));
-                var encoder = new JpegEncoder { Quality = 80 };
+                imageSharp.Mutate(x => x.Resize(1920, 1080));
+                var encoder = new JpegEncoder { Quality = 90 };
                 using (var memoryStream = new MemoryStream())
                 {
                     imageSharp.Save(memoryStream, encoder);
@@ -126,14 +129,14 @@ namespace StartedIn.Service.Services
             return blobClient.Uri.AbsoluteUri;
         }
 
-        public async Task<IList<string>> UploadPostImages(IList<IFormFile> image)
+        public async Task<IList<string>> UploadRecruitmentImages(IList<IFormFile> image)
         {
             var imageUrls = new List<string>();
             if (image != null && image.Count > 0)
             {
                 foreach (var img in image)
                 {
-                    imageUrls.Add(await UploadPostImage(img));
+                    imageUrls.Add(await UploadRecruitmentImage(img));
                 }
             }
             return imageUrls;
