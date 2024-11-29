@@ -13,7 +13,7 @@ namespace StartedIn.Service.Services.Interface
 {
     public interface ITransactionService
     {
-        Task<PaginationDTO<TransactionResponseDTO>> GetListTransactionOfAProject(string userId, string projectId, int page, int size);
+        Task<PaginationDTO<TransactionResponseDTO>> GetListTransactionOfAProject(string userId, string projectId, TransactionFilterDTO transactionFilterDTO, int page, int size);
         Task<Transaction> AddAnTransactionForProject(string userId, string projectId, TransactionCreateDTO transactionCreateDTO);
         Task<TransactionResponseDTO> GetTransactionDetailById(string userId, string projectId, string transactionId);
         Task<Transaction> UploadEvidenceFile(string userId, string projectId, string transactionId, IFormFile file);

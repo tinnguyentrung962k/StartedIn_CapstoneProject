@@ -57,10 +57,66 @@ namespace StartedIn.Service.Services
             _assetRepository = assetRepository;
             _financeRepository = financeRepository;
         }
-        public async Task<PaginationDTO<TransactionResponseDTO>> GetListTransactionOfAProject(string userId, string projectId, int page, int size)
+        public static DateTimeOffset? ConvertToDateTimeOffset(DateOnly? dateOnly, bool isEndOfDay = false)
+        {
+            if (dateOnly.HasValue)
+            {
+                // Convert DateOnly to DateTime with either start or end of the day
+                var dateTime = isEndOfDay
+                    ? dateOnly.Value.ToDateTime(TimeOnly.MaxValue)  // End of the day (23:59:59)
+                    : dateOnly.Value.ToDateTime(TimeOnly.MinValue); // Start of the day (00:00:00)
+
+                return new DateTimeOffset(dateTime, TimeSpan.Zero);  // Adjust TimeSpan if needed based on your time zone
+            }
+            return null;
+        }
+
+        public async Task<PaginationDTO<TransactionResponseDTO>> GetListTransactionOfAProject(string userId, string projectId, TransactionFilterDTO transactionFilterDTO, int page, int size)
         {
             var userInProject = await _userService.CheckIfUserInProject(userId, projectId);
             var transactions = _transactionRepository.GetTransactionsListQuery(projectId);
+            if (transactionFilterDTO.DateFrom.HasValue)
+            {
+                var dateFrom = ConvertToDateTimeOffset(transactionFilterDTO.DateFrom, false);  // Start of the day
+                transactions = transactions.Where(t => t.CreatedTime >= dateFrom);
+            }
+
+            // Convert DateTo to DateTimeOffset at the end of the day (23:59:59)
+            if (transactionFilterDTO.DateTo.HasValue)
+            {
+                var dateTo = ConvertToDateTimeOffset(transactionFilterDTO.DateTo, true);  // End of the day
+                transactions = transactions.Where(t => t.CreatedTime <= dateTo);
+            }
+
+            if (transactionFilterDTO.AmountFrom.HasValue)
+            {
+                transactions = transactions.Where(t => t.Amount >= transactionFilterDTO.AmountFrom.Value);
+            }
+
+            if (transactionFilterDTO.AmountTo.HasValue)
+            {
+                transactions = transactions.Where(t => t.Amount <= transactionFilterDTO.AmountTo.Value);
+            }
+
+            if (!string.IsNullOrWhiteSpace(transactionFilterDTO.FromName))
+            {
+                transactions = transactions.Where(t => t.FromName.Contains(transactionFilterDTO.FromName));
+            }
+
+            if (!string.IsNullOrWhiteSpace(transactionFilterDTO.ToName))
+            {
+                transactions = transactions.Where(t => t.ToName.Contains(transactionFilterDTO.ToName));
+            }
+
+            if (transactionFilterDTO.IsInFlow != null)
+            {
+                transactions = transactions.Where(t => t.IsInFlow == transactionFilterDTO.IsInFlow);
+            }
+
+            if (transactionFilterDTO.Type != null) // Assuming you have an "All" option in your TransactionType enum
+            {
+                transactions = transactions.Where(t => t.Type == transactionFilterDTO.Type);
+            }
             int totalCount =  await transactions.CountAsync();
             var pagedResult = await transactions
                 .Skip((page - 1) * size)

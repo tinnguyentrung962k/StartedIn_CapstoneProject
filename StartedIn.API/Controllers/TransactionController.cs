@@ -29,12 +29,12 @@ namespace StartedIn.API.Controllers
 
         [HttpGet("transactions")]
         [Authorize(Roles = RoleConstants.INVESTOR +","+ RoleConstants.USER)]
-        public async Task<ActionResult<PaginationDTO<TransactionResponseDTO>>> GetTransactionListInAProject([FromRoute] string projectId, [FromQuery] int page, int size)
+        public async Task<ActionResult<PaginationDTO<TransactionResponseDTO>>> GetTransactionListInAProject([FromRoute] string projectId, [FromQuery] TransactionFilterDTO transactionFilterDTO, [FromQuery] int page, int size)
         {
             try
             {
                 var userId = User.FindFirst(ClaimTypes.NameIdentifier).Value;
-                var transactionList = await _transactionService.GetListTransactionOfAProject(userId, projectId, page, size);
+                var transactionList = await _transactionService.GetListTransactionOfAProject(userId, projectId, transactionFilterDTO, page, size);
                 return Ok(transactionList);
             }
             catch (UnauthorizedProjectRoleException ex)
