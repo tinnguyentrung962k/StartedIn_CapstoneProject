@@ -275,8 +275,9 @@ public class ProjectService : IProjectService
                 StartDate = project.StartDate,
                 EndDate = project.EndDate,
                 MaxMember = project.MaxMember,
-            MinMember = project.MinMember,
-            CurrentMember = project.UserProjects.Count()
+                MinMember = project.MinMember,
+                CurrentMember = project.UserProjects.Count(),
+                LeaderProfilePicture = project.UserProjects.FirstOrDefault(x => x.RoleInTeam == RoleInTeam.Leader).User.ProfilePicture
             };
             listProjects.Add(responseDto);
         }
