@@ -30,7 +30,12 @@ namespace StartedIn.Repository.Repositories
                 .ThenInclude(x => x.Investor)
                 .Include(x => x.Disbursement)
                 .ThenInclude(x => x.Contract)
+                .Include(x => x.Disbursement)
+                .ThenInclude(x => x.DisbursementAttachments)
                 .Include(x => x.Finance)
+                .ThenInclude(x=>x.Project)
+                .ThenInclude(x =>x.UserProjects)
+                .ThenInclude(x => x.User)
                 .OrderByDescending(x => x.LastUpdatedTime);
             return query;
         }
@@ -42,7 +47,12 @@ namespace StartedIn.Repository.Repositories
                 .ThenInclude(x => x.Investor)
                 .Include(x => x.Disbursement)
                 .ThenInclude(x => x.Contract)
+                .Include(x => x.Disbursement)
+                .ThenInclude(x => x.DisbursementAttachments)
                 .Include(x => x.Finance)
+                .ThenInclude(x => x.Project)
+                .ThenInclude(x => x.UserProjects)
+                .ThenInclude(x => x.User)
                 .OrderByDescending(x=>x.LastUpdatedTime);
             return query;
         }
