@@ -723,7 +723,8 @@ namespace StartedIn.Service.Services
                     Id = userContract.User.Id,
                     Email = userContract.User.Email,
                     FullName = userContract.User.FullName,
-                    PhoneNumber = userContract.User.PhoneNumber
+                    PhoneNumber = userContract.User.PhoneNumber,
+                    ProfilePicture = userContract.User.ProfilePicture
                 }).ToList()
             }).ToList();
 

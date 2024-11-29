@@ -7,4 +7,5 @@ public class ExploreProjectDTO : IdentityResponseDTO
     public string LogoUrl { get; set; }
     public string LeaderId { get; set; }
     public string LeaderFullName { get; set; }
+    public string? LeaderProfilePicture { get; set; }
 }

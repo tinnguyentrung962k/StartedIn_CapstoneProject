@@ -9,6 +9,7 @@ namespace StartedIn.CrossCutting.DTOs.ResponseDTO.Disbursement
     public class DisbursementDetailForLeaderInProjectResponseDTO : DisbursementForLeaderInProjectResponseDTO
     {
         public string InvestorId { get; set; }
+        public string? InvestorProfilePicture { get; set; }
         public string ContractId { get; set; }
         public string DeclineReason { get; set; }
         public string Condition { get; set; }

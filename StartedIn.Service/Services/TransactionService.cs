@@ -66,6 +66,19 @@ namespace StartedIn.Service.Services
                 .Skip((page - 1) * size)
                 .Take(size).ToListAsync();
             var response = _mapper.Map<List<TransactionResponseDTO>>(pagedResult);
+            foreach (var transaction in response)
+            {
+                var fromUser = await _userManager.FindByIdAsync(transaction.FromID);
+                if (fromUser != null)
+                {
+                    transaction.FromUserProfilePicture = fromUser.ProfilePicture;
+                }
+                var toUser = await _userManager.FindByIdAsync(transaction.ToID);
+                if (toUser != null)
+                {
+                    transaction.ToUserProfilePicture = toUser.ProfilePicture;
+                }
+            }
             var pagination = new PaginationDTO<TransactionResponseDTO>
             {
                 Data = response,
@@ -246,7 +259,7 @@ namespace StartedIn.Service.Services
             }
         }
 
-        public async Task<Transaction> GetTransactionDetailById(string userId, string projectId, string transactionId)
+        public async Task<TransactionResponseDTO> GetTransactionDetailById(string userId, string projectId, string transactionId)
         {
             var userInProject = await _userService.CheckIfUserInProject(userId, projectId);
             var transaction = await _transactionRepository.GetTransactionById(transactionId);
@@ -258,7 +271,18 @@ namespace StartedIn.Service.Services
             {
                 throw new UnmatchedException(MessageConstant.TransactionNotBelongToProject);
             }
-            return transaction;
+            var transactionResponse = _mapper.Map<TransactionResponseDTO>(transaction);
+            var fromUser = await _userManager.FindByIdAsync(transaction.FromID);
+            if (fromUser != null)
+            {
+                transactionResponse.FromUserProfilePicture = fromUser.ProfilePicture;
+            }
+            var toUser = await _userManager.FindByIdAsync(transaction.ToID);
+            if (toUser != null)
+            {
+                transactionResponse.FromUserProfilePicture = toUser.ProfilePicture;
+            }
+            return transactionResponse;
         }
     }
 }

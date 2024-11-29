@@ -90,8 +90,7 @@ namespace StartedIn.API.Controllers
             {
                 var userId = User.FindFirst(ClaimTypes.NameIdentifier).Value;
                 var transaction = await _transactionService.GetTransactionDetailById(userId, projectId, transactionId);
-                var response = _mapper.Map<TransactionResponseDTO>(transaction);
-                return Ok(response);
+                return Ok(transaction);
             }
             catch (NotFoundException ex)
             {

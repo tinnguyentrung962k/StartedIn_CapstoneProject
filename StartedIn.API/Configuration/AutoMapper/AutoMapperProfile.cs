@@ -107,6 +107,9 @@ namespace StartedIn.API.Configuration.AutoMapper
                 .ForMember(dest => dest.LeaderFullName,
                     opt => opt.MapFrom(src =>
                         src.UserProjects.FirstOrDefault(up => up.RoleInTeam == RoleInTeam.Leader).User.FullName))
+                .ForMember(dest => dest.LeaderProfilePicture,
+                    opt => opt.MapFrom(src =>
+                        src.UserProjects.FirstOrDefault(up => up.RoleInTeam == RoleInTeam.Leader).User.ProfilePicture))
                 .ForMember(dest => dest.CurrentMember, opt => opt.MapFrom(src => src.UserProjects.Count(x => x.RoleInTeam == RoleInTeam.Leader || x.RoleInTeam == RoleInTeam.Member)))
                 .ReverseMap();
             CreateMap<Project, ExploreProjectDTO>()
@@ -116,7 +119,9 @@ namespace StartedIn.API.Configuration.AutoMapper
                 .ForMember(dest => dest.LeaderFullName,
                     opt => opt.MapFrom(src =>
                         src.UserProjects.FirstOrDefault(up => up.RoleInTeam == RoleInTeam.Leader).User.FullName))
-
+                .ForMember(dest => dest.LeaderProfilePicture,
+                    opt => opt.MapFrom(src =>
+                        src.UserProjects.FirstOrDefault(up => up.RoleInTeam == RoleInTeam.Leader).User.ProfilePicture))
                 .ReverseMap();
             CreateMap<UserProject, UserRoleInATeamResponseDTO>()
                 .ForMember(dest => dest.RoleInTeam, opt => opt.MapFrom(src => src.RoleInTeam));
@@ -140,6 +145,9 @@ namespace StartedIn.API.Configuration.AutoMapper
                 .ForMember(dest => dest.LeaderFullName,
                     opt => opt.MapFrom(src =>
                         src.UserProjects.FirstOrDefault(up => up.RoleInTeam == RoleInTeam.Leader).User.FullName))
+                .ForMember(dest => dest.LeaderProfilePicture,
+                    opt => opt.MapFrom(src =>
+                        src.UserProjects.FirstOrDefault(up => up.RoleInTeam == RoleInTeam.Leader).User.ProfilePicture))
                 .ForMember(dest => dest.IsSignedInternalContract, opt => opt.MapFrom(src => src.Contracts.Any(c => c.ContractType == ContractTypeEnum.INTERNAL && c.ContractStatus == ContractStatusEnum.COMPLETED)))
                 .ForMember(dest => dest.CurrentMember, opt => opt.MapFrom(src => src.UserProjects.Count(x => x.RoleInTeam == RoleInTeam.Leader || x.RoleInTeam == RoleInTeam.Member)))
                 .ReverseMap();
@@ -159,7 +167,9 @@ namespace StartedIn.API.Configuration.AutoMapper
                         Id = uc.UserId,
                         FullName = uc.User.FullName,
                         Email = uc.User.Email,
-                        PhoneNumber = uc.User.PhoneNumber
+                        PhoneNumber = uc.User.PhoneNumber,
+                        ProfilePicture = uc.User.ProfilePicture
+                        
                     }).ToList()));
             CreateMap<Contract, InvestmentContractDetailResponseDTO>()
                 .ForMember(dest => dest.Disbursements, opt => opt.MapFrom(
@@ -222,7 +232,8 @@ namespace StartedIn.API.Configuration.AutoMapper
                 .ForMember(dr => dr.DisbursementAttachments, opt => opt.MapFrom(de => de.DisbursementAttachments))
                 .ForMember(dr => dr.ContractIdNumber, opt => opt.MapFrom(de => de.Contract.ContractIdNumber))
                 .ForMember(dr => dr.Amount, opt => opt.MapFrom(de => de.Amount.ToString()))
-                .ForMember(dr => dr.InvestorName, opt => opt.MapFrom(de => de.Investor.FullName));
+                .ForMember(dr => dr.InvestorName, opt => opt.MapFrom(de => de.Investor.FullName))
+                .ForMember(dr => dr.InvestorProfilePicture, opt => opt.MapFrom(de => de.Investor.ProfilePicture));
             CreateMap<Disbursement, DisbursementDetailForInvestorResponseDTO>()
                 .ForMember(dr => dr.DisbursementAttachments, opt => opt.MapFrom(de => de.DisbursementAttachments))
                 .ForMember(dr => dr.ContractIdNumber, opt => opt.MapFrom(de => de.Contract.ContractIdNumber))
