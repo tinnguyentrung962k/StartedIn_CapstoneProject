@@ -75,6 +75,18 @@ namespace StartedIn.Service.Services
         {
             var userInProject = await _userService.CheckIfUserInProject(userId, projectId);
             var transactions = _transactionRepository.GetTransactionsListQuery(projectId);
+            var response = await GetPaginationForTransaction(transactions, transactionFilterDTO, page, size);
+            return response;
+        }
+
+        public async Task<PaginationDTO<TransactionResponseDTO>> GetListTransactionOfUser(string userId, TransactionFilterDTO transactionFilterDTO, int page, int size)
+        {
+            var transactions = _transactionRepository.GetTransactionListQueryForUser(userId);
+            var response = await GetPaginationForTransaction(transactions, transactionFilterDTO, page, size);
+            return response;
+        }
+        private async Task<PaginationDTO<TransactionResponseDTO>> GetPaginationForTransaction(IQueryable<Transaction> transactions, TransactionFilterDTO transactionFilterDTO, int page, int size)
+        {
             if (transactionFilterDTO.DateFrom.HasValue)
             {
                 var dateFrom = ConvertToDateTimeOffset(transactionFilterDTO.DateFrom, false);  // Start of the day
@@ -117,7 +129,7 @@ namespace StartedIn.Service.Services
             {
                 transactions = transactions.Where(t => t.Type == transactionFilterDTO.Type);
             }
-            int totalCount =  await transactions.CountAsync();
+            int totalCount = await transactions.CountAsync();
             var pagedResult = await transactions
                 .Skip((page - 1) * size)
                 .Take(size).ToListAsync();

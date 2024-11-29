@@ -12,7 +12,7 @@ using System.Security.Claims;
 namespace StartedIn.API.Controllers
 {
     [ApiController]
-    [Route("api/projects/{projectId}")]
+    [Route("api")]
     public class TransactionController : ControllerBase
     {
         private readonly ITransactionService _transactionService;
@@ -27,7 +27,7 @@ namespace StartedIn.API.Controllers
             _userService = userService;
         }
 
-        [HttpGet("transactions")]
+        [HttpGet("projects/{projectId}/transactions")]
         [Authorize(Roles = RoleConstants.INVESTOR +","+ RoleConstants.USER)]
         public async Task<ActionResult<PaginationDTO<TransactionResponseDTO>>> GetTransactionListInAProject([FromRoute] string projectId, [FromQuery] TransactionFilterDTO transactionFilterDTO, [FromQuery] int page, int size)
         {
@@ -48,7 +48,28 @@ namespace StartedIn.API.Controllers
 
         }
 
-        [HttpPost("transactions")]
+        [HttpGet("transactions")]
+        [Authorize(Roles = RoleConstants.INVESTOR + "," + RoleConstants.USER)]
+        public async Task<ActionResult<PaginationDTO<TransactionResponseDTO>>> GetTransactionListForUser([FromQuery] TransactionFilterDTO transactionFilterDTO, [FromQuery] int page, int size)
+        {
+            try
+            {
+                var userId = User.FindFirst(ClaimTypes.NameIdentifier).Value;
+                var transactionList = await _transactionService.GetListTransactionOfUser(userId, transactionFilterDTO, page, size);
+                return Ok(transactionList);
+            }
+            catch (UnauthorizedProjectRoleException ex)
+            {
+                return StatusCode(403, ex.Message);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, ex.Message);
+            }
+
+        }
+
+        [HttpPost("projects/{projectId}/transactions")]
         [Authorize(Roles = RoleConstants.USER)]
         public async Task<ActionResult<TransactionResponseDTO>> AddNewTransaction([FromRoute] string projectId, [FromBody] TransactionCreateDTO transactionCreateDTO )
         {
@@ -82,7 +103,7 @@ namespace StartedIn.API.Controllers
 
         }
 
-        [HttpGet("transactions/{transactionId}")]
+        [HttpGet("projects/{projectId}/transactions/{transactionId}")]
         [Authorize(Roles = RoleConstants.USER + "," + RoleConstants.INVESTOR)]
         public async Task<ActionResult<TransactionResponseDTO>> GetTransactionById([FromRoute] string projectId, [FromRoute] string transactionId)
         {
@@ -110,7 +131,7 @@ namespace StartedIn.API.Controllers
             }
         }
 
-        [HttpPost("transactions/{transactionId}/evidence")]
+        [HttpPost("projects/{projectId}/transactions/{transactionId}/evidence")]
         [Authorize(Roles = RoleConstants.USER)]
         public async Task<ActionResult<TransactionResponseDTO>> UploadEvidenceForTransaction([FromRoute] string projectId, [FromRoute] string transactionId, IFormFile file)
         {

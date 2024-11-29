@@ -22,6 +22,19 @@ namespace StartedIn.Repository.Repositories
                 .FirstOrDefaultAsync();
             return transaction;
         }
+
+        public IQueryable<Transaction> GetTransactionListQueryForUser(string userId)
+        {
+            var query = _dbSet.Include(x => x.Assets).Where(x => x.FromID.Equals(userId) || x.ToID.Equals(userId))
+                .Include(x => x.Disbursement)
+                .ThenInclude(x => x.Investor)
+                .Include(x => x.Disbursement)
+                .ThenInclude(x => x.Contract)
+                .Include(x => x.Finance)
+                .OrderByDescending(x => x.LastUpdatedTime);
+            return query;
+        }
+
         public IQueryable<Transaction> GetTransactionsListQuery(string projectId)
         {
             var query = _dbSet.Include(x => x.Assets).Where(x=>x.Finance.ProjectId.Equals(projectId))

@@ -6,5 +6,6 @@ namespace StartedIn.Repository.Repositories.Interface
     {
         Task<Transaction> GetTransactionById(string transactionId);
         IQueryable<Transaction> GetTransactionsListQuery(string projectId);
+        IQueryable<Transaction> GetTransactionListQueryForUser(string userId);
     }
 }

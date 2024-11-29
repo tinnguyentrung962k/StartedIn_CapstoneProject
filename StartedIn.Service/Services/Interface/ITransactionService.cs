@@ -18,5 +18,6 @@ namespace StartedIn.Service.Services.Interface
         Task<TransactionResponseDTO> GetTransactionDetailById(string userId, string projectId, string transactionId);
         Task<Transaction> UploadEvidenceFile(string userId, string projectId, string transactionId, IFormFile file);
         Task<TransactionInAndOutMoneyDTO> GetInAndOutMoneyTransactionOfCurrentMonth(string projectId);
+        Task<PaginationDTO<TransactionResponseDTO>> GetListTransactionOfUser(string userId, TransactionFilterDTO transactionFilterDTO, int page, int size);
     }
 }
