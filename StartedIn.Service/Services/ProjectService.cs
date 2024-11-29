@@ -239,7 +239,8 @@ public class ProjectService : IProjectService
                 EndDate = project.EndDate,
                 MaxMember = project.MaxMember,
                 MinMember = project.MinMember,
-                CurrentMember = project.UserProjects.Count()
+                CurrentMember = project.UserProjects.Count(),
+                LeaderProfilePicture = project.UserProjects.FirstOrDefault(x => x.RoleInTeam == RoleInTeam.Leader).User.ProfilePicture
             };
             listProjects.Add(responseDto);
         }
@@ -326,7 +327,8 @@ public class ProjectService : IProjectService
                 LeaderFullName = project.UserProjects.FirstOrDefault(x => x.RoleInTeam == RoleInTeam.Leader).User.FullName,
                 LeaderId = project.UserProjects.FirstOrDefault(x => x.RoleInTeam == RoleInTeam.Leader).User.Id,
                 LogoUrl = project.LogoUrl,
-                ProjectName = project.ProjectName
+                ProjectName = project.ProjectName,
+                LeaderProfilePicture = project.UserProjects.FirstOrDefault(x => x.RoleInTeam == RoleInTeam.Leader).User.ProfilePicture
             };
             exploreProjects.Add(exploreProjectDTO);
         }
