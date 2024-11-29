@@ -16,6 +16,7 @@ namespace StartedIn.CrossCutting.DTOs.ResponseDTO.Disbursement
         public string Amount { get; set; }
         public DisbursementStatusEnum DisbursementStatus { get; set; }
         public string InvestorName { get; set; }
+        public string? InvestorProfilePicture { get; set; }
         public string ContractIdNumber { get; set; }
     }
 }

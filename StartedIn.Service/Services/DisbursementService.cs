@@ -333,7 +333,8 @@ namespace StartedIn.Service.Services
                 EndDate = disbursement.EndDate,
                 StartDate = disbursement.StartDate,
                 Title = disbursement.Title,
-                InvestorName = disbursement.Investor.FullName
+                InvestorName = disbursement.Investor.FullName,
+                InvestorProfilePicture = disbursement.Investor.ProfilePicture
             }).ToList();
             var pagination = new PaginationDTO<DisbursementForLeaderInProjectResponseDTO>()
             {

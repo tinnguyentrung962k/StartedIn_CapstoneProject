@@ -221,7 +221,8 @@ namespace StartedIn.API.Configuration.AutoMapper
             CreateMap<Disbursement, DisbursementForLeaderInProjectResponseDTO>()
                 .ForMember(dr => dr.ContractIdNumber, opt => opt.MapFrom(de => de.Contract.ContractIdNumber))
                 .ForMember(dr => dr.Amount, opt => opt.MapFrom(de => de.Amount.ToString()))
-                .ForMember(dr => dr.InvestorName, opt => opt.MapFrom(de => de.Investor.FullName));
+                .ForMember(dr => dr.InvestorName, opt => opt.MapFrom(de => de.Investor.FullName))
+                .ForMember(dr => dr.InvestorProfilePicture, opt => opt.MapFrom(de => de.Investor.ProfilePicture));
             CreateMap<Disbursement, DisbursementForInvestorInInvestorMenuResponseDTO>()
                 .ForMember(dr => dr.ContractIdNumber, opt => opt.MapFrom(de => de.Contract.ContractIdNumber))
                 .ForMember(dr => dr.Amount, opt => opt.MapFrom(de => de.Amount.ToString()))
