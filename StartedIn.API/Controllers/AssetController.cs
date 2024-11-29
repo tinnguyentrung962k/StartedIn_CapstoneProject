@@ -138,5 +138,37 @@ namespace StartedIn.API.Controllers
                 return StatusCode(500, ex.Message);
             }
         }
+        [HttpPut("assets/{assetId}")]
+        [Authorize(Roles = RoleConstants.USER)]
+        public async Task<ActionResult<AssetResponseDTO>> UpdateAsset([FromRoute] string projectId, [FromRoute] string assetId, AssetUpdateDTO assetUpdateDTO)
+        {
+            try
+            {
+                var userId = User.FindFirst(ClaimTypes.NameIdentifier).Value;
+                var asset = await _assetService.UpdateAsset(userId, projectId, assetId, assetUpdateDTO);
+                var assetResponse = _mapper.Map<AssetResponseDTO>(asset);
+                return Ok(assetResponse);
+            }
+            catch (InvalidDataException ex)
+            {
+                return BadRequest(ex.Message);
+            }
+            catch (UnauthorizedProjectRoleException ex)
+            {
+                return StatusCode(403, ex.Message);
+            }
+            catch (UnmatchedException ex)
+            {
+                return BadRequest(ex.Message);
+            }
+            catch (NotFoundException ex)
+            {
+                return BadRequest(ex.Message);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, ex.Message);
+            }
+        }
     }
 }

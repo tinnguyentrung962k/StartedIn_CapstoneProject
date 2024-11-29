@@ -89,5 +89,7 @@ namespace StartedIn.CrossCutting.Constants
         public const string FullMembersOfTeam = "Dự án đã đạt số lượng thành viên tối đa.";
         public const string AssetBelongToTransaction = "Tài sản này nằm trong mã giao dịch: ";
         public const string UserInOtherProjectError = "Người dùng đã tham gia vào dự án khác: ";
+        public const string RemainingAmountOfAssetNotGreaterThanInitial = "Số lượng tài sản ban đầu không thể lớn hơn số còn lại";
+        public const string AssetQuantityCannotSmallerThanZero = "Số lượng tài sản ban đầu không được bé hơn hoặc bằng 0";
     }
 }
