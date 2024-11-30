@@ -79,7 +79,8 @@ public class ProjectRepository : GenericRepository<Project, string>, IProjectRep
     public async Task<UserProject> GetAProjectByUserId(string userId)
     {
         var userProject = await _appDbContext.UserProjects
-            .Where(p => p.UserId.Equals(userId) && p.RoleInTeam.Equals(RoleInTeam.Leader) || p.RoleInTeam.Equals(RoleInTeam.Member))
+            .Where(p => p.UserId.Equals(userId) &&
+                        (p.RoleInTeam.Equals(RoleInTeam.Leader) || p.RoleInTeam.Equals(RoleInTeam.Member)))
             .FirstOrDefaultAsync();
         return userProject;
     }
