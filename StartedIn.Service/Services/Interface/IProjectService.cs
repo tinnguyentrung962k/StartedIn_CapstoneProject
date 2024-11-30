@@ -17,7 +17,7 @@ public interface IProjectService
     Task<PaginationDTO<ExploreProjectDTO>> GetProjectsForInvestor(string userId, ProjectFilterDTO projectFilterDTO, int size, int page);
     Task AddPaymentGatewayInfo(string userId, string projectId, PayOsPaymentGatewayRegisterDTO payOsPaymentGatewayRegisterDTO);
     Task<PayOsPaymentGatewayResponseDTO> GetPaymentGatewayInfoByProjectId(string userId, string projectId);
-    Task<PaginationDTO<ProjectResponseDTO>> GetAllProjectsForAdmin(int page, int size);
+    Task<PaginationDTO<ProjectResponseDTO>> GetAllProjectsForAdmin(ProjectAdminFilterDTO projectAdminFilterDTO,int page, int size);
     Task<Project> ActivateProject(string projectId);
     Task<ProjectDashboardDTO> GetProjectDashboard(string userId, string projectId);
 }

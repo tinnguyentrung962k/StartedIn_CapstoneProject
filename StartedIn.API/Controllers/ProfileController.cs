@@ -55,9 +55,5 @@ namespace StartedIn.API.Controllers
             var fullProfileDto = _mapper.Map<FullProfileDTO>(queryUser);
             return Ok(fullProfileDto);
         }
-
-
-
-        
     }
 }

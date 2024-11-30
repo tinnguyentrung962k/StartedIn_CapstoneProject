@@ -155,9 +155,25 @@ public class ProjectService : IProjectService
         return project;
     }
 
-    public async Task<PaginationDTO<ProjectResponseDTO>> GetAllProjectsForAdmin(int page, int size)
+    public async Task<PaginationDTO<ProjectResponseDTO>> GetAllProjectsForAdmin(ProjectAdminFilterDTO projectAdminFilterDTO,int page, int size)
     {
         var projects = _projectRepository.GetProjectListQuery();
+        if (!string.IsNullOrWhiteSpace(projectAdminFilterDTO.ProjectName))
+        {
+            projects = projects.Where(x => x.ProjectName.ToLower().Contains(projectAdminFilterDTO.ProjectName.ToLower()));
+        }
+        if (!string.IsNullOrWhiteSpace(projectAdminFilterDTO.Description))
+        {
+            projects = projects.Where(x => x.Description.ToLower().Contains(projectAdminFilterDTO.Description.ToLower()));
+        }
+        if (!string.IsNullOrWhiteSpace(projectAdminFilterDTO.LeaderFullName))
+        {
+            projects = projects.Where(x => x.UserProjects.FirstOrDefault(x => x.RoleInTeam.Equals(RoleInTeam.Leader)).User.FullName.ToLower().Contains(projectAdminFilterDTO.LeaderFullName.ToLower()));
+        }
+        if (projectAdminFilterDTO.Status != null)
+        {
+            projects = projects.Where(x => x.ProjectStatus == projectAdminFilterDTO.Status);
+        }
         int totalCount = await projects.CountAsync();
         var pagedResult = await projects
             .Include(p => p.UserProjects)
@@ -313,7 +329,7 @@ public class ProjectService : IProjectService
 
     public async Task<PaginationDTO<ExploreProjectDTO>> GetProjectsForInvestor(string userId, ProjectFilterDTO projectFilterDTO,int size, int page)
     {
-        var projects = _projectRepository.GetProjectListQueryForInvestor(userId);
+        var projects = _projectRepository.GetProjectListQueryForInvestor(userId).Where(x=>x.ActiveCallId != null);
 
         // Filter by project name
         if (!string.IsNullOrWhiteSpace(projectFilterDTO.ProjectName))

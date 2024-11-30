@@ -17,6 +17,7 @@ using StartedIn.CrossCutting.DTOs.RequestDTO.Auth;
 using StartedIn.CrossCutting.Enum;
 using StartedIn.CrossCutting.DTOs.ResponseDTO;
 using AutoMapper;
+using StartedIn.CrossCutting.DTOs.RequestDTO.User;
 
 namespace StartedIn.Service.Services
 {
@@ -220,11 +221,30 @@ namespace StartedIn.Service.Services
             return user;
         }
 
-        public async Task<PaginationDTO<FullProfileDTO>> GetUsersListForAdmin(int page, int size)
+        public async Task<PaginationDTO<FullProfileDTO>> GetUsersListForAdmin(UserAdminFilterDTO userAdminFilterDTO,int page, int size)
         {
             var userListQuery = _userRepository.GetUsersInTheSystemQuery()
                 .Where(x => x.UserRoles.Any(u=>u.RoleId != "role_admin"));
-
+            if (!string.IsNullOrWhiteSpace(userAdminFilterDTO.FullName))
+            {
+                userListQuery = userListQuery.Where(x => x.FullName.ToLower().Contains(userAdminFilterDTO.FullName.ToLower()));
+            }
+            if(!string.IsNullOrWhiteSpace(userAdminFilterDTO.Email))
+            {
+                userListQuery = userListQuery.Where(x => x.Email.ToLower().Contains(userAdminFilterDTO.Email.ToLower()));
+            }
+            if (!string.IsNullOrWhiteSpace(userAdminFilterDTO.PhoneNumber))
+            {
+                userListQuery = userListQuery.Where(x => x.PhoneNumber.ToLower().Contains(userAdminFilterDTO.PhoneNumber.ToLower()));
+            }
+            if (!string.IsNullOrEmpty(userAdminFilterDTO.Authorities))
+            {
+                userListQuery = userListQuery.Where(x => x.UserRoles.Any(x => x.Role.Name.Equals(userAdminFilterDTO.Authorities)));
+            }
+            if (!userAdminFilterDTO.IsActive != null)
+            {
+                userListQuery = userListQuery.Where(x => x.IsActive == userAdminFilterDTO.IsActive);
+            }
             int totalCount = await userListQuery.CountAsync();
             var pagedResult = await userListQuery
                 .Skip((page - 1) * size)
