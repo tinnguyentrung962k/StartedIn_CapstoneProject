@@ -144,12 +144,12 @@ public class ProjectController : ControllerBase
 
     [HttpGet("/api/startups")]
     [Authorize(Roles = RoleConstants.INVESTOR)]
-    public async Task<ActionResult<PaginationDTO<ExploreProjectDTO>>> ExploreProjects([FromQuery] int page, int size)
+    public async Task<ActionResult<PaginationDTO<ExploreProjectDTO>>> ExploreProjects([FromQuery]ProjectFilterDTO projectFilterDTO, [FromQuery] int page, int size)
     {
         try
         {
             var userId = User.FindFirst(ClaimTypes.NameIdentifier).Value;
-            var projectList = await _projectService.GetProjectsForInvestor(userId, size, page);
+            var projectList = await _projectService.GetProjectsForInvestor(userId,projectFilterDTO,size, page);
             return Ok(projectList);
         }
         catch (Exception ex)

@@ -8,6 +8,7 @@ using StartedIn.CrossCutting.Constants;
 using StartedIn.CrossCutting.DTOs.RequestDTO.Project;
 using StartedIn.CrossCutting.DTOs.ResponseDTO;
 using StartedIn.CrossCutting.DTOs.ResponseDTO.DealOffer;
+using StartedIn.CrossCutting.DTOs.ResponseDTO.InvestmentCall;
 using StartedIn.CrossCutting.DTOs.ResponseDTO.Milestone;
 using StartedIn.CrossCutting.DTOs.ResponseDTO.Project;
 using StartedIn.CrossCutting.DTOs.ResponseDTO.Tasks;
@@ -38,6 +39,7 @@ public class ProjectService : IProjectService
     private readonly IDisbursementService _disbursementService;
     private readonly IContractRepository _contractRepository;
     private readonly IMapper _mapper;
+    private readonly IInvestmentCallRepository _investmentCallRepository;
 
     public ProjectService(
         IProjectRepository projectRepository,
@@ -53,6 +55,7 @@ public class ProjectService : IProjectService
         ITransactionService transactionService,
         IDisbursementService disbursementService,
         IContractRepository contractRepository,
+        IInvestmentCallRepository investmentCallRepository,
         IMapper mapper)
     {
         _projectRepository = projectRepository;
@@ -69,6 +72,7 @@ public class ProjectService : IProjectService
         _disbursementService = disbursementService;
         _contractRepository = contractRepository;
         _mapper = mapper;
+        _investmentCallRepository = investmentCallRepository;
     }
     public async Task<Project> CreateNewProject(string userId, ProjectCreateDTO projectCreateDTO)
     {
@@ -307,20 +311,75 @@ public class ProjectService : IProjectService
         return listUser;
     }
 
-    public async Task<PaginationDTO<ExploreProjectDTO>> GetProjectsForInvestor(string userId, int size, int page)
+    public async Task<PaginationDTO<ExploreProjectDTO>> GetProjectsForInvestor(string userId, ProjectFilterDTO projectFilterDTO,int size, int page)
     {
-        var projects = _projectRepository.QueryHelper().Include(p => p.UserProjects)
-            .Filter(p => !p.UserProjects.Any(up => up.UserId.Contains(userId)) && p.ProjectStatus.Equals(ProjectStatusEnum.ACTIVE))
-            .OrderBy(x => x.OrderByDescending(x => x.StartDate));
-        var result = await projects.GetPagingAsync(page, size);
+        var projects = _projectRepository.GetProjectListQueryForInvestor(userId);
+
+        // Filter by project name
+        if (!string.IsNullOrWhiteSpace(projectFilterDTO.ProjectName))
+        {
+            projects = projects.Where(x => x.ProjectName.ToLower().Contains(projectFilterDTO.ProjectName.ToLower()));
+        }
+
+        // Filter by active InvestmentCall status and apply additional filters if status is "open"
+        if (projectFilterDTO.Status != null)
+        {
+            projects = projects.Where(x =>
+                x.ActiveCallId != null &&
+                x.InvestmentCalls.Any(ic => ic.Id == x.ActiveCallId && ic.Status == projectFilterDTO.Status));
+
+            // Additional filters if the call status is "open"
+            if (projectFilterDTO.Status == InvestmentCallStatus.Open)
+            {
+                if (projectFilterDTO.TargetFrom.HasValue)
+                {
+                    projects = projects.Where(x => x.InvestmentCalls.Any(ic => ic.Id == x.ActiveCallId && ic.TargetCall >= projectFilterDTO.TargetFrom.Value));
+                }
+
+                if (projectFilterDTO.TargetTo.HasValue)
+                {
+                    projects = projects.Where(x => x.InvestmentCalls.Any(ic => ic.Id == x.ActiveCallId && ic.TargetCall <= projectFilterDTO.TargetTo.Value));
+                }
+
+                if (projectFilterDTO.RaisedFrom.HasValue)
+                {
+                    projects = projects.Where(x => x.InvestmentCalls.Any(ic => ic.Id == x.ActiveCallId && ic.AmountRaised >= projectFilterDTO.RaisedFrom.Value));
+                }
+
+                if (projectFilterDTO.RaisedTo.HasValue)
+                {
+                    projects = projects.Where(x => x.InvestmentCalls.Any(ic => ic.Id == x.ActiveCallId && ic.AmountRaised <= projectFilterDTO.RaisedTo.Value));
+                }
+
+                if (projectFilterDTO.AvailableShareFrom.HasValue)
+                {
+                    projects = projects.Where(x => x.InvestmentCalls.Any(ic => ic.Id == x.ActiveCallId && ic.EquityShareCall >= projectFilterDTO.AvailableShareFrom.Value));
+                }
+
+                if (projectFilterDTO.AvailableShareTo.HasValue)
+                {
+                    projects = projects.Where(x => x.InvestmentCalls.Any(ic => ic.Id == x.ActiveCallId && ic.EquityShareCall <= projectFilterDTO.AvailableShareTo.Value));
+                }
+            }
+        }
+        int totalCount = await projects.CountAsync();
+
+        var pagedResult = await projects
+            .Skip((page - 1) * size)
+            .Take(size)
+            .ToListAsync();
         List<ExploreProjectDTO> exploreProjects = new List<ExploreProjectDTO>();
-        foreach (var project in result)
+        foreach (var project in pagedResult)
         {
             foreach (var userProject in project.UserProjects)
             {
                 var user = await _userManager.FindByIdAsync(userProject.UserId);
                 userProject.User = user;
             }
+            var newestInvestmentCall = _mapper.Map<InvestmentCallResponseDTO>(await _investmentCallRepository.QueryHelper()
+                .Filter(x => x.Id.Equals(project.ActiveCallId))
+                .Include(x => x.DealOffers).GetOneAsync());
+           
             ExploreProjectDTO exploreProjectDTO = new ExploreProjectDTO
             {
                 Description = project.Description,
@@ -329,7 +388,8 @@ public class ProjectService : IProjectService
                 LeaderId = project.UserProjects.FirstOrDefault(x => x.RoleInTeam == RoleInTeam.Leader).User.Id,
                 LogoUrl = project.LogoUrl,
                 ProjectName = project.ProjectName,
-                LeaderProfilePicture = project.UserProjects.FirstOrDefault(x => x.RoleInTeam == RoleInTeam.Leader).User.ProfilePicture
+                LeaderProfilePicture = project.UserProjects.FirstOrDefault(x => x.RoleInTeam == RoleInTeam.Leader).User.ProfilePicture,
+                InvestmentCall = newestInvestmentCall
             };
             exploreProjects.Add(exploreProjectDTO);
         }
@@ -338,7 +398,7 @@ public class ProjectService : IProjectService
             Data = exploreProjects,
             Page = page,
             Size = size,
-            Total = await projects.GetTotal()
+            Total = totalCount
         };
         return response;
     }
