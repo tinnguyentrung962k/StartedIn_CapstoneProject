@@ -5,5 +5,7 @@ namespace StartedIn.Service.Services.Interface;
 
 public interface IRecruitmentService
 {
-    Task<Recruitment> CreateRecruitment(string projectId, CreateRecruitmentDTO createRecruitmentDto);
+    Task<Recruitment> CreateRecruitment(string userId, string projectId, CreateRecruitmentDTO createRecruitmentDto);
+
+    Task<Recruitment> GetRecruitmentPostById(string projectId, string recruitmentId);
 }

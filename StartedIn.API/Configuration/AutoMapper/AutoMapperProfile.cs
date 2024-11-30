@@ -15,6 +15,7 @@ using StartedIn.CrossCutting.DTOs.ResponseDTO.Phase;
 using StartedIn.CrossCutting.DTOs.ResponseDTO.Project;
 using StartedIn.CrossCutting.DTOs.ResponseDTO.ProjectCharter;
 using StartedIn.CrossCutting.DTOs.ResponseDTO.RecruitInvite;
+using StartedIn.CrossCutting.DTOs.ResponseDTO.Recruitment;
 using StartedIn.CrossCutting.DTOs.ResponseDTO.ShareEquity;
 using StartedIn.CrossCutting.DTOs.ResponseDTO.TaskComment;
 using StartedIn.CrossCutting.DTOs.ResponseDTO.TaskAttachment;
@@ -45,6 +46,7 @@ namespace StartedIn.API.Configuration.AutoMapper
             AssetProfileMapping();
             PhaseProfileMapping();
             TaskAttachmentMappingProfile();
+            RecruitmentMappingProfile();
         }
 
 
@@ -276,6 +278,12 @@ namespace StartedIn.API.Configuration.AutoMapper
         private void TaskAttachmentMappingProfile()
         {
             CreateMap<TaskAttachment, TaskAttachmentResponseDTO>()
+                .ReverseMap();
+        }
+
+        private void RecruitmentMappingProfile()
+        {
+            CreateMap<Recruitment, RecruitmentResponseDTO>()
                 .ReverseMap();
         }
     }

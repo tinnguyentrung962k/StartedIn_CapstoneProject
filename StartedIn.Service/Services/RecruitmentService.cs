@@ -1,6 +1,7 @@
 using Microsoft.Extensions.Logging;
 using StartedIn.CrossCutting.Constants;
 using StartedIn.CrossCutting.DTOs.RequestDTO.RecruitInvite;
+using StartedIn.CrossCutting.Enum;
 using StartedIn.CrossCutting.Exceptions;
 using StartedIn.Domain.Entities;
 using StartedIn.Repository.Repositories.Interface;
@@ -16,9 +17,10 @@ public class RecruitmentService : IRecruitmentService
     private readonly IRecruitmentRepository _recruitmentRepository;
     private readonly IRecruitmentImageRepository _recruitmentImageRepository;
     private readonly ILogger<RecruitmentService> _logger;
+    private readonly IUserService _userService;
     public RecruitmentService(IProjectRepository projectRepository, IAzureBlobService azureBlobService, IUnitOfWork unitOfWork,
         IRecruitmentRepository recruitmentRepository, IRecruitmentImageRepository recruitmentImageRepository,
-        ILogger<RecruitmentService> logger)
+        ILogger<RecruitmentService> logger, IUserService userService)
     {
         _projectRepository = projectRepository;
         _azureBlobService = azureBlobService;
@@ -26,13 +28,21 @@ public class RecruitmentService : IRecruitmentService
         _recruitmentRepository = recruitmentRepository;
         _recruitmentImageRepository = recruitmentImageRepository;
         _logger = logger;
+        _userService = userService;
     }
-    public async Task<Recruitment> CreateRecruitment(string projectId, CreateRecruitmentDTO createRecruitmentDto)
+    public async Task<Recruitment> CreateRecruitment(string projectId, string userId, CreateRecruitmentDTO createRecruitmentDto)
     {
         var project = await _projectRepository.QueryHelper().Filter(p => p.Id.Equals(projectId)).GetOneAsync();
         if (project == null)
         {
             throw new NotFoundException(MessageConstant.NotFoundProjectError);
+        }
+        
+        var userInProject = await _userService.CheckIfUserInProject(userId, projectId);
+        var projectRole = await _projectRepository.GetUserRoleInProject(userId, projectId);
+        if (projectRole != RoleInTeam.Leader)
+        {
+            throw new UnauthorizedProjectRoleException(MessageConstant.RolePermissionError);
         }
 
         try
@@ -67,5 +77,16 @@ public class RecruitmentService : IRecruitmentService
             await _unitOfWork.RollbackAsync();
             throw;
         }
+    }
+
+    public async Task<Recruitment> GetRecruitmentPostById(string projectId, string recruitmentId)
+    {
+        var recruitment = await _recruitmentRepository.GetRecruitmentPostById(projectId, recruitmentId);
+        if (recruitment == null)
+        {
+            throw new NotFoundException(MessageConstant.NotFoundRecruitmentPost);
+        }
+
+        return recruitment;
     }
 }

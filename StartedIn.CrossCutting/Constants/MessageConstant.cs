@@ -88,5 +88,6 @@ namespace StartedIn.CrossCutting.Constants
         public const string InvalidNumberOfMembersInProject = "Số lượng thành viên không hợp lệ";
         public const string FullMembersOfTeam = "Dự án đã đạt số lượng thành viên tối đa.";
         public const string NotValidImage = "Tệp tin đính kèm không phải dạng hình ảnh.";
+        public const string NotFoundRecruitmentPost = "Không tìm thấy bài đăng tuyển dụng";
     }
 }
