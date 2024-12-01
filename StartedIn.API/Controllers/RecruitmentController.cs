@@ -55,4 +55,26 @@ public class RecruitmentController : ControllerBase
         var response = _mapper.Map<RecruitmentResponseDTO>(recruitment);
         return Ok(response);
     }
+
+    [HttpPut("recruitment/{recruitmentId}")]
+    [Authorize(Roles = RoleConstants.USER)]
+    public async Task<ActionResult<RecruitmentResponseDTO>> UpdateRecruitment([FromRoute] string projectId,
+        string recruitmentId, [FromBody] UpdateRecruitmentDTO updateRecruitmentDto)
+    {
+        try
+        {
+            var userId = User.FindFirst(ClaimTypes.NameIdentifier).Value;
+            var recruitment = await _recruitmentService.UpdateRecruitment(userId, projectId, recruitmentId, updateRecruitmentDto);
+            var response = _mapper.Map<RecruitmentResponseDTO>(recruitment);
+            return Ok(response);
+        }
+        catch (NotFoundException ex)
+        {
+            return BadRequest(ex.Message);
+        }
+        catch (UnauthorizedProjectRoleException ex)
+        {
+            return StatusCode(403, ex.Message);
+        }
+    }
 }

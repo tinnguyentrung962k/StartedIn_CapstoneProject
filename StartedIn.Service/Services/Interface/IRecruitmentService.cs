@@ -8,4 +8,7 @@ public interface IRecruitmentService
     Task<Recruitment> CreateRecruitment(string userId, string projectId, CreateRecruitmentDTO createRecruitmentDto);
 
     Task<Recruitment> GetRecruitmentPostById(string projectId, string recruitmentId);
+
+    Task<Recruitment> UpdateRecruitment(string userId, string projectId, string recruitmentId,
+        UpdateRecruitmentDTO updateRecruitmentDto);
 }

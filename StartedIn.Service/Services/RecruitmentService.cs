@@ -89,4 +89,42 @@ public class RecruitmentService : IRecruitmentService
 
         return recruitment;
     }
+
+    public async Task<Recruitment> UpdateRecruitment(string userId, string projectId, string recruitmentId,
+        UpdateRecruitmentDTO updateRecruitmentDto)
+    {
+        var project = await _projectRepository.QueryHelper().Filter(p => p.Id.Equals(projectId)).GetOneAsync();
+        if (project == null)
+        {
+            throw new NotFoundException(MessageConstant.NotFoundProjectError);
+        }
+        
+        var userInProject = await _userService.CheckIfUserInProject(userId, projectId);
+        var projectRole = await _projectRepository.GetUserRoleInProject(userId, projectId);
+        if (projectRole != RoleInTeam.Leader)
+        {
+            throw new UnauthorizedProjectRoleException(MessageConstant.RolePermissionError);
+        }
+
+        var recruitment = await _recruitmentRepository.GetRecruitmentPostById(projectId, recruitmentId);
+        if (recruitment == null)
+        {
+            throw new NotFoundException(MessageConstant.NotFoundRecruitmentPost);
+        }
+
+        try
+        {
+            recruitment.Title = updateRecruitmentDto.Title;
+            recruitment.Content = updateRecruitmentDto.Content;
+            recruitment.IsOpen = updateRecruitmentDto.IsOpen;
+            _recruitmentRepository.Update(recruitment);
+            await _unitOfWork.SaveChangesAsync();
+            return recruitment;
+        }
+        catch (Exception ex)
+        {
+            await _unitOfWork.RollbackAsync();
+            throw new Exception("Failed while update recruitment");
+        }
+    }
 }
