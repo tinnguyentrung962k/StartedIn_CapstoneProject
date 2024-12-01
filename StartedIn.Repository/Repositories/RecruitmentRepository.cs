@@ -17,7 +17,7 @@ public class RecruitmentRepository : GenericRepository<Recruitment, string>, IRe
     public async Task<Recruitment> GetRecruitmentPostById(string projectId, string recruitmentId)
     {
         var recruitment =
-            await _appDbContext.Recruitments.FirstOrDefaultAsync(r => r.ProjectId.Equals(projectId) && r.Id.Equals(recruitmentId));
+            await _appDbContext.Recruitments.Where(r => r.ProjectId.Equals(projectId) && r.Id.Equals(recruitmentId)).Include(r => r.RecruitmentImgs).FirstOrDefaultAsync();
         return recruitment;
     }
 }

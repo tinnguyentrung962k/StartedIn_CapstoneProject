@@ -47,6 +47,7 @@ namespace StartedIn.API.Configuration.AutoMapper
             PhaseProfileMapping();
             TaskAttachmentMappingProfile();
             RecruitmentMappingProfile();
+            RecruitmentImgMappingProfile();
         }
 
 
@@ -284,6 +285,13 @@ namespace StartedIn.API.Configuration.AutoMapper
         private void RecruitmentMappingProfile()
         {
             CreateMap<Recruitment, RecruitmentResponseDTO>()
+                .ForMember(dest => dest.RecruitmentImgs, opt => opt.MapFrom(src => src.RecruitmentImgs.Where(ri => ri.RecruitmentId.Equals(src.Id))))
+                .ReverseMap();
+        }
+
+        private void RecruitmentImgMappingProfile()
+        {
+            CreateMap<RecruitmentImg, RecruitmentImgResponseDTO>()
                 .ReverseMap();
         }
     }

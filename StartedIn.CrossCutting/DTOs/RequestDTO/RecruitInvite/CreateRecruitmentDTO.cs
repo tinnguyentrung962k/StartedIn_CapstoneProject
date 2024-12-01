@@ -6,5 +6,6 @@ public class CreateRecruitmentDTO
 {
     public string Title { get; set; }
     public string Content { get; set; }
+    public bool IsOpen { get; set; }
     public List<IFormFile> recruitFiles { get; set; } 
 }

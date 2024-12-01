@@ -31,7 +31,7 @@ public class RecruitmentController : ControllerBase
         try
         {
             var userId = User.FindFirst(ClaimTypes.NameIdentifier).Value;
-            var recruitment = await _recruitmentService.CreateRecruitment(userId, projectId, createRecruitmentDto);
+            var recruitment = await _recruitmentService.CreateRecruitment(projectId, userId, createRecruitmentDto);
             var response = _mapper.Map<RecruitmentResponseDTO>(recruitment);
             return CreatedAtAction(nameof(GetRecruitmentPostById), new { projectId, recruitmentId = recruitment.Id },
                 response);
