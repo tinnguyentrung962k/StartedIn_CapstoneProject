@@ -147,7 +147,20 @@ namespace StartedIn.Service.Services
             foreach (var inviteUserEmail in inviteUserEmails)
             {
                 var invitedUser = await _userManager.FindByEmailAsync(inviteUserEmail);
-                var assignedRole = project.UserProjects.FirstOrDefault(up => up.User.Equals(invitedUser))?.RoleInTeam ?? RoleInTeam.Member;
+                RoleInTeam assignedRole;
+                var userWithRole = await _userManager.GetAUserWithSystemRole(invitedUser.Id);
+                if (userWithRole.UserRoles.Any(ur => ur.Role.Name == RoleConstants.MENTOR))
+                {
+                    assignedRole = RoleInTeam.Mentor;
+                }
+                else if (userWithRole.UserRoles.Any(ur => ur.Role.Name == RoleConstants.USER))
+                {
+                    assignedRole = RoleInTeam.Member;
+                }
+                else
+                {
+                    throw new InviteException(MessageConstant.InvalidRoleForInvitation + $"\n{invitedUser.Email}");
+                }
 
                 await _emailService.SendInvitationToProjectAsync(
                     invitedUser.Email,
