@@ -93,5 +93,6 @@ namespace StartedIn.CrossCutting.Constants
         public const string AssetQuantityCannotSmallerThanZero = "Số lượng tài sản ban đầu không được bé hơn hoặc bằng 0";
         public const string ValidContractsStillExisted = "Hợp đồng được gửi/kích hoạt vẫn còn tồn tại trong dự án";
         public const string DisbursementIssueExisted = "Bạn còn các đợt giải ngân cần được giải quyết";
+        public const string InvalidRoleForInvitation = "Vai trò mời vào nhóm không hợp lệ";
     }
 }

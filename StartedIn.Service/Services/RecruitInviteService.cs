@@ -49,55 +49,74 @@ namespace StartedIn.Service.Services
             _applicationRepository = applicationRepository;
         }
 
-        public async Task SendJoinProjectInvitation(string userId, List<ProjectInviteEmailAndRoleDTO> inviteUsers, string projectId)
+        public async Task SendJoinProjectInvitation(string userId, List<string> inviteUserEmails, string projectId)
         {
             var project = await _projectRepository.GetProjectAndMemberByProjectId(projectId);
             if (project == null)
             {
                 throw new NotFoundException(MessageConstant.NotFoundProjectError);
             }
+
             var userInProject = await _userService.CheckIfUserInProject(userId, projectId);
             if (userInProject.RoleInTeam != CrossCutting.Enum.RoleInTeam.Leader)
             {
                 throw new InviteException(MessageConstant.RolePermissionError);
             }
-            var currentMemberInProject = project.UserProjects.Where(x => x.RoleInTeam == RoleInTeam.Leader || x.RoleInTeam == RoleInTeam.Member).Count();
+
+            var currentMemberInProject = project.UserProjects
+                .Where(x => x.RoleInTeam == RoleInTeam.Leader || x.RoleInTeam == RoleInTeam.Member)
+                .Count();
+
             if (currentMemberInProject == project.MaxMember)
             {
                 throw new InviteException(MessageConstant.FullMembersOfTeam);
             }
-            
+
             _unitOfWork.BeginTransaction();
-            foreach (var inviteUser in inviteUsers)
+
+            foreach (var inviteUserEmail in inviteUserEmails)
             {
-                var existedUser = await _userManager.FindByEmailAsync(inviteUser.Email);
+                var existedUser = await _userManager.FindByEmailAsync(inviteUserEmail);
                 if (existedUser == null)
                 {
-                    throw new NotFoundException(MessageConstant.NotFoundUserError + $"\n{inviteUser.Email}");
+                    throw new NotFoundException(MessageConstant.NotFoundUserError + $"\n{inviteUserEmail}");
+                }
+
+                // Get the user with their roles in the system
+                var userWithRole = await _userManager.GetAUserWithSystemRole(existedUser.Id);
+
+                if (userWithRole.UserRoles.Any(ur => ur.Role.Name == RoleConstants.INVESTOR))
+                {
+                    throw new InviteException($"{MessageConstant.UserHasInvestorSystemRole}{existedUser.FullName}, {existedUser.Email}");
+                }
+
+                // Check if the user is already part of the project
+                var existedUserInProject = project.UserProjects.FirstOrDefault(up => up.User.Equals(existedUser));
+                if (existedUserInProject != null)
+                {
+                    throw new InviteException(MessageConstant.UserExistedInProject + $"\n{existedUser.FullName}, {existedUser.Email}");
+                }
+
+                // Check if the user is in another project
+                var userInOtherProjects = await _projectRepository.GetAProjectByUserId(existedUser.Id);
+                if (userInOtherProjects != null)
+                {
+                    throw new InviteException(MessageConstant.UserInOtherProjectError + $"\n{existedUser.Email}");
+                }
+
+                // Determine role in the project based on the system role
+                RoleInTeam assignedRole;
+                if (userWithRole.UserRoles.Any(ur => ur.Role.Name == RoleConstants.MENTOR))
+                {
+                    assignedRole = RoleInTeam.Mentor;
+                }
+                else if (userWithRole.UserRoles.Any(ur => ur.Role.Name == RoleConstants.USER))
+                {
+                    assignedRole = RoleInTeam.Member;
                 }
                 else
                 {
-                    // Get the user with their roles in the system
-                    var userWithRole = await _userManager.GetAUserWithSystemRole(existedUser.Id);
-
-                    // Check if the user has the 'INVESTOR' role
-                    if (userWithRole != null && userWithRole.UserRoles.Any(ur => ur.Role.Name == RoleConstants.INVESTOR))
-                    {
-                        throw new InviteException($"{MessageConstant.UserHasInvestorSystemRole}{existedUser.FullName},{existedUser.Email}");
-                    }
-
-                    // Check if the user is already part of the project
-                    var existedUserInProject = project.UserProjects.FirstOrDefault(up => up.User.Equals(existedUser));
-                    if (existedUserInProject != null)
-                    {
-                        throw new InviteException(MessageConstant.UserExistedInProject + $"\n{existedUser.FullName}, {existedUser.Email}");
-                    }
-
-                    var userInOtherProjects = await _projectRepository.GetAProjectByUserId(existedUser.Id);
-                    if (userInOtherProjects != null)
-                    {
-                        throw new InviteException(MessageConstant.UserInOtherProjectError +$"\n{ existedUser.Email}");
-                    }
+                    throw new InviteException(MessageConstant.InvalidRoleForInvitation + $"\n{existedUser.Email}");
                 }
 
                 var existedInvite = await _applicationRepository.QueryHelper()
@@ -106,29 +125,37 @@ namespace StartedIn.Service.Services
 
                 if (existedInvite != null)
                 {
-                    // If invite existed, update the role
-                    existedInvite.Role = inviteUser.RoleInTeam;
+                    // If invite exists, update the role
+                    existedInvite.Role = assignedRole;
                     existedInvite.Status = ApplicationStatus.PENDING;
                     _applicationRepository.Update(existedInvite);
                 }
                 else
                 {
-                    // Create application for the invited user
+                    // Create a new invitation
                     _applicationRepository.Add(new Application
                     {
                         CandidateId = existedUser.Id,
                         Status = ApplicationStatus.PENDING,
                         Type = ApplicationTypeEnum.INVITE,
-                        Role = inviteUser.RoleInTeam
+                        Role = assignedRole
                     });
                 }
             }
 
-            // Only after finish checking validity of all invited users email, then send email to them
-            foreach (var inviteUser in inviteUsers)
+            // Send emails only after all validations pass
+            foreach (var inviteUserEmail in inviteUserEmails)
             {
-                // Send invitation email
-                await _emailService.SendInvitationToProjectAsync(inviteUser.Email, projectId, userInProject.User.FullName, project.ProjectName, inviteUser.RoleInTeam);
+                var invitedUser = await _userManager.FindByEmailAsync(inviteUserEmail);
+                var assignedRole = project.UserProjects.FirstOrDefault(up => up.User.Equals(invitedUser))?.RoleInTeam ?? RoleInTeam.Member;
+
+                await _emailService.SendInvitationToProjectAsync(
+                    invitedUser.Email,
+                    projectId,
+                    userInProject.User.FullName,
+                    project.ProjectName,
+                    assignedRole
+                );
             }
 
             await _unitOfWork.SaveChangesAsync();

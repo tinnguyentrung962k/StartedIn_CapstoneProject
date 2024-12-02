@@ -12,7 +12,7 @@ namespace StartedIn.Service.Services.Interface
     {
         Task<LoginResponseDTO> Login(string email, string password);
 
-        Task Register(User user, string password);
+        Task Register(User registerUser, string password, string role);
 
         Task<string> Refresh(string refreshToken);
 

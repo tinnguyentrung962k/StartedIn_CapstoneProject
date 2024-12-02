@@ -23,5 +23,12 @@ namespace StartedIn.CrossCutting.DTOs.RequestDTO.Auth
         [Required(ErrorMessage = "Vui lòng nhập số điện thoại")]
         public string? PhoneNumber { get; set; }
 
+        [Required(ErrorMessage = "Vui lòng chọn vai trò")]
+        public string? Role { get; set; }
+        public string? StudentCode { get; set; }
+        public string? Address { get; set; }
+        public string? IdCardNumber { get; set; }
+        public string? AcademicYear { get; set; }
+
     }
 }

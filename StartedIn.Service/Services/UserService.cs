@@ -103,7 +103,7 @@ namespace StartedIn.Service.Services
         }
 
 
-        public async Task Register(User registerUser, string password)
+        public async Task Register(User registerUser, string password, string role)
         {
             var existUser = await _userManager.FindByEmailAsync(registerUser.Email);
             if (existUser != null)
@@ -111,25 +111,33 @@ namespace StartedIn.Service.Services
                 throw new ExistedEmailException("Email này đã tồn tại.");
             }
 
+            if (role == RoleConstants.USER && !registerUser.Email.EndsWith("@fpt.edu.vn"))
+            {
+                throw new InvalidRegisterException("Email của sinh viên phải có đuôi @fpt.edu.vn.");
+            }
+
             try
             {
                 _unitOfWork.BeginTransaction();
                 registerUser.UserName = registerUser.Email;
                 registerUser.ProfilePicture = ProfileConstant.defaultAvatarUrl;
+
                 var result = await _userManager.CreateAsync(registerUser, password);
                 if (!result.Succeeded)
                 {
-                    throw new InvalidRegisterException("Đăng ký thất bại");
+                    throw new InvalidRegisterException("Đăng ký thất bại.");
                 }
-                await _userManager.AddToRoleAsync(registerUser, RoleConstants.INVESTOR);
+
+                await _userManager.AddToRoleAsync(registerUser, role);
                 await _unitOfWork.SaveChangesAsync();
+
                 // Only send mail if user is created successfully
-                _emailService.SendVerificationMailAsync(registerUser.Email, registerUser.Id);
+                await _emailService.SendVerificationMailAsync(registerUser.Email, registerUser.Id);
                 await _unitOfWork.CommitAsync();
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error while register");
+                _logger.LogError(ex, "Error while registering.");
                 await _unitOfWork.RollbackAsync();
                 throw;
             }

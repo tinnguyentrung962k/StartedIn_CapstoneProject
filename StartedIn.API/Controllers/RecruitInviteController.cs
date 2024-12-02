@@ -28,12 +28,12 @@ namespace StartedIn.API.Controllers
 
         [HttpPost("invite")]
         [Authorize(Roles = RoleConstants.USER)]
-        public async Task<IActionResult> SendInvitationToTeam([FromBody] List<ProjectInviteEmailAndRoleDTO> inviteUsers, [FromRoute] string projectId)
+        public async Task<IActionResult> SendInvitationToTeam([FromBody] List<string> inviteUserEmails, [FromRoute] string projectId)
         {
             try
             {
                 var userId = User.FindFirst(ClaimTypes.NameIdentifier).Value;
-                await _recruitInviteService.SendJoinProjectInvitation(userId, inviteUsers, projectId);
+                await _recruitInviteService.SendJoinProjectInvitation(userId, inviteUserEmails, projectId);
                 return Ok("Gửi lời mời gia nhập thành công");
             }
             catch (InviteException ex)
