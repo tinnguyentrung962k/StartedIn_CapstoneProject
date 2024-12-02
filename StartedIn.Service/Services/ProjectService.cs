@@ -40,6 +40,7 @@ public class ProjectService : IProjectService
     private readonly IContractRepository _contractRepository;
     private readonly IMapper _mapper;
     private readonly IInvestmentCallRepository _investmentCallRepository;
+    private readonly IEmailService _emailService;
 
     public ProjectService(
         IProjectRepository projectRepository,
@@ -56,6 +57,7 @@ public class ProjectService : IProjectService
         IDisbursementService disbursementService,
         IContractRepository contractRepository,
         IInvestmentCallRepository investmentCallRepository,
+        IEmailService emailService,
         IMapper mapper)
     {
         _projectRepository = projectRepository;
@@ -73,6 +75,7 @@ public class ProjectService : IProjectService
         _contractRepository = contractRepository;
         _mapper = mapper;
         _investmentCallRepository = investmentCallRepository;
+        _emailService = emailService;
     }
     public async Task<Project> CreateNewProject(string userId, ProjectCreateDTO projectCreateDTO)
     {
@@ -568,6 +571,55 @@ public class ProjectService : IProjectService
         }
 
         return projectDashboardDTO;
+    }
+
+    public async Task CloseAProject(string userId, string projectId)
+    {
+        var userInProject = await _userService.CheckIfUserInProject(userId, projectId);
+        if (userInProject.RoleInTeam != RoleInTeam.Leader)
+        {
+            throw new UnauthorizedProjectRoleException(MessageConstant.RolePermissionError);
+        }
+        var contractList = await _contractRepository.QueryHelper()
+            .Filter(x=>x.ProjectId == projectId)
+            .Include(x=>x.Disbursements)
+            .GetAllAsync();
+        if (contractList.Any(x => x.ContractStatus == ContractStatusEnum.SENT || x.ContractStatus == ContractStatusEnum.COMPLETED))
+        {
+            throw new UpdateException(MessageConstant.ValidContractsStillExisted);
+        }
+        foreach (var contract in contractList)
+        {
+            if (contract.ContractType == ContractTypeEnum.INVESTMENT)
+            {
+                if (contract.Disbursements.Any(x => x.DisbursementStatus == DisbursementStatusEnum.OVERDUE || x.DisbursementStatus == DisbursementStatusEnum.ERROR))
+                {
+                    throw new UpdateException(MessageConstant.DisbursementIssueExisted);
+                    break;
+                }
+            }
+        }
+        try
+        {
+            _unitOfWork.BeginTransaction();
+            var project = await _projectRepository.GetProjectById(projectId);
+            foreach (var participant in project.UserProjects.Where(x => x.RoleInTeam != RoleInTeam.Leader))
+            {
+                var user = await _userManager.FindByIdAsync(participant.UserId);
+                await _emailService.SendClosingProject(user.Email, userInProject.User.FullName, user.FullName, project.ProjectName);
+            }
+            project.ProjectStatus = ProjectStatusEnum.CLOSED;
+            _projectRepository.Update(project);
+            await _unitOfWork.SaveChangesAsync();
+            await _unitOfWork.CommitAsync();
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error while closing project.");
+            await _unitOfWork.RollbackAsync();
+            throw;
+        }
+        
     }
 
 }

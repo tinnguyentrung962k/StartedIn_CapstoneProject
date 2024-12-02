@@ -11,7 +11,7 @@ namespace StartedIn.Domain.Entities
     {
         public string ContractId { get; set; }
         public string UserId { get; set; }
-        public DateOnly? SignedDate { get; set; }
+        public DateTimeOffset? SignedDate { get; set; }
         public bool IsReject { get; set; }
         public virtual Contract Contract { get; set; }
         public virtual User User { get; set; }

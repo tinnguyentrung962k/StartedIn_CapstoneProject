@@ -144,12 +144,12 @@ public class ProjectController : ControllerBase
 
     [HttpGet("/api/startups")]
     [Authorize(Roles = RoleConstants.INVESTOR)]
-    public async Task<ActionResult<PaginationDTO<ExploreProjectDTO>>> ExploreProjects([FromQuery]ProjectFilterDTO projectFilterDTO, [FromQuery] int page, int size)
+    public async Task<ActionResult<PaginationDTO<ExploreProjectDTO>>> ExploreProjects([FromQuery] ProjectFilterDTO projectFilterDTO, [FromQuery] int page, int size)
     {
         try
         {
             var userId = User.FindFirst(ClaimTypes.NameIdentifier).Value;
-            var projectList = await _projectService.GetProjectsForInvestor(userId,projectFilterDTO,size, page);
+            var projectList = await _projectService.GetProjectsForInvestor(userId, projectFilterDTO, size, page);
             return Ok(projectList);
         }
         catch (Exception ex)
@@ -198,7 +198,7 @@ public class ProjectController : ControllerBase
         }
         catch (UnauthorizedProjectRoleException ex)
         {
-            return StatusCode(403,ex.Message);
+            return StatusCode(403, ex.Message);
         }
         catch (Exception ex)
         {
@@ -212,7 +212,7 @@ public class ProjectController : ControllerBase
         try
         {
             var userId = User.FindFirst(ClaimTypes.NameIdentifier).Value;
-            var paymentInfo = await _projectService.GetPaymentGatewayInfoByProjectId(userId,projectId);
+            var paymentInfo = await _projectService.GetPaymentGatewayInfoByProjectId(userId, projectId);
             return Ok(paymentInfo);
         }
         catch (NotFoundException ex)
@@ -246,6 +246,29 @@ public class ProjectController : ControllerBase
         catch (UnauthorizedProjectRoleException ex)
         {
             return StatusCode(403, ex.Message);
+        }
+        catch (Exception ex)
+        {
+            return StatusCode(500, ex.Message);
+        }
+    }
+    [HttpPut("{projectId}/close")]
+    [Authorize(Roles = RoleConstants.USER)]
+    public async Task<IActionResult> ClosingAProject([FromRoute] string projectId)
+    {
+        try
+        {
+            var userId = User.FindFirst(ClaimTypes.NameIdentifier).Value;
+            await _projectService.CloseAProject(userId, projectId);
+            return Ok("Đã đóng dự án thành công");
+        }
+        catch (UnauthorizedProjectRoleException ex)
+        {
+            return StatusCode(403, ex.Message);
+        }
+        catch (UpdateException ex)
+        {
+            return BadRequest(ex.Message);
         }
         catch (Exception ex)
         {

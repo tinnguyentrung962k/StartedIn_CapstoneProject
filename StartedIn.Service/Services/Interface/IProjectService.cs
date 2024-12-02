@@ -20,4 +20,5 @@ public interface IProjectService
     Task<PaginationDTO<ProjectResponseDTO>> GetAllProjectsForAdmin(ProjectAdminFilterDTO projectAdminFilterDTO,int page, int size);
     Task<Project> ActivateProject(string projectId);
     Task<ProjectDashboardDTO> GetProjectDashboard(string userId, string projectId);
+    Task CloseAProject(string userId, string projectId);
 }

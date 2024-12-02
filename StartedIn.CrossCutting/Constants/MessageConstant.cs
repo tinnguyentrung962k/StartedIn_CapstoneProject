@@ -91,5 +91,7 @@ namespace StartedIn.CrossCutting.Constants
         public const string UserInOtherProjectError = "Người dùng đã tham gia vào dự án khác: ";
         public const string RemainingAmountOfAssetNotGreaterThanInitial = "Số lượng tài sản ban đầu không thể lớn hơn số còn lại";
         public const string AssetQuantityCannotSmallerThanZero = "Số lượng tài sản ban đầu không được bé hơn hoặc bằng 0";
+        public const string ValidContractsStillExisted = "Hợp đồng được gửi/kích hoạt vẫn còn tồn tại trong dự án";
+        public const string DisbursementIssueExisted = "Bạn còn các đợt giải ngân cần được giải quyết";
     }
 }
