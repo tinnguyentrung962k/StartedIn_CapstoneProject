@@ -120,15 +120,12 @@ namespace StartedIn.Service.Services
                 }
 
                 var existedInvite = await _applicationRepository.QueryHelper()
-                    .Filter(x => x.CandidateId.Equals(existedUser.Id) && x.RecruitmentId.Equals(projectId) && x.Type == ApplicationTypeEnum.INVITE)
+                    .Filter(x => x.CandidateId.Equals(existedUser.Id) && x.ProjectId.Equals(projectId) && x.Type == ApplicationTypeEnum.INVITE && x.Status != ApplicationStatus.REJECTED)
                     .GetOneAsync();
 
                 if (existedInvite != null)
                 {
-                    // If invite exists, update the role
-                    existedInvite.Role = assignedRole;
-                    existedInvite.Status = ApplicationStatus.PENDING;
-                    _applicationRepository.Update(existedInvite);
+                    throw new InviteException(MessageConstant.YouHaveSentInvitationForUser + $"{existedUser.Email}");
                 }
                 else
                 {
@@ -138,7 +135,8 @@ namespace StartedIn.Service.Services
                         CandidateId = existedUser.Id,
                         Status = ApplicationStatus.PENDING,
                         Type = ApplicationTypeEnum.INVITE,
-                        Role = assignedRole
+                        Role = assignedRole,
+                        ProjectId = projectId
                     });
                 }
             }

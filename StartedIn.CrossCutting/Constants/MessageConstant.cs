@@ -96,5 +96,6 @@ namespace StartedIn.CrossCutting.Constants
         public const string InvalidRoleForInvitation = "Vai trò mời vào nhóm không hợp lệ";
         public const string NotValidImage = "Tệp tin đính kèm không phải dạng hình ảnh.";
         public const string NotFoundRecruitmentPost = "Không tìm thấy bài đăng tuyển dụng";
+        public const string YouHaveSentInvitationForUser = "Bạn đã gửi lời mời cho người dùng: ";
     }
 }

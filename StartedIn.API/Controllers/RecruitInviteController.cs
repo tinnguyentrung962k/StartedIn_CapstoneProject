@@ -91,7 +91,7 @@ namespace StartedIn.API.Controllers
         }
 
         [HttpPost("accept-invite")]
-        [Authorize(Roles = RoleConstants.USER)]
+        [Authorize(Roles = RoleConstants.USER + "," + RoleConstants.MENTOR)]
         public async Task<IActionResult> AcceptInvitation([FromRoute] string projectId, [FromBody] AcceptInviteDTO acceptInviteDTO)
         {
             try

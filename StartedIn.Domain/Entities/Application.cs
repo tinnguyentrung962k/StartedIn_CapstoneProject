@@ -16,11 +16,15 @@ namespace StartedIn.Domain.Entities
 
         [ForeignKey(nameof(Recruitment))]
         public string? RecruitmentId { get; set; }
+
+        [ForeignKey(nameof(Project))]
+        public string ProjectId { get; set; }
         public ApplicationStatus Status { get; set; }
         public ApplicationTypeEnum Type { get; set; }
         public RoleInTeam Role { get; set; }
         public string? CVUrl { get; set; }
         public User Candidate { get; set; }
         public Recruitment? Recruitment { get; set; }
+        public Project Project { get; set; }
     }
 }
