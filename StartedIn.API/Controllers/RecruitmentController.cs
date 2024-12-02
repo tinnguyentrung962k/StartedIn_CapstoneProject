@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using StartedIn.CrossCutting.Constants;
 using StartedIn.CrossCutting.DTOs.RequestDTO.RecruitInvite;
+using StartedIn.CrossCutting.DTOs.ResponseDTO;
 using StartedIn.CrossCutting.DTOs.ResponseDTO.Recruitment;
 using StartedIn.CrossCutting.Exceptions;
 using StartedIn.Service.Services.Interface;
@@ -11,7 +12,7 @@ using StartedIn.Service.Services.Interface;
 namespace StartedIn.API.Controllers;
 
 [ApiController]
-[Route("api/projects/{projectId}")]
+[Route("api")]
 public class RecruitmentController : ControllerBase
 {
     private readonly IRecruitmentService _recruitmentService;
@@ -23,7 +24,7 @@ public class RecruitmentController : ControllerBase
         _mapper = mapper;
     }
 
-    [HttpPost("recruitment")]
+    [HttpPost("projects/{projectId}/recruitment")]
     [Authorize(Roles = RoleConstants.USER)]
     public async Task<ActionResult<RecruitmentResponseDTO>> CreateRecruitmentPost([FromRoute] string projectId,
         [FromForm] CreateRecruitmentDTO createRecruitmentDto)
@@ -46,7 +47,7 @@ public class RecruitmentController : ControllerBase
         }
     }
 
-    [HttpGet("recruitment/{recruitmentId}")]
+    [HttpGet("projects/{projectId}/recruitment/{recruitmentId}")]
     [Authorize(Roles = RoleConstants.USER + "," + RoleConstants.INVESTOR)]
     public async Task<ActionResult<RecruitmentResponseDTO>> GetRecruitmentPostById([FromRoute] string projectId,
         string recruitmentId)
@@ -56,7 +57,7 @@ public class RecruitmentController : ControllerBase
         return Ok(response);
     }
 
-    [HttpPut("recruitment/{recruitmentId}")]
+    [HttpPut("projects/{projectId}/recruitment/{recruitmentId}")]
     [Authorize(Roles = RoleConstants.USER)]
     public async Task<ActionResult<RecruitmentResponseDTO>> UpdateRecruitment([FromRoute] string projectId,
         string recruitmentId, [FromBody] UpdateRecruitmentDTO updateRecruitmentDto)
@@ -75,6 +76,21 @@ public class RecruitmentController : ControllerBase
         catch (UnauthorizedProjectRoleException ex)
         {
             return StatusCode(403, ex.Message);
+        }
+    }
+    
+    [HttpGet("recruitments")]
+    [Authorize(Roles = RoleConstants.USER)]
+    public async Task<ActionResult<PaginationDTO<RecruitmentListDTO>>> GetRecruitmentList([FromQuery] int page, [FromQuery] int size)
+    {
+        try
+        {
+            var recruitmentList = await _recruitmentService.GetRecruitmentListWithLeader(page, size);
+            return Ok(recruitmentList);
+        }
+        catch (Exception ex)
+        {
+            return StatusCode(500, ex.Message);
         }
     }
 }

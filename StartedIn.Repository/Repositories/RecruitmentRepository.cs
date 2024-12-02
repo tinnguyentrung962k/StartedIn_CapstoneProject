@@ -17,7 +17,20 @@ public class RecruitmentRepository : GenericRepository<Recruitment, string>, IRe
     public async Task<Recruitment> GetRecruitmentPostById(string projectId, string recruitmentId)
     {
         var recruitment =
-            await _appDbContext.Recruitments.Where(r => r.ProjectId.Equals(projectId) && r.Id.Equals(recruitmentId)).Include(r => r.RecruitmentImgs).FirstOrDefaultAsync();
+            await _appDbContext.Recruitments
+                .Where(r => r.ProjectId.Equals(projectId) && r.Id.Equals(recruitmentId))
+                .Include(r => r.RecruitmentImgs)
+                .Include(r => r.Project)
+                .ThenInclude(p => p.UserProjects)
+                .ThenInclude(p => p.User)
+                .FirstOrDefaultAsync();
         return recruitment;
+    }
+
+    public IQueryable<Recruitment> GetRecruitmentWithLeader()
+    {
+        var recruitments = _dbSet.Include(r => r.Project).ThenInclude(p => p.UserProjects)
+            .ThenInclude(up => up.User);
+        return recruitments;
     }
 }

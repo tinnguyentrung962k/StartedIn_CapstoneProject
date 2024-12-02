@@ -1,6 +1,11 @@
+using AutoMapper;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using StartedIn.CrossCutting.Constants;
 using StartedIn.CrossCutting.DTOs.RequestDTO.RecruitInvite;
+using StartedIn.CrossCutting.DTOs.ResponseDTO;
+using StartedIn.CrossCutting.DTOs.ResponseDTO.Recruitment;
+using StartedIn.CrossCutting.DTOs.ResponseDTO.Transaction;
 using StartedIn.CrossCutting.Enum;
 using StartedIn.CrossCutting.Exceptions;
 using StartedIn.Domain.Entities;
@@ -18,9 +23,10 @@ public class RecruitmentService : IRecruitmentService
     private readonly IRecruitmentImageRepository _recruitmentImageRepository;
     private readonly ILogger<RecruitmentService> _logger;
     private readonly IUserService _userService;
+    private readonly IMapper _mapper;
     public RecruitmentService(IProjectRepository projectRepository, IAzureBlobService azureBlobService, IUnitOfWork unitOfWork,
         IRecruitmentRepository recruitmentRepository, IRecruitmentImageRepository recruitmentImageRepository,
-        ILogger<RecruitmentService> logger, IUserService userService)
+        ILogger<RecruitmentService> logger, IUserService userService, IMapper mapper)
     {
         _projectRepository = projectRepository;
         _azureBlobService = azureBlobService;
@@ -29,6 +35,7 @@ public class RecruitmentService : IRecruitmentService
         _recruitmentImageRepository = recruitmentImageRepository;
         _logger = logger;
         _userService = userService;
+        _mapper = mapper;
     }
     public async Task<Recruitment> CreateRecruitment(string projectId, string userId, CreateRecruitmentDTO createRecruitmentDto)
     {
@@ -126,5 +133,24 @@ public class RecruitmentService : IRecruitmentService
             await _unitOfWork.RollbackAsync();
             throw new Exception("Failed while update recruitment");
         }
+    }
+
+    public async Task<PaginationDTO<RecruitmentListDTO>> GetRecruitmentListWithLeader(int page, int size)
+    {
+        var recruitments = _recruitmentRepository.GetRecruitmentWithLeader();
+        int totalCount =  await recruitments.CountAsync();
+        var pagedResult = await recruitments
+            .Skip((page - 1) * size)
+            .Take(size).ToListAsync();
+        var response = _mapper.Map<List<RecruitmentListDTO>>(pagedResult);
+        var pagination = new PaginationDTO<RecruitmentListDTO>
+        {
+            Data = response,
+            Page = page,
+            Size = size,
+            Total = totalCount
+
+        };
+        return pagination;
     }
 }

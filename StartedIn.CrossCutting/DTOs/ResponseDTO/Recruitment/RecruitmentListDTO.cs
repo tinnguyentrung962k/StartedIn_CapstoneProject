@@ -2,7 +2,7 @@ using StartedIn.CrossCutting.DTOs.BaseDTO;
 
 namespace StartedIn.CrossCutting.DTOs.ResponseDTO.Recruitment;
 
-public class RecruitmentResponseDTO : IdentityResponseDTO
+public class RecruitmentListDTO : IdentityResponseDTO
 {
     public string ProjectId { get; set; }
     public string Title { get; set; }
@@ -10,5 +10,5 @@ public class RecruitmentResponseDTO : IdentityResponseDTO
     public bool IsOpen { get; set; }
     public string LeaderId { get; set; }
     public string LeaderName { get; set; }
-    public List<RecruitmentImgResponseDTO> RecruitmentImgs { get; set; }
+    public string LogoUrl { get; set; }
 }
