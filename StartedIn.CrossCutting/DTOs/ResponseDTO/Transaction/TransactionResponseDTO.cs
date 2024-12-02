@@ -16,8 +16,10 @@ namespace StartedIn.CrossCutting.DTOs.ResponseDTO.Transaction
         public string Amount { get; set; }
         public string FromID { get; set; }
         public string FromUserName { get; set; }
+        public string? FromUserProfilePicture { get; set; }
         public string ToID { get; set; }
         public string ToUserName { get; set; }
+        public string? ToUserProfilePicture { get; set; }
         public TransactionType Type { get; set; }
         public string Content { get; set; }
         public string EvidenceUrl { get; set; }

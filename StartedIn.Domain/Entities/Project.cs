@@ -1,5 +1,6 @@
 using StartedIn.CrossCutting.Enum;
 using StartedIn.Domain.Entities.BaseEntities;
+using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
 namespace StartedIn.Domain.Entities;
@@ -7,6 +8,8 @@ namespace StartedIn.Domain.Entities;
 public class Project : BaseAuditEntity<string>
 {
     public string ProjectName { get; set; }
+
+    [MaxLength(4000)]
     public string Description { get; set; }
     public string? LogoUrl { get; set; }
     public ProjectStatusEnum ProjectStatus { get; set; }

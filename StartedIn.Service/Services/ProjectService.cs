@@ -8,6 +8,7 @@ using StartedIn.CrossCutting.Constants;
 using StartedIn.CrossCutting.DTOs.RequestDTO.Project;
 using StartedIn.CrossCutting.DTOs.ResponseDTO;
 using StartedIn.CrossCutting.DTOs.ResponseDTO.DealOffer;
+using StartedIn.CrossCutting.DTOs.ResponseDTO.InvestmentCall;
 using StartedIn.CrossCutting.DTOs.ResponseDTO.Milestone;
 using StartedIn.CrossCutting.DTOs.ResponseDTO.Project;
 using StartedIn.CrossCutting.DTOs.ResponseDTO.Tasks;
@@ -38,6 +39,8 @@ public class ProjectService : IProjectService
     private readonly IDisbursementService _disbursementService;
     private readonly IContractRepository _contractRepository;
     private readonly IMapper _mapper;
+    private readonly IInvestmentCallRepository _investmentCallRepository;
+    private readonly IEmailService _emailService;
 
     public ProjectService(
         IProjectRepository projectRepository,
@@ -53,6 +56,8 @@ public class ProjectService : IProjectService
         ITransactionService transactionService,
         IDisbursementService disbursementService,
         IContractRepository contractRepository,
+        IInvestmentCallRepository investmentCallRepository,
+        IEmailService emailService,
         IMapper mapper)
     {
         _projectRepository = projectRepository;
@@ -69,6 +74,8 @@ public class ProjectService : IProjectService
         _disbursementService = disbursementService;
         _contractRepository = contractRepository;
         _mapper = mapper;
+        _investmentCallRepository = investmentCallRepository;
+        _emailService = emailService;
     }
     public async Task<Project> CreateNewProject(string userId, ProjectCreateDTO projectCreateDTO)
     {
@@ -78,8 +85,8 @@ public class ProjectService : IProjectService
              .Include(x => x.UserProjects)
              .Filter(p => p.UserProjects.Any(up => up.UserId == userId && up.RoleInTeam == RoleInTeam.Leader))
              .GetOneAsync();
-
-        if (createdProject is not null)
+        var userInProject = await _projectRepository.GetAProjectByUserId(user.Id);
+        if (createdProject != null || userInProject != null)
         {
             throw new ExistedRecordException(MessageConstant.CreateMoreProjectError);
         }
@@ -103,6 +110,7 @@ public class ProjectService : IProjectService
         {
             throw new InvalidDataException(MessageConstant.InvalidNumberOfMembersInProject);
         }
+        
         try
         {
             _unitOfWork.BeginTransaction();
@@ -150,9 +158,25 @@ public class ProjectService : IProjectService
         return project;
     }
 
-    public async Task<PaginationDTO<ProjectResponseDTO>> GetAllProjectsForAdmin(int page, int size)
+    public async Task<PaginationDTO<ProjectResponseDTO>> GetAllProjectsForAdmin(ProjectAdminFilterDTO projectAdminFilterDTO,int page, int size)
     {
         var projects = _projectRepository.GetProjectListQuery();
+        if (!string.IsNullOrWhiteSpace(projectAdminFilterDTO.ProjectName))
+        {
+            projects = projects.Where(x => x.ProjectName.ToLower().Contains(projectAdminFilterDTO.ProjectName.ToLower()));
+        }
+        if (!string.IsNullOrWhiteSpace(projectAdminFilterDTO.Description))
+        {
+            projects = projects.Where(x => x.Description.ToLower().Contains(projectAdminFilterDTO.Description.ToLower()));
+        }
+        if (!string.IsNullOrWhiteSpace(projectAdminFilterDTO.LeaderFullName))
+        {
+            projects = projects.Where(x => x.UserProjects.FirstOrDefault(x => x.RoleInTeam.Equals(RoleInTeam.Leader)).User.FullName.ToLower().Contains(projectAdminFilterDTO.LeaderFullName.ToLower()));
+        }
+        if (projectAdminFilterDTO.Status != null)
+        {
+            projects = projects.Where(x => x.ProjectStatus == projectAdminFilterDTO.Status);
+        }
         int totalCount = await projects.CountAsync();
         var pagedResult = await projects
             .Include(p => p.UserProjects)
@@ -238,7 +262,8 @@ public class ProjectService : IProjectService
                 EndDate = project.EndDate,
                 MaxMember = project.MaxMember,
                 MinMember = project.MinMember,
-                CurrentMember = project.UserProjects.Count()
+                CurrentMember = project.UserProjects.Count(),
+                LeaderProfilePicture = project.UserProjects.FirstOrDefault(x => x.RoleInTeam == RoleInTeam.Leader).User.ProfilePicture
             };
             listProjects.Add(responseDto);
         }
@@ -273,8 +298,9 @@ public class ProjectService : IProjectService
                 StartDate = project.StartDate,
                 EndDate = project.EndDate,
                 MaxMember = project.MaxMember,
-            MinMember = project.MinMember,
-            CurrentMember = project.UserProjects.Count()
+                MinMember = project.MinMember,
+                CurrentMember = project.UserProjects.Count(),
+                LeaderProfilePicture = project.UserProjects.FirstOrDefault(x => x.RoleInTeam == RoleInTeam.Leader).User.ProfilePicture
             };
             listProjects.Add(responseDto);
         }
@@ -304,20 +330,75 @@ public class ProjectService : IProjectService
         return listUser;
     }
 
-    public async Task<PaginationDTO<ExploreProjectDTO>> GetProjectsForInvestor(string userId, int size, int page)
+    public async Task<PaginationDTO<ExploreProjectDTO>> GetProjectsForInvestor(string userId, ProjectFilterDTO projectFilterDTO,int size, int page)
     {
-        var projects = _projectRepository.QueryHelper().Include(p => p.UserProjects)
-            .Filter(p => !p.UserProjects.Any(up => up.UserId.Contains(userId)) && p.ProjectStatus.Equals(ProjectStatusEnum.ACTIVE))
-            .OrderBy(x => x.OrderByDescending(x => x.StartDate));
-        var result = await projects.GetPagingAsync(page, size);
+        var projects = _projectRepository.GetProjectListQueryForInvestor(userId).Where(x=>x.ActiveCallId != null);
+
+        // Filter by project name
+        if (!string.IsNullOrWhiteSpace(projectFilterDTO.ProjectName))
+        {
+            projects = projects.Where(x => x.ProjectName.ToLower().Contains(projectFilterDTO.ProjectName.ToLower()));
+        }
+
+        // Filter by active InvestmentCall status and apply additional filters if status is "open"
+        if (projectFilterDTO.Status != null)
+        {
+            projects = projects.Where(x =>
+                x.ActiveCallId != null &&
+                x.InvestmentCalls.Any(ic => ic.Id == x.ActiveCallId && ic.Status == projectFilterDTO.Status));
+
+            // Additional filters if the call status is "open"
+            if (projectFilterDTO.Status == InvestmentCallStatus.Open)
+            {
+                if (projectFilterDTO.TargetFrom.HasValue)
+                {
+                    projects = projects.Where(x => x.InvestmentCalls.Any(ic => ic.Id == x.ActiveCallId && ic.TargetCall >= projectFilterDTO.TargetFrom.Value));
+                }
+
+                if (projectFilterDTO.TargetTo.HasValue)
+                {
+                    projects = projects.Where(x => x.InvestmentCalls.Any(ic => ic.Id == x.ActiveCallId && ic.TargetCall <= projectFilterDTO.TargetTo.Value));
+                }
+
+                if (projectFilterDTO.RaisedFrom.HasValue)
+                {
+                    projects = projects.Where(x => x.InvestmentCalls.Any(ic => ic.Id == x.ActiveCallId && ic.AmountRaised >= projectFilterDTO.RaisedFrom.Value));
+                }
+
+                if (projectFilterDTO.RaisedTo.HasValue)
+                {
+                    projects = projects.Where(x => x.InvestmentCalls.Any(ic => ic.Id == x.ActiveCallId && ic.AmountRaised <= projectFilterDTO.RaisedTo.Value));
+                }
+
+                if (projectFilterDTO.AvailableShareFrom.HasValue)
+                {
+                    projects = projects.Where(x => x.InvestmentCalls.Any(ic => ic.Id == x.ActiveCallId && ic.EquityShareCall >= projectFilterDTO.AvailableShareFrom.Value));
+                }
+
+                if (projectFilterDTO.AvailableShareTo.HasValue)
+                {
+                    projects = projects.Where(x => x.InvestmentCalls.Any(ic => ic.Id == x.ActiveCallId && ic.EquityShareCall <= projectFilterDTO.AvailableShareTo.Value));
+                }
+            }
+        }
+        int totalCount = await projects.CountAsync();
+
+        var pagedResult = await projects
+            .Skip((page - 1) * size)
+            .Take(size)
+            .ToListAsync();
         List<ExploreProjectDTO> exploreProjects = new List<ExploreProjectDTO>();
-        foreach (var project in result)
+        foreach (var project in pagedResult)
         {
             foreach (var userProject in project.UserProjects)
             {
                 var user = await _userManager.FindByIdAsync(userProject.UserId);
                 userProject.User = user;
             }
+            var newestInvestmentCall = _mapper.Map<InvestmentCallResponseDTO>(await _investmentCallRepository.QueryHelper()
+                .Filter(x => x.Id.Equals(project.ActiveCallId))
+                .Include(x => x.DealOffers).GetOneAsync());
+           
             ExploreProjectDTO exploreProjectDTO = new ExploreProjectDTO
             {
                 Description = project.Description,
@@ -325,7 +406,9 @@ public class ProjectService : IProjectService
                 LeaderFullName = project.UserProjects.FirstOrDefault(x => x.RoleInTeam == RoleInTeam.Leader).User.FullName,
                 LeaderId = project.UserProjects.FirstOrDefault(x => x.RoleInTeam == RoleInTeam.Leader).User.Id,
                 LogoUrl = project.LogoUrl,
-                ProjectName = project.ProjectName
+                ProjectName = project.ProjectName,
+                LeaderProfilePicture = project.UserProjects.FirstOrDefault(x => x.RoleInTeam == RoleInTeam.Leader).User.ProfilePicture,
+                InvestmentCall = newestInvestmentCall
             };
             exploreProjects.Add(exploreProjectDTO);
         }
@@ -334,7 +417,7 @@ public class ProjectService : IProjectService
             Data = exploreProjects,
             Page = page,
             Size = size,
-            Total = await projects.GetTotal()
+            Total = totalCount
         };
         return response;
     }
@@ -488,6 +571,55 @@ public class ProjectService : IProjectService
         }
 
         return projectDashboardDTO;
+    }
+
+    public async Task CloseAProject(string userId, string projectId)
+    {
+        var userInProject = await _userService.CheckIfUserInProject(userId, projectId);
+        if (userInProject.RoleInTeam != RoleInTeam.Leader)
+        {
+            throw new UnauthorizedProjectRoleException(MessageConstant.RolePermissionError);
+        }
+        var contractList = await _contractRepository.QueryHelper()
+            .Filter(x=>x.ProjectId == projectId)
+            .Include(x=>x.Disbursements)
+            .GetAllAsync();
+        if (contractList.Any(x => x.ContractStatus == ContractStatusEnum.SENT || x.ContractStatus == ContractStatusEnum.COMPLETED))
+        {
+            throw new UpdateException(MessageConstant.ValidContractsStillExisted);
+        }
+        foreach (var contract in contractList)
+        {
+            if (contract.ContractType == ContractTypeEnum.INVESTMENT)
+            {
+                if (contract.Disbursements.Any(x => x.DisbursementStatus == DisbursementStatusEnum.OVERDUE || x.DisbursementStatus == DisbursementStatusEnum.ERROR))
+                {
+                    throw new UpdateException(MessageConstant.DisbursementIssueExisted);
+                    break;
+                }
+            }
+        }
+        try
+        {
+            _unitOfWork.BeginTransaction();
+            var project = await _projectRepository.GetProjectById(projectId);
+            foreach (var participant in project.UserProjects.Where(x => x.RoleInTeam != RoleInTeam.Leader))
+            {
+                var user = await _userManager.FindByIdAsync(participant.UserId);
+                await _emailService.SendClosingProject(user.Email, userInProject.User.FullName, user.FullName, project.ProjectName);
+            }
+            project.ProjectStatus = ProjectStatusEnum.CLOSED;
+            _projectRepository.Update(project);
+            await _unitOfWork.SaveChangesAsync();
+            await _unitOfWork.CommitAsync();
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error while closing project.");
+            await _unitOfWork.RollbackAsync();
+            throw;
+        }
+        
     }
 
 }

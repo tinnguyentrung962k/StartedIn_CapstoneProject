@@ -57,10 +57,14 @@ namespace StartedIn.API.Controllers
         {
             try
             {
-                await _userService.Register(_mapper.Map<User>(registerDto), registerDto.Password);
+                await _userService.Register(_mapper.Map<User>(registerDto), registerDto.Password, registerDto.Role);
                 return Ok("Tạo tài khoản thành công");
             }
             catch (ExistedEmailException ex)
+            {
+                return BadRequest(ex.Message);
+            }
+            catch (InvalidRegisterException ex)
             {
                 return BadRequest(ex.Message);
             }

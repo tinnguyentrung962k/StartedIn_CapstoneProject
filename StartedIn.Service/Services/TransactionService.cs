@@ -7,7 +7,9 @@ using Microsoft.Extensions.Logging;
 using StartedIn.CrossCutting.Constants;
 using StartedIn.CrossCutting.DTOs.RequestDTO.Transaction;
 using StartedIn.CrossCutting.DTOs.ResponseDTO;
+using StartedIn.CrossCutting.DTOs.ResponseDTO.Asset;
 using StartedIn.CrossCutting.DTOs.ResponseDTO.DealOffer;
+using StartedIn.CrossCutting.DTOs.ResponseDTO.Disbursement;
 using StartedIn.CrossCutting.DTOs.ResponseDTO.Transaction;
 using StartedIn.CrossCutting.Enum;
 using StartedIn.CrossCutting.Exceptions;
@@ -57,15 +59,84 @@ namespace StartedIn.Service.Services
             _assetRepository = assetRepository;
             _financeRepository = financeRepository;
         }
-        public async Task<PaginationDTO<TransactionResponseDTO>> GetListTransactionOfAProject(string userId, string projectId, int page, int size)
+        public static DateTimeOffset? ConvertToDateTimeOffset(DateOnly? dateOnly, bool isEndOfDay = false)
+        {
+            if (dateOnly.HasValue)
+            {
+                // Convert DateOnly to DateTime with either start or end of the day
+                var dateTime = isEndOfDay
+                    ? dateOnly.Value.ToDateTime(TimeOnly.MaxValue)  // End of the day (23:59:59)
+                    : dateOnly.Value.ToDateTime(TimeOnly.MinValue); // Start of the day (00:00:00)
+
+                return new DateTimeOffset(dateTime, TimeSpan.Zero);  // Adjust TimeSpan if needed based on your time zone
+            }
+            return null;
+        }
+
+        public async Task<PaginationDTO<TransactionResponseDTO>> GetListTransactionOfAProject(string userId, string projectId, TransactionFilterDTO transactionFilterDTO, int page, int size)
         {
             var userInProject = await _userService.CheckIfUserInProject(userId, projectId);
             var transactions = _transactionRepository.GetTransactionsListQuery(projectId);
-            int totalCount =  await transactions.CountAsync();
+            if (transactionFilterDTO.DateFrom.HasValue)
+            {
+                var dateFrom = ConvertToDateTimeOffset(transactionFilterDTO.DateFrom, false);  // Start of the day
+                transactions = transactions.Where(t => t.CreatedTime >= dateFrom);
+            }
+
+            // Convert DateTo to DateTimeOffset at the end of the day (23:59:59)
+            if (transactionFilterDTO.DateTo.HasValue)
+            {
+                var dateTo = ConvertToDateTimeOffset(transactionFilterDTO.DateTo, true);  // End of the day
+                transactions = transactions.Where(t => t.CreatedTime <= dateTo);
+            }
+
+            if (transactionFilterDTO.AmountFrom.HasValue)
+            {
+                transactions = transactions.Where(t => t.Amount >= transactionFilterDTO.AmountFrom.Value);
+            }
+
+            if (transactionFilterDTO.AmountTo.HasValue)
+            {
+                transactions = transactions.Where(t => t.Amount <= transactionFilterDTO.AmountTo.Value);
+            }
+
+            if (!string.IsNullOrWhiteSpace(transactionFilterDTO.FromName))
+            {
+                transactions = transactions.Where(t => t.FromName.Contains(transactionFilterDTO.FromName));
+            }
+
+            if (!string.IsNullOrWhiteSpace(transactionFilterDTO.ToName))
+            {
+                transactions = transactions.Where(t => t.ToName.Contains(transactionFilterDTO.ToName));
+            }
+
+            if (transactionFilterDTO.IsInFlow != null)
+            {
+                transactions = transactions.Where(t => t.IsInFlow == transactionFilterDTO.IsInFlow);
+            }
+
+            if (transactionFilterDTO.Type != null) // Assuming you have an "All" option in your TransactionType enum
+            {
+                transactions = transactions.Where(t => t.Type == transactionFilterDTO.Type);
+            }
+            int totalCount = await transactions.CountAsync();
             var pagedResult = await transactions
                 .Skip((page - 1) * size)
                 .Take(size).ToListAsync();
             var response = _mapper.Map<List<TransactionResponseDTO>>(pagedResult);
+            foreach (var transaction in response)
+            {
+                var fromUser = await _userManager.FindByIdAsync(transaction.FromID);
+                if (fromUser != null)
+                {
+                    transaction.FromUserProfilePicture = fromUser.ProfilePicture;
+                }
+                var toUser = await _userManager.FindByIdAsync(transaction.ToID);
+                if (toUser != null)
+                {
+                    transaction.ToUserProfilePicture = toUser.ProfilePicture;
+                }
+            }
             var pagination = new PaginationDTO<TransactionResponseDTO>
             {
                 Data = response,
@@ -74,6 +145,123 @@ namespace StartedIn.Service.Services
                 Total = totalCount
 
             };
+            return pagination;
+        }
+
+        public async Task<PaginationDTO<TransactionResponseDTO>> GetListTransactionOfUser(string userId, TransactionFilterDTO transactionFilterDTO, int page, int size)
+        {
+            var transactions = _transactionRepository.GetTransactionListQueryForUser(userId);
+
+            // Filter by DateFrom (start of the day)
+            if (transactionFilterDTO.DateFrom.HasValue)
+            {
+                var dateFrom = ConvertToDateTimeOffset(transactionFilterDTO.DateFrom, false);
+                transactions = transactions.Where(t => t.CreatedTime >= dateFrom);
+            }
+
+            // Filter by DateTo (end of the day)
+            if (transactionFilterDTO.DateTo.HasValue)
+            {
+                var dateTo = ConvertToDateTimeOffset(transactionFilterDTO.DateTo, true);
+                transactions = transactions.Where(t => t.CreatedTime <= dateTo);
+            }
+
+            // Filter by Amount range
+            if (transactionFilterDTO.AmountFrom.HasValue)
+            {
+                transactions = transactions.Where(t => t.Amount >= transactionFilterDTO.AmountFrom.Value);
+            }
+
+            if (transactionFilterDTO.AmountTo.HasValue)
+            {
+                transactions = transactions.Where(t => t.Amount <= transactionFilterDTO.AmountTo.Value);
+            }
+
+            // Filter by FromName
+            if (!string.IsNullOrWhiteSpace(transactionFilterDTO.FromName))
+            {
+                transactions = transactions.Where(t => t.FromName.Contains(transactionFilterDTO.FromName));
+            }
+
+            // Filter by ToName
+            if (!string.IsNullOrWhiteSpace(transactionFilterDTO.ToName))
+            {
+                transactions = transactions.Where(t => t.ToName.Contains(transactionFilterDTO.ToName));
+            }
+
+            // Filter by IsInFlow
+            if (transactionFilterDTO.IsInFlow != null)
+            {
+                if (transactionFilterDTO.IsInFlow.Value)
+                {
+                    // Inflow: user is the receiver
+                    transactions = transactions.Where(t => t.ToID == userId);
+                }
+                else
+                {
+                    // Outflow: user is the sender
+                    transactions = transactions.Where(t => t.FromID == userId);
+                }
+            }
+
+            // Filter by Transaction Type
+            if (transactionFilterDTO.Type != null)
+            {
+                transactions = transactions.Where(t => t.Type == transactionFilterDTO.Type);
+            }
+
+            // Total count for pagination
+            int totalCount = await transactions.CountAsync();
+
+            // Fetch paged results
+            var pagedResult = await transactions
+                .Skip((page - 1) * size)
+                .Take(size)
+                .ToListAsync();
+            // Map to response DTO and dynamically set IsInFlow
+            var response = pagedResult.Select(t => new TransactionResponseDTO
+            {
+                Id = t.Id,
+                DisbursementId = t.DisbursementId,
+                Amount = t.Amount.ToString(),
+                FromID = t.FromID,
+                ToID = t.ToID,
+                FromUserName = t.FromName,
+                ToUserName = t.ToName,
+                Type = t.Type,
+                Content = t.Content,
+                EvidenceUrl = t.EvidenceUrl,
+                Assets = _mapper.Map<List<AssetResponseDTO>>(t.Assets),
+                Disbursement = _mapper.Map<DisbursementDetailInATransactionResponseDTO>(t.Disbursement),
+                LastUpdatedTime = t.LastUpdatedTime,
+                ProjectId = t.Finance.ProjectId, 
+                IsInFlow = t.ToID == userId
+            }).ToList();
+
+            // Add additional user information (e.g., profile pictures)
+            foreach (var transaction in response)
+            {
+                var fromUser = await _userManager.FindByIdAsync(transaction.FromID);
+                if (fromUser != null)
+                {
+                    transaction.FromUserProfilePicture = fromUser.ProfilePicture;
+                }
+                var toUser = await _userManager.FindByIdAsync(transaction.ToID);
+                if (toUser != null)
+                {
+                    transaction.ToUserProfilePicture = toUser.ProfilePicture;
+                }
+            }
+
+            // Create and return pagination result
+            var pagination = new PaginationDTO<TransactionResponseDTO>
+            {
+                Data = response,
+                Page = page,
+                Size = size,
+                Total = totalCount
+            };
+
             return pagination;
         }
         public async Task<TransactionInAndOutMoneyDTO> GetInAndOutMoneyTransactionOfCurrentMonth(string projectId) 
@@ -246,7 +434,7 @@ namespace StartedIn.Service.Services
             }
         }
 
-        public async Task<Transaction> GetTransactionDetailById(string userId, string projectId, string transactionId)
+        public async Task<TransactionResponseDTO> GetTransactionDetailById(string userId, string projectId, string transactionId)
         {
             var userInProject = await _userService.CheckIfUserInProject(userId, projectId);
             var transaction = await _transactionRepository.GetTransactionById(transactionId);
@@ -258,7 +446,18 @@ namespace StartedIn.Service.Services
             {
                 throw new UnmatchedException(MessageConstant.TransactionNotBelongToProject);
             }
-            return transaction;
+            var transactionResponse = _mapper.Map<TransactionResponseDTO>(transaction);
+            var fromUser = await _userManager.FindByIdAsync(transaction.FromID);
+            if (fromUser != null)
+            {
+                transactionResponse.FromUserProfilePicture = fromUser.ProfilePicture;
+            }
+            var toUser = await _userManager.FindByIdAsync(transaction.ToID);
+            if (toUser != null)
+            {
+                transactionResponse.FromUserProfilePicture = toUser.ProfilePicture;
+            }
+            return transactionResponse;
         }
     }
 }

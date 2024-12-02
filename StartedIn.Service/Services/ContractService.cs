@@ -29,12 +29,9 @@ namespace StartedIn.Service.Services
         private readonly ILogger<Contract> _logger;
         private readonly UserManager<User> _userManager;
         private readonly ISignNowService _signNowService;
-        private readonly IEmailService _emailService;
         private readonly IProjectRepository _projectRepository;
         private readonly IShareEquityRepository _shareEquityRepository;
         private readonly IDisbursementRepository _disbursementRepository;
-        private readonly IAzureBlobService _azureBlobService;
-        private readonly IDocumentFormatService _documentFormatService;
         private readonly IConfiguration _configuration;
         private readonly string _apiDomain;
         private readonly IUserService _userService;
@@ -48,12 +45,9 @@ namespace StartedIn.Service.Services
             ILogger<Contract> logger,
             UserManager<User> userManager,
             ISignNowService signNowService,
-            IEmailService emailService,
             IProjectRepository projectRepository,
             IShareEquityRepository shareEquityRepository,
             IDisbursementRepository disbursementRepository,
-            IAzureBlobService azureBlobService, 
-            IDocumentFormatService documentFormatService,
             IConfiguration configuration,
             IUserService userService,
             IDealOfferRepository dealOfferRepository,
@@ -67,12 +61,9 @@ namespace StartedIn.Service.Services
             _logger = logger;
             _userManager = userManager;
             _signNowService = signNowService;
-            _emailService = emailService;
             _projectRepository = projectRepository;
             _shareEquityRepository = shareEquityRepository;
             _disbursementRepository = disbursementRepository;
-            _azureBlobService = azureBlobService;
-            _documentFormatService = documentFormatService;
             _configuration = configuration;
             _userService = userService;
             _dealOfferRepository = dealOfferRepository;
@@ -563,7 +554,7 @@ namespace StartedIn.Service.Services
                     if (!existingUserContract.SignedDate.HasValue)
                     {
                         // Update the signed date
-                        existingUserContract.SignedDate = DateOnly.FromDateTime(DateTime.UtcNow);
+                        existingUserContract.SignedDate = DateTimeOffset.UtcNow;
                     }
                 }
             }
@@ -723,7 +714,8 @@ namespace StartedIn.Service.Services
                     Id = userContract.User.Id,
                     Email = userContract.User.Email,
                     FullName = userContract.User.FullName,
-                    PhoneNumber = userContract.User.PhoneNumber
+                    PhoneNumber = userContract.User.PhoneNumber,
+                    ProfilePicture = userContract.User.ProfilePicture
                 }).ToList()
             }).ToList();
 

@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using StartedIn.Domain.Context;
@@ -11,9 +12,11 @@ using StartedIn.Domain.Context;
 namespace StartedIn.Domain.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20241202091939_12-02-2024_Migration_04PM20")]
+    partial class _12022024_Migration_04PM20
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -946,9 +949,6 @@ namespace StartedIn.Domain.Migrations
                     b.Property<string>("ActiveCallId")
                         .HasColumnType("text");
 
-                    b.Property<string>("CompanyIdNumber")
-                        .HasColumnType("text");
-
                     b.Property<string>("CreatedBy")
                         .HasColumnType("text");
 
@@ -1078,8 +1078,8 @@ namespace StartedIn.Domain.Migrations
 
                     b.Property<string>("Content")
                         .IsRequired()
-                        .HasMaxLength(4000)
-                        .HasColumnType("character varying(4000)");
+                        .HasMaxLength(255)
+                        .HasColumnType("character varying(255)");
 
                     b.Property<string>("CreatedBy")
                         .HasColumnType("text");
@@ -1105,8 +1105,8 @@ namespace StartedIn.Domain.Migrations
 
                     b.Property<string>("Title")
                         .IsRequired()
-                        .HasMaxLength(255)
-                        .HasColumnType("character varying(255)");
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)");
 
                     b.HasKey("Id");
 
@@ -1120,29 +1120,6 @@ namespace StartedIn.Domain.Migrations
                     b.Property<string>("Id")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("text");
-
-                    b.Property<string>("CreatedBy")
-                        .HasColumnType("text");
-
-                    b.Property<DateTimeOffset>("CreatedTime")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<DateTimeOffset?>("DeletedTime")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<string>("FileName")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.Property<string>("ImageUrl")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.Property<string>("LastUpdatedBy")
-                        .HasColumnType("text");
-
-                    b.Property<DateTimeOffset>("LastUpdatedTime")
-                        .HasColumnType("timestamp with time zone");
 
                     b.Property<string>("RecruitmentId")
                         .IsRequired()
@@ -1601,8 +1578,8 @@ namespace StartedIn.Domain.Migrations
                     b.Property<bool>("IsReject")
                         .HasColumnType("boolean");
 
-                    b.Property<DateTimeOffset?>("SignedDate")
-                        .HasColumnType("timestamp with time zone");
+                    b.Property<DateOnly?>("SignedDate")
+                        .HasColumnType("date");
 
                     b.HasKey("UserId", "ContractId");
 

@@ -12,7 +12,7 @@ namespace StartedIn.Service.Services.Interface
 {
     public interface IRecruitInviteService
     {
-        Task SendJoinProjectInvitation(string userId, List<ProjectInviteEmailAndRoleDTO> inviteUsers, string projectId);
+        Task SendJoinProjectInvitation(string userId, List<string> inviteUserEmails, string projectId);
         Task AddUserToProject(string projectId, string userId, RoleInTeam roleInTeam);
         Task<ProjectInviteOverviewDTO> GetProjectInviteOverview(string projectId);
         Task AcceptProjectInvitation(string userId, string projectId, AcceptInviteDTO acceptInviteDTO);

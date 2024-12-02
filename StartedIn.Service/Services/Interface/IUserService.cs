@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Http;
 using StartedIn.CrossCutting.DTOs.RequestDTO.Auth;
+using StartedIn.CrossCutting.DTOs.RequestDTO.User;
 using StartedIn.CrossCutting.DTOs.ResponseDTO;
 using StartedIn.CrossCutting.DTOs.ResponseDTO.Authentication;
 using StartedIn.Domain.Entities;
@@ -11,7 +12,7 @@ namespace StartedIn.Service.Services.Interface
     {
         Task<LoginResponseDTO> Login(string email, string password);
 
-        Task Register(User user, string password);
+        Task Register(User registerUser, string password, string role);
 
         Task<string> Refresh(string refreshToken);
 
@@ -28,7 +29,7 @@ namespace StartedIn.Service.Services.Interface
         //Task<User> UpdateCoverPhoto(IFormFile coverPhoto, string userId);
 
         Task<User> GetUserWithId(string id);
-        Task<PaginationDTO<FullProfileDTO>> GetUsersListForAdmin(int page, int size);
+        Task<PaginationDTO<FullProfileDTO>> GetUsersListForAdmin(UserAdminFilterDTO userAdminFilterDTO,int page, int size);
         Task ImportUsersFromExcel(IFormFile file);
         Task RequestResetPassword(string email);
         Task ResetPassword(ResetPasswordDTO resetPasswordDTO);

@@ -76,4 +76,31 @@ public class ProjectRepository : GenericRepository<Project, string>, IProjectRep
         return project;
     }
 
+    public async Task<UserProject> GetAProjectByUserId(string userId)
+    {
+        var userProject = await _appDbContext.UserProjects
+            .Where(p => p.UserId.Equals(userId) &&
+                        (p.RoleInTeam.Equals(RoleInTeam.Leader) || p.RoleInTeam.Equals(RoleInTeam.Member)))
+            .FirstOrDefaultAsync();
+        return userProject;
+    }
+    public IQueryable<Project> GetProjectListQueryForInvestor(string userId)
+    {
+        var query = _appDbContext.Projects
+            .Include(p => p.UserProjects)
+            .ThenInclude(up => up.User)
+            .Include(p => p.InvestmentCalls)
+            .Include(p => p.Finance)
+            .Include(p => p.ProjectCharter)
+            .ThenInclude(pc => pc.Phases)
+            .Include(p => p.Contracts)
+            .ThenInclude(c => c.Disbursements)
+            .Include(x => x.Milestones)
+            .ThenInclude(x => x.Tasks)
+            .Where(x => x.DeletedTime == null)
+            .Where(p => !p.UserProjects.Any(up => up.UserId.Contains(userId)) && p.ProjectStatus.Equals(ProjectStatusEnum.ACTIVE))
+            .OrderByDescending(x => x.StartDate);
+        return query;
+    }
+
 }

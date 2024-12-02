@@ -9,7 +9,7 @@ namespace StartedIn.CrossCutting.Enum
     public enum AssetStatus
     {
         Available = 1,
-        Sold = 2,
-        InMaintenance = 3
+        Unavailable = 2,
+        InMaintenance = 3,
     }
 }

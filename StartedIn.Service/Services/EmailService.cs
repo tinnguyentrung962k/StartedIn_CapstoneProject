@@ -107,6 +107,12 @@ namespace StartedIn.Service.Services
             await SendEmailAsync(receiveEmail, subject, body);
         }
 
+        public async Task SendClosingProject(string receiveEmail, string senderName, string receiverName, string projectName)
+        {
+            var subject = "Thông báo kết thúc dự án";
+            var body = $"Kính gửi {receiverName} \n{senderName} gửi cho bạn thông báo rằng dự án {projectName} đã kết thúc. \nXin chân thành cảm ơn bạn đã đồng hành cùng dự án {projectName}. \nTrân trọng.";
+            await SendEmailAsync(receiveEmail, subject, body);
+        }
 
     }
 }

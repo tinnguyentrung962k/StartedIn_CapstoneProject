@@ -3,6 +3,8 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using StartedIn.CrossCutting.Constants;
+using StartedIn.CrossCutting.DTOs.RequestDTO.Project;
+using StartedIn.CrossCutting.DTOs.RequestDTO.User;
 using StartedIn.CrossCutting.DTOs.ResponseDTO;
 using StartedIn.CrossCutting.DTOs.ResponseDTO.Project;
 using StartedIn.CrossCutting.DTOs.ResponseDTO.SignNowResponseDTO;
@@ -35,11 +37,11 @@ namespace StartedIn.API.Controllers
 
         [HttpGet("users")]
         [Authorize(Roles = RoleConstants.ADMIN)]
-        public async Task<ActionResult<PaginationDTO<FullProfileDTO>>> GetUserLists([FromQuery] int page, int size)
+        public async Task<ActionResult<PaginationDTO<FullProfileDTO>>> GetUserLists([FromQuery] UserAdminFilterDTO userAdminFilterDTO, [FromQuery] int page, int size)
         {
             try
             {
-                var userResponse = await _userService.GetUsersListForAdmin(page, size);
+                var userResponse = await _userService.GetUsersListForAdmin(userAdminFilterDTO, page, size);
                 return userResponse;
             }
             catch (NotFoundException ex)
@@ -71,9 +73,9 @@ namespace StartedIn.API.Controllers
 
         [HttpGet("projects")]
         [Authorize(Roles = RoleConstants.ADMIN)]
-        public async Task<ActionResult<PaginationDTO<ProjectResponseDTO>>> GetAllProjects(int page, int size)
+        public async Task<ActionResult<PaginationDTO<ProjectResponseDTO>>> GetAllProjects([FromQuery] ProjectAdminFilterDTO projectAdminFilterDTO, [FromQuery] int page, [FromQuery] int size)
         {
-            var response = await _projectService.GetAllProjectsForAdmin(page,size);
+            var response = await _projectService.GetAllProjectsForAdmin(projectAdminFilterDTO, page, size);
             return Ok(response);
         }
 

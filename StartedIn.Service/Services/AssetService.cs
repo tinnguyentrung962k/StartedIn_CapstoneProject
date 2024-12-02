@@ -1,4 +1,5 @@
 ﻿using AutoMapper;
+using CrossCutting.Exceptions;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
@@ -64,13 +65,6 @@ namespace StartedIn.Service.Services
             try
             {
                 _unitOfWork.BeginTransaction();
-
-                var project = await _projectRepository.GetProjectById(projectId);
-                if (project.Finance == null)
-                {
-                    throw new InvalidOperationException("The project does not have a finance entity associated.");
-                }
-
                 var asset = new Asset
                 {
                     AssetName = assetCreateDTO.AssetName,
@@ -176,6 +170,10 @@ namespace StartedIn.Service.Services
             if (chosenAsset.ProjectId != projectId) { 
                 throw new UnmatchedException(MessageConstant.AssetNotBelongToProject);
             }
+            if (chosenAsset.TransactionId != null)
+            {
+                throw new ExistedRecordException(MessageConstant.AssetBelongToTransaction + chosenAsset.TransactionId);
+            }
             try
             {
                 _unitOfWork.BeginTransaction();
@@ -189,6 +187,56 @@ namespace StartedIn.Service.Services
                 throw new Exception(ex.Message);
             }
 
+        }
+        public async Task<Asset> UpdateAsset(string userId, string projectId, string assetId,AssetUpdateDTO assetUpdateDTO)
+        {
+            var userInProject = await _userService.CheckIfUserInProject(userId, projectId);
+            if (userInProject.RoleInTeam != RoleInTeam.Leader)
+            {
+                throw new UnauthorizedProjectRoleException(MessageConstant.RolePermissionError);
+            }
+            var chosenAsset = await _assetRepository.GetOneAsync(assetId);
+            if (chosenAsset == null)
+            {
+                throw new NotFoundException(MessageConstant.AssetNotFound);
+            }
+            if (chosenAsset.ProjectId != projectId)
+            {
+                throw new UnmatchedException(MessageConstant.AssetNotBelongToProject);
+            }
+            if (assetUpdateDTO.Quantity < assetUpdateDTO.RemainQuantity)
+            {
+                throw new InvalidDataException(MessageConstant.RemainingAmountOfAssetNotGreaterThanInitial);
+            }
+            if (assetUpdateDTO.Quantity <= 0)
+            {
+                throw new InvalidDataException(MessageConstant.AssetQuantityCannotSmallerThanZero);
+            }
+            try
+            {
+                _unitOfWork.BeginTransaction();
+                chosenAsset.AssetName = assetUpdateDTO.AssetName;
+                chosenAsset.Price = assetUpdateDTO.Price;
+                chosenAsset.PurchaseDate = assetUpdateDTO.PurchaseDate;
+                chosenAsset.Quantity = assetUpdateDTO.Quantity;
+                chosenAsset.SerialNumber = assetUpdateDTO.SerialNumber;
+                chosenAsset.Status = assetUpdateDTO.Status;
+                chosenAsset.RemainQuantity = assetUpdateDTO.RemainQuantity;
+                if (chosenAsset.RemainQuantity == 0)
+                {
+                    chosenAsset.Status = AssetStatus.Unavailable;
+                }
+                _assetRepository.Update(chosenAsset);
+                await _unitOfWork.SaveChangesAsync();
+                await _unitOfWork.CommitAsync();
+                return chosenAsset;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError($"Error while update asset to project {projectId} by user {userId}: {ex}");
+                await _unitOfWork.RollbackAsync();
+                throw;
+            }
         }
     }
 }

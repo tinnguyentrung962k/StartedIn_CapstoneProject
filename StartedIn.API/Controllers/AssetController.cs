@@ -1,4 +1,5 @@
 ﻿using AutoMapper;
+using CrossCutting.Exceptions;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -115,6 +116,42 @@ namespace StartedIn.API.Controllers
                 var userId = User.FindFirst(ClaimTypes.NameIdentifier).Value;
                 await _assetService.DeleteAsset(userId, projectId, assetId);
                 return Ok("Xoá tài sản thành công");
+            }
+            catch (ExistedRecordException ex)
+            {
+                return BadRequest(ex.Message);
+            }
+            catch (UnauthorizedProjectRoleException ex)
+            {
+                return StatusCode(403, ex.Message);
+            }
+            catch (UnmatchedException ex)
+            {
+                return BadRequest(ex.Message);
+            }
+            catch (NotFoundException ex)
+            {
+                return BadRequest(ex.Message);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, ex.Message);
+            }
+        }
+        [HttpPut("assets/{assetId}")]
+        [Authorize(Roles = RoleConstants.USER)]
+        public async Task<ActionResult<AssetResponseDTO>> UpdateAsset([FromRoute] string projectId, [FromRoute] string assetId, AssetUpdateDTO assetUpdateDTO)
+        {
+            try
+            {
+                var userId = User.FindFirst(ClaimTypes.NameIdentifier).Value;
+                var asset = await _assetService.UpdateAsset(userId, projectId, assetId, assetUpdateDTO);
+                var assetResponse = _mapper.Map<AssetResponseDTO>(asset);
+                return Ok(assetResponse);
+            }
+            catch (InvalidDataException ex)
+            {
+                return BadRequest(ex.Message);
             }
             catch (UnauthorizedProjectRoleException ex)
             {

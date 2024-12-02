@@ -27,7 +27,8 @@ namespace StartedIn.API.Configuration
             {
                 new Role {Id = "role_admin", Name = RoleConstants.ADMIN},
                 new Role {Id = "role_user",Name = RoleConstants.USER},
-                new Role {Id = "role_investor",Name = RoleConstants.INVESTOR}
+                new Role {Id = "role_investor",Name = RoleConstants.INVESTOR},
+                new Role {Id = "role_mentor",Name = RoleConstants.MENTOR}
             };
         }
 
