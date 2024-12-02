@@ -36,7 +36,7 @@ public class ProjectController : ControllerBase
     }
 
     [HttpGet]
-    [Authorize(Roles = RoleConstants.USER + "," + RoleConstants.INVESTOR)]
+    [Authorize(Roles = RoleConstants.USER + "," + RoleConstants.INVESTOR + "," + RoleConstants.MENTOR)]
     public async Task<ActionResult<ProjectListDTO>> GetListOfProjectsWithRole()
     {
         var userId = User.FindFirst(ClaimTypes.NameIdentifier).Value;
