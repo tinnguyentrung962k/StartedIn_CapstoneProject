@@ -15,6 +15,7 @@ using StartedIn.CrossCutting.DTOs.ResponseDTO.Phase;
 using StartedIn.CrossCutting.DTOs.ResponseDTO.Project;
 using StartedIn.CrossCutting.DTOs.ResponseDTO.ProjectCharter;
 using StartedIn.CrossCutting.DTOs.ResponseDTO.RecruitInvite;
+using StartedIn.CrossCutting.DTOs.ResponseDTO.Recruitment;
 using StartedIn.CrossCutting.DTOs.ResponseDTO.ShareEquity;
 using StartedIn.CrossCutting.DTOs.ResponseDTO.TaskComment;
 using StartedIn.CrossCutting.DTOs.ResponseDTO.TaskAttachment;
@@ -45,6 +46,8 @@ namespace StartedIn.API.Configuration.AutoMapper
             AssetProfileMapping();
             PhaseProfileMapping();
             TaskAttachmentMappingProfile();
+            RecruitmentMappingProfile();
+            RecruitmentImgMappingProfile();
         }
 
 
@@ -288,6 +291,31 @@ namespace StartedIn.API.Configuration.AutoMapper
         private void TaskAttachmentMappingProfile()
         {
             CreateMap<TaskAttachment, TaskAttachmentResponseDTO>()
+                .ReverseMap();
+        }
+
+        private void RecruitmentMappingProfile()
+        {
+            CreateMap<Recruitment, RecruitmentResponseDTO>()
+                .ForMember(dest => dest.RecruitmentImgs, opt => opt.MapFrom(src => src.RecruitmentImgs.Where(ri => ri.RecruitmentId.Equals(src.Id))))
+                .ForMember(dest => dest.LeaderId, opt => opt.MapFrom(src => src.Project.UserProjects.FirstOrDefault(up => up.RoleInTeam == RoleInTeam.Leader).UserId))
+                .ForMember(dest => dest.LeaderName, opt => opt.MapFrom(src => src.Project.UserProjects.FirstOrDefault(up => up.RoleInTeam == RoleInTeam.Leader).User.FullName))
+                .ReverseMap();
+            
+            CreateMap<Recruitment, RecruitmentListDTO>()
+                .ForMember(dest => dest.LeaderId,
+                    opt => opt.MapFrom(src =>
+                        src.Project.UserProjects.FirstOrDefault(up => up.RoleInTeam == RoleInTeam.Leader).UserId))
+                .ForMember(dest => dest.LeaderName,
+                    opt => opt.MapFrom(src =>
+                        src.Project.UserProjects.FirstOrDefault(up => up.RoleInTeam == RoleInTeam.Leader).User.FullName))
+                .ForMember(dest => dest.LogoUrl, opt => opt.MapFrom(src => src.Project.LogoUrl))
+                .ReverseMap();
+        }
+
+        private void RecruitmentImgMappingProfile()
+        {
+            CreateMap<RecruitmentImg, RecruitmentImgResponseDTO>()
                 .ReverseMap();
         }
     }

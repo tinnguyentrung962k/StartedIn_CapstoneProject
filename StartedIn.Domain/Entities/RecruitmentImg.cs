@@ -8,10 +8,12 @@ using System.Threading.Tasks;
 
 namespace StartedIn.Domain.Entities
 {
-    public class RecruitmentImg : BaseEntity<string>
+    public class RecruitmentImg : BaseAuditEntity<string>
     {
         [ForeignKey(nameof(Recruitment))]
         public string RecruitmentId { get; set; }
+        public string FileName { get; set; }
+        public string ImageUrl { get; set; }
         public Recruitment Recruitment { get; set; }
     }
 }

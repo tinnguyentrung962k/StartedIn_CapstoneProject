@@ -94,5 +94,7 @@ namespace StartedIn.CrossCutting.Constants
         public const string ValidContractsStillExisted = "Hợp đồng được gửi/kích hoạt vẫn còn tồn tại trong dự án";
         public const string DisbursementIssueExisted = "Bạn còn các đợt giải ngân cần được giải quyết";
         public const string InvalidRoleForInvitation = "Vai trò mời vào nhóm không hợp lệ";
+        public const string NotValidImage = "Tệp tin đính kèm không phải dạng hình ảnh.";
+        public const string NotFoundRecruitmentPost = "Không tìm thấy bài đăng tuyển dụng";
     }
 }
