@@ -33,6 +33,7 @@ namespace StartedIn.API.Configuration
             services.AddScoped<ITaskHistoryService, TaskHistoryService>();
             services.AddScoped<IRecruitmentService, RecruitmentService>();
             services.AddScoped<IAppointmentService, AppointmentService>();
+            services.AddScoped<IRecruitmentImageService, RecruitmentImageService>();
             return services;
         }
     }
