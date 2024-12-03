@@ -100,5 +100,6 @@ namespace StartedIn.CrossCutting.Constants
         public const string MeetingNotFound = "Cuộc họp không tìm thấy";
         public const string GreaterThan2MentorError = "Dự án của bạn chỉ được phép có 2 cố vấn/hướng dẫn";
         public const string UnsoldAssetsError = "Dự án của bạn vẫn còn tài sản chưa được thanh lý.";
+        public const string SellGreaterThanRemainError = "Số lượng thanh lý không thể lớn hơn số lượng tài sản còn lại cảu dự án";
     }
 }

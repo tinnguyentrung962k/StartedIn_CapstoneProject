@@ -170,5 +170,36 @@ namespace StartedIn.API.Controllers
                 return StatusCode(500, ex.Message);
             }
         }
+        [HttpPost("assets/{assetId}/sell")]
+        [Authorize(Roles = RoleConstants.USER)]
+        public async Task<IActionResult> AssetLiquidatinginAProject([FromRoute] string projectId, [FromRoute] string assetId, [FromForm] AssetLiquidatingDTO assetLiquidatingDTO)
+        {
+            try 
+            {
+                var userId = User.FindFirst(ClaimTypes.NameIdentifier).Value;
+                await _assetService.LiquidateAsset(userId, projectId, assetId, assetLiquidatingDTO);
+                return Ok("Thanh lý tài sản thành công");
+            }
+            catch (InvalidDataException ex)
+            {
+                return BadRequest(ex.Message);
+            }
+            catch (UnauthorizedProjectRoleException ex)
+            {
+                return StatusCode(403, ex.Message);
+            }
+            catch (UnmatchedException ex)
+            {
+                return BadRequest(ex.Message);
+            }
+            catch (NotFoundException ex)
+            {
+                return BadRequest(ex.Message);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, ex.Message);
+            }
+        }
     }
 }
