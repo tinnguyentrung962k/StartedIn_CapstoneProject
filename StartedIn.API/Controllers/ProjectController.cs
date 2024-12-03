@@ -230,7 +230,7 @@ public class ProjectController : ControllerBase
     }
 
     [HttpGet("{projectId}/dashboard")]
-    [Authorize(Roles = RoleConstants.USER + "," + RoleConstants.INVESTOR)]
+    [Authorize(Roles = RoleConstants.USER + "," + RoleConstants.INVESTOR + "," + RoleConstants.MENTOR)]
     public async Task<ActionResult<ProjectDashboardDTO>> GetProjectDashboard([FromRoute] string projectId)
     {
         try
@@ -269,6 +269,25 @@ public class ProjectController : ControllerBase
         catch (UpdateException ex)
         {
             return BadRequest(ex.Message);
+        }
+        catch (Exception ex)
+        {
+            return StatusCode(500, ex.Message);
+        }
+    }
+    [HttpGet("{projectId}/check-closable")]
+    [Authorize(Roles = RoleConstants.USER)]
+    public async Task<ActionResult<ClosingProjectInformationDTO>> GetClosableInformationForProject([FromRoute] string projectId)
+    {
+        try
+        {
+            var userId = User.FindFirst(ClaimTypes.NameIdentifier).Value;
+            var response = await _projectService.GetProjectClosingInformation(userId, projectId);
+            return Ok(response);
+        }
+        catch (UnauthorizedProjectRoleException ex)
+        {
+            return StatusCode(403, ex.Message);
         }
         catch (Exception ex)
         {

@@ -7,7 +7,10 @@ using Microsoft.Extensions.Logging;
 using StartedIn.CrossCutting.Constants;
 using StartedIn.CrossCutting.DTOs.RequestDTO.Project;
 using StartedIn.CrossCutting.DTOs.ResponseDTO;
+using StartedIn.CrossCutting.DTOs.ResponseDTO.Asset;
+using StartedIn.CrossCutting.DTOs.ResponseDTO.Contract;
 using StartedIn.CrossCutting.DTOs.ResponseDTO.DealOffer;
+using StartedIn.CrossCutting.DTOs.ResponseDTO.Disbursement;
 using StartedIn.CrossCutting.DTOs.ResponseDTO.InvestmentCall;
 using StartedIn.CrossCutting.DTOs.ResponseDTO.Milestone;
 using StartedIn.CrossCutting.DTOs.ResponseDTO.Project;
@@ -37,10 +40,12 @@ public class ProjectService : IProjectService
     private readonly IShareEquityService _shareEquityService;
     private readonly ITransactionService _transactionService;
     private readonly IDisbursementService _disbursementService;
+    private readonly IDisbursementRepository _disbursementRepository;
     private readonly IContractRepository _contractRepository;
     private readonly IMapper _mapper;
     private readonly IInvestmentCallRepository _investmentCallRepository;
     private readonly IEmailService _emailService;
+    private readonly IAssetRepository _assetRepository;
 
     public ProjectService(
         IProjectRepository projectRepository,
@@ -58,6 +63,8 @@ public class ProjectService : IProjectService
         IContractRepository contractRepository,
         IInvestmentCallRepository investmentCallRepository,
         IEmailService emailService,
+        IDisbursementRepository disbursementRepository,
+        IAssetRepository assetRepository,
         IMapper mapper)
     {
         _projectRepository = projectRepository;
@@ -73,9 +80,11 @@ public class ProjectService : IProjectService
         _transactionService = transactionService;
         _disbursementService = disbursementService;
         _contractRepository = contractRepository;
+        _disbursementRepository = disbursementRepository;
         _mapper = mapper;
         _investmentCallRepository = investmentCallRepository;
         _emailService = emailService;
+        _assetRepository = assetRepository;
     }
     public async Task<Project> CreateNewProject(string userId, ProjectCreateDTO projectCreateDTO)
     {
@@ -620,6 +629,40 @@ public class ProjectService : IProjectService
             throw;
         }
         
+    }
+
+    public async Task<ClosingProjectInformationDTO> GetProjectClosingInformation(string userId, string projectId)
+    {
+        var userInProject = await _userService.CheckIfUserInProject(userId, projectId);
+        if (userInProject.RoleInTeam != RoleInTeam.Leader)
+        {
+            throw new UnauthorizedProjectRoleException(MessageConstant.RolePermissionError);
+        }
+        var project = await _projectRepository.GetProjectById(projectId);
+        var validContract = await _contractRepository.QueryHelper()
+            .Filter(x=>x.ProjectId.Equals(projectId) && (x.ContractStatus == ContractStatusEnum.COMPLETED || x.ContractStatus == ContractStatusEnum.SENT))
+            .Include(x=>x.Disbursements)
+            .GetAllAsync();
+
+        var processingDisbursement = await _disbursementRepository.QueryHelper()
+            .Include(x => x.Contract)
+            .Filter(x => x.Contract.ProjectId.Equals(projectId) 
+            && (x.DisbursementStatus == DisbursementStatusEnum.OVERDUE || x.DisbursementStatus == DisbursementStatusEnum.ERROR || (x.DisbursementStatus == DisbursementStatusEnum.PENDING && x.IsValidWithContract == true)))
+            .GetAllAsync();
+
+        var assetInProject = await _assetRepository.QueryHelper()
+            .Filter(x => x.ProjectId.Equals(projectId) && x.Status != AssetStatus.Sold && (x.Status != AssetStatus.Unavailable && x.RemainQuantity == 0))
+            .GetAllAsync();
+
+        var closingProject = new ClosingProjectInformationDTO
+        {
+            CurrentBudget = project.Finance.CurrentBudget,
+            Assets = _mapper.Map<List<AssetInClosingProjectDTO>>(assetInProject),
+            Contracts = _mapper.Map<List<ContractInClosingProjectDTO>>(validContract),
+            Disbursements = _mapper.Map<List<DisbursementInClosingProjectDTO>>(processingDisbursement)
+        };
+        return closingProject;
+
     }
 
 }

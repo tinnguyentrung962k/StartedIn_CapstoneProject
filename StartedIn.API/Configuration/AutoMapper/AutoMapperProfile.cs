@@ -185,6 +185,7 @@ namespace StartedIn.API.Configuration.AutoMapper
                     src => src.UserContracts
                     .Where(uc => uc.ContractId == src.Id &&
                      uc.Contract.ShareEquities.Any(se => se.ContractId == src.Id && se.StakeHolderType == RoleInTeam.Investor)).FirstOrDefault().UserId));
+            CreateMap<Contract, ContractInClosingProjectDTO>();
         }
         private void ShareEquityMappingProfile()
         {
@@ -251,6 +252,9 @@ namespace StartedIn.API.Configuration.AutoMapper
                 .ForMember(dr => dr.DisbursementAttachments, opt => opt.MapFrom(de => de.DisbursementAttachments))
                 .ForMember(dr => dr.Amount, opt => opt.MapFrom(de => de.Amount.ToString()))
                 .ForMember(dr => dr.TransactionId, opt => opt.MapFrom(de => de.Transaction.Id));
+            CreateMap<Disbursement, DisbursementInClosingProjectDTO>()
+                .ForMember(dr => dr.Amount, opt => opt.MapFrom(de => de.Amount.ToString()))
+                .ForMember(dr => dr.ContractIdNumber, opt => opt.MapFrom(de => de.Contract.ContractIdNumber));
         }
 
         private void InvestmentCallMappingProfile()
@@ -274,6 +278,8 @@ namespace StartedIn.API.Configuration.AutoMapper
         {
             CreateMap<Asset, AssetResponseDTO>()
                 .ForMember(dest => dest.Price, opt => opt.MapFrom(src => src.Price.ToString()));
+            CreateMap<Asset, AssetInClosingProjectDTO>()
+                .ReverseMap();
         }
 
         private void PhaseProfileMapping()

@@ -11,5 +11,6 @@ namespace StartedIn.CrossCutting.Enum
         Available = 1,
         Unavailable = 2,
         InMaintenance = 3,
+        Sold = 4
     }
 }
