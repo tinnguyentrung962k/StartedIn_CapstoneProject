@@ -608,6 +608,14 @@ public class ProjectService : IProjectService
                 }
             }
         }
+        var assetInProject = await _assetRepository.QueryHelper()
+            .Filter(x => x.ProjectId.Equals(projectId) && (x.Status != AssetStatus.Sold
+            || (x.Status == AssetStatus.Unavailable && x.RemainQuantity > 0)))
+            .GetAllAsync();
+        if (assetInProject != null)
+        {
+            throw new UpdateException(MessageConstant.UnsoldAssetsError);
+        }
         try
         {
             _unitOfWork.BeginTransaction();
@@ -618,6 +626,8 @@ public class ProjectService : IProjectService
                 await _emailService.SendClosingProject(user.Email, userInProject.User.FullName, user.FullName, project.ProjectName);
             }
             project.ProjectStatus = ProjectStatusEnum.CLOSED;
+            project.LastUpdatedTime = DateTime.UtcNow;
+            project.LastUpdatedBy = userInProject.User.FullName;
             _projectRepository.Update(project);
             await _unitOfWork.SaveChangesAsync();
             await _unitOfWork.CommitAsync();
