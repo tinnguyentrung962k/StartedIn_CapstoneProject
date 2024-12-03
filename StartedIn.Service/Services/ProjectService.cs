@@ -609,7 +609,9 @@ public class ProjectService : IProjectService
             }
         }
         var assetInProject = await _assetRepository.QueryHelper()
-            .Filter(x => x.ProjectId.Equals(projectId) && (x.Status != AssetStatus.Sold
+            .Filter(x => x.ProjectId.Equals(projectId)
+            && x.DeletedTime == null
+            && (x.Status != AssetStatus.Sold
             || (x.Status == AssetStatus.Unavailable && x.RemainQuantity > 0)))
             .GetAllAsync();
         if (assetInProject != null)
@@ -661,7 +663,8 @@ public class ProjectService : IProjectService
             .GetAllAsync();
 
         var assetInProject = await _assetRepository.QueryHelper()
-            .Filter(x => x.ProjectId.Equals(projectId) && (x.Status != AssetStatus.Sold 
+            .Filter(x => x.ProjectId.Equals(projectId) && x.DeletedTime == null 
+            && (x.Status != AssetStatus.Sold 
             || (x.Status == AssetStatus.Unavailable && x.RemainQuantity > 0)))
             .GetAllAsync();
 
