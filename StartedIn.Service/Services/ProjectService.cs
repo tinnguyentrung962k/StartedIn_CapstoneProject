@@ -651,7 +651,8 @@ public class ProjectService : IProjectService
             .GetAllAsync();
 
         var assetInProject = await _assetRepository.QueryHelper()
-            .Filter(x => x.ProjectId.Equals(projectId) && x.Status != AssetStatus.Sold && (x.Status != AssetStatus.Unavailable && x.RemainQuantity == 0))
+            .Filter(x => x.ProjectId.Equals(projectId) && (x.Status != AssetStatus.Sold 
+            || (x.Status == AssetStatus.Unavailable && x.RemainQuantity > 0)))
             .GetAllAsync();
 
         var closingProject = new ClosingProjectInformationDTO

@@ -98,5 +98,6 @@ namespace StartedIn.CrossCutting.Constants
         public const string NotFoundRecruitmentPost = "Không tìm thấy bài đăng tuyển dụng";
         public const string YouHaveSentInvitationForUser = "Bạn đã gửi lời mời cho người dùng: ";
         public const string MeetingNotFound = "Cuộc họp không tìm thấy";
+        public const string GreaterThan2MentorError = "Dự án của bạn chỉ được phép có 2 cố vấn/hướng dẫn";
     }
 }

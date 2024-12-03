@@ -72,6 +72,8 @@ namespace StartedIn.Service.Services
                 throw new InviteException(MessageConstant.FullMembersOfTeam);
             }
 
+            var currentMentorCount = project.UserProjects.Count(x => x.RoleInTeam == RoleInTeam.Mentor);
+
             _unitOfWork.BeginTransaction();
 
             foreach (var inviteUserEmail in inviteUserEmails)
@@ -82,33 +84,34 @@ namespace StartedIn.Service.Services
                     throw new NotFoundException(MessageConstant.NotFoundUserError + $"\n{inviteUserEmail}");
                 }
 
-                // Get the user with their roles in the system
                 var userWithRole = await _userManager.GetAUserWithSystemRole(existedUser.Id);
 
                 if (userWithRole.UserRoles.Any(ur => ur.Role.Name == RoleConstants.INVESTOR))
                 {
                     throw new InviteException($"{MessageConstant.UserHasInvestorSystemRole}{existedUser.FullName}, {existedUser.Email}");
                 }
-
-                // Check if the user is already part of the project
                 var existedUserInProject = project.UserProjects.FirstOrDefault(up => up.User.Equals(existedUser));
                 if (existedUserInProject != null)
                 {
                     throw new InviteException(MessageConstant.UserExistedInProject + $"\n{existedUser.FullName}, {existedUser.Email}");
                 }
 
-                // Check if the user is in another project
                 var userInOtherProjects = await _projectRepository.GetAProjectByUserId(existedUser.Id);
                 if (userInOtherProjects != null)
                 {
                     throw new InviteException(MessageConstant.UserInOtherProjectError + $"\n{existedUser.Email}");
                 }
 
-                // Determine role in the project based on the system role
                 RoleInTeam assignedRole;
                 if (userWithRole.UserRoles.Any(ur => ur.Role.Name == RoleConstants.MENTOR))
                 {
+                    // Kiểm tra nếu vượt quá số lượng mentor
+                    if (currentMentorCount >= 2)
+                    {
+                        throw new InviteException(MessageConstant.GreaterThan2MentorError);
+                    }
                     assignedRole = RoleInTeam.Mentor;
+                    currentMentorCount++; // Tăng số lượng mentor sau khi gán vai trò
                 }
                 else if (userWithRole.UserRoles.Any(ur => ur.Role.Name == RoleConstants.USER))
                 {
@@ -172,6 +175,7 @@ namespace StartedIn.Service.Services
             await _unitOfWork.SaveChangesAsync();
             await _unitOfWork.CommitAsync();
         }
+
 
         public async Task AddUserToProject(string projectId, string userId, RoleInTeam roleInTeam)
         {
