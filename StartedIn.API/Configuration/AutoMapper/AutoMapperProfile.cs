@@ -24,6 +24,7 @@ using StartedIn.CrossCutting.DTOs.ResponseDTO.Transaction;
 using StartedIn.CrossCutting.Enum;
 using StartedIn.Domain.Entities;
 using StartedIn.Service.Services.Interface;
+using StartedIn.CrossCutting.DTOs.ResponseDTO.Appointment;
 
 namespace StartedIn.API.Configuration.AutoMapper
 {
@@ -48,6 +49,7 @@ namespace StartedIn.API.Configuration.AutoMapper
             TaskAttachmentMappingProfile();
             RecruitmentMappingProfile();
             RecruitmentImgMappingProfile();
+            AppointmentMappingProfile();
         }
 
 
@@ -323,6 +325,12 @@ namespace StartedIn.API.Configuration.AutoMapper
         {
             CreateMap<RecruitmentImg, RecruitmentImgResponseDTO>()
                 .ReverseMap();
+        }
+        private void AppointmentMappingProfile()
+        {
+            CreateMap<Appointment, AppointmentInCalendarResponseDTO>().ReverseMap();
+            CreateMap<Appointment, AppointmentResponseDTO>()
+                .ForMember(dest => dest.MilestoneName, opt => opt.MapFrom(src => src.Milestone.Title));
         }
     }
 }

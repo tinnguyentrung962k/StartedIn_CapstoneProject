@@ -16,10 +16,10 @@ namespace StartedIn.Domain.Entities
         public string ProjectId { get; set; }
 
         [ForeignKey(nameof(Milestone))]
-        public string MilestoneId { get; set; }
+        public string? MilestoneId { get; set; }
         [MaxLength(50)]
         public string Title { get; set; }
-        public DateTime AppointmentTime { get; set; }
+        public DateTimeOffset AppointmentTime { get; set; }
         [MaxLength(255)]
         public string? Description { get; set; }
         public string MeetingLink { get; set; }

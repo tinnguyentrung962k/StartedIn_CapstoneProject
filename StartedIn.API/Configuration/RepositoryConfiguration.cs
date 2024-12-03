@@ -32,6 +32,7 @@ namespace StartedIn.API.Configuration
             services.AddScoped<ITaskAttachmentRepository, TaskAttachmentRepository>();
             services.AddScoped<IRecruitmentRepository, RecruitmentRepository>();
             services.AddScoped<IRecruitmentImageRepository, RecruitmentImageRepository>();
+            services.AddScoped<IAppointmentRepository, AppointmentRepository>();
             return services;
         }
     }
