@@ -1,9 +1,13 @@
-﻿using CrossCutting.Exceptions;
+﻿using AutoMapper;
+using CrossCutting.Exceptions;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using StartedIn.CrossCutting.Constants;
 using StartedIn.CrossCutting.DTOs.RequestDTO.LeavingRequest;
+using StartedIn.CrossCutting.DTOs.ResponseDTO;
+using StartedIn.CrossCutting.DTOs.ResponseDTO.LeavingRequest;
 using StartedIn.CrossCutting.Enum;
 using StartedIn.CrossCutting.Exceptions;
 using StartedIn.Domain.Entities;
@@ -30,6 +34,7 @@ namespace StartedIn.Service.Services
         private readonly IAzureBlobService _azureBlobService;
         private readonly IContractRepository _contractRepository;
         private readonly IUserRepository _userRepository;
+        private readonly IMapper _mapper;
         public LeavingRequestService(
             ILeavingRequestRepository leavingRequestRepository,
             IProjectRepository projectRepository, 
@@ -40,7 +45,8 @@ namespace StartedIn.Service.Services
             ILogger<LeavingRequestService> logger,
             IAzureBlobService azureBlobService,
             IContractRepository contractRepository,
-            IUserRepository userRepository
+            IUserRepository userRepository,
+            IMapper mapper
             )
         {
             _projectRepository = projectRepository;
@@ -53,6 +59,7 @@ namespace StartedIn.Service.Services
             _azureBlobService = azureBlobService;
             _contractRepository = contractRepository;
             _userRepository = userRepository;
+            _mapper = mapper;
         }
         public async Task<LeavingRequest> GetLeavingRequestById(string userId, string projectId, string requestId)
         {
@@ -154,5 +161,73 @@ namespace StartedIn.Service.Services
                 throw;
             }
         }
+
+        public async Task RejectLeavingRequest(string userId, string projectId, string requestId)
+        {
+            var userInProject = await _userService.CheckIfUserInProject(userId, projectId);
+            if (userInProject.RoleInTeam != RoleInTeam.Leader)
+            {
+                throw new UnauthorizedProjectRoleException(MessageConstant.RolePermissionError);
+            }
+            var chosenRequest = await _leavingRequestRepository.QueryHelper()
+                .Filter(x => x.Id.Equals(requestId)
+                && x.ProjectId.Equals(projectId))
+                .Include(x => x.User)
+                .Include(x => x.Project)
+                .GetOneAsync();
+            try
+            {
+                _unitOfWork.BeginTransaction();
+                chosenRequest.Status = LeavingRequestStatus.REJECTED;
+                chosenRequest.LastUpdatedBy = userInProject.User.FullName;
+                chosenRequest.LastUpdatedTime = DateTimeOffset.UtcNow;
+                var chosenRequestEntity = _leavingRequestRepository.Update(chosenRequest);
+                await _unitOfWork.SaveChangesAsync();
+                await _unitOfWork.CommitAsync();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error while update request.");
+                await _unitOfWork.RollbackAsync();
+                throw;
+            }
+        }
+
+        public async Task<PaginationDTO<LeavingRequestResponseDTO>> FilterLeavingRequestForLeader(string userId, string projectId, LeavingRequestFilterDTO leavingRequestFilterDTO, int page, int size)
+        {
+            var userInProject = await _userService.CheckIfUserInProject(userId, projectId);
+            if (userInProject.RoleInTeam != RoleInTeam.Leader)
+            {
+                throw new UnauthorizedProjectRoleException(MessageConstant.RolePermissionError);
+            }
+            var requestQuery = _leavingRequestRepository.GetLeavingRequestForLeaderInProject(projectId);
+            if (!string.IsNullOrWhiteSpace(leavingRequestFilterDTO.FullName))
+            {
+                requestQuery = requestQuery.Where(x => x.User.FullName.ToLower().Contains(leavingRequestFilterDTO.FullName.ToLower()));
+            }
+            if (!string.IsNullOrWhiteSpace(leavingRequestFilterDTO.Email))
+            {
+                requestQuery = requestQuery.Where(x => x.User.Email.ToLower().Contains(leavingRequestFilterDTO.Email.ToLower()));
+            }
+            if (leavingRequestFilterDTO.Status != null)
+            {
+                requestQuery = requestQuery.Where(x => x.Status.Equals(leavingRequestFilterDTO.Status));
+            }
+            int totalCount = await requestQuery.CountAsync();
+            var pagedResult = await requestQuery
+                .Skip((page - 1) * size)
+                .Take(size)
+                .ToListAsync();
+            var response = _mapper.Map<List<LeavingRequestResponseDTO>>(pagedResult);
+            var pagination = new PaginationDTO<LeavingRequestResponseDTO>
+            {
+                Total = totalCount,
+                Page = page,
+                Size = size,
+                Data = response
+            };
+            return pagination;
+        }
+
     }
 }

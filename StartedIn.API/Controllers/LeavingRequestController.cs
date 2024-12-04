@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using StartedIn.CrossCutting.Constants;
 using StartedIn.CrossCutting.DTOs.RequestDTO.LeavingRequest;
+using StartedIn.CrossCutting.DTOs.ResponseDTO;
 using StartedIn.CrossCutting.DTOs.ResponseDTO.LeavingRequest;
 using StartedIn.CrossCutting.Exceptions;
 using StartedIn.Service.Services.Interface;
@@ -53,7 +54,7 @@ namespace StartedIn.API.Controllers
             }
         }
 
-        [HttpPost("leaving-request")]
+        [HttpPost("leaving-requests")]
         [Authorize(Roles = RoleConstants.USER + "," + RoleConstants.MENTOR + "," + RoleConstants.INVESTOR)]
         public async Task<ActionResult<LeavingRequestResponseDTO>> CreateLeavingRequest([FromRoute] string projectId, [FromBody] LeavingRequestCreateDTO leavingRequestCreateDTO)
         {
@@ -101,9 +102,50 @@ namespace StartedIn.API.Controllers
             {
                 return BadRequest(ex.Message);
             }
-            catch (ExistedRecordException ex)
+            catch (NotFoundException ex)
             {
                 return BadRequest(ex.Message);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, ex.Message);
+            }
+        }
+        [HttpPut("leaving-requests/{requestId}/reject")]
+        [Authorize(Roles = RoleConstants.USER)]
+        public async Task<IActionResult> RejectLeavingRequest([FromRoute] string projectId, [FromRoute] string requestId, IFormFile file)
+        {
+            try
+            {
+                var userId = User.FindFirst(ClaimTypes.NameIdentifier).Value;
+                await _leavingRequestService.RejectLeavingRequest(userId,projectId,requestId);
+                return Ok("Từ chối đề nghị thành công");
+            }
+            catch (UnauthorizedProjectRoleException ex)
+            {
+                return StatusCode(403, ex.Message);
+            }
+            catch (NotFoundException ex)
+            {
+                return BadRequest(ex.Message);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, ex.Message);
+            }
+        }
+        [HttpGet("leaving-requests")]
+        public async Task<ActionResult<PaginationDTO<LeavingRequestResponseDTO>>> FilterLeavingRequestInProject([FromRoute] string projectId, [FromQuery] LeavingRequestFilterDTO leavingRequestFilterDTO, [FromQuery] int page, [FromQuery] int size)
+        {
+            try 
+            {
+                var userId = User.FindFirst(ClaimTypes.NameIdentifier).Value;
+                var response = await _leavingRequestService.FilterLeavingRequestForLeader(userId, projectId, leavingRequestFilterDTO, page, size);
+                return Ok(response);
+            }
+            catch (UnauthorizedProjectRoleException ex)
+            {
+                return StatusCode(403, ex.Message);
             }
             catch (NotFoundException ex)
             {

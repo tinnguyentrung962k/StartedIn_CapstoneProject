@@ -614,7 +614,7 @@ public class ProjectService : IProjectService
             && (x.Status != AssetStatus.Sold
             || (x.Status == AssetStatus.Unavailable && x.RemainQuantity > 0)))
             .GetAllAsync();
-        if (assetInProject != null)
+        if (assetInProject.Any())
         {
             throw new UpdateException(MessageConstant.UnsoldAssetsError);
         }

@@ -9,5 +9,6 @@ namespace StartedIn.Repository.Repositories.Interface
 {
     public interface ILeavingRequestRepository : IGenericRepository<LeavingRequest,string>
     {
+        IQueryable<LeavingRequest> GetLeavingRequestForLeaderInProject(string projectId);
     }
 }
