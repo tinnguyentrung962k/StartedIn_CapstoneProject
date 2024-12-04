@@ -28,7 +28,7 @@ namespace StartedIn.API.Controllers
         }
 
         [HttpGet("projects/{projectId}/transactions")]
-        [Authorize(Roles = RoleConstants.INVESTOR +","+ RoleConstants.USER)]
+        [Authorize(Roles = RoleConstants.INVESTOR +","+ RoleConstants.USER + RoleConstants.MENTOR)]
         public async Task<ActionResult<PaginationDTO<TransactionResponseDTO>>> GetTransactionListInAProject([FromRoute] string projectId, [FromQuery] TransactionFilterDTO transactionFilterDTO, [FromQuery] int page, int size)
         {
             try
