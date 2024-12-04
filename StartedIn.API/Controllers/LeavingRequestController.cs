@@ -84,7 +84,7 @@ namespace StartedIn.API.Controllers
             }
         }
 
-        [HttpPost("leaving-requests/{requestId}/accept")]
+        [HttpPut("leaving-requests/{requestId}/accept")]
         [Authorize(Roles = RoleConstants.USER)]
         public async Task<IActionResult> AcceptLeavingRequest([FromRoute] string projectId, [FromRoute] string requestId)
         {
@@ -111,6 +111,7 @@ namespace StartedIn.API.Controllers
                 return StatusCode(500, ex.Message);
             }
         }
+
         [HttpPut("leaving-requests/{requestId}/reject")]
         [Authorize(Roles = RoleConstants.USER)]
         public async Task<IActionResult> RejectLeavingRequest([FromRoute] string projectId, [FromRoute] string requestId, IFormFile file)
