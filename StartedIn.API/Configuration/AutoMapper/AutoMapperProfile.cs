@@ -51,7 +51,7 @@ namespace StartedIn.API.Configuration.AutoMapper
             RecruitmentMappingProfile();
             RecruitmentImgMappingProfile();
             AppointmentMappingProfile();
-            LeavingRequstMappingProfile();
+            LeavingRequestMappingProfile();
         }
 
 
@@ -334,7 +334,7 @@ namespace StartedIn.API.Configuration.AutoMapper
             CreateMap<Appointment, AppointmentResponseDTO>()
                 .ForMember(dest => dest.MilestoneName, opt => opt.MapFrom(src => src.Milestone.Title));
         }
-        private void LeavingRequstMappingProfile()
+        private void LeavingRequestMappingProfile()
         {
             CreateMap<LeavingRequest, LeavingRequestResponseDTO>()
                 .ForMember(dest => dest.FullName, opt => opt.MapFrom(src => src.User.FullName))

@@ -18,7 +18,6 @@ namespace StartedIn.Domain.Entities
         [ForeignKey(nameof(Project))]
         public string ProjectId { get; set; }
         public LeavingRequestStatus Status { get; set; }
-        public string? ConfirmUrl { get; set; }
 
         [MaxLength(500)]
         public string Reason { get; set; }

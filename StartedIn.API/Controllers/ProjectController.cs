@@ -294,4 +294,23 @@ public class ProjectController : ControllerBase
             return StatusCode(500, ex.Message);
         }
     }
+    [HttpGet("{projectId}/check-leaveable")]
+    [Authorize(Roles = RoleConstants.USER + "," + RoleConstants.INVESTOR + "," + RoleConstants.MENTOR)]
+    public async Task<ActionResult<LeavingProjectInfomationDTO>> GetLeavingInformationForProject([FromRoute] string projectId)
+    {
+        try
+        {
+            var userId = User.FindFirst(ClaimTypes.NameIdentifier).Value;
+            var response = await _projectService.GetProjectLeavingInformation(userId, projectId);
+            return Ok(response);
+        }
+        catch (UnauthorizedProjectRoleException ex)
+        {
+            return StatusCode(403, ex.Message);
+        }
+        catch (Exception ex)
+        {
+            return StatusCode(500, ex.Message);
+        }
+    }
 }

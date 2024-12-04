@@ -651,12 +651,12 @@ public class ProjectService : IProjectService
             throw new UnauthorizedProjectRoleException(MessageConstant.RolePermissionError);
         }
         var project = await _projectRepository.GetProjectById(projectId);
-        var validContract = await _contractRepository.QueryHelper()
+        var validContracts = await _contractRepository.QueryHelper()
             .Filter(x=>x.ProjectId.Equals(projectId) && (x.ContractStatus == ContractStatusEnum.COMPLETED || x.ContractStatus == ContractStatusEnum.SENT))
             .Include(x=>x.Disbursements)
             .GetAllAsync();
 
-        var processingDisbursement = await _disbursementRepository.QueryHelper()
+        var processingDisbursements = await _disbursementRepository.QueryHelper()
             .Include(x => x.Contract)
             .Filter(x => x.Contract.ProjectId.Equals(projectId) 
             && (x.DisbursementStatus == DisbursementStatusEnum.OVERDUE || x.DisbursementStatus == DisbursementStatusEnum.ERROR || (x.DisbursementStatus == DisbursementStatusEnum.PENDING && x.IsValidWithContract == true)))
@@ -672,11 +672,39 @@ public class ProjectService : IProjectService
         {
             CurrentBudget = project.Finance.CurrentBudget,
             Assets = _mapper.Map<List<AssetInClosingProjectDTO>>(assetInProject),
-            Contracts = _mapper.Map<List<ContractInClosingProjectDTO>>(validContract),
-            Disbursements = _mapper.Map<List<DisbursementInClosingProjectDTO>>(processingDisbursement)
+            Contracts = _mapper.Map<List<ContractInClosingProjectDTO>>(validContracts),
+            Disbursements = _mapper.Map<List<DisbursementInClosingProjectDTO>>(processingDisbursements)
         };
         return closingProject;
 
+    }
+
+    public async Task<LeavingProjectInfomationDTO> GetProjectLeavingInformation(string userId, string projectId)
+    {
+        var userInProject = await _userService.CheckIfUserInProject(userId, projectId);
+        if (userInProject.RoleInTeam == RoleInTeam.Leader) 
+        {
+            throw new InvalidOperationException(MessageConstant.LeaderCannotLeaveGroup);
+        }
+        var project = await _projectRepository.GetProjectById(projectId);
+        var validContracts = await _contractRepository.QueryHelper()
+            .Filter(x => x.ProjectId.Equals(projectId) 
+            && (x.ContractStatus == ContractStatusEnum.COMPLETED || x.ContractStatus == ContractStatusEnum.SENT)
+            && (x.UserContracts.Any(x=>x.UserId.Equals(userId))))
+            .Include(x => x.Disbursements)
+            .Include(x => x.UserContracts)
+            .GetAllAsync();
+        var disbursementList = validContracts.SelectMany(c => c.Disbursements)
+            .Where(d => d.DisbursementStatus == DisbursementStatusEnum.OVERDUE
+            || d.DisbursementStatus == DisbursementStatusEnum.ERROR
+            || (d.DisbursementStatus == DisbursementStatusEnum.PENDING && d.IsValidWithContract == true))
+        .ToList();
+        var leavingProject = new LeavingProjectInfomationDTO
+        {
+            Contracts = _mapper.Map<List<ContractInClosingProjectDTO>>(validContracts),
+            Disbursements = _mapper.Map<List<DisbursementInClosingProjectDTO>>(disbursementList)
+        };
+        return leavingProject;
     }
 
 }

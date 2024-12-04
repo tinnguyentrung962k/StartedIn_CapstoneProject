@@ -86,12 +86,12 @@ namespace StartedIn.API.Controllers
 
         [HttpPost("leaving-requests/{requestId}/accept")]
         [Authorize(Roles = RoleConstants.USER)]
-        public async Task<IActionResult> AcceptLeavingRequest([FromRoute] string projectId, [FromRoute] string requestId, IFormFile file)
+        public async Task<IActionResult> AcceptLeavingRequest([FromRoute] string projectId, [FromRoute] string requestId)
         {
             try
             {
                 var userId = User.FindFirst(ClaimTypes.NameIdentifier).Value;
-                await _leavingRequestService.AcceptLeavingRequest(userId, projectId, requestId, file);
+                await _leavingRequestService.AcceptLeavingRequest(userId, projectId, requestId);
                 return Ok("Chấp nhận đề nghị thành công");
             }
             catch (UnauthorizedProjectRoleException ex)

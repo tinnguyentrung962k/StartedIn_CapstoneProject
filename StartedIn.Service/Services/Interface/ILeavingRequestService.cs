@@ -15,7 +15,7 @@ namespace StartedIn.Service.Services.Interface
     {
         Task<LeavingRequest> GetLeavingRequestById(string userId, string projectId, string requestId);
         Task<LeavingRequest> CreateLeavingRequest(string userId, string projectId, LeavingRequestCreateDTO leavingRequestCreateDTO);
-        Task AcceptLeavingRequest(string userId, string projectId, string requestId, IFormFile confirmFile);
+        Task AcceptLeavingRequest(string userId, string projectId, string requestId);
         Task RejectLeavingRequest(string userId, string projectId, string requestId);
         Task<PaginationDTO<LeavingRequestResponseDTO>> FilterLeavingRequestForLeader(string userId, string projectId, LeavingRequestFilterDTO leavingRequestFilterDTO, int page, int size);
     }

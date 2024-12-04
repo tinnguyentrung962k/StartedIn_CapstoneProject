@@ -78,7 +78,9 @@ namespace StartedIn.Service.Services
 
         public async Task<LeavingRequest> CreateLeavingRequest(string userId, string projectId, LeavingRequestCreateDTO leavingRequestCreateDTO)
         {
+            //Kiểm tra user có trong project
             var userInProject = await _userService.CheckIfUserInProject(userId, projectId);
+            //Kiểm tra đã có đề nghị rời nhóm trước đó
             var existedLeavingRequest = await _leavingRequestRepository.QueryHelper()
                 .Filter(x => x.ProjectId.Equals(projectId) 
                 && x.UserId.Equals(userId) 
@@ -88,6 +90,32 @@ namespace StartedIn.Service.Services
             {
                 throw new ExistedRecordException(MessageConstant.PendingLeavingRequestExisted);
             }
+            // Kiểm tra các hợp đồng còn hiệu lực
+            var activeContractOfUser = await _contractRepository.QueryHelper()
+            .Include(c => c.UserContracts)
+            .Include(c => c.Disbursements)
+            .Filter(c => c.ProjectId.Equals(projectId)
+            && (c.ContractStatus == ContractStatusEnum.SENT || c.ContractStatus == ContractStatusEnum.COMPLETED)
+            && c.UserContracts.Any(u => u.UserId.Equals(userId)))
+            .GetAllAsync();
+
+            if (activeContractOfUser.Any())
+            {
+                throw new ExistedRecordException(MessageConstant.UserBelongToActiveContracts);
+            }
+
+            //Kiểm tra các đợt giải ngân đang xử lý
+            var disbursementList = activeContractOfUser.SelectMany(c => c.Disbursements)
+            .Where(d => d.DisbursementStatus == DisbursementStatusEnum.OVERDUE
+            || d.DisbursementStatus == DisbursementStatusEnum.ERROR
+            || (d.DisbursementStatus == DisbursementStatusEnum.PENDING && d.IsValidWithContract == true))
+            .ToList();
+
+            if (disbursementList.Any())
+            {
+                throw new ExistedRecordException(MessageConstant.DisbursementIssueExisted);
+            }
+
             try
             {
                 _unitOfWork.BeginTransaction();
@@ -112,25 +140,23 @@ namespace StartedIn.Service.Services
             }
         }
 
-        public async Task AcceptLeavingRequest(string userId, string projectId, string requestId, IFormFile confirmFile)
+        public async Task AcceptLeavingRequest(string userId, string projectId, string requestId)
         {
+            //Kiểm tra user có trong project
             var userInProject = await _userService.CheckIfUserInProject(userId, projectId);
             if (userInProject.RoleInTeam != RoleInTeam.Leader)
             {
                 throw new UnauthorizedProjectRoleException(MessageConstant.RolePermissionError);
             }
+
             var chosenRequest = await _leavingRequestRepository.QueryHelper()
                 .Filter(x=>x.Id.Equals(requestId) 
                 && x.ProjectId.Equals(projectId))
                 .Include(x => x.User)
                 .Include(x => x.Project)
                 .GetOneAsync();
-            string confirmUrl = await _azureBlobService.UploadEvidenceOfConfirmation(confirmFile);
-            if (confirmUrl == null)
-            {
-                throw new InvalidInputException("Vui lòng nhập file.");
-            }
-            var project = await _projectRepository.GetProjectById(projectId);
+
+            // Kiểm tra các hợp đồng còn hiệu lực
             var activeContractOfUser = await _contractRepository.QueryHelper()
             .Include(c=>c.UserContracts)
             .Filter(c => c.ProjectId.Equals(projectId) 
@@ -142,12 +168,24 @@ namespace StartedIn.Service.Services
             {
                 throw new ExistedRecordException(MessageConstant.UserBelongToActiveContracts);
             }
+
+            //Kiểm tra các đợt giải ngân đang xử lý
+            var disbursementList = activeContractOfUser.SelectMany(c => c.Disbursements)
+            .Where(d => d.DisbursementStatus == DisbursementStatusEnum.OVERDUE
+            || d.DisbursementStatus == DisbursementStatusEnum.ERROR
+            || (d.DisbursementStatus == DisbursementStatusEnum.PENDING && d.IsValidWithContract == true))
+            .ToList();
+
+            if (disbursementList.Any())
+            {
+                throw new ExistedRecordException(MessageConstant.DisbursementIssueExisted);
+            }
+
             try 
             {
                 _unitOfWork.BeginTransaction();
                 chosenRequest.Status = LeavingRequestStatus.ACCEPTED;
                 chosenRequest.LastUpdatedBy = userInProject.User.FullName;
-                chosenRequest.ConfirmUrl = confirmUrl;
                 chosenRequest.LastUpdatedTime = DateTimeOffset.UtcNow;
                 var chosenRequestEntity = _leavingRequestRepository.Update(chosenRequest);
                 await _userRepository.DeleteUserFromAProject(chosenRequest.UserId, chosenRequest.ProjectId);
