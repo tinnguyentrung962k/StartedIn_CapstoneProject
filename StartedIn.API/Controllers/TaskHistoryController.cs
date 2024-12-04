@@ -21,7 +21,7 @@ namespace StartedIn.API.Controllers
         }
 
         [HttpGet]
-        [Authorize(Roles = RoleConstants.USER)]
+        [Authorize(Roles = RoleConstants.USER + "," + RoleConstants.MENTOR)]
         public async Task<ActionResult<IEnumerable<TaskHistoryResponseDTO>>> GetTaskHistoryOfTask([FromRoute] string projectId, string taskId, [FromQuery] string userId)
         {
             try
