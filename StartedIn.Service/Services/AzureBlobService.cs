@@ -69,6 +69,16 @@ namespace StartedIn.Service.Services
             }
             return blobClient.Uri.ToString();
         }
+        public async Task<string> UploadEvidenceOfConfirmation(IFormFile file)
+        {
+            var fileName = Guid.NewGuid() + Path.GetExtension(file.FileName);
+            var blobClient = _documentContainerClient.GetBlobClient(fileName);
+            using (var stream = file.OpenReadStream())
+            {
+                await blobClient.UploadAsync(stream, new BlobHttpHeaders { ContentType = file.ContentType });
+            }
+            return blobClient.Uri.ToString();
+        }
 
         public async Task<string> UploadEvidenceOfTransaction(IFormFile file)
         {

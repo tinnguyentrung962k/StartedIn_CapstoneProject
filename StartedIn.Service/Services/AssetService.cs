@@ -12,6 +12,7 @@ using StartedIn.CrossCutting.DTOs.ResponseDTO.Asset;
 using StartedIn.CrossCutting.Enum;
 using StartedIn.CrossCutting.Exceptions;
 using StartedIn.Domain.Entities;
+using StartedIn.Repository.Repositories;
 using StartedIn.Repository.Repositories.Interface;
 using StartedIn.Service.Services.Interface;
 using System;
@@ -33,6 +34,7 @@ namespace StartedIn.Service.Services
         private readonly IAzureBlobService _azureBlobService;
         private readonly ILogger<AssetService> _logger;
         private readonly IMapper _mapper;
+        private readonly IFinanceRepository _financeRepository;
         public AssetService(IAssetRepository assetRepository, 
             IUserService userService, 
             IUnitOfWork unitOfWork, 
@@ -40,6 +42,7 @@ namespace StartedIn.Service.Services
             UserManager<User> userManager,
             ITransactionRepository transactionRepository,
             IAzureBlobService azureBlobService,
+            IFinanceRepository financeRepository,
             ILogger<AssetService> logger,
             IMapper mapper) 
         {
@@ -50,6 +53,7 @@ namespace StartedIn.Service.Services
             _userManager = userManager;
             _transactionRepository = transactionRepository;
             _azureBlobService = azureBlobService;
+            _financeRepository = financeRepository;
             _logger = logger;
             _mapper = mapper;
         }
@@ -188,7 +192,7 @@ namespace StartedIn.Service.Services
             }
 
         }
-        public async Task<Asset> UpdateAsset(string userId, string projectId, string assetId,AssetUpdateDTO assetUpdateDTO)
+        public async Task<Asset> UpdateAsset(string userId, string projectId, string assetId, AssetUpdateDTO assetUpdateDTO)
         {
             var userInProject = await _userService.CheckIfUserInProject(userId, projectId);
             if (userInProject.RoleInTeam != RoleInTeam.Leader)
@@ -204,22 +208,13 @@ namespace StartedIn.Service.Services
             {
                 throw new UnmatchedException(MessageConstant.AssetNotBelongToProject);
             }
-            if (assetUpdateDTO.Quantity < assetUpdateDTO.RemainQuantity)
+            if (chosenAsset.Quantity < assetUpdateDTO.RemainQuantity)
             {
                 throw new InvalidDataException(MessageConstant.RemainingAmountOfAssetNotGreaterThanInitial);
-            }
-            if (assetUpdateDTO.Quantity <= 0)
-            {
-                throw new InvalidDataException(MessageConstant.AssetQuantityCannotSmallerThanZero);
             }
             try
             {
                 _unitOfWork.BeginTransaction();
-                chosenAsset.AssetName = assetUpdateDTO.AssetName;
-                chosenAsset.Price = assetUpdateDTO.Price;
-                chosenAsset.PurchaseDate = assetUpdateDTO.PurchaseDate;
-                chosenAsset.Quantity = assetUpdateDTO.Quantity;
-                chosenAsset.SerialNumber = assetUpdateDTO.SerialNumber;
                 chosenAsset.Status = assetUpdateDTO.Status;
                 chosenAsset.RemainQuantity = assetUpdateDTO.RemainQuantity;
                 if (chosenAsset.RemainQuantity == 0)
@@ -234,6 +229,78 @@ namespace StartedIn.Service.Services
             catch (Exception ex)
             {
                 _logger.LogError($"Error while update asset to project {projectId} by user {userId}: {ex}");
+                await _unitOfWork.RollbackAsync();
+                throw;
+            }
+        }
+
+        public async Task LiquidateAsset(string userId, string projectId, string assetId, AssetLiquidatingDTO assetLiquidatingDTO)
+        {
+            var userInProject = await _userService.CheckIfUserInProject(userId, projectId);
+            if (userInProject.RoleInTeam != RoleInTeam.Leader)
+            {
+                throw new UnauthorizedProjectRoleException(MessageConstant.RolePermissionError);
+            }
+            var chosenAsset = await _assetRepository.GetOneAsync(assetId);
+            if (chosenAsset == null)
+            {
+                throw new NotFoundException(MessageConstant.AssetNotFound);
+            }
+            if (chosenAsset.ProjectId != projectId)
+            {
+                throw new UnmatchedException(MessageConstant.AssetNotBelongToProject);
+            }
+            if (assetLiquidatingDTO.SellQuantity > chosenAsset.RemainQuantity)
+            {
+                throw new InvalidDataException(MessageConstant.SellGreaterThanRemainError);
+            }
+            try
+            {
+                _unitOfWork.BeginTransaction();
+                var project = await _projectRepository.GetProjectById(projectId);
+                if (assetLiquidatingDTO.SellQuantity <= chosenAsset.RemainQuantity)
+                {
+                    chosenAsset.RemainQuantity -= assetLiquidatingDTO.SellQuantity;
+                    if (chosenAsset.RemainQuantity == 0)
+                    {
+                        chosenAsset.Status = AssetStatus.Sold;
+                    }
+                }
+                string evidenceUrl = await _azureBlobService.UploadEvidenceOfTransaction(assetLiquidatingDTO.EvidenceFile);
+                var liquidatingTransaction = new Transaction
+                {
+                    Amount = assetLiquidatingDTO.SellQuantity * assetLiquidatingDTO.SellPrice,
+                    CreatedBy = userInProject.User.FullName,
+                    EvidenceUrl = evidenceUrl,
+                    Content = $"Thanh lý tài sản: {chosenAsset.AssetName} - Số lượng: {assetLiquidatingDTO.SellQuantity} - Đơn giá: {assetLiquidatingDTO.SellPrice}.",
+                    IsInFlow = true,
+                    FromID = userInProject.User.Id,
+                    FromName = userInProject.User.FullName,
+                    Type = TransactionType.AssetLiquidation,
+                    FinanceId = project.Finance.Id
+                };
+                if (assetLiquidatingDTO.ToId != null)
+                {
+                    var toUser = await _userManager.FindByIdAsync(assetLiquidatingDTO.ToId);
+                    liquidatingTransaction.ToID = assetLiquidatingDTO.ToId;
+                    liquidatingTransaction.ToName = toUser.FullName;
+                }
+                if (assetLiquidatingDTO.ToId == null)
+                {
+                    liquidatingTransaction.ToName = assetLiquidatingDTO.ToName;
+                }
+                var soldAsset = _assetRepository.Update(chosenAsset);
+                var transactionEntity = _transactionRepository.Add(liquidatingTransaction);
+
+                project.Finance.CurrentBudget += liquidatingTransaction.Amount;
+
+                var finance = _financeRepository.Update(project.Finance);
+                await _unitOfWork.SaveChangesAsync();
+                await _unitOfWork.CommitAsync();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError($"An error occurred while sell the asset: {ex.Message}");
                 await _unitOfWork.RollbackAsync();
                 throw;
             }

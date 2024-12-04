@@ -10,6 +10,6 @@ namespace StartedIn.CrossCutting.DTOs.ResponseDTO.Asset
     public class AssetInClosingProjectDTO : IdentityResponseDTO
     {
         public string AssetName { get; set; }
-        public int Quantity { get; set; }
+        public int RemainQuantity { get; set; }
     }
 }

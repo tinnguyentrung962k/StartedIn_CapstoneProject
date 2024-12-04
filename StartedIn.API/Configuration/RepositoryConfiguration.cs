@@ -33,6 +33,7 @@ namespace StartedIn.API.Configuration
             services.AddScoped<IRecruitmentRepository, RecruitmentRepository>();
             services.AddScoped<IRecruitmentImageRepository, RecruitmentImageRepository>();
             services.AddScoped<IAppointmentRepository, AppointmentRepository>();
+            services.AddScoped<ILeavingRequestRepository, LeavingRequestRepository>();
             return services;
         }
     }

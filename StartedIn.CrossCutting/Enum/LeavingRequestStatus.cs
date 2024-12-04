@@ -6,11 +6,10 @@ using System.Threading.Tasks;
 
 namespace StartedIn.CrossCutting.Enum
 {
-    public enum TransactionType
+    public enum LeavingRequestStatus 
     {
-        Disbursement = 1,
-        AssetExpense = 2,
-        Other = 3,
-        AssetLiquidation = 4
+        PENDING = 1,
+        ACCEPTED = 2,
+        REJECTED = 3
     }
 }

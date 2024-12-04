@@ -98,6 +98,12 @@ namespace StartedIn.CrossCutting.Constants
         public const string NotFoundRecruitmentPost = "Không tìm thấy bài đăng tuyển dụng";
         public const string YouHaveSentInvitationForUser = "Bạn đã gửi lời mời cho người dùng: ";
         public const string MeetingNotFound = "Cuộc họp không tìm thấy";
+        public const string GreaterThan2MentorError = "Dự án của bạn chỉ được phép có 2 cố vấn/hướng dẫn";
+        public const string UnsoldAssetsError = "Dự án của bạn vẫn còn tài sản chưa được thanh lý.";
+        public const string SellGreaterThanRemainError = "Số lượng thanh lý không thể lớn hơn số lượng tài sản còn lại cảu dự án";
+        public const string NotFoundLeavingRequest = "Không tìm thấy yêu cầu rời nhóm.";
+        public const string PendingLeavingRequestExisted = "Bạn còn yêu cầu cũ chưa được duyệt.";
+        public const string UserBelongToActiveContracts = "Người dùng này còn hợp đồng đang có hiệu lực";
         public const string NotFoundRecruitmentImg = "Không tìm thấy ảnh tuyển dụng";
     }
 }

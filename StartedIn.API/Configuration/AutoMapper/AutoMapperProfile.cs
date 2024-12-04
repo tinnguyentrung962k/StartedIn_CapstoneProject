@@ -25,6 +25,7 @@ using StartedIn.CrossCutting.Enum;
 using StartedIn.Domain.Entities;
 using StartedIn.Service.Services.Interface;
 using StartedIn.CrossCutting.DTOs.ResponseDTO.Appointment;
+using StartedIn.CrossCutting.DTOs.ResponseDTO.LeavingRequest;
 
 namespace StartedIn.API.Configuration.AutoMapper
 {
@@ -50,6 +51,7 @@ namespace StartedIn.API.Configuration.AutoMapper
             RecruitmentMappingProfile();
             RecruitmentImgMappingProfile();
             AppointmentMappingProfile();
+            LeavingRequstMappingProfile();
         }
 
 
@@ -331,6 +333,14 @@ namespace StartedIn.API.Configuration.AutoMapper
             CreateMap<Appointment, AppointmentInCalendarResponseDTO>().ReverseMap();
             CreateMap<Appointment, AppointmentResponseDTO>()
                 .ForMember(dest => dest.MilestoneName, opt => opt.MapFrom(src => src.Milestone.Title));
+        }
+        private void LeavingRequstMappingProfile()
+        {
+            CreateMap<LeavingRequest, LeavingRequestResponseDTO>()
+                .ForMember(dest => dest.FullName, opt => opt.MapFrom(src => src.User.FullName))
+                .ForMember(dest => dest.Email, opt => opt.MapFrom(src => src.User.Email))
+                .ForMember(dest => dest.ProjectName, opt => opt.MapFrom(src => src.Project.ProjectName));
+                
         }
     }
 }
