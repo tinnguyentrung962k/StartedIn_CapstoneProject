@@ -27,14 +27,15 @@ public class RecruitmentImageService : IRecruitmentImageService
         _unitOfWork = unitOfWork;
     }
     
-    public async Task AddImageToRecruitmentPost(string recruitmentId, List<IFormFile> recruitFiles)
+    public async Task<List<RecruitmentImg>> AddImageToRecruitmentPost(string projectId, List<IFormFile> recruitFiles)
     {
-        var recruitment = await _recruitmentRepository.QueryHelper().Filter(r => r.Id.Equals(recruitmentId)).GetOneAsync();
+        var recruitment = await _recruitmentRepository.QueryHelper().Filter(r => r.ProjectId.Equals(projectId)).GetOneAsync();
         if (recruitment == null)
         {
             throw new NotFoundException(MessageConstant.NotFoundRecruitmentPost);
         }
 
+        List<RecruitmentImg> listImages = new List<RecruitmentImg>();
         try
         {
             _unitOfWork.BeginTransaction();
@@ -45,10 +46,13 @@ public class RecruitmentImageService : IRecruitmentImageService
                 {
                     FileName = recruitFile.FileName,
                     ImageUrl = url,
-                    RecruitmentId = recruitmentId
+                    RecruitmentId = recruitment.Id
                 };
-                _recruitmentImageRepository.Add(newImage);
+                var image = _recruitmentImageRepository.Add(newImage);
+                listImages.Add(image);
             }
+
+            return listImages;
         }
         catch (Exception ex)
         {
