@@ -49,7 +49,7 @@ namespace StartedIn.API.Controllers
         }
 
         [HttpGet("transactions")]
-        [Authorize(Roles = RoleConstants.INVESTOR + "," + RoleConstants.USER)]
+        [Authorize(Roles = RoleConstants.INVESTOR + "," + RoleConstants.USER + "," + RoleConstants.MENTOR)]
         public async Task<ActionResult<PaginationDTO<TransactionResponseDTO>>> GetTransactionListForUser([FromQuery] TransactionFilterDTO transactionFilterDTO, [FromQuery] int page, int size)
         {
             try
@@ -104,7 +104,7 @@ namespace StartedIn.API.Controllers
         }
 
         [HttpGet("projects/{projectId}/transactions/{transactionId}")]
-        [Authorize(Roles = RoleConstants.USER + "," + RoleConstants.INVESTOR)]
+        [Authorize(Roles = RoleConstants.USER + "," + RoleConstants.INVESTOR + "," + RoleConstants.MENTOR)]
         public async Task<ActionResult<TransactionResponseDTO>> GetTransactionById([FromRoute] string projectId, [FromRoute] string transactionId)
         {
             try
