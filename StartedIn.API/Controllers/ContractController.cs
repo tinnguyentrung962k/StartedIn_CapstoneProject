@@ -14,6 +14,7 @@ using StartedIn.CrossCutting.DTOs.BaseDTO;
 using StartedIn.CrossCutting.DTOs.ResponseDTO.DealOffer;
 using StartedIn.Domain.Entities;
 using StartedIn.CrossCutting.DTOs.ResponseDTO;
+using StartedIn.CrossCutting.Enum;
 
 namespace StartedIn.API.Controllers
 {
@@ -66,6 +67,42 @@ namespace StartedIn.API.Controllers
 
             }
         }
+
+        //[HttpPost("investment-contracts-internal-app")]
+        //[Authorize(Roles = RoleConstants.USER)]
+        //public async Task<ActionResult<ContractResponseDTO>> CreateAnInvestmentContractInternal([FromRoute] string projectId,[FromQuery] SigningMethodEnum signingMethod ,[FromBody] InvestmentContractCreateDTO investmentContractCreateDTO)
+        //{
+        //    try
+        //    {
+        //        var userId = User.FindFirst(ClaimTypes.NameIdentifier).Value;
+        //        var contract = await _contractService.CreateInvestmentContractInternalApp(userId, projectId, signingMethod ,investmentContractCreateDTO);
+        //        var responseContract = _mapper.Map<ContractResponseDTO>(contract);
+        //        return CreatedAtAction(nameof(GetContractById), new { projectId, contractId = responseContract.Id }, responseContract);
+        //    }
+        //    catch (UnauthorizedProjectRoleException ex)
+        //    {
+        //        return StatusCode(403, ex.Message);
+        //    }
+        //    catch (ExistedRecordException ex)
+        //    {
+        //        return BadRequest(ex.Message);
+        //    }
+        //    catch (InvalidOperationException ex)
+        //    {
+        //        return BadRequest(ex.Message);
+        //    }
+        //    catch (InvalidDataException ex)
+        //    {
+        //        return BadRequest(ex.Message);
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        _logger.LogError(ex, "Error while creating contract");
+
+        //        return StatusCode(500, MessageConstant.InternalServerError);
+
+        //    }
+        //}
 
         [HttpPost("investment-contracts/from-deal")]
         [Authorize(Roles = RoleConstants.USER)]

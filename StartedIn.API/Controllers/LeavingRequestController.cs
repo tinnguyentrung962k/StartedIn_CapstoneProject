@@ -135,6 +135,7 @@ namespace StartedIn.API.Controllers
                 return StatusCode(500, ex.Message);
             }
         }
+
         [HttpGet("leaving-requests")]
         public async Task<ActionResult<PaginationDTO<LeavingRequestResponseDTO>>> FilterLeavingRequestInProject([FromRoute] string projectId, [FromQuery] LeavingRequestFilterDTO leavingRequestFilterDTO, [FromQuery] int page, [FromQuery] int size)
         {
