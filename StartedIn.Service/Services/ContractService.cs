@@ -39,6 +39,8 @@ namespace StartedIn.Service.Services
         private readonly IFinanceRepository _financeRepository;
         private readonly IInvestmentCallService _investmentCallService;
         private readonly IInvestmentCallRepository _investmentCallRepository;
+        private readonly IAzureBlobService _azureBlobService;
+        private readonly IDocumentFormatService _documentFormatService;
 
         public ContractService(IContractRepository contractRepository,
             IUnitOfWork unitOfWork,
@@ -53,7 +55,10 @@ namespace StartedIn.Service.Services
             IDealOfferRepository dealOfferRepository,
             IFinanceRepository financeRepository,
             IInvestmentCallService investmentCallService,
-            IInvestmentCallRepository investmentCallRepository
+            IInvestmentCallRepository investmentCallRepository,
+            IAzureBlobService azureBlobService,
+            IDocumentFormatService documentFormatService
+
             )
         {
             _contractRepository = contractRepository;
@@ -71,7 +76,8 @@ namespace StartedIn.Service.Services
             _apiDomain = _configuration.GetValue<string>("API_DOMAIN") ?? _configuration["Local_domain"];
             _investmentCallService = investmentCallService;
             _investmentCallRepository = investmentCallRepository;
-
+            _azureBlobService = azureBlobService;
+            _documentFormatService = documentFormatService;
         }
 
         public async Task<Contract> CreateInvestmentContract(string userId, string projectId, InvestmentContractCreateDTO investmentContractCreateDTO)
@@ -179,6 +185,121 @@ namespace StartedIn.Service.Services
                 throw;
             }
         }
+        //public async Task<Contract> CreateInvestmentContractInternalApp(string userId, string projectId, SigningMethodEnum signingMethod, InvestmentContractCreateDTO investmentContractCreateDTO)
+        //{
+        //    var userInProject = await _userService.CheckIfUserInProject(userId, projectId);
+        //    var projectRole = await _projectRepository.GetUserRoleInProject(userId, projectId);
+        //    if (projectRole != RoleInTeam.Leader)
+        //    {
+        //        throw new UnauthorizedProjectRoleException(MessageConstant.RolePermissionError);
+        //    }
+        //    var existedContract = await _contractRepository.QueryHelper().Filter(x => x.ContractIdNumber.Equals(investmentContractCreateDTO.Contract.ContractIdNumber) && x.ProjectId.Equals(projectId)).GetOneAsync();
+        //    if (existedContract != null)
+        //    {
+        //        throw new ExistedRecordException(MessageConstant.ContractNumberExistedError);
+        //    }
+        //    var project = await _projectRepository.GetProjectById(projectId);
+        //    if (investmentContractCreateDTO.InvestorInfo.Percentage > project.RemainingPercentOfShares)
+        //    {
+        //        throw new InvalidOperationException(MessageConstant.DealPercentageGreaterThanRemainingPercentage);
+        //    }
+        //    if (investmentContractCreateDTO.Disbursements == null)
+        //    {
+        //        throw new InvalidDataException(MessageConstant.DisbursementListEmptyInContract);
+        //    }
+        //    decimal totalDisbursementAmount = investmentContractCreateDTO.Disbursements.Sum(d => d.Amount);
+        //    if (totalDisbursementAmount > investmentContractCreateDTO.InvestorInfo.BuyPrice)
+        //    {
+        //        throw new InvalidOperationException(MessageConstant.DisbursementGreaterThanBuyPriceError);
+        //    }
+        //    try
+        //    {
+        //        _unitOfWork.BeginTransaction();
+        //        var investor = await _userManager.FindByIdAsync(investmentContractCreateDTO.InvestorInfo.UserId);
+        //        if (investor == null)
+        //        {
+        //            throw new NotFoundException(MessageConstant.NotFoundInvestorError);
+        //        }
+        //        Contract contract = new Contract
+        //        {
+        //            ContractName = investmentContractCreateDTO.Contract.ContractName,
+        //            ContractPolicy = investmentContractCreateDTO.Contract.ContractPolicy,
+        //            ContractType = ContractTypeEnum.INVESTMENT,
+        //            CreatedBy = userInProject.User.FullName,
+        //            ProjectId = projectId,
+        //            ContractStatus = ContractStatusEnum.DRAFT,
+        //            ContractIdNumber = investmentContractCreateDTO.Contract.ContractIdNumber
+        //        };
+        //        var leader = userInProject.User;
+        //        List<UserContract> usersInContract = new List<UserContract>();
+        //        List<User> chosenUsersList = new List<User> { investor, leader };
+        //        foreach (var chosenUser in chosenUsersList)
+        //        {
+        //            UserContract userContract = new UserContract
+        //            {
+        //                ContractId = contract.Id,
+        //                UserId = chosenUser.Id
+        //            };
+        //            usersInContract.Add(userContract);
+        //        }
+        //        contract.UserContracts = usersInContract;
+        //        ShareEquity shareEquity = new ShareEquity
+        //        {
+        //            ContractId = contract.Id,
+        //            Contract = contract,
+        //            CreatedBy = userInProject.User.FullName,
+        //            Percentage = investmentContractCreateDTO.InvestorInfo.Percentage,
+        //            StakeHolderType = RoleInTeam.Investor,
+        //            User = investor,
+        //            UserId = investor.Id,
+        //            SharePrice = investmentContractCreateDTO.InvestorInfo.BuyPrice
+        //        };
+        //        var contractEntity = _contractRepository.Add(contract);
+        //        var shareEquityEntity = _shareEquityRepository.Add(shareEquity);
+        //        var disbursementList = new List<Disbursement>();
+        //        foreach (var disbursementTime in investmentContractCreateDTO.Disbursements)
+        //        {
+        //            Disbursement disbursement = new Disbursement
+        //            {
+        //                Amount = disbursementTime.Amount,
+        //                Condition = disbursementTime.Condition,
+        //                Contract = contract,
+        //                ContractId = contract.Id,
+        //                CreatedBy = userInProject.User.FullName,
+        //                DisbursementStatus = DisbursementStatusEnum.PENDING,
+        //                StartDate = disbursementTime.StartDate,
+        //                EndDate = disbursementTime.EndDate,
+        //                Title = disbursementTime.Title,
+        //                Investor = investor,
+        //                InvestorId = investor.Id,
+        //                IsValidWithContract = false
+        //            };
+        //            disbursementList.Add(disbursement);
+        //            var disbursementEntity = _disbursementRepository.Add(disbursement);
+        //        }
+        //        if (signingMethod == SigningMethodEnum.InternalApp)
+        //        {
+        //            var modifiedMemoryStream = await _documentFormatService.ReplacePlaceHolderForInvestmentDocumentAsync(contract, investor, leader, project, shareEquity, disbursementList);
+        //            modifiedMemoryStream.Position = 0;
+        //            string fileName = $"{Guid.NewGuid()}.docx";
+        //            contract.AzureLink = await _azureBlobService.UploadDocumentFromMemoryStreamAsync(modifiedMemoryStream, fileName);
+        //        }
+        //        if (signingMethod == SigningMethodEnum.SignNow)
+        //        {
+        //            await _signNowService.AuthenticateAsync();
+        //            contract.SignNowDocumentId = await _signNowService.UploadInvestmentContractToSignNowAsync(contract, investor, leader, userInProject.Project, shareEquity, disbursementList);
+        //        }
+        //        await _unitOfWork.SaveChangesAsync();
+        //        await _unitOfWork.CommitAsync();
+        //        return contractEntity;
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        _logger.LogError($"An error occurred while creating the contract: {ex.Message}");
+        //        await _unitOfWork.RollbackAsync();
+        //        throw;
+        //    }
+        //}
         public async Task<Contract> CreateStartupShareAllMemberContract(string userId, string projectId,GroupContractCreateDTO groupContractCreateDTO)
         {
             var userInProject = await _userService.CheckIfUserInProject(userId, projectId);
@@ -440,52 +561,55 @@ namespace StartedIn.Service.Services
             var userInChosenContract = await _userService.CheckIfUserBelongToContract(userId, contractId);
             try
             {
-                await _signNowService.AuthenticateAsync();
-                var userPartys = new List<User>();
-                foreach (var userInContract in userInChosenContract.Contract.UserContracts)
+                if (contract.SignNowDocumentId != null)
                 {
-                    User userParty = await _userManager.FindByIdAsync(userInContract.UserId);
-                    userPartys.Add(userParty);
-                }
-                var userEmails = new List<string>();
-                foreach (var userParty in userPartys)
-                {
-                    userEmails.Add(userParty.Email);
+                    await _signNowService.AuthenticateAsync();
+                    var userPartys = new List<User>();
+                    foreach (var userInContract in userInChosenContract.Contract.UserContracts)
+                    {
+                        User userParty = await _userManager.FindByIdAsync(userInContract.UserId);
+                        userPartys.Add(userParty);
+                    }
+                    var userEmails = new List<string>();
+                    foreach (var userParty in userPartys)
+                    {
+                        userEmails.Add(userParty.Email);
+                    }
+                    var webHookCreateList = new List<SignNowWebhookCreateDTO>();
+                    if (contract.ContractType == ContractTypeEnum.INVESTMENT)
+                    {
+                        var investor = await GetAUserFromContractWithUserRole(contractId);
+                        var webhookAddInvestorToProject = new SignNowWebhookCreateDTO
+                        {
+                            Action = SignNowServiceConstant.CallBackAction,
+                            CallBackUrl = $"{_apiDomain}/api/projects/{projectId}/add-user/{investor.Id}/{RoleInTeam.Investor}",
+                            EntityId = userInChosenContract.Contract.SignNowDocumentId,
+                            Event = SignNowServiceConstant.DocumentCompleteEvent,
+                        };
+                        webHookCreateList.Add(webhookAddInvestorToProject);
+                    }
+                    var webhookCompleteSign = new SignNowWebhookCreateDTO
+                    {
+                        Action = SignNowServiceConstant.CallBackAction,
+                        CallBackUrl = $"{_apiDomain}/api/projects/{projectId}/contracts/{contractId}/validate",
+                        EntityId = userInChosenContract.Contract.SignNowDocumentId,
+                        Event = SignNowServiceConstant.DocumentCompleteEvent
+                    };
+                    var webhookUpdate = new SignNowWebhookCreateDTO
+                    {
+                        Action = SignNowServiceConstant.CallBackAction,
+                        CallBackUrl = $"{_apiDomain}/api/projects/{projectId}/contracts/{contractId}/confirm-sign",
+                        EntityId = userInChosenContract.Contract.SignNowDocumentId,
+                        Event = SignNowServiceConstant.DocumentUpdateEvent
+                    };
+                    webHookCreateList.AddRange(new List<SignNowWebhookCreateDTO> { webhookCompleteSign, webhookUpdate });
+                    await _signNowService.RegisterManyWebhookAsync(webHookCreateList);
+                    var inviteResponse = await _signNowService.CreateFreeFormInvite(userInChosenContract.Contract.SignNowDocumentId, userEmails);
                 }
                 userInChosenContract.Contract.LastUpdatedBy = userInChosenContract.User.FullName;
                 userInChosenContract.Contract.LastUpdatedTime = DateTimeOffset.UtcNow;
                 userInChosenContract.Contract.ContractStatus = ContractStatusEnum.SENT;
                 userInChosenContract.Contract.SignDeadline = DateTimeOffset.UtcNow.AddDays(7);
-                var inviteResponse = await _signNowService.CreateFreeFormInvite(userInChosenContract.Contract.SignNowDocumentId, userEmails);
-                var webHookCreateList = new List<SignNowWebhookCreateDTO>();
-                if (contract.ContractType == ContractTypeEnum.INVESTMENT)
-                {
-                    var investor = await GetAUserFromContractWithUserRole(contractId);
-                    var webhookAddInvestorToProject = new SignNowWebhookCreateDTO
-                    {
-                        Action = SignNowServiceConstant.CallBackAction,
-                        CallBackUrl = $"{_apiDomain}/api/projects/{projectId}/add-user/{investor.Id}/{RoleInTeam.Investor}",
-                        EntityId = userInChosenContract.Contract.SignNowDocumentId,
-                        Event = SignNowServiceConstant.DocumentCompleteEvent,
-                    };
-                    webHookCreateList.Add(webhookAddInvestorToProject);
-                }
-                var webhookCompleteSign = new SignNowWebhookCreateDTO
-                {
-                    Action = SignNowServiceConstant.CallBackAction,
-                    CallBackUrl = $"{_apiDomain}/api/projects/{projectId}/contracts/{contractId}/validate",
-                    EntityId = userInChosenContract.Contract.SignNowDocumentId,
-                    Event = SignNowServiceConstant.DocumentCompleteEvent
-                };
-                var webhookUpdate = new SignNowWebhookCreateDTO
-                {
-                    Action = SignNowServiceConstant.CallBackAction,
-                    CallBackUrl = $"{_apiDomain}/api/projects/{projectId}/contracts/{contractId}/confirm-sign",
-                    EntityId = userInChosenContract.Contract.SignNowDocumentId,
-                    Event = SignNowServiceConstant.DocumentUpdateEvent
-                };
-                webHookCreateList.AddRange(new List<SignNowWebhookCreateDTO>{webhookCompleteSign, webhookUpdate});
-                await _signNowService.RegisterManyWebhookAsync(webHookCreateList);
                 _contractRepository.Update(userInChosenContract.Contract);
                 await _unitOfWork.SaveChangesAsync();
                 return userInChosenContract.Contract;

@@ -29,7 +29,7 @@ namespace StartedIn.API.Controllers
             _shareEquityService = shareEquityService;
         }
         [HttpGet("share-equities")]
-        [Authorize(Roles = RoleConstants.USER + "," + RoleConstants.INVESTOR)]
+        [Authorize(Roles = RoleConstants.USER + "," + RoleConstants.INVESTOR + "," + RoleConstants.MENTOR)]
         public async Task<ActionResult<List<ShareEquitiesOfMemberInAProject>>> GetShareEquitiesInAProject([FromRoute] string projectId, [FromQuery] EquityShareFilterDTO equityShareFilterDTO)
         {
             try

@@ -292,7 +292,7 @@ namespace StartedIn.API.Controllers
         }
 
         [HttpGet("projects/{projectId}/disbursements/project-info")]
-        [Authorize(Roles = RoleConstants.USER), RequireProjectAccess]
+        [Authorize(Roles = RoleConstants.USER + "," + RoleConstants.MENTOR), RequireProjectAccess]
         public async Task<ActionResult<List<DisbursementOverviewOfProject>>> GetDisbursementOverviewOfProject([FromRoute] string projectId)
         {
             try

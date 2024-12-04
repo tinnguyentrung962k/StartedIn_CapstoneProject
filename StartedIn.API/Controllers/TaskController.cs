@@ -61,7 +61,7 @@ namespace StartedIn.API.Controllers
         }
 
         [HttpGet]
-        [Authorize(Roles = RoleConstants.USER)]
+        [Authorize(Roles = RoleConstants.USER + "," + RoleConstants.MENTOR)]
         public async Task<ActionResult<PaginationDTO<TaskResponseDTO>>> getTaskCatalog(
             [FromRoute] string projectId,
             [FromQuery] TaskFilterDTO taskFilterDto,
@@ -81,7 +81,7 @@ namespace StartedIn.API.Controllers
         }
 
         [HttpGet("{taskId}")]
-        [Authorize(Roles = RoleConstants.USER)]
+        [Authorize(Roles = RoleConstants.USER + "," + RoleConstants.MENTOR)]
         public async Task<ActionResult<TaskDetailDTO>> GetTaskDetail([FromRoute] string projectId, [FromRoute] string taskId)
         {
             try

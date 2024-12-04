@@ -83,7 +83,7 @@ public class ProjectController : ControllerBase
     }
 
     [HttpGet("{projectId}")]
-    [Authorize(Roles = RoleConstants.USER + "," + RoleConstants.INVESTOR)]
+    [Authorize(Roles = RoleConstants.USER + "," + RoleConstants.INVESTOR + "," + RoleConstants.MENTOR)]
     public async Task<ActionResult<ProjectDetailDTO>> GetProjectById(string projectId)
     {
         try
@@ -103,7 +103,7 @@ public class ProjectController : ControllerBase
     }
 
     [HttpGet("{projectId}/members")]
-    [Authorize(Roles = RoleConstants.USER + "," + RoleConstants.INVESTOR)]
+    [Authorize(Roles = RoleConstants.USER + "," + RoleConstants.INVESTOR + "," + RoleConstants.MENTOR)]
     public async Task<ActionResult<List<MemberWithRoleInProjectResponseDTO>>> GetProjectWithMembers([FromRoute] string projectId)
     {
         try
@@ -123,7 +123,7 @@ public class ProjectController : ControllerBase
     }
 
     [HttpGet("{projectId}/parties")]
-    [Authorize(Roles = RoleConstants.USER + "," + RoleConstants.INVESTOR)]
+    [Authorize(Roles = RoleConstants.USER + "," + RoleConstants.INVESTOR + "," + RoleConstants.MENTOR)]
     public async Task<ActionResult<UserInContractResponseDTO>> GetListUsersRelevantToContractInAProject([FromRoute] string projectId)
     {
         try
