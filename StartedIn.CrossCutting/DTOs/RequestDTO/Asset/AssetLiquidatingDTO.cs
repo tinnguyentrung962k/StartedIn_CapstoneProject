@@ -10,7 +10,7 @@ namespace StartedIn.CrossCutting.DTOs.RequestDTO.Asset
     public class AssetLiquidatingDTO
     {
         public decimal SellPrice { get; set; }
-        public int SellAmount { get; set; }
+        public int SellQuantity { get; set; }
         public string? ToId { get; set; }
         public string? ToName { get; set; }
         public IFormFile EvidenceFile { get; set; }

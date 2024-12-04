@@ -202,6 +202,7 @@ namespace StartedIn.Service.Services
             await _userRepository.AddUserToProject(userId, projectId, roleInTeam);
             await _unitOfWork.SaveChangesAsync();
         }
+        
 
         public async Task<ProjectInviteOverviewDTO> GetProjectInviteOverview(string projectId)
         {

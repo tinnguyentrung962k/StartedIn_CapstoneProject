@@ -192,7 +192,7 @@ namespace StartedIn.Service.Services
             }
 
         }
-        public async Task<Asset> UpdateAsset(string userId, string projectId, string assetId,AssetUpdateDTO assetUpdateDTO)
+        public async Task<Asset> UpdateAsset(string userId, string projectId, string assetId, AssetUpdateDTO assetUpdateDTO)
         {
             var userInProject = await _userService.CheckIfUserInProject(userId, projectId);
             if (userInProject.RoleInTeam != RoleInTeam.Leader)
@@ -208,22 +208,13 @@ namespace StartedIn.Service.Services
             {
                 throw new UnmatchedException(MessageConstant.AssetNotBelongToProject);
             }
-            if (assetUpdateDTO.Quantity < assetUpdateDTO.RemainQuantity)
+            if (chosenAsset.Quantity < assetUpdateDTO.RemainQuantity)
             {
                 throw new InvalidDataException(MessageConstant.RemainingAmountOfAssetNotGreaterThanInitial);
-            }
-            if (assetUpdateDTO.Quantity <= 0)
-            {
-                throw new InvalidDataException(MessageConstant.AssetQuantityCannotSmallerThanZero);
             }
             try
             {
                 _unitOfWork.BeginTransaction();
-                chosenAsset.AssetName = assetUpdateDTO.AssetName;
-                chosenAsset.Price = assetUpdateDTO.Price;
-                chosenAsset.PurchaseDate = assetUpdateDTO.PurchaseDate;
-                chosenAsset.Quantity = assetUpdateDTO.Quantity;
-                chosenAsset.SerialNumber = assetUpdateDTO.SerialNumber;
                 chosenAsset.Status = assetUpdateDTO.Status;
                 chosenAsset.RemainQuantity = assetUpdateDTO.RemainQuantity;
                 if (chosenAsset.RemainQuantity == 0)
@@ -259,7 +250,7 @@ namespace StartedIn.Service.Services
             {
                 throw new UnmatchedException(MessageConstant.AssetNotBelongToProject);
             }
-            if (assetLiquidatingDTO.SellAmount > chosenAsset.RemainQuantity)
+            if (assetLiquidatingDTO.SellQuantity > chosenAsset.RemainQuantity)
             {
                 throw new InvalidDataException(MessageConstant.SellGreaterThanRemainError);
             }
@@ -267,9 +258,9 @@ namespace StartedIn.Service.Services
             {
                 _unitOfWork.BeginTransaction();
                 var project = await _projectRepository.GetProjectById(projectId);
-                if (assetLiquidatingDTO.SellAmount <= chosenAsset.RemainQuantity)
+                if (assetLiquidatingDTO.SellQuantity <= chosenAsset.RemainQuantity)
                 {
-                    chosenAsset.RemainQuantity -= assetLiquidatingDTO.SellAmount;
+                    chosenAsset.RemainQuantity -= assetLiquidatingDTO.SellQuantity;
                     if (chosenAsset.RemainQuantity == 0)
                     {
                         chosenAsset.Status = AssetStatus.Sold;
@@ -278,10 +269,10 @@ namespace StartedIn.Service.Services
                 string evidenceUrl = await _azureBlobService.UploadEvidenceOfTransaction(assetLiquidatingDTO.EvidenceFile);
                 var liquidatingTransaction = new Transaction
                 {
-                    Amount = assetLiquidatingDTO.SellAmount * assetLiquidatingDTO.SellPrice,
+                    Amount = assetLiquidatingDTO.SellQuantity * assetLiquidatingDTO.SellPrice,
                     CreatedBy = userInProject.User.FullName,
                     EvidenceUrl = evidenceUrl,
-                    Content = $"Thanh lý tài sản: {chosenAsset.AssetName} - Số lượng: {assetLiquidatingDTO.SellAmount} - Đơn giá: {assetLiquidatingDTO.SellPrice}.",
+                    Content = $"Thanh lý tài sản: {chosenAsset.AssetName} - Số lượng: {assetLiquidatingDTO.SellQuantity} - Đơn giá: {assetLiquidatingDTO.SellPrice}.",
                     IsInFlow = true,
                     FromID = userInProject.User.Id,
                     FromName = userInProject.User.FullName,

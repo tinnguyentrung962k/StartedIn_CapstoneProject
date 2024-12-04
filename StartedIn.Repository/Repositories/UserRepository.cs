@@ -30,6 +30,17 @@ namespace StartedIn.Repository.Repositories
             };
             await _appDbContext.Set<UserProject>().AddAsync(userProject);
         }
+        public async Task DeleteUserFromAProject(string userId, string projectId)
+        {
+            var userProject = await _appDbContext.Set<UserProject>()
+            .Where(up => up.UserId == userId && up.ProjectId == projectId)
+            .FirstOrDefaultAsync();
+            if (userProject != null) 
+            {
+                _appDbContext.Set<UserProject>().Remove(userProject);
+                await _appDbContext.SaveChangesAsync();
+            }
+        }
 
         public async Task<UserProject> GetAUserInProject(string projectId, string userId)
         {
