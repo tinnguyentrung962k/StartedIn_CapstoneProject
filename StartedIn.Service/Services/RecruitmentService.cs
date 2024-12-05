@@ -44,7 +44,13 @@ public class RecruitmentService : IRecruitmentService
         {
             throw new NotFoundException(MessageConstant.NotFoundProjectError);
         }
-        
+
+        var recruitmentPost = await _recruitmentRepository.QueryHelper().Filter(r => r.ProjectId.Equals(projectId)).GetOneAsync();
+        if (recruitmentPost != null)
+        {
+            throw new InvalidInputException(MessageConstant.RecruitmentPostExist);
+        }
+
         var userInProject = await _userService.CheckIfUserInProject(userId, projectId);
         var projectRole = await _projectRepository.GetUserRoleInProject(userId, projectId);
         if (projectRole != RoleInTeam.Leader)
@@ -86,9 +92,9 @@ public class RecruitmentService : IRecruitmentService
         }
     }
 
-    public async Task<Recruitment> GetRecruitmentPostById(string projectId, string recruitmentId)
+    public async Task<Recruitment> GetRecruitmentPostById(string recruitmentId)
     {
-        var recruitment = await _recruitmentRepository.GetRecruitmentPostById(projectId, recruitmentId);
+        var recruitment = await _recruitmentRepository.GetRecruitmentPostById(recruitmentId);
         if (recruitment == null)
         {
             throw new NotFoundException(MessageConstant.NotFoundRecruitmentPost);
@@ -113,7 +119,7 @@ public class RecruitmentService : IRecruitmentService
             throw new UnauthorizedProjectRoleException(MessageConstant.RolePermissionError);
         }
 
-        var recruitment = await _recruitmentRepository.GetRecruitmentPostById(projectId, recruitmentId);
+        var recruitment = await _recruitmentRepository.GetRecruitmentPostById(recruitmentId);
         if (recruitment == null)
         {
             throw new NotFoundException(MessageConstant.NotFoundRecruitmentPost);
@@ -152,5 +158,20 @@ public class RecruitmentService : IRecruitmentService
 
         };
         return pagination;
+    }
+
+    public async Task<Recruitment> GetRecruitmentPostInProject(string userId, string projectId)
+    {
+        var userInProject = await _userService.CheckIfUserInProject(userId, projectId);
+
+        var recruitment = await _recruitmentRepository.QueryHelper().Include(r => r.RecruitmentImgs)
+            .Filter(r => r.ProjectId.Equals(projectId)).GetOneAsync();
+
+        if (recruitment == null)
+        {
+            throw new NotFoundException(MessageConstant.NotFoundRecruitmentPost);
+        }
+
+        return recruitment;
     }
 }

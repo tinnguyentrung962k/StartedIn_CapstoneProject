@@ -106,5 +106,6 @@ namespace StartedIn.CrossCutting.Constants
         public const string UserBelongToActiveContracts = "Người dùng này còn hợp đồng đang có hiệu lực";
         public const string LeaderCannotLeaveGroup = "Bạn không thể rời nhóm với vị trí trưởng nhóm.";
         public const string NotFoundRecruitmentImg = "Không tìm thấy ảnh tuyển dụng";
+        public const string RecruitmentPostExist = "Bài đăng tuyển dụng đã tồn tại";
     }
 }

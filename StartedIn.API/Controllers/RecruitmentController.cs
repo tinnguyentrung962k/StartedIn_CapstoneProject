@@ -26,7 +26,8 @@ public class RecruitmentController : ControllerBase
         _recruitmentImageService = recruitmentImageService;
     }
 
-    [HttpPost("projects/{projectId}/recruitment")]
+    // Create recruitment post for users in the project
+    [HttpPost("projects/{projectId}/recruitments")]
     [Authorize(Roles = RoleConstants.USER)]
     public async Task<ActionResult<RecruitmentResponseDTO>> CreateRecruitmentPost([FromRoute] string projectId,
         [FromForm] CreateRecruitmentDTO createRecruitmentDto)
@@ -49,17 +50,31 @@ public class RecruitmentController : ControllerBase
         }
     }
 
-    [HttpGet("projects/{projectId}/recruitment/{recruitmentId}")]
-    [Authorize(Roles = RoleConstants.USER + "," + RoleConstants.INVESTOR)]
-    public async Task<ActionResult<RecruitmentResponseDTO>> GetRecruitmentPostById([FromRoute] string projectId,
-        string recruitmentId)
+    // Get created recruitment post info for users in the project
+    [HttpGet("projects/{projectId}/recruitments")]
+    [Authorize(Roles = RoleConstants.USER)]
+    public async Task<ActionResult<RecruitmentInProjectDTO>> GetRecruitmentPostInProject([FromRoute] string projectId)
     {
-        var recruitment = await _recruitmentService.GetRecruitmentPostById(projectId, recruitmentId);
-        var response = _mapper.Map<RecruitmentResponseDTO>(recruitment);
-        return Ok(response);
+        try
+        {
+            var userId = User.FindFirst(ClaimTypes.NameIdentifier).Value;
+            var recruitment = await _recruitmentService.GetRecruitmentPostInProject(userId, projectId);
+            var response = _mapper.Map<RecruitmentInProjectDTO>(recruitment);
+            return Ok(response);
+        }
+        catch (NotFoundException ex)
+        {
+            return BadRequest(ex.Message);
+        }
+        catch (UnauthorizedProjectRoleException ex)
+        {
+            return StatusCode(403, ex.Message);
+        }
     }
 
-    [HttpPut("projects/{projectId}/recruitment/{recruitmentId}")]
+
+    // Update recruitment post for users in the project
+    [HttpPut("projects/{projectId}/recruitments")]
     [Authorize(Roles = RoleConstants.USER)]
     public async Task<ActionResult<RecruitmentResponseDTO>> UpdateRecruitment([FromRoute] string projectId,
         string recruitmentId, [FromBody] UpdateRecruitmentDTO updateRecruitmentDto)
@@ -80,7 +95,8 @@ public class RecruitmentController : ControllerBase
             return StatusCode(403, ex.Message);
         }
     }
-    
+
+    // Get recruitment list for guests / outside users
     [HttpGet("recruitments")]
     [Authorize(Roles = RoleConstants.USER)]
     public async Task<ActionResult<PaginationDTO<RecruitmentListDTO>>> GetRecruitmentList([FromQuery] int page, [FromQuery] int size)
@@ -96,6 +112,17 @@ public class RecruitmentController : ControllerBase
         }
     }
 
+    // Get recruitment details in the recruitment list of guests / outside users
+    [HttpGet("recruitments/{recruitmentId}")]
+    [Authorize(Roles = RoleConstants.USER + "," + RoleConstants.INVESTOR)]
+    public async Task<ActionResult<RecruitmentResponseDTO>> GetRecruitmentPostById([FromRoute]
+       string recruitmentId)
+    {
+        var recruitment = await _recruitmentService.GetRecruitmentPostById(recruitmentId);
+        var response = _mapper.Map<RecruitmentResponseDTO>(recruitment);
+        return Ok(response);
+    }
+
     [HttpPost("projects/{projectId}/recruitments/images/add")]
     [Authorize(Roles = RoleConstants.USER)]
     public async Task<ActionResult<List<RecruitmentImgResponseDTO>>> AddImageToRecruitmentPost([FromRoute] string projectId,
@@ -103,6 +130,7 @@ public class RecruitmentController : ControllerBase
     {
         try
         {
+            //TODO: Check if user is in project
             var listImages = await _recruitmentImageService.AddImageToRecruitmentPost(projectId, recruitFiles);
             var response = _mapper.Map<List<RecruitmentImgResponseDTO>>(listImages);
             return Ok(response);
@@ -113,13 +141,14 @@ public class RecruitmentController : ControllerBase
         }
     }
 
-    [HttpDelete("projects/{projectId}/recruitments/images/remove/{recruitmentImgId}")]
+    [HttpDelete("projects/{projectId}/recruitments/images/{recruitmentImgId}/remove")]
     [Authorize(Roles = RoleConstants.USER)]
     public async Task<IActionResult> RemoveImageFromRecruitmentPost([FromRoute] string projectId,
         string recruitmentImgId)
     {
         try
         {
+            //TODO: Check if user is in project
             await _recruitmentImageService.RemoveImageFromRecruitmentPost(projectId, recruitmentImgId);
             return NoContent();
         }

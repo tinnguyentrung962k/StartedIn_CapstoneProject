@@ -9,7 +9,10 @@ public interface IRecruitmentService
 {
     Task<Recruitment> CreateRecruitment(string userId, string projectId, CreateRecruitmentDTO createRecruitmentDto);
 
-    Task<Recruitment> GetRecruitmentPostById(string projectId, string recruitmentId);
+    // Get recruitment details in the recruitment list of guests / outside users
+    Task<Recruitment> GetRecruitmentPostById(string recruitmentId);
+
+    Task<Recruitment> GetRecruitmentPostInProject(string userId, string projectId);
 
     Task<Recruitment> UpdateRecruitment(string userId, string projectId, string recruitmentId,
         UpdateRecruitmentDTO updateRecruitmentDto);

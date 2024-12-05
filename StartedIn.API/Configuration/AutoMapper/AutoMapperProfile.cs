@@ -321,6 +321,8 @@ namespace StartedIn.API.Configuration.AutoMapper
                         src.Project.UserProjects.FirstOrDefault(up => up.RoleInTeam == RoleInTeam.Leader).User.FullName))
                 .ForMember(dest => dest.LogoUrl, opt => opt.MapFrom(src => src.Project.LogoUrl))
                 .ReverseMap();
+
+            CreateMap<Recruitment, RecruitmentInProjectDTO>().ReverseMap();
         }
 
         private void RecruitmentImgMappingProfile()
