@@ -17,11 +17,13 @@ public class RecruitmentController : ControllerBase
 {
     private readonly IRecruitmentService _recruitmentService;
     private readonly IMapper _mapper;
+    private readonly IRecruitmentImageService _recruitmentImageService;
 
-    public RecruitmentController(IRecruitmentService recruitmentService, IMapper mapper)
+    public RecruitmentController(IRecruitmentService recruitmentService, IMapper mapper, IRecruitmentImageService recruitmentImageService)
     {
         _recruitmentService = recruitmentService;
         _mapper = mapper;
+        _recruitmentImageService = recruitmentImageService;
     }
 
     [HttpPost("projects/{projectId}/recruitment")]
@@ -91,6 +93,39 @@ public class RecruitmentController : ControllerBase
         catch (Exception ex)
         {
             return StatusCode(500, ex.Message);
+        }
+    }
+
+    [HttpPost("projects/{projectId}/recruitments/images/add")]
+    [Authorize(Roles = RoleConstants.USER)]
+    public async Task<ActionResult<List<RecruitmentImgResponseDTO>>> AddImageToRecruitmentPost([FromRoute] string projectId,
+        [FromForm] List<IFormFile> recruitFiles)
+    {
+        try
+        {
+            var listImages = await _recruitmentImageService.AddImageToRecruitmentPost(projectId, recruitFiles);
+            var response = _mapper.Map<List<RecruitmentImgResponseDTO>>(listImages);
+            return Ok(response);
+        }
+        catch (NotFoundException ex)
+        {
+            return BadRequest(ex.Message);
+        }
+    }
+
+    [HttpDelete("projects/{projectId}/recruitments/images/remove/{recruitmentImgId}")]
+    [Authorize(Roles = RoleConstants.USER)]
+    public async Task<IActionResult> RemoveImageFromRecruitmentPost([FromRoute] string projectId,
+        string recruitmentImgId)
+    {
+        try
+        {
+            await _recruitmentImageService.RemoveImageFromRecruitmentPost(projectId, recruitmentImgId);
+            return NoContent();
+        }
+        catch (NotFoundException ex)
+        {
+            return BadRequest(ex.Message);
         }
     }
 }

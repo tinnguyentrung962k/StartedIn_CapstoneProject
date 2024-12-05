@@ -240,5 +240,19 @@ namespace StartedIn.Service.Services
             }
             return blobClient;
         }
+        
+        public async Task DeleteImageFromRecruitmentBlob(string imageUrl)
+        {
+            var blobName = GetBlobNameFromUrl(imageUrl);
+            var blobClient = _recruitmentImageContainerClient.GetBlobClient(blobName);
+            await blobClient.DeleteAsync();
+        }
+
+        // Helper method to extract blob name from URL
+        private string GetBlobNameFromUrl(string url)
+        {
+            var uri = new Uri(url);
+            return uri.Segments[^1]; 
+        }
     }
 }
