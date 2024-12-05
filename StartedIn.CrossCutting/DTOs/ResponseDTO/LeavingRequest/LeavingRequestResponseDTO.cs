@@ -11,6 +11,7 @@ namespace StartedIn.CrossCutting.DTOs.ResponseDTO.LeavingRequest
     public class LeavingRequestResponseDTO : IdentityResponseDTO
     {
         public string UserId { get; set; }
+        public string ProfilePicture { get; set; }
         public string FullName { get; set; }
         public string Email { get; set; }
         public string ProjectId { get; set; }
