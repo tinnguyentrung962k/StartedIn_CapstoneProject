@@ -4,6 +4,7 @@ using StartedIn.CrossCutting.DTOs.RequestDTO.Contract;
 using StartedIn.CrossCutting.DTOs.ResponseDTO;
 using StartedIn.CrossCutting.DTOs.ResponseDTO.Contract;
 using StartedIn.CrossCutting.DTOs.ResponseDTO.SignNowResponseDTO;
+using StartedIn.CrossCutting.Enum;
 using StartedIn.Domain.Entities;
 
 
@@ -26,5 +27,6 @@ namespace StartedIn.Service.Services.Interface
         Task CancelContractAfterDueDate();
         Task MarkExpiredContract(string userId, string projectId, string contractId);
         Task DeleteContract(string userId, string projectId, string contractId);
+        //Task<Contract> CreateInvestmentContractInternalApp(string userId, string projectId,SigningMethodEnum signingMethod,InvestmentContractCreateDTO investmentContractCreateDTO);
     }
 }

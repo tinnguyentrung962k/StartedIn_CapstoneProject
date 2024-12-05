@@ -51,7 +51,7 @@ namespace StartedIn.API.Configuration.AutoMapper
             RecruitmentMappingProfile();
             RecruitmentImgMappingProfile();
             AppointmentMappingProfile();
-            LeavingRequstMappingProfile();
+            LeavingRequestMappingProfile();
         }
 
 
@@ -193,7 +193,8 @@ namespace StartedIn.API.Configuration.AutoMapper
         }
         private void ShareEquityMappingProfile()
         {
-            CreateMap<ShareEquity, UserShareEquityInContractResponseDTO>().ReverseMap();
+            CreateMap<ShareEquity, UserShareEquityInContractResponseDTO>()
+                .ForMember(dest => dest.FullName, opt => opt.MapFrom(src => src.User.FullName));
             CreateMap<ShareEquitySummaryDTO, ShareEquitiesOfMemberInAProject>()
                 .ForMember(dest => dest.UserFullName, opt => opt.MapFrom(src => src.UserFullName))
                 .ForMember(dest => dest.Percentage, opt => opt.MapFrom(src => src.TotalPercentage))
@@ -334,13 +335,13 @@ namespace StartedIn.API.Configuration.AutoMapper
             CreateMap<Appointment, AppointmentResponseDTO>()
                 .ForMember(dest => dest.MilestoneName, opt => opt.MapFrom(src => src.Milestone.Title));
         }
-        private void LeavingRequstMappingProfile()
+        private void LeavingRequestMappingProfile()
         {
             CreateMap<LeavingRequest, LeavingRequestResponseDTO>()
                 .ForMember(dest => dest.FullName, opt => opt.MapFrom(src => src.User.FullName))
                 .ForMember(dest => dest.Email, opt => opt.MapFrom(src => src.User.Email))
-                .ForMember(dest => dest.ProjectName, opt => opt.MapFrom(src => src.Project.ProjectName));
-                
+                .ForMember(dest => dest.ProjectName, opt => opt.MapFrom(src => src.Project.ProjectName))
+                .ForMember(dest => dest.ProfilePicture, opt => opt.MapFrom(src => src.User.ProfilePicture)); 
         }
     }
 }

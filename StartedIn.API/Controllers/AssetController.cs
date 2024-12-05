@@ -29,7 +29,7 @@ namespace StartedIn.API.Controllers
             _mapper = mapper;
         }
         [HttpGet("assets")]
-        [Authorize(Roles = RoleConstants.USER + "," + RoleConstants.INVESTOR)]
+        [Authorize(Roles = RoleConstants.USER + "," + RoleConstants.INVESTOR + "," + RoleConstants.MENTOR)]
         public async Task<ActionResult<PaginationDTO<AssetResponseDTO>>> SearchAssetWithFilters(
         [FromRoute] string projectId, [FromQuery] AssetFilterDTO search, int page, int size)
         {
@@ -79,7 +79,7 @@ namespace StartedIn.API.Controllers
         }
 
         [HttpGet("assets/{assetId}")]
-        [Authorize(Roles = RoleConstants.USER + "," + RoleConstants.INVESTOR)]
+        [Authorize(Roles = RoleConstants.USER + "," + RoleConstants.INVESTOR + "," + RoleConstants.MENTOR)]
         public async Task<ActionResult<AssetResponseDTO>> GetAssetDetailById([FromRoute] string projectId, [FromRoute] string assetId)
         {
             try

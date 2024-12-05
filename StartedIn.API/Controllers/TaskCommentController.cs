@@ -23,7 +23,7 @@ namespace StartedIn.API.Controllers
         }
 
         [HttpPost]
-        [Authorize(Roles = RoleConstants.USER)]
+        [Authorize(Roles = RoleConstants.USER + "," + RoleConstants.MENTOR)]
         public async Task<ActionResult<TaskCommentCreateDTO>> AddComment([FromRoute] string projectId, [FromRoute] string taskId, [FromBody] TaskCommentCreateDTO taskCommentCreateDTO)
         {
             try

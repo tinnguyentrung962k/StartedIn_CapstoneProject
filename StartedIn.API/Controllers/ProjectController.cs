@@ -83,7 +83,7 @@ public class ProjectController : ControllerBase
     }
 
     [HttpGet("{projectId}")]
-    [Authorize(Roles = RoleConstants.USER + "," + RoleConstants.INVESTOR)]
+    [Authorize(Roles = RoleConstants.USER + "," + RoleConstants.INVESTOR + "," + RoleConstants.MENTOR)]
     public async Task<ActionResult<ProjectDetailDTO>> GetProjectById(string projectId)
     {
         try
@@ -103,7 +103,7 @@ public class ProjectController : ControllerBase
     }
 
     [HttpGet("{projectId}/members")]
-    [Authorize(Roles = RoleConstants.USER + "," + RoleConstants.INVESTOR)]
+    [Authorize(Roles = RoleConstants.USER + "," + RoleConstants.INVESTOR + "," + RoleConstants.MENTOR)]
     public async Task<ActionResult<List<MemberWithRoleInProjectResponseDTO>>> GetProjectWithMembers([FromRoute] string projectId)
     {
         try
@@ -123,7 +123,7 @@ public class ProjectController : ControllerBase
     }
 
     [HttpGet("{projectId}/parties")]
-    [Authorize(Roles = RoleConstants.USER + "," + RoleConstants.INVESTOR)]
+    [Authorize(Roles = RoleConstants.USER + "," + RoleConstants.INVESTOR + "," + RoleConstants.MENTOR)]
     public async Task<ActionResult<UserInContractResponseDTO>> GetListUsersRelevantToContractInAProject([FromRoute] string projectId)
     {
         try
@@ -283,6 +283,25 @@ public class ProjectController : ControllerBase
         {
             var userId = User.FindFirst(ClaimTypes.NameIdentifier).Value;
             var response = await _projectService.GetProjectClosingInformation(userId, projectId);
+            return Ok(response);
+        }
+        catch (UnauthorizedProjectRoleException ex)
+        {
+            return StatusCode(403, ex.Message);
+        }
+        catch (Exception ex)
+        {
+            return StatusCode(500, ex.Message);
+        }
+    }
+    [HttpGet("{projectId}/check-leaveable")]
+    [Authorize(Roles = RoleConstants.USER + "," + RoleConstants.INVESTOR + "," + RoleConstants.MENTOR)]
+    public async Task<ActionResult<LeavingProjectInfomationDTO>> GetLeavingInformationForProject([FromRoute] string projectId)
+    {
+        try
+        {
+            var userId = User.FindFirst(ClaimTypes.NameIdentifier).Value;
+            var response = await _projectService.GetProjectLeavingInformation(userId, projectId);
             return Ok(response);
         }
         catch (UnauthorizedProjectRoleException ex)

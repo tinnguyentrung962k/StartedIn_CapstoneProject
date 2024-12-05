@@ -30,7 +30,6 @@ namespace StartedIn.Service.Services
         private readonly HttpClient _httpClient;
         private string _accessToken;
         private readonly SignNowSettings _signNowSettings;
-        private readonly IAzureBlobService _azureBlobService;
         private readonly IDocumentFormatService _documentFormatService;
         private readonly ILogger<SignNowService> _logger;
 
@@ -45,7 +44,6 @@ namespace StartedIn.Service.Services
                 Username = configuration.GetValue<string>("SignNowUsername"),
                 Password = configuration.GetValue<string>("SignNowPassword"),
             };
-            _azureBlobService = azureBlobService;
             _documentFormatService = documentFormatService;
             _logger = logger;
         }

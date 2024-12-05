@@ -53,7 +53,7 @@ namespace StartedIn.API.Controllers
         }
 
         [HttpGet("{milestoneId}")]
-        [Authorize(Roles = RoleConstants.USER + "," + RoleConstants.INVESTOR)]
+        [Authorize(Roles = RoleConstants.USER + "," + RoleConstants.INVESTOR + "," + RoleConstants.MENTOR)]
         public async Task<ActionResult<MilestoneDetailsResponseDTO>> GetMilestoneById([FromRoute] string projectId, [FromRoute] string milestoneId)
         {
             try
@@ -82,7 +82,7 @@ namespace StartedIn.API.Controllers
         }
 
         [HttpGet]
-        [Authorize(Roles = RoleConstants.USER + "," + RoleConstants.INVESTOR)]
+        [Authorize(Roles = RoleConstants.USER + "," + RoleConstants.INVESTOR + "," + RoleConstants.MENTOR)]
         public async Task<ActionResult<PaginationDTO<MilestoneResponseDTO>>> GetMilestonesForProject(
             [FromRoute] string projectId,
             [FromQuery] MilestoneFilterDTO milestoneFilterDTO,

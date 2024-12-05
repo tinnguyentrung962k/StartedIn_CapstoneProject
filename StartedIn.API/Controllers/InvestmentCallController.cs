@@ -63,7 +63,7 @@ public class InvestmentCallController : ControllerBase
     }
     
     [HttpGet("investment-call/{investmentCallId}")]
-    [Authorize(Roles = RoleConstants.USER)]
+    [Authorize(Roles = RoleConstants.USER + "," + RoleConstants.MENTOR)]
     public async Task<ActionResult<InvestmentCallResponseDTO>> GetInvestmentCallById([FromRoute] string projectId, [FromRoute] string investmentCallId)
     {
         try
@@ -83,7 +83,7 @@ public class InvestmentCallController : ControllerBase
     }
 
     [HttpGet("investment-calls")]
-    [Authorize(Roles = RoleConstants.USER)]
+    [Authorize(Roles = RoleConstants.USER + "," + RoleConstants.MENTOR)]
     public async Task<ActionResult<List<InvestmentCallResponseDTO>>> GetInvestmentCallsByProjectId(
         [FromRoute] string projectId)
     {

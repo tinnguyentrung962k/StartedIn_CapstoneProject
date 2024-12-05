@@ -123,7 +123,10 @@ namespace StartedIn.Service.Services
                 }
 
                 var existedInvite = await _applicationRepository.QueryHelper()
-                    .Filter(x => x.CandidateId.Equals(existedUser.Id) && x.ProjectId.Equals(projectId) && x.Type == ApplicationTypeEnum.INVITE && x.Status != ApplicationStatus.REJECTED)
+                    .Filter(x => x.CandidateId.Equals(existedUser.Id) 
+                    && x.ProjectId.Equals(projectId) 
+                    && x.Type == ApplicationTypeEnum.INVITE 
+                    && x.Status == ApplicationStatus.PENDING)
                     .GetOneAsync();
 
                 if (existedInvite != null)
@@ -230,7 +233,10 @@ namespace StartedIn.Service.Services
         public async Task AcceptProjectInvitation(string userId, string projectId, AcceptInviteDTO acceptInviteDTO)
         {
             var invite = await _applicationRepository.QueryHelper()
-                .Filter(x => x.CandidateId.Equals(userId) && x.Type == acceptInviteDTO.Type && x.Status == ApplicationStatus.PENDING && x.Role == acceptInviteDTO.Role)
+                .Filter(x => x.CandidateId.Equals(userId) 
+                && x.Type == acceptInviteDTO.Type 
+                && x.Status == ApplicationStatus.PENDING 
+                && x.Role == acceptInviteDTO.Role)
                 .GetOneAsync();
 
             if (invite == null) { throw new NotFoundException(MessageConstant.NotInvitedError); }

@@ -84,14 +84,14 @@ namespace StartedIn.API.Controllers
             }
         }
 
-        [HttpPost("leaving-requests/{requestId}/accept")]
+        [HttpPut("leaving-requests/{requestId}/accept")]
         [Authorize(Roles = RoleConstants.USER)]
-        public async Task<IActionResult> AcceptLeavingRequest([FromRoute] string projectId, [FromRoute] string requestId, IFormFile file)
+        public async Task<IActionResult> AcceptLeavingRequest([FromRoute] string projectId, [FromRoute] string requestId)
         {
             try
             {
                 var userId = User.FindFirst(ClaimTypes.NameIdentifier).Value;
-                await _leavingRequestService.AcceptLeavingRequest(userId, projectId, requestId, file);
+                await _leavingRequestService.AcceptLeavingRequest(userId, projectId, requestId);
                 return Ok("Chấp nhận đề nghị thành công");
             }
             catch (UnauthorizedProjectRoleException ex)
@@ -111,6 +111,7 @@ namespace StartedIn.API.Controllers
                 return StatusCode(500, ex.Message);
             }
         }
+
         [HttpPut("leaving-requests/{requestId}/reject")]
         [Authorize(Roles = RoleConstants.USER)]
         public async Task<IActionResult> RejectLeavingRequest([FromRoute] string projectId, [FromRoute] string requestId, IFormFile file)
@@ -134,13 +135,15 @@ namespace StartedIn.API.Controllers
                 return StatusCode(500, ex.Message);
             }
         }
+
         [HttpGet("leaving-requests")]
-        public async Task<ActionResult<PaginationDTO<LeavingRequestResponseDTO>>> FilterLeavingRequestInProject([FromRoute] string projectId, [FromQuery] LeavingRequestFilterDTO leavingRequestFilterDTO, [FromQuery] int page, [FromQuery] int size)
+        [Authorize(Roles = RoleConstants.USER)]
+        public async Task<ActionResult<List<LeavingRequestResponseDTO>>> FilterLeavingRequestInProject([FromRoute] string projectId)
         {
             try 
             {
                 var userId = User.FindFirst(ClaimTypes.NameIdentifier).Value;
-                var response = await _leavingRequestService.FilterLeavingRequestForLeader(userId, projectId, leavingRequestFilterDTO, page, size);
+                var response = await _leavingRequestService.FilterLeavingRequestForLeader(userId, projectId);
                 return Ok(response);
             }
             catch (UnauthorizedProjectRoleException ex)
