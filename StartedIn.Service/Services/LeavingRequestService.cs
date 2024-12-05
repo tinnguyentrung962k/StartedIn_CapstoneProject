@@ -231,40 +231,17 @@ namespace StartedIn.Service.Services
             }
         }
 
-        public async Task<PaginationDTO<LeavingRequestResponseDTO>> FilterLeavingRequestForLeader(string userId, string projectId, LeavingRequestFilterDTO leavingRequestFilterDTO, int page, int size)
+        public async Task<List<LeavingRequestResponseDTO>> FilterLeavingRequestForLeader(string userId, string projectId)
         {
             var userInProject = await _userService.CheckIfUserInProject(userId, projectId);
             if (userInProject.RoleInTeam != RoleInTeam.Leader)
             {
                 throw new UnauthorizedProjectRoleException(MessageConstant.RolePermissionError);
             }
-            var requestQuery = _leavingRequestRepository.GetLeavingRequestForLeaderInProject(projectId);
-            if (!string.IsNullOrWhiteSpace(leavingRequestFilterDTO.FullName))
-            {
-                requestQuery = requestQuery.Where(x => x.User.FullName.ToLower().Contains(leavingRequestFilterDTO.FullName.ToLower()));
-            }
-            if (!string.IsNullOrWhiteSpace(leavingRequestFilterDTO.Email))
-            {
-                requestQuery = requestQuery.Where(x => x.User.Email.ToLower().Contains(leavingRequestFilterDTO.Email.ToLower()));
-            }
-            if (leavingRequestFilterDTO.Status != null)
-            {
-                requestQuery = requestQuery.Where(x => x.Status.Equals(leavingRequestFilterDTO.Status));
-            }
-            int totalCount = await requestQuery.CountAsync();
-            var pagedResult = await requestQuery
-                .Skip((page - 1) * size)
-                .Take(size)
-                .ToListAsync();
-            var response = _mapper.Map<List<LeavingRequestResponseDTO>>(pagedResult);
-            var pagination = new PaginationDTO<LeavingRequestResponseDTO>
-            {
-                Total = totalCount,
-                Page = page,
-                Size = size,
-                Data = response
-            };
-            return pagination;
+            var requestQuery = _leavingRequestRepository.GetLeavingRequestForLeaderInProject(projectId).Where(x=>x.Status == LeavingRequestStatus.PENDING);
+            var result = await requestQuery.ToListAsync();
+            var response = _mapper.Map<List<LeavingRequestResponseDTO>>(result);
+            return response;
         }
 
     }
