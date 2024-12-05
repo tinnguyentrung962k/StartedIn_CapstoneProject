@@ -138,12 +138,12 @@ namespace StartedIn.API.Controllers
 
         [HttpGet("leaving-requests")]
         [Authorize(Roles = RoleConstants.USER)]
-        public async Task<ActionResult<PaginationDTO<LeavingRequestResponseDTO>>> FilterLeavingRequestInProject([FromRoute] string projectId, [FromQuery] LeavingRequestFilterDTO leavingRequestFilterDTO, [FromQuery] int page, [FromQuery] int size)
+        public async Task<ActionResult<List<LeavingRequestResponseDTO>>> FilterLeavingRequestInProject([FromRoute] string projectId)
         {
             try 
             {
                 var userId = User.FindFirst(ClaimTypes.NameIdentifier).Value;
-                var response = await _leavingRequestService.FilterLeavingRequestForLeader(userId, projectId, leavingRequestFilterDTO, page, size);
+                var response = await _leavingRequestService.FilterLeavingRequestForLeader(userId, projectId);
                 return Ok(response);
             }
             catch (UnauthorizedProjectRoleException ex)
