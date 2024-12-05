@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.Mvc;
 using StartedIn.CrossCutting.Constants;
 using StartedIn.CrossCutting.DTOs.RequestDTO.RecruitInvite;
 using StartedIn.CrossCutting.DTOs.ResponseDTO;
+using StartedIn.CrossCutting.DTOs.ResponseDTO.RecruitInvite;
 using StartedIn.CrossCutting.DTOs.ResponseDTO.Recruitment;
 using StartedIn.CrossCutting.Exceptions;
 using StartedIn.Service.Services.Interface;
@@ -18,12 +19,14 @@ public class RecruitmentController : ControllerBase
     private readonly IRecruitmentService _recruitmentService;
     private readonly IMapper _mapper;
     private readonly IRecruitmentImageService _recruitmentImageService;
+    private readonly IApplicationService _applicationService;
 
-    public RecruitmentController(IRecruitmentService recruitmentService, IMapper mapper, IRecruitmentImageService recruitmentImageService)
+    public RecruitmentController(IRecruitmentService recruitmentService, IMapper mapper, IRecruitmentImageService recruitmentImageService, IApplicationService applicationService)
     {
         _recruitmentService = recruitmentService;
         _mapper = mapper;
         _recruitmentImageService = recruitmentImageService;
+        _applicationService = applicationService;
     }
 
     [HttpPost("projects/{projectId}/recruitment")]
@@ -126,6 +129,32 @@ public class RecruitmentController : ControllerBase
         catch (NotFoundException ex)
         {
             return BadRequest(ex.Message);
+        }
+    }
+
+    [HttpPost("projects/{projectId}/apply")]
+    [Authorize(Roles = RoleConstants.USER)]
+    public async Task<ActionResult<ApplicationResponseDTO>> ApplyToProject([FromRoute] string projectId,
+        CreateApplicationDTO createApplicationDto)
+    {
+        var userId = User.FindFirst(ClaimTypes.NameIdentifier).Value;
+        try
+        {
+            var application = await _applicationService.CreateApplication(createApplicationDto, userId, projectId);
+            var response = _mapper.Map<ApplicationResponseDTO>(application);
+            return Ok(response);
+        }
+        catch (NotFoundException ex)
+        {
+            return BadRequest(ex.Message);
+        }
+        catch (InvalidInputException ex)
+        {
+            return BadRequest(ex.Message);
+        }
+        catch (Exception ex)
+        {
+            return StatusCode(500, MessageConstant.InternalServerError);
         }
     }
 }

@@ -52,6 +52,7 @@ namespace StartedIn.API.Configuration.AutoMapper
             RecruitmentImgMappingProfile();
             AppointmentMappingProfile();
             LeavingRequestMappingProfile();
+            ApplicationMappingProfile();
         }
 
 
@@ -342,6 +343,11 @@ namespace StartedIn.API.Configuration.AutoMapper
                 .ForMember(dest => dest.Email, opt => opt.MapFrom(src => src.User.Email))
                 .ForMember(dest => dest.ProjectName, opt => opt.MapFrom(src => src.Project.ProjectName))
                 .ForMember(dest => dest.ProfilePicture, opt => opt.MapFrom(src => src.User.ProfilePicture)); 
+        }
+
+        private void ApplicationMappingProfile()
+        {
+            CreateMap<Application, ApplicationResponseDTO>().ReverseMap();
         }
     }
 }

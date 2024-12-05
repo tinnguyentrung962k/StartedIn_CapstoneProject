@@ -57,7 +57,7 @@ namespace StartedIn.Service.Services
                 }
             }
 
-                return blobClient.Uri.AbsoluteUri;
+            return blobClient.Uri.AbsoluteUri;
         }
         public async Task<string> UploadEvidenceOfDisbursement(IFormFile file)
         {
@@ -253,6 +253,17 @@ namespace StartedIn.Service.Services
         {
             var uri = new Uri(url);
             return uri.Segments[^1]; 
+        }
+        
+        public async Task<string> UploadCv(IFormFile file)
+        {
+            var fileName = Guid.NewGuid() + Path.GetExtension(file.FileName);
+            var blobClient = _recruitmentImageContainerClient.GetBlobClient(fileName);
+            using (var stream = file.OpenReadStream())
+            {
+                await blobClient.UploadAsync(stream, new BlobHttpHeaders { ContentType = file.ContentType });
+            }
+            return blobClient.Uri.ToString();
         }
     }
 }
