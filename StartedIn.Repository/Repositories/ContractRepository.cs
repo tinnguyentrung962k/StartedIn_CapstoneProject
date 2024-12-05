@@ -26,6 +26,7 @@ namespace StartedIn.Repository.Repositories
                 .ThenInclude (x => x.User)
                 .Include(x => x.Project)
                 .Include(x => x.ShareEquities)
+                .ThenInclude(x=>x.User)
                 .Include(x => x.Disbursements)
                 .Include(x => x.DealOffer)
                 .ThenInclude(x => x.InvestmentCall)

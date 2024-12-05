@@ -9,7 +9,7 @@ namespace StartedIn.CrossCutting.DTOs.ResponseDTO.Contract
     public class UserShareEquityInContractResponseDTO
     {
         public string UserId { get; set; }
-        public int? ShareQuantity { get; set; }
+        public string FullName { get; set; }
         public decimal? Percentage { get; set; }
     }
 }

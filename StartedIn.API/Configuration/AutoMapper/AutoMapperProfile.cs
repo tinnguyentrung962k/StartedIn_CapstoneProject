@@ -193,7 +193,8 @@ namespace StartedIn.API.Configuration.AutoMapper
         }
         private void ShareEquityMappingProfile()
         {
-            CreateMap<ShareEquity, UserShareEquityInContractResponseDTO>().ReverseMap();
+            CreateMap<ShareEquity, UserShareEquityInContractResponseDTO>()
+                .ForMember(dest => dest.FullName, opt => opt.MapFrom(src => src.User.FullName));
             CreateMap<ShareEquitySummaryDTO, ShareEquitiesOfMemberInAProject>()
                 .ForMember(dest => dest.UserFullName, opt => opt.MapFrom(src => src.UserFullName))
                 .ForMember(dest => dest.Percentage, opt => opt.MapFrom(src => src.TotalPercentage))
