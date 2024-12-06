@@ -675,22 +675,39 @@ namespace StartedIn.Service.Services
         public async Task<DocumentDownLoadResponseDTO> DownLoadFileContract(string userId, string projectId, string contractId)
         {
             var contract = await _contractRepository.GetContractById(contractId);
-            if (contract == null) {
+            if (contract == null)
+            {
                 throw new NotFoundException(MessageConstant.NotFoundContractError);
             }
             if (projectId != contract.ProjectId)
             {
                 throw new UnmatchedException(MessageConstant.ContractNotBelongToProjectError);
             }
+
+            // Check user permissions
             var userInProject = await _userService.CheckIfUserInProject(userId, projectId);
             var userInContract = await _userService.CheckIfUserBelongToContract(userId, contractId);
-            if (userInContract.Contract.SignNowDocumentId == null)
+
+            // Prepare response DTO
+            DocumentDownLoadResponseDTO documentDownLoadResponseDTO = new DocumentDownLoadResponseDTO();
+
+            // Determine download source
+            if (!string.IsNullOrEmpty(userInContract.Contract.SignNowDocumentId))
             {
+                await _signNowService.AuthenticateAsync();
+                documentDownLoadResponseDTO = await _signNowService.DownLoadDocument(userInContract.Contract.SignNowDocumentId);
+            }
+            else if (!string.IsNullOrEmpty(contract.AzureLink))
+            {
+                documentDownLoadResponseDTO.DownLoadUrl = contract.AzureLink;
+            }
+            else
+            {
+                // If neither document ID nor Azure link exists
                 throw new NotFoundException(MessageConstant.NotFoundDocumentError);
             }
-            await _signNowService.AuthenticateAsync();
-            var documentDownloadinfo = await _signNowService.DownLoadDocument(userInContract.Contract.SignNowDocumentId);
-            return documentDownloadinfo;
+
+            return documentDownLoadResponseDTO;
         }
 
         public async Task<PaginationDTO<ContractSearchResponseDTO>> SearchContractWithFilters(string userId, string projectId, ContractSearchDTO search, int page, int size)
