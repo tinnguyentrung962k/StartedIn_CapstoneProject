@@ -1,5 +1,6 @@
 ﻿using StartedIn.CrossCutting.DTOs.ResponseDTO.Contract;
 using StartedIn.CrossCutting.DTOs.ResponseDTO.Disbursement;
+using StartedIn.CrossCutting.DTOs.ResponseDTO.LeavingRequest;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -10,7 +11,8 @@ namespace StartedIn.CrossCutting.DTOs.ResponseDTO.Project
 {
     public class LeavingProjectInfomationDTO
     {
-        public List<ContractInClosingProjectDTO> Contracts { get; set; }
-        public List<DisbursementInClosingProjectDTO> Disbursements { get; set; }
+        public List<ContractInClosingProjectDTO>? Contracts { get; set; }
+        public List<DisbursementInClosingProjectDTO>? Disbursements { get; set; }
+        public bool RequestExisted { get; set; }
     }
 }
