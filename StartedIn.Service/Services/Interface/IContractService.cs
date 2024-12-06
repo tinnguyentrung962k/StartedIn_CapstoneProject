@@ -27,6 +27,6 @@ namespace StartedIn.Service.Services.Interface
         Task CancelContractAfterDueDate();
         Task MarkExpiredContract(string userId, string projectId, string contractId);
         Task DeleteContract(string userId, string projectId, string contractId);
-        //Task<Contract> CreateInvestmentContractInternalApp(string userId, string projectId,SigningMethodEnum signingMethod,InvestmentContractCreateDTO investmentContractCreateDTO);
+        Task<List<UserContract>> GetUserSignHistoryInAContract(string userId, string projectId, string contractId);
     }
 }

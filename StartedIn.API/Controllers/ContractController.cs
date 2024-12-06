@@ -68,42 +68,6 @@ namespace StartedIn.API.Controllers
             }
         }
 
-        //[HttpPost("investment-contracts-internal-app")]
-        //[Authorize(Roles = RoleConstants.USER)]
-        //public async Task<ActionResult<ContractResponseDTO>> CreateAnInvestmentContractInternal([FromRoute] string projectId,[FromQuery] SigningMethodEnum signingMethod ,[FromBody] InvestmentContractCreateDTO investmentContractCreateDTO)
-        //{
-        //    try
-        //    {
-        //        var userId = User.FindFirst(ClaimTypes.NameIdentifier).Value;
-        //        var contract = await _contractService.CreateInvestmentContractInternalApp(userId, projectId, signingMethod ,investmentContractCreateDTO);
-        //        var responseContract = _mapper.Map<ContractResponseDTO>(contract);
-        //        return CreatedAtAction(nameof(GetContractById), new { projectId, contractId = responseContract.Id }, responseContract);
-        //    }
-        //    catch (UnauthorizedProjectRoleException ex)
-        //    {
-        //        return StatusCode(403, ex.Message);
-        //    }
-        //    catch (ExistedRecordException ex)
-        //    {
-        //        return BadRequest(ex.Message);
-        //    }
-        //    catch (InvalidOperationException ex)
-        //    {
-        //        return BadRequest(ex.Message);
-        //    }
-        //    catch (InvalidDataException ex)
-        //    {
-        //        return BadRequest(ex.Message);
-        //    }
-        //    catch (Exception ex)
-        //    {
-        //        _logger.LogError(ex, "Error while creating contract");
-
-        //        return StatusCode(500, MessageConstant.InternalServerError);
-
-        //    }
-        //}
-
         [HttpPost("investment-contracts/from-deal")]
         [Authorize(Roles = RoleConstants.USER)]
         public async Task<ActionResult<ContractResponseDTO>> CreateInvestmentContractFromDeal([FromRoute] string projectId, [FromBody] InvestmentContractFromDealCreateDTO investmentContractFromDealCreateDTO)
@@ -496,6 +460,36 @@ namespace StartedIn.API.Controllers
                 var userId = User.FindFirst(ClaimTypes.NameIdentifier).Value;
                 await _contractService.DeleteContract(userId, projectId, contractId);
                 return Ok("Xoá hợp đồng thành công");
+            }
+            catch (UnauthorizedProjectRoleException ex)
+            {
+                return StatusCode(403, ex.Message);
+            }
+            catch (NotFoundException ex)
+            {
+                return BadRequest(ex.Message);
+            }
+            catch (UnmatchedException ex)
+            {
+                return BadRequest(ex.Message);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, ex.Message);
+            }
+
+        }
+
+        [HttpGet("contracts/{contractId}/history")]
+        [Authorize(Roles = RoleConstants.USER + "," + RoleConstants.INVESTOR + "," + RoleConstants.MENTOR)]
+        public async Task<ActionResult<List<UserInContractHistoryResponseDTO>>> GetContractSignedHistory([FromRoute] string projectId, [FromRoute] string contractId)
+        {
+            try 
+            {
+                var userId = User.FindFirst(ClaimTypes.NameIdentifier).Value;
+                var contractSignHistory = await _contractService.GetUserSignHistoryInAContract(userId, projectId, contractId);
+                var response = _mapper.Map<List<UserInContractHistoryResponseDTO>>(contractSignHistory);
+                return Ok(response);
             }
             catch (UnauthorizedProjectRoleException ex)
             {

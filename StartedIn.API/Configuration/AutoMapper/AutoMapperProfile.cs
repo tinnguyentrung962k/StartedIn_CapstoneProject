@@ -190,6 +190,11 @@ namespace StartedIn.API.Configuration.AutoMapper
                     .Where(uc => uc.ContractId == src.Id &&
                      uc.Contract.ShareEquities.Any(se => se.ContractId == src.Id && se.StakeHolderType == RoleInTeam.Investor)).FirstOrDefault().UserId));
             CreateMap<Contract, ContractInClosingProjectDTO>();
+            CreateMap<UserContract, UserInContractHistoryResponseDTO>()
+                .ForMember(dest => dest.ProfilePicture, opt => opt.MapFrom(src => src.User.ProfilePicture))
+                .ForMember(dest => dest.FullName, opt => opt.MapFrom(src => src.User.FullName))
+                .ForMember(dest => dest.Email, opt => opt.MapFrom(src => src.User.Email));
+
         }
         private void ShareEquityMappingProfile()
         {

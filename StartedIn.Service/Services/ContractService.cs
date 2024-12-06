@@ -1159,5 +1159,20 @@ namespace StartedIn.Service.Services
                 await _unitOfWork.SaveChangesAsync();
             }
         }
+
+        public async Task<List<UserContract>> GetUserSignHistoryInAContract(string userId, string projectId, string contractId)
+        {
+            var userInProject = await _userService.CheckIfUserInProject(userId, projectId);
+            var loginUserInContract = await _userService.CheckIfUserBelongToContract(userId, contractId);
+            if (userInProject.ProjectId != loginUserInContract.Contract.ProjectId)
+            {
+                throw new UnmatchedException(MessageConstant.ContractNotBelongToProjectError);
+            }
+            var contract = await _contractRepository.GetContractById(contractId);
+            var usersInContract = contract.UserContracts.ToList();
+            return usersInContract;
+        }
+
+
     }
 }
