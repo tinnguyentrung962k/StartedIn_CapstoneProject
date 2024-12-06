@@ -76,13 +76,12 @@ public class RecruitmentController : ControllerBase
     // Update recruitment post for users in the project
     [HttpPut("projects/{projectId}/recruitments")]
     [Authorize(Roles = RoleConstants.USER)]
-    public async Task<ActionResult<RecruitmentResponseDTO>> UpdateRecruitment([FromRoute] string projectId,
-        string recruitmentId, [FromBody] UpdateRecruitmentDTO updateRecruitmentDto)
+    public async Task<ActionResult<RecruitmentResponseDTO>> UpdateRecruitment([FromRoute] string projectId, [FromBody] UpdateRecruitmentDTO updateRecruitmentDto)
     {
         try
         {
             var userId = User.FindFirst(ClaimTypes.NameIdentifier).Value;
-            var recruitment = await _recruitmentService.UpdateRecruitment(userId, projectId, recruitmentId, updateRecruitmentDto);
+            var recruitment = await _recruitmentService.UpdateRecruitment(userId, projectId, updateRecruitmentDto);
             var response = _mapper.Map<RecruitmentResponseDTO>(recruitment);
             return Ok(response);
         }
@@ -125,14 +124,14 @@ public class RecruitmentController : ControllerBase
 
     [HttpPost("projects/{projectId}/recruitments/images/add")]
     [Authorize(Roles = RoleConstants.USER)]
-    public async Task<ActionResult<List<RecruitmentImgResponseDTO>>> AddImageToRecruitmentPost([FromRoute] string projectId,
-        [FromForm] List<IFormFile> recruitFiles)
+    public async Task<ActionResult<RecruitmentImgResponseDTO>> AddImageToRecruitmentPost([FromRoute] string projectId,
+        [FromForm] RecruitmentImageCreateDTO recruitmentImage)
     {
         try
         {
-            //TODO: Check if user is in project
-            var listImages = await _recruitmentImageService.AddImageToRecruitmentPost(projectId, recruitFiles);
-            var response = _mapper.Map<List<RecruitmentImgResponseDTO>>(listImages);
+            var userId = User.FindFirst(ClaimTypes.NameIdentifier).Value;
+            var addedImg = await _recruitmentImageService.AddImageToRecruitmentPost(userId, projectId, recruitmentImage.recruitFile);
+            var response = _mapper.Map<RecruitmentImgResponseDTO>(addedImg);
             return Ok(response);
         }
         catch (NotFoundException ex)
@@ -148,8 +147,8 @@ public class RecruitmentController : ControllerBase
     {
         try
         {
-            //TODO: Check if user is in project
-            await _recruitmentImageService.RemoveImageFromRecruitmentPost(projectId, recruitmentImgId);
+            var userId = User.FindFirst(ClaimTypes.NameIdentifier).Value;
+            await _recruitmentImageService.RemoveImageFromRecruitmentPost(userId, projectId, recruitmentImgId);
             return NoContent();
         }
         catch (NotFoundException ex)

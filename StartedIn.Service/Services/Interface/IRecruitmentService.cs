@@ -14,8 +14,7 @@ public interface IRecruitmentService
 
     Task<Recruitment> GetRecruitmentPostInProject(string userId, string projectId);
 
-    Task<Recruitment> UpdateRecruitment(string userId, string projectId, string recruitmentId,
-        UpdateRecruitmentDTO updateRecruitmentDto);
+    Task<Recruitment> UpdateRecruitment(string userId, string projectId, UpdateRecruitmentDTO updateRecruitmentDto);
 
     Task<PaginationDTO<RecruitmentListDTO>> GetRecruitmentListWithLeader(int page, int size);
 }

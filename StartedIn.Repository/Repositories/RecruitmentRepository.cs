@@ -30,7 +30,7 @@ public class RecruitmentRepository : GenericRepository<Recruitment, string>, IRe
     public IQueryable<Recruitment> GetRecruitmentWithLeader()
     {
         var recruitments = _dbSet.Include(r => r.Project).ThenInclude(p => p.UserProjects)
-            .ThenInclude(up => up.User);
+            .ThenInclude(up => up.User).Where(r => r.IsOpen == true);
         return recruitments;
     }
 }

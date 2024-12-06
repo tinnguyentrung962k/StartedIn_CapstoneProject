@@ -5,6 +5,6 @@ namespace StartedIn.Service.Services.Interface;
 
 public interface IRecruitmentImageService
 {
-    Task<List<RecruitmentImg>> AddImageToRecruitmentPost(string recruitmentId, List<IFormFile> recruitFiles);
-    Task RemoveImageFromRecruitmentPost(string recruitmentId, string recruitFileId);
+    Task<RecruitmentImg> AddImageToRecruitmentPost(string userId, string recruitmentId, IFormFile recruitFile);
+    Task RemoveImageFromRecruitmentPost(string userId, string recruitmentId, string recruitFileId);
 }
