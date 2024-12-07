@@ -187,22 +187,10 @@ namespace StartedIn.API.Configuration.AutoMapper
                     src => src.ShareEquities.FirstOrDefault(x => x.ContractId.Equals(src.Id)).Percentage))
                 .ForMember(dest => dest.BuyPrice, opt => opt.MapFrom(
                     src => src.ShareEquities.FirstOrDefault(x => x.ContractId.Equals(src.Id)).SharePrice))
-                .ForMember(dest => dest.InvestorId, opt => opt.MapFrom(
-                    src => src.UserContracts
-                    .Where(uc => uc.ContractId == src.Id &&
-                     uc.Contract.ShareEquities.Any(se => se.ContractId == src.Id && se.StakeHolderType == RoleInTeam.Investor)).FirstOrDefault().UserId))
-                .ForMember(dest => dest.InvestorName, opt => opt.MapFrom(
-                    src => src.UserContracts
-                    .Where(uc => uc.ContractId == src.Id &&
-                     uc.Contract.ShareEquities.Any(se => se.ContractId == src.Id && se.StakeHolderType == RoleInTeam.Investor)).FirstOrDefault().User.FullName))
-                .ForMember(dest => dest.InvestorEmail, opt => opt.MapFrom(
-                    src => src.UserContracts
-                    .Where(uc => uc.ContractId == src.Id &&
-                     uc.Contract.ShareEquities.Any(se => se.ContractId == src.Id && se.StakeHolderType == RoleInTeam.Investor)).FirstOrDefault().User.Email))
-                .ForMember(dest => dest.InvestorPhoneNumber, opt => opt.MapFrom(
-                    src => src.UserContracts
-                    .Where(uc => uc.ContractId == src.Id &&
-                     uc.Contract.ShareEquities.Any(se => se.ContractId == src.Id && se.StakeHolderType == RoleInTeam.Investor)).FirstOrDefault().User.PhoneNumber))
+                .ForMember(dest => dest.InvestorId, opt => opt.MapFrom(src =>src.ShareEquities.FirstOrDefault(x=>x.ContractId.Equals(src.Id) && x.StakeHolderType == RoleInTeam.Investor).UserId))
+                .ForMember(dest => dest.InvestorName, opt => opt.MapFrom(src => src.ShareEquities.FirstOrDefault(x => x.ContractId.Equals(src.Id) && x.StakeHolderType == RoleInTeam.Investor).User.FullName))
+                .ForMember(dest => dest.InvestorPhoneNumber, opt => opt.MapFrom(src => src.ShareEquities.FirstOrDefault(x => x.ContractId.Equals(src.Id) && x.StakeHolderType == RoleInTeam.Investor).User.PhoneNumber))
+                .ForMember(dest => dest.InvestorEmail, opt => opt.MapFrom(src => src.ShareEquities.FirstOrDefault(x => x.ContractId.Equals(src.Id) && x.StakeHolderType == RoleInTeam.Investor).User.Email))
                 .ForMember(dest => dest.ProjectName, opt => opt.MapFrom(
                     src => src.Project.ProjectName));
             CreateMap<Contract, ContractInClosingProjectDTO>();

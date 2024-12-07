@@ -24,7 +24,7 @@ namespace StartedIn.API.Controllers
             _mapper = mapper;
         }
 
-        [HttpGet("meetings/{year:int}")]
+        [HttpGet("appointments/{year:int}")]
         [Authorize(Roles = RoleConstants.INVESTOR + "," + RoleConstants.USER + "," + RoleConstants.MENTOR)]
         public async Task<ActionResult<List<AppointmentInCalendarResponseDTO>>> GetMeetingsInAYearOfAProject([FromRoute] string projectId, [FromRoute] int year)
         {
@@ -48,7 +48,7 @@ namespace StartedIn.API.Controllers
                 return StatusCode(500, ex.Message);
             }
         }
-        [HttpGet("meetings/{appointmentId}")]
+        [HttpGet("appointments/{appointmentId}")]
         [Authorize(Roles = RoleConstants.INVESTOR + "," + RoleConstants.USER + "," + RoleConstants.MENTOR)]
         public async Task<ActionResult<AppointmentResponseDTO>> GetMeetingsById([FromRoute] string projectId, [FromRoute] string appointmentId)
         {
@@ -73,7 +73,7 @@ namespace StartedIn.API.Controllers
             }
         }
 
-        [HttpPost("meetings")]
+        [HttpPost("appointments")]
         [Authorize(Roles = RoleConstants.USER)]
         public async Task<ActionResult<AppointmentResponseDTO>> CreateAnAppointment([FromRoute] string projectId, [FromBody] AppointmentCreateDTO appointmentCreateDTO)
         {
