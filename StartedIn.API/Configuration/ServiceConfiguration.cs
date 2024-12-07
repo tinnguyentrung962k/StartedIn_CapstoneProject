@@ -1,6 +1,7 @@
 ﻿using StartedIn.Service.Services.Interface;
 using StartedIn.Service.Services;
 using StartedIn.CrossCutting.DTOs.RequestDTO;
+using StartedIn.Repository.Repositories.Extensions;
 
 namespace StartedIn.API.Configuration
 {
@@ -35,6 +36,7 @@ namespace StartedIn.API.Configuration
             services.AddScoped<IAppointmentService, AppointmentService>();
             services.AddScoped<ILeavingRequestService, LeavingRequestService>();
             services.AddScoped<IRecruitmentImageService, RecruitmentImageService>();
+            services.AddScoped<IAppSettingManager,AppSettingManager>();
             return services;
         }
     }

@@ -40,6 +40,7 @@ if (app.Environment.IsDevelopment())
 }
 
 app.SeedIdentity();
+app.SeedSettings();
 app.UseSecurityConfiguration();
 app.MapControllers();
 

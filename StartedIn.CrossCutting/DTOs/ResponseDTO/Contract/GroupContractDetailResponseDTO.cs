@@ -14,6 +14,7 @@ namespace StartedIn.CrossCutting.DTOs.ResponseDTO.Contract
         public ContractStatusEnum ContractStatus { get; set; }
         public string ContractPolicy { get; set; }
         public string ContractIdNumber { get; set; }
+        public string ProjectName { get; set; }
         public List<UserShareEquityInContractResponseDTO> UserShareEquityInContract { get; set; }
     }
 }

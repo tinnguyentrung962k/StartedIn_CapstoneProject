@@ -55,8 +55,8 @@ namespace StartedIn.Domain.Context
         public DbSet<RecruitmentImg> RecruitmentImgs { get; set; }
         public DbSet<Asset> Assets { get; set; }
         public DbSet<Phase> Phases { get; set; }
-
         public DbSet<LeavingRequest> LeavingRequests { get; set; }
+        public DbSet<AppSetting> AppSettings { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -291,6 +291,14 @@ namespace StartedIn.Domain.Context
 
             modelBuilder.Entity<Phase>()
                 .ToTable("Phase");
+
+            modelBuilder.Entity<AppSetting>()
+                .ToTable("AppSetting");
+            modelBuilder.Entity<AppSetting>()
+            .Property(u => u.SettingValue)
+            .HasConversion(
+            v => v.ToString(),
+                v => (SettingsValue)Enum.Parse(typeof(SettingsValue), v));
 
             foreach (var entityType in modelBuilder.Model.GetEntityTypes())
             {

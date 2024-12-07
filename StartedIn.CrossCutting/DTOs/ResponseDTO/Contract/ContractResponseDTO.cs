@@ -9,6 +9,7 @@ namespace StartedIn.CrossCutting.DTOs.ResponseDTO.Contract
         public ContractTypeEnum ContractType { get; set; }
         public ContractStatusEnum ContractStatus { get; set; }
         public string? SignNowDocumentId { get; set; }
+        public string? AzureLink { get; set; }
         public string ContractPolicy { get; set; }
         public string ContractIdNumber { get; set; }
         public DateOnly? ValidDate { get; set; }
