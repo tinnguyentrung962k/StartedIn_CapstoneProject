@@ -17,8 +17,7 @@ public class RecruitmentRepository : GenericRepository<Recruitment, string>, IRe
     public async Task<Recruitment> GetRecruitmentPostById(string projectId)
     {
         var recruitment =
-            await _appDbContext.Recruitments
-                .Where(r => r.ProjectId.Equals(projectId))
+            await _dbSet.Where(r => r.ProjectId.Equals(projectId))
                 .Include(r => r.RecruitmentImgs)
                 .Include(r => r.Project)
                 .ThenInclude(p => p.UserProjects)

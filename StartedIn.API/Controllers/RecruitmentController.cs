@@ -98,7 +98,7 @@ public class RecruitmentController : ControllerBase
     // Get recruitment list for guests / outside users
     [HttpGet("recruitments")]
     [Authorize(Roles = RoleConstants.USER)]
-    public async Task<ActionResult<PaginationDTO<RecruitmentListDTO>>> GetRecruitmentList([FromQuery] int page, [FromQuery] int size)
+    public async Task<ActionResult<PaginationDTO<RecruitmentListDTO>>> GetRecruitmentList([FromQuery] int page = 1, [FromQuery] int size = 10)
     {
         try
         {
@@ -114,8 +114,7 @@ public class RecruitmentController : ControllerBase
     // Get recruitment details in the recruitment list of guests / outside users
     [HttpGet("recruitments/{recruitmentId}")]
     [Authorize(Roles = RoleConstants.USER + "," + RoleConstants.INVESTOR)]
-    public async Task<ActionResult<RecruitmentResponseDTO>> GetRecruitmentPostById([FromRoute]
-       string recruitmentId)
+    public async Task<ActionResult<RecruitmentResponseDTO>> GetRecruitmentPostById([FromRoute] string recruitmentId)
     {
         var recruitment = await _recruitmentService.GetRecruitmentPostById(recruitmentId);
         var response = _mapper.Map<RecruitmentResponseDTO>(recruitment);

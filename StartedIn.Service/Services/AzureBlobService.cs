@@ -20,6 +20,7 @@ namespace StartedIn.Service.Services
         private readonly BlobContainerClient _documentContainerClient;
         private readonly BlobContainerClient _taskAttachmentContainerClient;
         private readonly BlobContainerClient _recruitmentImageContainerClient;
+        private readonly BlobContainerClient _cvFileContainerClient;
         private readonly string _azureBlobStorageKey;
 
         public AzureBlobService(IConfiguration configuration)
@@ -34,7 +35,9 @@ namespace StartedIn.Service.Services
             _documentContainerClient = blobServiceClient.GetBlobContainerClient("documents");
             _taskAttachmentContainerClient = blobServiceClient.GetBlobContainerClient("task-attachments");
             _recruitmentImageContainerClient = blobServiceClient.GetBlobContainerClient("recruitment-images");
+            _cvFileContainerClient = blobServiceClient.GetBlobContainerClient("cv-files");
         }
+
         public async Task<string> UploadAvatarOrCover(IFormFile image)
         {
             if (!IsValidImageFile(image))
@@ -246,6 +249,17 @@ namespace StartedIn.Service.Services
             var blobName = GetBlobNameFromUrl(imageUrl);
             var blobClient = _recruitmentImageContainerClient.GetBlobClient(blobName);
             await blobClient.DeleteAsync();
+        }
+
+        public async Task<string> UploadCVFileApplication(IFormFile file)
+        {
+            var fileName = Guid.NewGuid() + Path.GetExtension(file.FileName);
+            var blobClient = _cvFileContainerClient.GetBlobClient(fileName);
+            using (var stream = file.OpenReadStream())
+            {
+                await blobClient.UploadAsync(stream, new BlobHttpHeaders { ContentType = file.ContentType });
+            }
+            return blobClient.Uri.ToString();
         }
 
         // Helper method to extract blob name from URL

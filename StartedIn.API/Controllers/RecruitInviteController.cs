@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Mvc;
 using StartedIn.CrossCutting.Constants;
 using StartedIn.CrossCutting.DTOs.RequestDTO.Project;
 using StartedIn.CrossCutting.DTOs.RequestDTO.RecruitInvite;
+using StartedIn.CrossCutting.DTOs.ResponseDTO.RecruitInvite;
 using StartedIn.CrossCutting.Enum;
 using StartedIn.CrossCutting.Exceptions;
 using StartedIn.Domain.Entities;
@@ -139,10 +140,104 @@ namespace StartedIn.API.Controllers
             }
         }
 
-        // Update Recruitment Info, if not existed, create new one
+        // Create recruitment CV info
+        [HttpPost("recruitments/{recruitmentId}/apply")]
+        [Authorize(Roles = RoleConstants.USER)]
+        public async Task<IActionResult> ApplyRecruitment([FromRoute] string projectId, [FromRoute] string recruitmentId, [FromForm] ApplyRecruitmentDTO applyRecruitmentDTO)
+        {
+            try
+            {
+                var userId = User.FindFirst(ClaimTypes.NameIdentifier).Value;
+                await _recruitInviteService.ApplyRecruitment(userId, projectId, recruitmentId, applyRecruitmentDTO.cvFile);
+                return Ok("Ứng tuyển thành công!");
+            }
+            catch (NotFoundException ex)
+            {
+                return BadRequest(ex.Message);
+            }
+            catch (InviteException ex)
+            {
+                return BadRequest(ex.Message);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, MessageConstant.InternalServerError);
+            }
+        }
 
-        // Update Recruitment Visibility
+        // Get list of application of a project, so leader can reject or accept the application after reviewing them
+        [HttpGet("applications")]
+        [Authorize(Roles = RoleConstants.USER)]
+        public async Task<IActionResult> GetApplications([FromRoute] string projectId)
+        {
+            try
+            {
+                var userId = User.FindFirst(ClaimTypes.NameIdentifier).Value;
+                var applications = await _recruitInviteService.GetApplicationsOfProject(userId, projectId);
+                return Ok(applications);
+            }
+            catch (NotFoundException ex)
+            {
+                return BadRequest(ex.Message);
+            }
+            catch (InviteException ex)
+            {
+                return BadRequest(ex.Message);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, MessageConstant.InternalServerError);
+            }
+        }
 
-        // Update/Delete Recruitment Image
+        // Accept an application and add that user into the project
+        [HttpPatch("applications/{applicationId}/accept")]
+        [Authorize(Roles = RoleConstants.USER)]
+        public async Task<IActionResult> AcceptApplication([FromRoute] string projectId, [FromRoute] string applicationId)
+        {
+            try
+            {
+                var userId = User.FindFirst(ClaimTypes.NameIdentifier).Value;
+                await _recruitInviteService.AcceptApplication(userId, projectId, applicationId);
+                return Ok("Chấp nhận ứng tuyển thành công!");
+            }
+            catch (NotFoundException ex)
+            {
+                return BadRequest(ex.Message);
+            }
+            catch (InviteException ex)
+            {
+                return BadRequest(ex.Message);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, MessageConstant.InternalServerError);
+            }
+        }
+
+        // Reject an application
+        [HttpPatch("applications/{applicationId}/reject")]
+        [Authorize(Roles = RoleConstants.USER)]
+        public async Task<IActionResult> RejectApplication([FromRoute] string projectId, [FromRoute] string applicationId)
+        {
+            try
+            {
+                var userId = User.FindFirst(ClaimTypes.NameIdentifier).Value;
+                await _recruitInviteService.RejectApplication(userId, projectId, applicationId);
+                return Ok("Từ chối ứng tuyển thành công!");
+            }
+            catch (NotFoundException ex)
+            {
+                return BadRequest(ex.Message);
+            }
+            catch (InviteException ex)
+            {
+                return BadRequest(ex.Message);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, MessageConstant.InternalServerError);
+            }
+        }
     }
 }
