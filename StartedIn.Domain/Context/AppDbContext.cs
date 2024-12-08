@@ -105,6 +105,12 @@ namespace StartedIn.Domain.Context
                 .HasConversion(
                     v => v.ToString(),
                     v => (RoleInTeam)Enum.Parse(typeof(RoleInTeam), v));
+            
+            modelBuilder.Entity<UserProject>()
+               .Property(u => u.Status)
+               .HasConversion(
+                   v => v.ToString(),
+                   v => (UserStatusInProject)Enum.Parse(typeof(UserStatusInProject), v));
 
             modelBuilder.Entity<UserContract>()
                .HasKey(up => new { up.UserId, up.ContractId });

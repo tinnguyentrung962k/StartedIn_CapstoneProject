@@ -10,4 +10,5 @@ public class UserProject
     public virtual Project Project { get; set; }
     public virtual User User { get; set; }
     public RoleInTeam RoleInTeam { get; set; }
+    public UserStatusInProject Status { get; set; }
 }

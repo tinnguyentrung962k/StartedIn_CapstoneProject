@@ -451,6 +451,7 @@ namespace StartedIn.Service.Services
 
             // Null-check user.UserProjects before accessing
             var userRoleInProject = await _projectRepository.GetUserRoleInProject(userId, projectId);
+            var userStatus = await _projectRepository.GetUserStatusInProject(userId, projectId);
 
             var userProject = new UserProject
             {
@@ -458,7 +459,8 @@ namespace StartedIn.Service.Services
                 ProjectId = projectId,
                 User = user,
                 Project = project,
-                RoleInTeam = userRoleInProject
+                RoleInTeam = userRoleInProject,
+                Status = userStatus,
             };
             return userProject;
         }

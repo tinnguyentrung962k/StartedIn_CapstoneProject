@@ -18,7 +18,7 @@ public class ProjectRepository : GenericRepository<Project, string>, IProjectRep
     public async Task<Project> GetProjectAndMemberByProjectId(string projectId)
     {
         var project = await _appDbContext.Projects.Where(p => p.Id.Equals(projectId))
-            .Include(p => p.UserProjects)
+            .Include(p => p.UserProjects.Where(x => x.Status == UserStatusInProject.Active))
             .ThenInclude(up => up.User)
             .FirstOrDefaultAsync();
         return project;
@@ -46,7 +46,7 @@ public class ProjectRepository : GenericRepository<Project, string>, IProjectRep
     public IQueryable<Project> GetProjectListQuery()
     {
         var projects = _appDbContext.Projects
-            .Include(p => p.UserProjects)
+            .Include(p => p.UserProjects.Where(x => x.Status == UserStatusInProject.Active))
             .ThenInclude(up => up.User)
             .Include(p => p.InvestmentCalls)
             .Include(p => p.Finance)
@@ -80,14 +80,15 @@ public class ProjectRepository : GenericRepository<Project, string>, IProjectRep
     {
         var userProject = await _appDbContext.UserProjects
             .Where(p => p.UserId.Equals(userId) &&
-                        (p.RoleInTeam.Equals(RoleInTeam.Leader) || p.RoleInTeam.Equals(RoleInTeam.Member)))
+                        (p.RoleInTeam.Equals(RoleInTeam.Leader) || p.RoleInTeam.Equals(RoleInTeam.Member)) 
+                        && p.Status == UserStatusInProject.Active)
             .FirstOrDefaultAsync();
         return userProject;
     }
     public IQueryable<Project> GetProjectListQueryForInvestor(string userId)
     {
         var query = _appDbContext.Projects
-            .Include(p => p.UserProjects)
+            .Include(p => p.UserProjects.Where(x => x.Status == UserStatusInProject.Active))
             .ThenInclude(up => up.User)
             .Include(p => p.InvestmentCalls)
             .Include(p => p.Finance)
@@ -103,4 +104,9 @@ public class ProjectRepository : GenericRepository<Project, string>, IProjectRep
         return query;
     }
 
+    public async Task<UserStatusInProject> GetUserStatusInProject(string userId, string projectId)
+    {
+        var userProject = await _appDbContext.UserProjects.Where(x => x.ProjectId.Equals(projectId) && x.UserId.Equals(userId)).FirstOrDefaultAsync();
+        return userProject.Status;
+    }
 }

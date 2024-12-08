@@ -14,5 +14,6 @@ namespace StartedIn.Repository.Repositories.Interface
         Task<int> Count();
         IQueryable<User> GetUsersInTheSystemQuery();
         Task DeleteUserFromAProject(string userId, string projectId);
+        Task UpdateUserInProject(UserProject userProject);
     }
 }

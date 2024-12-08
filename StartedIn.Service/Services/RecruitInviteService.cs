@@ -68,7 +68,7 @@ namespace StartedIn.Service.Services
             }
 
             var currentMemberInProject = project.UserProjects
-                .Where(x => x.RoleInTeam == RoleInTeam.Leader || x.RoleInTeam == RoleInTeam.Member)
+                .Where(x => (x.RoleInTeam == RoleInTeam.Leader || x.RoleInTeam == RoleInTeam.Member) && x.Status == UserStatusInProject.Active)
                 .Count();
 
             if (currentMemberInProject == project.MaxMember)
@@ -76,7 +76,7 @@ namespace StartedIn.Service.Services
                 throw new InviteException(MessageConstant.FullMembersOfTeam);
             }
 
-            var currentMentorCount = project.UserProjects.Count(x => x.RoleInTeam == RoleInTeam.Mentor);
+            var currentMentorCount = project.UserProjects.Count(x => x.RoleInTeam == RoleInTeam.Mentor && x.Status == UserStatusInProject.Active);
 
             _unitOfWork.BeginTransaction();
 
@@ -95,7 +95,7 @@ namespace StartedIn.Service.Services
                     throw new InviteException($"{MessageConstant.UserHasInvestorSystemRole}{existedUser.FullName}, {existedUser.Email}");
                 }
 
-                var existedUserInProject = project.UserProjects.FirstOrDefault(up => up.User.Equals(existedUser));
+                var existedUserInProject = project.UserProjects.FirstOrDefault(up => up.User.Equals(existedUser) && up.Status == UserStatusInProject.Active);
                 if (existedUserInProject != null)
                 {
                     throw new InviteException(MessageConstant.UserExistedInProject + $"\n{existedUser.FullName}, {existedUser.Email}");
@@ -251,9 +251,15 @@ namespace StartedIn.Service.Services
                 _unitOfWork.BeginTransaction();
                 invite.Status = ApplicationStatus.ACCEPTED;
                 _applicationRepository.Update(invite);
-
+                var project = await _projectRepository.GetProjectById(projectId);
+                var userInProject = project.UserProjects.FirstOrDefault(up => up.UserId.Equals(userId) 
+                && up.Status != UserStatusInProject.Active);
+                if (userInProject != null) 
+                {
+                    userInProject.Status = UserStatusInProject.Active;
+                    await _userRepository.UpdateUserInProject(userInProject);
+                }
                 await _userRepository.AddUserToProject(userId, projectId, invite.Role);
-
                 await _unitOfWork.SaveChangesAsync();
                 await _unitOfWork.CommitAsync();
             }

@@ -26,25 +26,35 @@ namespace StartedIn.Repository.Repositories
             {
                 UserId = userId,
                 ProjectId = projectId,
-                RoleInTeam = roleInTeam
+                RoleInTeam = roleInTeam,
+                Status = UserStatusInProject.Active
             };
             await _appDbContext.Set<UserProject>().AddAsync(userProject);
         }
         public async Task DeleteUserFromAProject(string userId, string projectId)
         {
             var userProject = await _appDbContext.Set<UserProject>()
-            .Where(up => up.UserId == userId && up.ProjectId == projectId)
+            .Where(up => up.UserId == userId && up.ProjectId == projectId && up.Status == UserStatusInProject.Active)
             .FirstOrDefaultAsync();
             if (userProject != null) 
             {
-                _appDbContext.Set<UserProject>().Remove(userProject);
+                userProject.Status = UserStatusInProject.Left;
                 await _appDbContext.SaveChangesAsync();
             }
         }
 
+        public async Task UpdateUserInProject(UserProject userProject)
+        {
+            _appDbContext.Set<UserProject>().Update(userProject);
+            await _appDbContext.SaveChangesAsync();
+        }
+
         public async Task<UserProject> GetAUserInProject(string projectId, string userId)
         {
-            return await _appDbContext.Set<UserProject>().Where(x => x.ProjectId.Equals(projectId) && x.UserId.Equals(userId)).FirstOrDefaultAsync();
+            return await _appDbContext.Set<UserProject>().Where(x => x.ProjectId.Equals(projectId) 
+            && x.UserId.Equals(userId) 
+            && x.Status == UserStatusInProject.Active)
+                .FirstOrDefaultAsync();
         }
         public async Task<List<UserContract>> GetUsersListRelevantToContractsInAProject(string projectId)
         {
@@ -52,12 +62,15 @@ namespace StartedIn.Repository.Repositories
         }
         public async Task<bool> CheckIfUserInProject(string userId, string projectId)
         {
-            var isUserInProject = await _appDbContext.UserProjects.AnyAsync(x => x.UserId.Equals(userId) && x.ProjectId.Equals(projectId));
+            var isUserInProject = await _appDbContext.UserProjects.AnyAsync(x => x.UserId.Equals(userId) 
+            && x.ProjectId.Equals(projectId) 
+            && x.Status == UserStatusInProject.Active);
             return isUserInProject;
         }
         public async Task<bool> IsUserBelongToAContract(string userId, string contractId)
         {
-            var isUserBelongContract = await _appDbContext.UserContracts.AnyAsync(x => x.UserId.Equals(userId) && x.ContractId.Equals(contractId));
+            var isUserBelongContract = await _appDbContext.UserContracts.AnyAsync(x => x.UserId.Equals(userId) 
+            && x.ContractId.Equals(contractId));
             return isUserBelongContract;
         }
         public async Task<int> Count()
