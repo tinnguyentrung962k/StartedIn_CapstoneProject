@@ -9,9 +9,5 @@ namespace StartedIn.CrossCutting.DTOs.RequestDTO.Contract
 
         //[Required(ErrorMessage = "Vui lòng điền các điều khoản khác")]
         public string ContractPolicy { get; set; } = string.Empty;
-
-        //[Required(ErrorMessage = "Vui lòng điền số hợp đồng")]
-        [StringLength(50, ErrorMessage = "Số hợp đồng không được quá 50 ký tự")]
-        public string ContractIdNumber { get; set; } = string.Empty;
     }
 }

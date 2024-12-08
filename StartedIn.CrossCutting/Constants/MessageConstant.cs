@@ -27,7 +27,6 @@ namespace StartedIn.CrossCutting.Constants
         public const string AssignChildTaskToMilestoneError = "Không thể gán công việc con cho cột mốc. Trước hết phải gỡ gán tác vụ mẹ";
         public const string AssigneeRoleError = "Người được giao việc không hợp lệ.";
         public const string CannotEditContractError = "Không thể sửa hợp đồng này.";
-        public const string ContractNumberExistedError = "Mã hợp đồng này đã tồn tại trong dự án.";
         public const string JoinGroupWithLeaderRoleError = "Bạn không thể tham gia với vai trò nhóm trưởng.";
         public const string ContractNotBelongToProjectError = "Hợp đồng này không thuộc dự án được chọn.";
         public const string MilestoneNotBelongToProjectError = "Cột mốc này không thuộc vào dự án.";

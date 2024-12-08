@@ -88,11 +88,6 @@ namespace StartedIn.Service.Services
             {
                 throw new UnauthorizedProjectRoleException(MessageConstant.RolePermissionError);
             }
-            var existedContract = await _contractRepository.QueryHelper().Filter(x => x.ContractIdNumber.Equals(investmentContractCreateDTO.Contract.ContractIdNumber) && x.ProjectId.Equals(projectId)).GetOneAsync();
-            if (existedContract != null)
-            {
-                throw new ExistedRecordException(MessageConstant.ContractNumberExistedError);
-            }
             var project = await _projectRepository.GetProjectById(projectId);
             if (investmentContractCreateDTO.InvestorInfo.Percentage > project.RemainingPercentOfShares)
             {
@@ -115,6 +110,9 @@ namespace StartedIn.Service.Services
                 {
                     throw new NotFoundException(MessageConstant.NotFoundInvestorError);
                 }
+                string prefix = "HDDT";
+                string currentDateTime = DateTime.Now.ToString("ddMMyyyyHHmm");
+                string contractIdNumberGen = $"{prefix}-{currentDateTime}";
                 Contract contract = new Contract
                 {
                     ContractName = investmentContractCreateDTO.Contract.ContractName,
@@ -123,7 +121,7 @@ namespace StartedIn.Service.Services
                     CreatedBy = userInProject.User.FullName,
                     ProjectId = projectId,
                     ContractStatus = ContractStatusEnum.DRAFT,
-                    ContractIdNumber = investmentContractCreateDTO.Contract.ContractIdNumber
+                    ContractIdNumber = contractIdNumberGen
                 };
                 var leader = userInProject.User;
                 List<UserContract> usersInContract = new List<UserContract>();
@@ -205,11 +203,6 @@ namespace StartedIn.Service.Services
             {
                 throw new UnauthorizedProjectRoleException(MessageConstant.RolePermissionError);
             }
-            var existedContractWithIdNumber = await _contractRepository.QueryHelper().Filter(x => x.ContractIdNumber.Equals(groupContractCreateDTO.Contract.ContractIdNumber) && x.ProjectId.Equals(projectId)).GetOneAsync();
-            if (existedContractWithIdNumber != null)
-            {
-                throw new ExistedRecordException(MessageConstant.ContractNumberExistedError);
-            }
             if (groupContractCreateDTO.ShareEquitiesOfMembers == null)
             {
                 throw new InvalidDataException(MessageConstant.ShareDistributionListEmptyInContract);
@@ -220,14 +213,12 @@ namespace StartedIn.Service.Services
             {
                 throw new InvalidOperationException(MessageConstant.TotalDistributePercentageGreaterThanRemainingPercentage);
             }
-            var existedDistributeContractInProject = await _contractRepository.QueryHelper().Filter(x => x.ProjectId.Equals(projectId) && x.ContractType.Equals(ContractTypeEnum.INTERNAL) && x.ContractStatus == ContractStatusEnum.COMPLETED).GetOneAsync();
-            if (existedDistributeContractInProject != null)
-            {
-                throw new ExistedRecordException(MessageConstant.ValidShareDistributionContractExisted);
-            }
             try
             {
                 _unitOfWork.BeginTransaction();
+                string prefix = "HDNB";
+                string currentDateTime = DateTime.Now.ToString("ddMMyyyyHHmm");
+                string contractIdNumberGen = $"{prefix}-{currentDateTime}";
                 Contract contract = new Contract
                 {
                     ContractName = groupContractCreateDTO.Contract.ContractName,
@@ -236,7 +227,7 @@ namespace StartedIn.Service.Services
                     CreatedBy = userInProject.User.FullName,
                     ProjectId = projectId,
                     ContractStatus = ContractStatusEnum.DRAFT,
-                    ContractIdNumber = groupContractCreateDTO.Contract.ContractIdNumber
+                    ContractIdNumber = contractIdNumberGen
                 };
 
                 List<UserContract> usersInContract = new List<UserContract>();
@@ -306,11 +297,6 @@ namespace StartedIn.Service.Services
             {
                 throw new UnauthorizedProjectRoleException(MessageConstant.RolePermissionError);
             }
-            var existedContract = await _contractRepository.QueryHelper().Filter(x => x.ContractIdNumber.Equals(investmentContractFromDealCreateDTO.Contract.ContractIdNumber) && x.ProjectId.Equals(projectId)).GetOneAsync();
-            if (existedContract != null)
-            {
-                throw new ExistedRecordException(MessageConstant.ContractNumberExistedError);
-            }
             var project = await _projectRepository.GetProjectById(projectId);
             var chosenDeal = await _dealOfferRepository.QueryHelper()
                 .Include(x => x.Investor)
@@ -350,6 +336,9 @@ namespace StartedIn.Service.Services
                 {
                     throw new NotFoundException(MessageConstant.NotFoundInvestorError);
                 }
+                string prefix = "HDDT";
+                string currentDateTime = DateTime.Now.ToString("ddMMyyyyHHmm");
+                string contractIdNumberGen = $"{prefix}-{currentDateTime}";
                 Contract contract = new Contract
                 {
                     ContractName = investmentContractFromDealCreateDTO.Contract.ContractName,
@@ -358,7 +347,7 @@ namespace StartedIn.Service.Services
                     CreatedBy = userInProject.User.FullName,
                     ProjectId = projectId,
                     ContractStatus = ContractStatusEnum.DRAFT,
-                    ContractIdNumber = investmentContractFromDealCreateDTO.Contract.ContractIdNumber,
+                    ContractIdNumber = contractIdNumberGen,
                     DealOffer = chosenDeal,
                     DealOfferId = chosenDeal.Id
                 };
@@ -714,6 +703,13 @@ namespace StartedIn.Service.Services
         {
             var userProject = await _userService.CheckIfUserInProject(userId, projectId);
             var searchResult = _contractRepository.GetContractListQuery(userId, projectId);
+
+            if (!string.IsNullOrWhiteSpace(search.ContractIdNumber))
+            {
+                string contractIdNumber = search.ContractIdNumber.ToLower();
+                searchResult = searchResult.Where(c => c.ContractIdNumber.ToLower().Contains(contractIdNumber));
+            }
+
             // Filter by Contract Name
             if (!string.IsNullOrWhiteSpace(search.ContractName))
             {
@@ -766,6 +762,7 @@ namespace StartedIn.Service.Services
             var contractSearchResponseDTOs = pagedResult.Select(contract => new ContractSearchResponseDTO
             {
                 Id = contract.Id,
+                ContractIdNumber = contract.ContractIdNumber,
                 ContractName = contract.ContractName,
                 ContractStatus = contract.ContractStatus,
                 ContractType = contract.ContractType,
@@ -828,7 +825,6 @@ namespace StartedIn.Service.Services
                 // Update contract details
                 contract.ContractName = investmentContractUpdateDTO.Contract.ContractName;
                 contract.ContractPolicy = investmentContractUpdateDTO.Contract.ContractPolicy;
-                contract.ContractIdNumber = investmentContractUpdateDTO.Contract.ContractIdNumber;
 
                 // Update or add ShareEquity details
                 var investor = await _userManager.FindByIdAsync(investmentContractUpdateDTO.InvestorInfo.UserId);
@@ -938,11 +934,6 @@ namespace StartedIn.Service.Services
             {
                 throw new UpdateException(MessageConstant.CannotEditContractError);
             }
-            var existedContractWithIdNumber = await _contractRepository.QueryHelper().Filter(x => x.ContractIdNumber.Equals(groupContractUpdateDTO.Contract.ContractIdNumber) && x.ProjectId.Equals(projectId) && !x.Id.Equals(contractId)).GetOneAsync();
-            if (existedContractWithIdNumber != null)
-            {
-                throw new ExistedRecordException(MessageConstant.ContractNumberExistedError);
-            }
             var project = await _projectRepository.GetProjectById(projectId);
             var totalShareOfDistribution = groupContractUpdateDTO.ShareEquitiesOfMembers.Sum(d => d.Percentage);
             if (totalShareOfDistribution > project.RemainingPercentOfShares)
@@ -956,7 +947,6 @@ namespace StartedIn.Service.Services
                 // Update contract details
                 contract.ContractName = groupContractUpdateDTO.Contract.ContractName;
                 contract.ContractPolicy = groupContractUpdateDTO.Contract.ContractPolicy;
-                contract.ContractIdNumber = groupContractUpdateDTO.Contract.ContractIdNumber;
 
                 var existingShareEquitiesOfMembers = contract.ShareEquities;
                 foreach (var existingShareEquity in existingShareEquitiesOfMembers)
