@@ -65,7 +65,8 @@ public class RecruitmentService : IRecruitmentService
             {
                 ProjectId = projectId,
                 Content = createRecruitmentDto.Content,
-                Title = createRecruitmentDto.Title
+                Title = createRecruitmentDto.Title,
+                IsOpen = createRecruitmentDto.IsOpen
             };
             var recruitmentEntity = _recruitmentRepository.Add(recruitment);
             foreach (var recruitFile in createRecruitmentDto.recruitFiles)
