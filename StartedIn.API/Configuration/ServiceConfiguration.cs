@@ -35,6 +35,7 @@ namespace StartedIn.API.Configuration
             services.AddScoped<IRecruitmentService, RecruitmentService>();
             services.AddScoped<IAppointmentService, AppointmentService>();
             services.AddScoped<ILeavingRequestService, LeavingRequestService>();
+            services.AddScoped<IRecruitmentImageService, RecruitmentImageService>();
             services.AddScoped<IAppSettingManager,AppSettingManager>();
             return services;
         }

@@ -10,5 +10,6 @@ public class RecruitmentResponseDTO : IdentityResponseDTO
     public bool IsOpen { get; set; }
     public string LeaderId { get; set; }
     public string LeaderName { get; set; }
+    public string LeaderAvatarUrl { get; set; }
     public List<RecruitmentImgResponseDTO> RecruitmentImgs { get; set; }
 }

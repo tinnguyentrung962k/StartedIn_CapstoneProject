@@ -1,4 +1,5 @@
 ﻿using AutoMapper;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using StartedIn.CrossCutting.Constants;
 using StartedIn.CrossCutting.DTOs.RequestDTO.Project;
@@ -22,6 +23,7 @@ namespace StartedIn.Service.Services
     {
         private readonly IProjectRepository _projectRepository;
         private readonly IEmailService _emailService;
+        private readonly IAzureBlobService _azureBlobService;
         private readonly IApplicationRepository _applicationRepository;
         private readonly IUserRepository _userRepository;
         private readonly UserManager<User> _userManager;
@@ -32,6 +34,7 @@ namespace StartedIn.Service.Services
         public RecruitInviteService(
             IProjectRepository projectRepository,
             IEmailService emailService,
+            IAzureBlobService azureBlobService,
             IUserRepository userRepository,
             UserManager<User> userManager,
             IUserService userService,
@@ -41,6 +44,7 @@ namespace StartedIn.Service.Services
         {
             _projectRepository = projectRepository;
             _emailService = emailService;
+            _azureBlobService = azureBlobService;
             _userRepository = userRepository;
             _userManager = userManager;
             _userService = userService;
@@ -90,6 +94,7 @@ namespace StartedIn.Service.Services
                 {
                     throw new InviteException($"{MessageConstant.UserHasInvestorSystemRole}{existedUser.FullName}, {existedUser.Email}");
                 }
+
                 var existedUserInProject = project.UserProjects.FirstOrDefault(up => up.User.Equals(existedUser));
                 if (existedUserInProject != null)
                 {
@@ -123,9 +128,9 @@ namespace StartedIn.Service.Services
                 }
 
                 var existedInvite = await _applicationRepository.QueryHelper()
-                    .Filter(x => x.CandidateId.Equals(existedUser.Id) 
-                    && x.ProjectId.Equals(projectId) 
-                    && x.Type == ApplicationTypeEnum.INVITE 
+                    .Filter(x => x.CandidateId.Equals(existedUser.Id)
+                    && x.ProjectId.Equals(projectId)
+                    && x.Type == ApplicationTypeEnum.INVITE
                     && x.Status == ApplicationStatus.PENDING)
                     .GetOneAsync();
 
@@ -205,7 +210,7 @@ namespace StartedIn.Service.Services
             await _userRepository.AddUserToProject(userId, projectId, roleInTeam);
             await _unitOfWork.SaveChangesAsync();
         }
-        
+
 
         public async Task<ProjectInviteOverviewDTO> GetProjectInviteOverview(string projectId)
         {
@@ -233,9 +238,9 @@ namespace StartedIn.Service.Services
         public async Task AcceptProjectInvitation(string userId, string projectId, AcceptInviteDTO acceptInviteDTO)
         {
             var invite = await _applicationRepository.QueryHelper()
-                .Filter(x => x.CandidateId.Equals(userId) 
-                && x.Type == acceptInviteDTO.Type 
-                && x.Status == ApplicationStatus.PENDING 
+                .Filter(x => x.CandidateId.Equals(userId)
+                && x.Type == acceptInviteDTO.Type
+                && x.Status == ApplicationStatus.PENDING
                 && x.Role == acceptInviteDTO.Role)
                 .GetOneAsync();
 
@@ -251,6 +256,152 @@ namespace StartedIn.Service.Services
 
                 await _unitOfWork.SaveChangesAsync();
                 await _unitOfWork.CommitAsync();
+            }
+            catch (Exception ex)
+            {
+                await _unitOfWork.RollbackAsync();
+                throw new Exception(ex.Message);
+            }
+        }
+
+        public async Task<Application> ApplyRecruitment(string userId, string projectId, string recruitmentId, IFormFile file)
+        {
+            var existedApplication = await _applicationRepository.QueryHelper()
+                .Filter(x => x.CandidateId.Equals(userId)
+                               && x.ProjectId.Equals(projectId)
+                                              && x.RecruitmentId.Equals(recruitmentId)
+                                                             && x.Type == ApplicationTypeEnum.APPLY
+                                                                            && x.Status == ApplicationStatus.PENDING)
+                .GetOneAsync();
+            if (existedApplication != null)
+            {
+                throw new InviteException(MessageConstant.YouHaveAppliedForRecruitment);
+            }
+
+            var userInProject = await _userRepository.GetAUserInProject(projectId, userId);
+            if (userInProject != null)
+            {
+                throw new InviteException(MessageConstant.ApplicantAlreadyInProject);
+            }
+
+            var userInOtherProjects = await _projectRepository.GetAProjectByUserId(userId);
+            if (userInOtherProjects != null)
+            {
+                throw new InviteException(MessageConstant.UserInOtherProjectError);
+            }
+
+            try
+            {
+                // Upload CV to get the URL string
+                var cvUrl = await _azureBlobService.UploadCVFileApplication(file);
+                var application = new Application
+                {
+                    CandidateId = userId,
+                    ProjectId = projectId,
+                    RecruitmentId = recruitmentId,
+                    Status = ApplicationStatus.PENDING,
+                    Type = ApplicationTypeEnum.APPLY,
+                    Role = RoleInTeam.Member,
+                    CVUrl = cvUrl
+                };
+
+                _applicationRepository.Add(application);
+                await _unitOfWork.SaveChangesAsync();
+                return application;
+            }
+            catch (Exception ex)
+            {
+                throw new Exception(ex.Message);
+            }
+        }
+
+        public async Task<IEnumerable<Application>> GetApplicationsOfProject(string userId, string projectId)
+        {
+            // Get list of application from project, by type apply and status pending
+            // TODO: make it pagination
+            var applications = await _applicationRepository.GetApplicationsWithCandidate(projectId);
+            // Remove applications of the user
+            foreach (var application in applications.ToList())
+            {
+                application.Candidate.Applications = null;
+            }
+            return applications;
+        }
+
+        public async Task AcceptApplication(string userId, string projectId, string applicationId)
+        {
+            // check if user is leader of project
+            var userInProject = await _userRepository.GetAUserInProject(projectId, userId);
+            if (userInProject.RoleInTeam != RoleInTeam.Leader)
+            {
+                throw new InviteException(MessageConstant.RolePermissionError);
+            }
+
+            var application = await _applicationRepository.QueryHelper()
+                .Filter(x => x.Id.Equals(applicationId)
+                    && x.ProjectId.Equals(projectId)
+                    && x.Type == ApplicationTypeEnum.APPLY
+                    && x.Status == ApplicationStatus.PENDING)
+                .GetOneAsync();
+
+            var userInOtherProjects = await _projectRepository.GetAProjectByUserId(application.CandidateId);
+            if (userInOtherProjects != null)
+            {
+                throw new InviteException(MessageConstant.UserInOtherProjectError);
+            }
+
+            if (application == null)
+            {
+                throw new NotFoundException(MessageConstant.NotFoundRecruitmentApplication);
+            }
+
+            try
+            {
+                _unitOfWork.BeginTransaction();
+                application.Status = ApplicationStatus.ACCEPTED;
+                _applicationRepository.Update(application);
+
+                await _userRepository.AddUserToProject(application.CandidateId, projectId, application.Role);
+
+                await _unitOfWork.CommitAsync();
+                await _unitOfWork.SaveChangesAsync();
+            }
+            catch (Exception ex)
+            {
+                await _unitOfWork.RollbackAsync();
+                throw new Exception(ex.Message);
+            }
+        }
+
+        public async Task RejectApplication(string userId, string projectId, string applicationId)
+        {
+            // check if user is leader of project
+            var userInProject = await _userRepository.GetAUserInProject(projectId, userId);
+            if (userInProject.RoleInTeam != RoleInTeam.Leader)
+            {
+                throw new InviteException(MessageConstant.RolePermissionError);
+            }
+
+            var application = await _applicationRepository.QueryHelper()
+                .Filter(x => x.Id.Equals(applicationId)
+                    && x.ProjectId.Equals(projectId)
+                    && x.Type == ApplicationTypeEnum.APPLY
+                    && x.Status == ApplicationStatus.PENDING)
+                .GetOneAsync();
+
+            if (application == null)
+            {
+                throw new NotFoundException(MessageConstant.NotFoundRecruitmentApplication);
+            }
+
+            try
+            {
+                _unitOfWork.BeginTransaction();
+                application.Status = ApplicationStatus.REJECTED;
+                _applicationRepository.Update(application);
+
+                await _unitOfWork.CommitAsync();
+                await _unitOfWork.SaveChangesAsync();
             }
             catch (Exception ex)
             {

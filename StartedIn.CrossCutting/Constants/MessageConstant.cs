@@ -105,5 +105,10 @@ namespace StartedIn.CrossCutting.Constants
         public const string PendingLeavingRequestExisted = "Bạn còn yêu cầu cũ chưa được duyệt.";
         public const string UserBelongToActiveContracts = "Người dùng này còn hợp đồng đang có hiệu lực";
         public const string LeaderCannotLeaveGroup = "Bạn không thể rời nhóm với vị trí trưởng nhóm.";
+        public const string NotFoundRecruitmentImg = "Không tìm thấy ảnh tuyển dụng";
+        public const string RecruitmentPostExist = "Bài đăng tuyển dụng đã tồn tại";
+        public const string YouHaveAppliedForRecruitment = "Bạn đã ứng tuyển cho bài đăng tuyển dụng này";
+        public const string NotFoundRecruitmentApplication = "Không tìm thấy ứng tuyển cho bài đăng tuyển dụng";
+        public const string ApplicantAlreadyInProject = "Bạn đã tham gia dự án";
     }
 }

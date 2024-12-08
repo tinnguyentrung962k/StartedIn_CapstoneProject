@@ -22,5 +22,7 @@ namespace StartedIn.Service.Services.Interface
         Task<string> UploadEvidenceOfTransaction(IFormFile file);
         Task<string> UploadTaskAttachment(IFormFile file);
         Task<string> UploadEvidenceOfConfirmation(IFormFile file);
+        Task DeleteImageFromRecruitmentBlob(string imageUrl);
+        Task<string> UploadCVFileApplication(IFormFile file);
     }
 }

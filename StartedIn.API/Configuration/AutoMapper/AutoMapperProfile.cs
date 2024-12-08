@@ -52,6 +52,7 @@ namespace StartedIn.API.Configuration.AutoMapper
             RecruitmentImgMappingProfile();
             AppointmentMappingProfile();
             LeavingRequestMappingProfile();
+            ApplicationMappingProfile();
         }
 
 
@@ -320,6 +321,7 @@ namespace StartedIn.API.Configuration.AutoMapper
                 .ForMember(dest => dest.RecruitmentImgs, opt => opt.MapFrom(src => src.RecruitmentImgs.Where(ri => ri.RecruitmentId.Equals(src.Id))))
                 .ForMember(dest => dest.LeaderId, opt => opt.MapFrom(src => src.Project.UserProjects.FirstOrDefault(up => up.RoleInTeam == RoleInTeam.Leader).UserId))
                 .ForMember(dest => dest.LeaderName, opt => opt.MapFrom(src => src.Project.UserProjects.FirstOrDefault(up => up.RoleInTeam == RoleInTeam.Leader).User.FullName))
+                .ForMember(dest => dest.LeaderAvatarUrl, opt => opt.MapFrom(src => src.Project.UserProjects.FirstOrDefault(up => up.RoleInTeam == RoleInTeam.Leader).User.ProfilePicture))
                 .ReverseMap();
             
             CreateMap<Recruitment, RecruitmentListDTO>()
@@ -330,7 +332,11 @@ namespace StartedIn.API.Configuration.AutoMapper
                     opt => opt.MapFrom(src =>
                         src.Project.UserProjects.FirstOrDefault(up => up.RoleInTeam == RoleInTeam.Leader).User.FullName))
                 .ForMember(dest => dest.LogoUrl, opt => opt.MapFrom(src => src.Project.LogoUrl))
+                .ForMember(dest => dest.ProjectName, opt => opt.MapFrom(src => src.Project.ProjectName))
+                .ForMember(dest => dest.LeaderAvatarUrl, opt => opt.MapFrom(src => src.Project.UserProjects.FirstOrDefault(up => up.RoleInTeam == RoleInTeam.Leader).User.ProfilePicture))
                 .ReverseMap();
+
+            CreateMap<Recruitment, RecruitmentInProjectDTO>().ReverseMap();
         }
 
         private void RecruitmentImgMappingProfile()
@@ -338,6 +344,12 @@ namespace StartedIn.API.Configuration.AutoMapper
             CreateMap<RecruitmentImg, RecruitmentImgResponseDTO>()
                 .ReverseMap();
         }
+
+        private void ApplicationMappingProfile()
+        {
+            CreateMap<Application, ApplicationDTO>().ReverseMap();
+        }
+
         private void AppointmentMappingProfile()
         {
             CreateMap<Appointment, AppointmentInCalendarResponseDTO>().ReverseMap();
