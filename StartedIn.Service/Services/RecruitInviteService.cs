@@ -254,12 +254,15 @@ namespace StartedIn.Service.Services
                 var project = await _projectRepository.GetProjectById(projectId);
                 var userInProject = project.UserProjects.FirstOrDefault(up => up.UserId.Equals(userId) 
                 && up.Status != UserStatusInProject.Active);
-                if (userInProject != null) 
+                if (userInProject != null)
                 {
                     userInProject.Status = UserStatusInProject.Active;
                     await _userRepository.UpdateUserInProject(userInProject);
                 }
-                await _userRepository.AddUserToProject(userId, projectId, invite.Role);
+                else 
+                {
+                    await _userRepository.AddUserToProject(userId, projectId, invite.Role);
+                }
                 await _unitOfWork.SaveChangesAsync();
                 await _unitOfWork.CommitAsync();
             }

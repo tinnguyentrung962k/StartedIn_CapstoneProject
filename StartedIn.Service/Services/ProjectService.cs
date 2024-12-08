@@ -629,6 +629,8 @@ public class ProjectService : IProjectService
             var project = await _projectRepository.GetProjectById(projectId);
             foreach (var participant in project.UserProjects.Where(x => x.RoleInTeam != RoleInTeam.Leader))
             {
+                participant.Status = UserStatusInProject.Left;
+                await _userRepository.UpdateUserInProject(participant);
                 var user = await _userManager.FindByIdAsync(participant.UserId);
                 await _emailService.SendClosingProject(user.Email, userInProject.User.FullName, user.FullName, project.ProjectName);
             }
