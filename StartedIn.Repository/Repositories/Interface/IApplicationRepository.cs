@@ -9,5 +9,6 @@ namespace StartedIn.Repository.Repositories.Interface
 {
     public interface IApplicationRepository : IGenericRepository<Application, string>
     {
+        Task<IEnumerable<Application>> GetApplicationsWithCandidate(string projectId);
     }
 }

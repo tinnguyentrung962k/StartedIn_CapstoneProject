@@ -168,13 +168,14 @@ namespace StartedIn.API.Controllers
         // Get list of application of a project, so leader can reject or accept the application after reviewing them
         [HttpGet("applications")]
         [Authorize(Roles = RoleConstants.USER)]
-        public async Task<IActionResult> GetApplications([FromRoute] string projectId)
+        public async Task<ActionResult<IEnumerable<ApplicationDTO>>> GetApplications([FromRoute] string projectId)
         {
             try
             {
                 var userId = User.FindFirst(ClaimTypes.NameIdentifier).Value;
                 var applications = await _recruitInviteService.GetApplicationsOfProject(userId, projectId);
-                return Ok(applications);
+                var data = _mapper.Map<IEnumerable<ApplicationDTO>>(applications);
+                return Ok(data);
             }
             catch (NotFoundException ex)
             {

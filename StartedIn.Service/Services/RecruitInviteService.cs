@@ -94,6 +94,7 @@ namespace StartedIn.Service.Services
                 {
                     throw new InviteException($"{MessageConstant.UserHasInvestorSystemRole}{existedUser.FullName}, {existedUser.Email}");
                 }
+
                 var existedUserInProject = project.UserProjects.FirstOrDefault(up => up.User.Equals(existedUser));
                 if (existedUserInProject != null)
                 {
@@ -274,7 +275,19 @@ namespace StartedIn.Service.Services
                 .GetOneAsync();
             if (existedApplication != null)
             {
-                throw new InvalidInputException(MessageConstant.YouHaveAppliedForRecruitment);
+                throw new InviteException(MessageConstant.YouHaveAppliedForRecruitment);
+            }
+
+            var userInProject = await _userRepository.GetAUserInProject(projectId, userId);
+            if (userInProject != null)
+            {
+                throw new InviteException(MessageConstant.ApplicantAlreadyInProject);
+            }
+
+            var userInOtherProjects = await _projectRepository.GetAProjectByUserId(userId);
+            if (userInOtherProjects != null)
+            {
+                throw new InviteException(MessageConstant.UserInOtherProjectError);
             }
 
             try
@@ -302,14 +315,16 @@ namespace StartedIn.Service.Services
             }
         }
 
-        public Task<IEnumerable<Application>> GetApplicationsOfProject(string userId, string projectId)
+        public async Task<IEnumerable<Application>> GetApplicationsOfProject(string userId, string projectId)
         {
             // Get list of application from project, by type apply and status pending
-            var applications = _applicationRepository.QueryHelper()
-                .Filter(x => x.ProjectId.Equals(projectId)
-                                            && x.Type == ApplicationTypeEnum.APPLY
-                                                                        && x.Status == ApplicationStatus.PENDING)
-                .GetAllAsync();
+            // TODO: make it pagination
+            var applications = await _applicationRepository.GetApplicationsWithCandidate(projectId);
+            // Remove applications of the user
+            foreach (var application in applications.ToList())
+            {
+                application.Candidate.Applications = null;
+            }
             return applications;
         }
 
@@ -328,6 +343,12 @@ namespace StartedIn.Service.Services
                     && x.Type == ApplicationTypeEnum.APPLY
                     && x.Status == ApplicationStatus.PENDING)
                 .GetOneAsync();
+
+            var userInOtherProjects = await _projectRepository.GetAProjectByUserId(application.CandidateId);
+            if (userInOtherProjects != null)
+            {
+                throw new InviteException(MessageConstant.UserInOtherProjectError);
+            }
 
             if (application == null)
             {
