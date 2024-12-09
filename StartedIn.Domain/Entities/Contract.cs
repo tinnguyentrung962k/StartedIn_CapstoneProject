@@ -19,6 +19,12 @@ namespace StartedIn.Domain.Entities
         [ForeignKey(nameof(DealOffer))]
         public string? DealOfferId { get; set; }
 
+        public string? TerminationInitiatorId { get; set; }
+
+        public string? TerminationReason { get; set; }
+
+        public DateOnly? TerminationDate { get; set; }
+
         [MaxLength(50)]
         public string ContractName { get; set; }
         public ContractTypeEnum ContractType { get; set; }

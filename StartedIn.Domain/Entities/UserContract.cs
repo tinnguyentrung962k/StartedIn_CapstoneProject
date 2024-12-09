@@ -15,5 +15,6 @@ namespace StartedIn.Domain.Entities
         public bool IsReject { get; set; }
         public virtual Contract Contract { get; set; }
         public virtual User User { get; set; }
+        public bool? HasAgreedTermination { get; set; }
     }
 }

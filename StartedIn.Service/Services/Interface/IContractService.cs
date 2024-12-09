@@ -28,5 +28,6 @@ namespace StartedIn.Service.Services.Interface
         Task MarkExpiredContract(string userId, string projectId, string contractId);
         Task DeleteContract(string userId, string projectId, string contractId);
         Task<List<UserContract>> GetUserSignHistoryInAContract(string userId, string projectId, string contractId);
+        Task SendTerminationRequest(string userId, string projectId, string contractId, ContractTerminationRequest contractTerminationRequest);
     }
 }

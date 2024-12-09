@@ -14,5 +14,6 @@ namespace StartedIn.Repository.Repositories.Interface
         Task<Contract> GetTheNearestExpiredInternalContractInAProject(string projectId);
         Task<List<Contract>> GetContractByProjectId(string projectId);
         IQueryable<Contract> GetContractListQuery(string userId, string projectId);
+        Task UpdateUserInContract(UserContract userContract);
     }
 }

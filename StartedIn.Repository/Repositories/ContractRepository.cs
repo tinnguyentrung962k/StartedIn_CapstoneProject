@@ -83,5 +83,10 @@ namespace StartedIn.Repository.Repositories
                 .OrderByDescending(x => x.LastUpdatedTime);
             return query;
         }
+        public async Task UpdateUserInContract(UserContract userContract)
+        {
+            _appDbContext.Set<UserContract>().Update(userContract);
+            await _appDbContext.SaveChangesAsync();
+        }
     }
 }
