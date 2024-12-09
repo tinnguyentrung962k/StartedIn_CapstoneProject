@@ -56,13 +56,13 @@ namespace StartedIn.Service.Services
             // Bước 3: Tính tổng cổ phần cho từng thành viên
             var shareEquitySummary = new List<ShareEquitySummaryDTO>();
 
-            if (equityShareFilterDTO.ToDate > DateOnly.FromDateTime(DateTime.Now))
+            if (equityShareFilterDTO.ToDate > DateOnly.FromDateTime(DateTime.UtcNow))
             {
                 throw new InvalidInputException(MessageConstant.InvalidEquityChosenDate);
             }
 
             // Lấy ngày tính cổ phần (nếu không có, sử dụng ngày hiện tại)
-            var targetDate = equityShareFilterDTO.ToDate ?? DateOnly.FromDateTime(DateTime.Now);
+            var targetDate = equityShareFilterDTO.ToDate ?? DateOnly.FromDateTime(DateTime.UtcNow);
 
             foreach (var contract in allContracts)
             {
