@@ -1,4 +1,5 @@
 ﻿using StartedIn.CrossCutting.DTOs.ResponseDTO.Milestone;
+using StartedIn.CrossCutting.DTOs.ResponseDTO.Tasks;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -18,5 +19,8 @@ namespace StartedIn.CrossCutting.DTOs.ResponseDTO.Project
         public List<MilestoneProgressResponseDTO>? MilestoneProgress { get; set; }
         public string? SelfRemainingDisbursement { get; set; }
         public string? SelfDisbursedAmount { get; set; }
+        public List<TaskResponseDTO>? CompletedTasks { get; set; }
+        public List<TaskResponseDTO>? OverdueTasks { get; set; }
+        public int TotalTask { get; set; }
     }
 }

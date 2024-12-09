@@ -49,6 +49,7 @@ public class ProjectService : IProjectService
     private readonly IEmailService _emailService;
     private readonly IAssetRepository _assetRepository;
     private readonly ILeavingRequestRepository _leavingRequestRepository;
+    private readonly ITaskRepository _taskRepository;
 
     public ProjectService(
         IProjectRepository projectRepository,
@@ -69,6 +70,7 @@ public class ProjectService : IProjectService
         IDisbursementRepository disbursementRepository,
         IAssetRepository assetRepository,
         ILeavingRequestRepository leavingRequestRepository,
+        ITaskRepository taskRepository,
         IMapper mapper)
     {
         _projectRepository = projectRepository;
@@ -90,6 +92,7 @@ public class ProjectService : IProjectService
         _emailService = emailService;
         _assetRepository = assetRepository;
         _leavingRequestRepository = leavingRequestRepository;
+        _taskRepository = taskRepository;
     }
     public async Task<Project> CreateNewProject(string userId, ProjectCreateDTO projectCreateDTO)
     {
@@ -557,7 +560,8 @@ public class ProjectService : IProjectService
         var milestoneProgressList = new List<MilestoneProgressResponseDTO>();
         if (project.Milestones != null)
         {
-            milestoneProgressList = project.Milestones.Select(m => new MilestoneProgressResponseDTO
+            milestoneProgressList = project.Milestones.Where(m => m.DeletedTime == null)
+                .Select(m => new MilestoneProgressResponseDTO
             {
                 Id = m.Id,
                 Title = m.Title,
@@ -566,6 +570,11 @@ public class ProjectService : IProjectService
         }
         var transactionStatisticOfCurrentMonth = await _transactionService.GetInAndOutMoneyTransactionOfCurrentMonth(projectId);
         var userShareInProject = await _shareEquityService.GetShareEquityOfAUserInAProject(userId, projectId);
+
+        var lateTask = await _taskRepository.GetTaskListInAProjectQuery(projectId).Where(x => x.IsLate == true).ToListAsync();
+        var completedTask = await _taskRepository.GetTaskListInAProjectQuery(projectId).Where(x => x.Status == TaskEntityStatus.DONE).ToListAsync();
+        var alltasks = await _taskRepository.GetTaskListInAProjectQuery(projectId).ToListAsync();
+        int totalTask = alltasks.Count();
         ProjectDashboardDTO projectDashboardDTO = new ProjectDashboardDTO
         {
             CurrentBudget = project.Finance.CurrentBudget.ToString(),
@@ -575,6 +584,9 @@ public class ProjectService : IProjectService
             ShareEquityPercentage = userShareInProject.ToString(),
             InAmount = transactionStatisticOfCurrentMonth.InMoney.ToString(),
             OutAmount = transactionStatisticOfCurrentMonth.OutMoney.ToString(),
+            CompletedTasks = _mapper.Map<List<TaskResponseDTO>>(completedTask),
+            OverdueTasks = _mapper.Map<List<TaskResponseDTO>>(lateTask),
+            TotalTask = totalTask
         };
 
         if (userInProject.RoleInTeam == RoleInTeam.Investor)
@@ -583,7 +595,7 @@ public class ProjectService : IProjectService
             projectDashboardDTO.SelfRemainingDisbursement = selfDisbursementsStatistic.SelfRemainingDisbursement;
             projectDashboardDTO.SelfDisbursedAmount = selfDisbursementsStatistic.SelfDisbursedAmount;
         }
-
+        
         return projectDashboardDTO;
     }
 
