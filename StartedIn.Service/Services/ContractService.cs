@@ -647,6 +647,7 @@ namespace StartedIn.Service.Services
                     .Filter(x => x.ProjectId.Equals(projectId))
                     .GetOneAsync();
                 projectFinance.RemainingDisbursement += totalDisbursement;
+                _projectRepository.Update(project);
                 _contractRepository.Update(chosenContract);
                 _financeRepository.Update(projectFinance);
                 await _unitOfWork.SaveChangesAsync();
