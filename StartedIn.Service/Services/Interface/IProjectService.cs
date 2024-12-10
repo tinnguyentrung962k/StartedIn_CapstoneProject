@@ -23,4 +23,5 @@ public interface IProjectService
     Task CloseAProject(string userId, string projectId);
     Task<ClosingProjectInformationDTO> GetProjectClosingInformation(string userId, string projectId);
     Task<LeavingProjectInfomationDTO> GetProjectLeavingInformation(string userId, string projectId);
+    Task<ProjectInformationWithMembersResponseDTO> GetProjectInformationWithMemberById(string projectId);
 }

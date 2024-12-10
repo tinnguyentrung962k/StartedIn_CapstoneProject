@@ -121,6 +121,25 @@ public class ProjectController : ControllerBase
             return StatusCode(500, MessageConstant.InternalServerError);
         }
     }
+    
+    [HttpGet("{projectId}/general-information")]
+    [Authorize(Roles = RoleConstants.USER + "," + RoleConstants.INVESTOR + "," + RoleConstants.MENTOR)]
+    public async Task<ActionResult<ProjectInformationWithMembersResponseDTO>> GetProjectInformationWithMembers([FromRoute] string projectId)
+    {
+        try
+        {
+            var project = await _projectService.GetProjectInformationWithMemberById(projectId);
+            return Ok(project);
+        }
+        catch (NotFoundException ex)
+        {
+            return BadRequest(ex.Message);
+        }
+        catch (Exception ex)
+        {
+            return StatusCode(500, MessageConstant.InternalServerError);
+        }
+    }
 
     [HttpGet("{projectId}/parties")]
     [Authorize(Roles = RoleConstants.USER + "," + RoleConstants.INVESTOR + "," + RoleConstants.MENTOR)]

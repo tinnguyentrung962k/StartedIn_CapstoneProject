@@ -161,6 +161,7 @@ namespace StartedIn.API.Configuration.AutoMapper
                 .ReverseMap();
 
             CreateMap<Project, ProjectInviteOverviewDTO>().ReverseMap();
+            CreateMap<Project, ProjectInformationWithMembersResponseDTO>().ReverseMap();
         }
         private void ContractMappingProfile()
         {
