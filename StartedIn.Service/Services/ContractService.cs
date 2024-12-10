@@ -16,6 +16,7 @@ using StartedIn.CrossCutting.DTOs.RequestDTO.Contract;
 using StartedIn.CrossCutting.DTOs.ResponseDTO.Contract;
 using StartedIn.CrossCutting.DTOs.RequestDTO.SignNow.SignNowWebhookRequestDTO;
 using StartedIn.CrossCutting.DTOs.ResponseDTO;
+using StartedIn.CrossCutting.DTOs.ResponseDTO.Disbursement;
 
 namespace StartedIn.Service.Services
 {
@@ -756,6 +757,7 @@ namespace StartedIn.Service.Services
             var pagedResult = await searchResult
                 .Skip((page - 1) * size)
                 .Take(size)
+                .Include(c=>c.Disbursements)
                 .Include(c => c.UserContracts)
                 .ThenInclude(uc => uc.User)
                 .ToListAsync();
@@ -775,7 +777,20 @@ namespace StartedIn.Service.Services
                     FullName = userContract.User.FullName,
                     PhoneNumber = userContract.User.PhoneNumber,
                     ProfilePicture = userContract.User.ProfilePicture
+                }).ToList(),
+                TotalDisbursementAmount = contract.Disbursements.Sum(d => d.Amount),
+                DisbursedAmount = contract.Disbursements.Where(d => d.DisbursementStatus == DisbursementStatusEnum.FINISHED).Sum(d => d.Amount),
+                PendingAmount = contract.Disbursements.Where(d => d.DisbursementStatus != DisbursementStatusEnum.FINISHED).Sum(d => d.Amount),
+                Disbursements = contract.Disbursements.Select(d => new DisbursementInContractListResponseDTO
+                {
+                    Id = d.Id,
+                    Amount = d.Amount.ToString(),
+                    DisbursementStatus = d.DisbursementStatus,
+                    StartDate = d.StartDate,
+                    EndDate = d.EndDate,
+                    Title = d.Title
                 }).ToList()
+
             }).ToList();
 
             // Construct pagination DTO
