@@ -16,6 +16,9 @@ namespace StartedIn.Domain.Entities
 
         [Column(TypeName = "decimal(14,3)")]
         public decimal TargetCall { get; set; }
+        
+        [Column(TypeName = "decimal(14,3)")]
+        public decimal ValuePerPercentage { get; set; }
 
         [Column(TypeName = "decimal(14,3)")]
         public decimal AmountRaised { get; set; }

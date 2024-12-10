@@ -65,6 +65,7 @@ public class InvestmentCallService : IInvestmentCallService
             {
                 ProjectId = projectId,
                 TargetCall = investmentCallCreateDto.TargetCall,
+                ValuePerPercentage = investmentCallCreateDto.ValuePerPercentage,
                 AmountRaised = 0,
                 TotalInvestor = 0,
                 EquityShareCall = investmentCallCreateDto.EquityShareCall,

@@ -739,4 +739,35 @@ public class ProjectService : IProjectService
         return leavingProject;
     }
 
+    public async Task<ProjectInformationWithMembersResponseDTO> GetProjectInformationWithMemberById(string projectId)
+    {
+        var project = await _projectRepository.GetProjectAndMemberByProjectId(projectId);
+        if (project == null)
+        {
+            throw new NotFoundException(MessageConstant.NotFoundProjectError);
+        }
+        
+        var listMember = new List<MemberWithRoleInProjectResponseDTO>();
+        foreach (var member in project.UserProjects)
+        {
+            var memberResponse = new MemberWithRoleInProjectResponseDTO
+            {
+                FullName = member.User.FullName,
+                RoleInTeam = member.RoleInTeam,
+                Email = member.User.Email,
+                Id = member.UserId
+                
+            };
+            listMember.Add(memberResponse);
+        }
+        var response = new ProjectInformationWithMembersResponseDTO
+        {
+            ProjectName = project.ProjectName,
+            Description = project.Description,
+            LogoUrl = project.LogoUrl,
+            Members = listMember,
+            Id = project.Id
+        };
+        return response;
+    }
 }
