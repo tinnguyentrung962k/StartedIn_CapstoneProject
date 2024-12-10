@@ -16,6 +16,6 @@ namespace StartedIn.CrossCutting.DTOs.RequestDTO.Disbursement
         public decimal? AmountTo { get; set; }
         public DisbursementStatusEnum? DisbursementStatus { get; set; }
         public string? ProjectId { get; set; }
-        public string? ContractId { get; set; }
+        public string? ContractIdNumber { get; set; }
     }
 }

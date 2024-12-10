@@ -310,9 +310,9 @@ namespace StartedIn.Service.Services
             }
 
             // Contract filter
-            if (!string.IsNullOrWhiteSpace(disbursementFilterDTO.ContractId))
+            if (!string.IsNullOrWhiteSpace(disbursementFilterDTO.ContractIdNumber))
             {
-                filterDisbursements = filterDisbursements.Where(d => d.ContractId.Equals(disbursementFilterDTO.ContractId));
+                filterDisbursements = filterDisbursements.Where(d => d.Contract.ContractIdNumber.ToLower().Contains(disbursementFilterDTO.ContractIdNumber.ToLower()));
             }
 
             int totalCount = await filterDisbursements.CountAsync();
@@ -393,9 +393,9 @@ namespace StartedIn.Service.Services
                 filterDisbursements = filterDisbursements.Where(d => d.Contract.ProjectId.Equals(disbursementFilterDTO.ProjectId));
             }
             // Contract filter
-            if (!string.IsNullOrWhiteSpace(disbursementFilterDTO.ContractId))
+            if (!string.IsNullOrWhiteSpace(disbursementFilterDTO.ContractIdNumber))
             {
-                filterDisbursements = filterDisbursements.Where(d => d.ContractId.Equals(disbursementFilterDTO.ContractId));
+                filterDisbursements = filterDisbursements.Where(d => d.Contract.ContractIdNumber.ToLower().Contains(disbursementFilterDTO.ContractIdNumber.ToLower()));
             }
 
             int totalCount = await filterDisbursements.CountAsync();
