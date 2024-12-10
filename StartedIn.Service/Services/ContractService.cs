@@ -111,7 +111,7 @@ namespace StartedIn.Service.Services
                     throw new NotFoundException(MessageConstant.NotFoundInvestorError);
                 }
                 string prefix = "HDDT";
-                string currentDateTime = DateTime.Now.ToString("ddMMyyyyHHmm");
+                string currentDateTime = DateTimeOffset.UtcNow.ToString("ddMMyyyyHHmm");
                 string contractIdNumberGen = $"{prefix}-{currentDateTime}";
                 Contract contract = new Contract
                 {
@@ -217,7 +217,7 @@ namespace StartedIn.Service.Services
             {
                 _unitOfWork.BeginTransaction();
                 string prefix = "HDNB";
-                string currentDateTime = DateTime.Now.ToString("ddMMyyyyHHmm");
+                string currentDateTime = DateTimeOffset.UtcNow.ToString("ddMMyyyyHHmm");
                 string contractIdNumberGen = $"{prefix}-{currentDateTime}";
                 Contract contract = new Contract
                 {
@@ -337,7 +337,7 @@ namespace StartedIn.Service.Services
                     throw new NotFoundException(MessageConstant.NotFoundInvestorError);
                 }
                 string prefix = "HDDT";
-                string currentDateTime = DateTime.Now.ToString("ddMMyyyyHHmm");
+                string currentDateTime = DateTimeOffset.UtcNow.ToString("ddMMyyyyHHmm");
                 string contractIdNumberGen = $"{prefix}-{currentDateTime}";
                 Contract contract = new Contract
                 {
