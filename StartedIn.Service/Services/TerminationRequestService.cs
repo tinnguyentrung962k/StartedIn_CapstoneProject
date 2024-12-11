@@ -78,5 +78,11 @@ namespace StartedIn.Service.Services
                 throw ex;
             }
         }
+        public async Task<List<TerminationRequest>> GetTerminationRequestForUserInProject(string userId, string projectId)
+        {
+            var userInProject = await _userService.CheckIfUserInProject(userId, projectId);
+            var requestList = await _terminationRequestRepository.GetTerminationRequestForUserInProject(userId, projectId);
+            return requestList;
+        }
     }
 }

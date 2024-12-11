@@ -1,4 +1,5 @@
-﻿using StartedIn.Domain.Context;
+﻿using Microsoft.EntityFrameworkCore;
+using StartedIn.Domain.Context;
 using StartedIn.Domain.Entities;
 using StartedIn.Repository.Repositories.Interface;
 using System;
@@ -11,8 +12,23 @@ namespace StartedIn.Repository.Repositories
 {
     public class TerminationRequestRepository : GenericRepository<TerminationRequest, string>, ITerminationRequestRepository
     {
+        private readonly AppDbContext _appDbContext;
         public TerminationRequestRepository(AppDbContext context) : base(context)
         {
+            _appDbContext = context;
+        }
+
+        public async Task<List<TerminationRequest>> GetTerminationRequestForUserInProject(string userId, string projectId)
+        {
+            var requestList = await _appDbContext.TerminationRequests
+                .Include(r => r.Contract)
+                .ThenInclude(c => c.UserContracts)
+                .ThenInclude(uc => uc.User)
+                .Where(r => (r.FromId.Equals(userId) 
+                || r.ToId.Equals(userId)) 
+                && r.Contract.ProjectId.Equals(projectId))
+                .ToListAsync();
+            return requestList;
         }
     }
 }

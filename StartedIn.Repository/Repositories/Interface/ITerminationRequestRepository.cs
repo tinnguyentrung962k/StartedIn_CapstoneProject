@@ -9,5 +9,6 @@ namespace StartedIn.Repository.Repositories.Interface
 {
     public interface ITerminationRequestRepository : IGenericRepository<TerminationRequest,string>
     {
+        Task<List<TerminationRequest>> GetTerminationRequestForUserInProject(string userId, string projectId);
     }
 }

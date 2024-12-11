@@ -16,7 +16,6 @@ namespace StartedIn.CrossCutting.DTOs.ResponseDTO.TerminationRequest
         public string ToId { get; set; }
         public string ToName { get; set; }
         public string Reason { get; set; }
-        public bool? IsAgreed { get; set; }
-
+        public bool IsAgreed { get; set; }
     }
 }

@@ -15,7 +15,7 @@ namespace StartedIn.Domain.Entities
         public string FromId { get; set; }
         public string ToId { get; set; }
         public string Reason { get; set; }
-        public bool? isAgreed { get; set; }
+        public bool? IsAgreed { get; set; }
         public Contract Contract { get; set; }
     }
 }

@@ -22,6 +22,7 @@ namespace StartedIn.API.Controllers
             IMapper mapper)
         {
             _terminationRequestService = terminationRequestService;
+            _mapper = mapper;
         }
 
         [HttpPost("contracts/{contractId}/termination-request")]
@@ -45,6 +46,30 @@ namespace StartedIn.API.Controllers
             catch (UnauthorizedProjectRoleException ex)
             {
                 return StatusCode(403,ex.Message);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, ex.Message);
+            }
+        }
+        [HttpGet("termination-request")]
+        [Authorize(Roles = RoleConstants.INVESTOR + "," + RoleConstants.USER + "," + RoleConstants.MENTOR)]
+        public async Task<ActionResult<List<TerminationRequestResponseDTO>>> GetUserTermationRequestInProject([FromRoute] string projectId)
+        {
+            try
+            {
+                var userId = User.FindFirst(ClaimTypes.NameIdentifier).Value;
+                var requestList = await _terminationRequestService.GetTerminationRequestForUserInProject(userId, projectId);
+                var response = _mapper.Map<List<TerminationRequestResponseDTO>>(requestList);
+                return Ok(response);
+            }
+            catch (NotFoundException ex)
+            {
+                return BadRequest(ex.Message);
+            }
+            catch (UnauthorizedProjectRoleException ex)
+            {
+                return StatusCode(403, ex.Message);
             }
             catch (Exception ex)
             {
