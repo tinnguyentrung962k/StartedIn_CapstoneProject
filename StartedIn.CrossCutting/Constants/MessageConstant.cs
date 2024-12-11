@@ -110,6 +110,6 @@ namespace StartedIn.CrossCutting.Constants
         public const string NotFoundRecruitmentApplication = "Không tìm thấy ứng tuyển cho bài đăng tuyển dụng";
         public const string ApplicantAlreadyInProject = "Bạn đã tham gia dự án";
         public const string InvalidEquityChosenDate = "Không thể chọn ngày trong tương lai.";
-        public const string YouCannotRequestToTerminateThisContract = "Bạn không thể yêu cầu huỷ hợp đồng này."
+        public const string YouCannotRequestToTerminateThisContract = "Bạn không thể yêu cầu huỷ hợp đồng này.";
     }
 }
