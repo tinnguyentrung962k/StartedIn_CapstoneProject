@@ -1,4 +1,5 @@
 using StartedIn.CrossCutting.DTOs.BaseDTO;
+using StartedIn.CrossCutting.DTOs.ResponseDTO.Disbursement;
 using StartedIn.CrossCutting.Enum;
 namespace StartedIn.CrossCutting.DTOs.ResponseDTO.Contract;
 
@@ -10,4 +11,8 @@ public class ContractSearchResponseDTO : IdentityResponseDTO
     public List<UserInContractResponseDTO> Parties { get; set; }
     public DateTimeOffset LastUpdatedTime { get; set; }
     public ContractStatusEnum ContractStatus { get; set; }
+    public decimal? TotalDisbursementAmount { get; set; }
+    public decimal? DisbursedAmount { get; set; }
+    public decimal? PendingAmount { get; set; }
+    public List<DisbursementInContractListResponseDTO> Disbursements { get; set; }
 }

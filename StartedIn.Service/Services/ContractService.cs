@@ -16,6 +16,7 @@ using StartedIn.CrossCutting.DTOs.RequestDTO.Contract;
 using StartedIn.CrossCutting.DTOs.ResponseDTO.Contract;
 using StartedIn.CrossCutting.DTOs.RequestDTO.SignNow.SignNowWebhookRequestDTO;
 using StartedIn.CrossCutting.DTOs.ResponseDTO;
+using StartedIn.CrossCutting.DTOs.ResponseDTO.Disbursement;
 
 namespace StartedIn.Service.Services
 {
@@ -756,6 +757,7 @@ namespace StartedIn.Service.Services
             var pagedResult = await searchResult
                 .Skip((page - 1) * size)
                 .Take(size)
+                .Include(c=>c.Disbursements)
                 .Include(c => c.UserContracts)
                 .ThenInclude(uc => uc.User)
                 .ToListAsync();
@@ -775,7 +777,20 @@ namespace StartedIn.Service.Services
                     FullName = userContract.User.FullName,
                     PhoneNumber = userContract.User.PhoneNumber,
                     ProfilePicture = userContract.User.ProfilePicture
+                }).ToList(),
+                TotalDisbursementAmount = contract.Disbursements.Sum(d => d.Amount),
+                DisbursedAmount = contract.Disbursements.Where(d => d.DisbursementStatus == DisbursementStatusEnum.FINISHED).Sum(d => d.Amount),
+                PendingAmount = contract.Disbursements.Where(d => d.DisbursementStatus != DisbursementStatusEnum.FINISHED).Sum(d => d.Amount),
+                Disbursements = contract.Disbursements.Select(d => new DisbursementInContractListResponseDTO
+                {
+                    Id = d.Id,
+                    Amount = d.Amount.ToString(),
+                    DisbursementStatus = d.DisbursementStatus,
+                    StartDate = d.StartDate,
+                    EndDate = d.EndDate,
+                    Title = d.Title
                 }).ToList()
+
             }).ToList();
 
             // Construct pagination DTO
@@ -1180,43 +1195,6 @@ namespace StartedIn.Service.Services
             var usersInContract = contract.UserContracts.ToList();
             return usersInContract;
         }
-
-        public async Task SendTerminationRequest(string userId, string projectId, string contractId, ContractTerminationRequest contractTerminationRequest)
-        {
-            var userInProject = await _userService.CheckIfUserInProject(userId, projectId);
-            var loginUserInContract = await _userService.CheckIfUserBelongToContract(userId, contractId);
-            var chosenContract = await _contractRepository.GetContractById(contractId);
-            if (chosenContract == null)
-            {
-                throw new NotFoundException(MessageConstant.NotFoundContractError);
-            }
-            if (chosenContract.ProjectId != projectId)
-            {
-                throw new UnmatchedException(MessageConstant.ContractNotBelongToProjectError);
-            }
-            try
-            {
-                _unitOfWork.BeginTransaction();
-                chosenContract.TerminationReason = contractTerminationRequest.TerminationReason;
-                chosenContract.TerminationInitiatorId = loginUserInContract.UserId;
-                var userContract = chosenContract.UserContracts.FirstOrDefault(x => x.UserId == userId);
-                if (userContract != null)
-                {
-                    userContract.HasAgreedTermination = true;
-                    await _contractRepository.UpdateUserInContract(userContract);
-                    _contractRepository.Update(chosenContract);
-                    await _unitOfWork.SaveChangesAsync();
-                    await _unitOfWork.CommitAsync();
-                }
-            }
-            catch (Exception ex)
-            {
-                await _unitOfWork.RollbackAsync();
-                throw new Exception(MessageConstant.UpdateFailed);
-            }
-            
-        }
-
 
     }
 }

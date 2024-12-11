@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using StartedIn.Domain.Context;
@@ -11,9 +12,11 @@ using StartedIn.Domain.Context;
 namespace StartedIn.Domain.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20241211104246_12-11-2024_Migration_05PM40")]
+    partial class _12112024_Migration_05PM40
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -1490,53 +1493,6 @@ namespace StartedIn.Domain.Migrations
                     b.ToTable("TaskHistory", (string)null);
                 });
 
-            modelBuilder.Entity("StartedIn.Domain.Entities.TerminationRequest", b =>
-                {
-                    b.Property<string>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("text");
-
-                    b.Property<string>("ContractId")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.Property<string>("CreatedBy")
-                        .HasColumnType("text");
-
-                    b.Property<DateTimeOffset>("CreatedTime")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<DateTimeOffset?>("DeletedTime")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<string>("FromId")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.Property<bool?>("IsAgreed")
-                        .HasColumnType("boolean");
-
-                    b.Property<string>("LastUpdatedBy")
-                        .HasColumnType("text");
-
-                    b.Property<DateTimeOffset>("LastUpdatedTime")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<string>("Reason")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.Property<string>("ToId")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("ContractId");
-
-                    b.ToTable("TerminationRequest", (string)null);
-                });
-
             modelBuilder.Entity("StartedIn.Domain.Entities.Transaction", b =>
                 {
                     b.Property<string>("Id")
@@ -2199,17 +2155,6 @@ namespace StartedIn.Domain.Migrations
                     b.Navigation("Task");
                 });
 
-            modelBuilder.Entity("StartedIn.Domain.Entities.TerminationRequest", b =>
-                {
-                    b.HasOne("StartedIn.Domain.Entities.Contract", "Contract")
-                        .WithMany("TerminationRequests")
-                        .HasForeignKey("ContractId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Contract");
-                });
-
             modelBuilder.Entity("StartedIn.Domain.Entities.Transaction", b =>
                 {
                     b.HasOne("StartedIn.Domain.Entities.Disbursement", "Disbursement")
@@ -2308,8 +2253,6 @@ namespace StartedIn.Domain.Migrations
                     b.Navigation("Disbursements");
 
                     b.Navigation("ShareEquities");
-
-                    b.Navigation("TerminationRequests");
 
                     b.Navigation("UserContracts");
                 });
