@@ -508,34 +508,6 @@ namespace StartedIn.API.Controllers
                 return StatusCode(500, ex.Message);
             }
         }
-
-        [HttpPost("contracts/{contractId}/termination-request")]
-        [Authorize(Roles = RoleConstants.USER + "," + RoleConstants.INVESTOR + "," + RoleConstants.MENTOR)]
-        public async Task<IActionResult> SendTerminationRequestForContract([FromRoute] string projectId, [FromRoute] string contractId, [FromBody] ContractTerminationRequest request)
-        {
-            try
-            {
-                var userId = User.FindFirst(ClaimTypes.NameIdentifier).Value;
-                await _contractService.SendTerminationRequest(userId, projectId, contractId, request);
-                return Ok("Đã gửi yêu cầu thanh lý hợp đồng thành công.");
-            }
-            catch (UnauthorizedProjectRoleException ex)
-            {
-                return StatusCode(403, ex.Message);
-            }
-            catch (NotFoundException ex)
-            {
-                return BadRequest(ex.Message);
-            }
-            catch (UnmatchedException ex)
-            {
-                return BadRequest(ex.Message);
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(500, ex.Message);
-            }
-        }
     }
 
 }
