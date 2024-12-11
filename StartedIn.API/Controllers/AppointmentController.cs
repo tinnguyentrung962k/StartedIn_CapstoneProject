@@ -138,7 +138,7 @@ namespace StartedIn.API.Controllers
             // Insert the event
             EventsResource.InsertRequest requestInsert = service.Events.Insert(newEvent, "primary");
             requestInsert.ConferenceDataVersion = 1;
-            Event createdEvent = requestInsert.Execute();
+            Event createdEvent = await requestInsert.ExecuteAsync();
 
             return Ok(new { JoinUrl = createdEvent.HangoutLink });
         }
