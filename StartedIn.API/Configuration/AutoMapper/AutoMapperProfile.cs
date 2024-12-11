@@ -370,7 +370,6 @@ namespace StartedIn.API.Configuration.AutoMapper
         {
             CreateMap<TerminationRequest, TerminationRequestResponseDTO>()
                 .ForMember(dest => dest.ContractIdNumber, opt => opt.MapFrom(src => src.Contract.ContractIdNumber))
-                .ForMember(dest => dest.ToName, opt => opt.MapFrom(src => src.Contract.UserContracts.FirstOrDefault(uc => uc.UserId == src.ToId).User.FullName))
                 .ForMember(dest => dest.FromName, opt => opt.MapFrom(src => src.Contract.UserContracts.FirstOrDefault(uc => uc.UserId == src.FromId).User.FullName));
         }
     }

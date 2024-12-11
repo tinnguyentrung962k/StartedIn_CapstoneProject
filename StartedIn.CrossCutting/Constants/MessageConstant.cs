@@ -111,5 +111,9 @@ namespace StartedIn.CrossCutting.Constants
         public const string ApplicantAlreadyInProject = "Bạn đã tham gia dự án";
         public const string InvalidEquityChosenDate = "Không thể chọn ngày trong tương lai.";
         public const string YouCannotRequestToTerminateThisContract = "Bạn không thể yêu cầu huỷ hợp đồng này.";
+        public const string NotFoundTerminateRequest = "Không tìm thấy yêu cầu chấm dứt hợp đồng.";
+        public const string YouCannotAcceptOrRejectTermination = "Bạn không thể chấp nhận/từ chối huỷ hợp đồng này.";
+        public const string YouAreNotBelongToThisRequest = "Ban không phải người nhận/gửi yêu cầu này.";
+
     }
 }

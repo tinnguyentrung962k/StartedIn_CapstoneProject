@@ -58,7 +58,7 @@ namespace StartedIn.Domain.Context
         public DbSet<LeavingRequest> LeavingRequests { get; set; }
         public DbSet<AppSetting> AppSettings { get; set; }
         public DbSet<TerminationRequest> TerminationRequests { get; set; }
-
+        public DbSet<TerminationConfirmation> TerminationConfirmations { get; set; }
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);
@@ -157,8 +157,19 @@ namespace StartedIn.Domain.Context
                 v => (MeetingStatus)Enum.Parse(typeof(MeetingStatus), v));
             modelBuilder.Entity<LeavingRequest>()
                 .ToTable("LeavingRequest");
+
             modelBuilder.Entity<TerminationRequest>()
                 .ToTable("TerminationRequest");
+
+            modelBuilder.Entity<TerminationRequest>()
+            .Property(u => u.Status)
+            .HasConversion(
+            v => v.ToString(),
+                v => (TerminationStatus)Enum.Parse(typeof(TerminationStatus), v));
+
+            modelBuilder.Entity<TerminationConfirmation>()
+               .ToTable("TerminationConfirmation");
+
             modelBuilder.Entity<LeavingRequest>()
             .Property(u => u.Status)
             .HasConversion(

@@ -21,12 +21,12 @@ namespace StartedIn.Repository.Repositories
         public async Task<List<TerminationRequest>> GetTerminationRequestForUserInProject(string userId, string projectId)
         {
             var requestList = await _appDbContext.TerminationRequests
+                .Include(r => r.TerminationConfirmations)
                 .Include(r => r.Contract)
                 .ThenInclude(c => c.UserContracts)
                 .ThenInclude(uc => uc.User)
-                .Where(r => (r.FromId.Equals(userId) 
-                || r.ToId.Equals(userId)) 
-                && r.Contract.ProjectId.Equals(projectId))
+                .Where(r => r.Contract.ProjectId.Equals(projectId) &&
+                            (r.FromId == userId || r.TerminationConfirmations.Any(tc => tc.ConfirmUserId == userId)))
                 .ToListAsync();
             return requestList;
         }
