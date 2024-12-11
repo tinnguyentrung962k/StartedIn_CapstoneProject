@@ -9,6 +9,8 @@ using StartedIn.CrossCutting.Exceptions;
 using StartedIn.Domain.Entities;
 using StartedIn.Service.Services.Interface;
 using System.Security.Claims;
+using Google.Apis.Calendar.v3;
+using Google.Apis.Calendar.v3.Data;
 
 namespace StartedIn.API.Controllers
 {
@@ -18,10 +20,12 @@ namespace StartedIn.API.Controllers
     {
         private readonly IAppointmentService _appointmentService;
         private readonly IMapper _mapper;
-        public AppointmentController(IAppointmentService appointmentService, IMapper mapper)
+        private readonly IGoogleMeetService _googleMeetService;
+        public AppointmentController(IAppointmentService appointmentService, IMapper mapper, IGoogleMeetService googleMeetService)
         {
             _appointmentService = appointmentService;
             _mapper = mapper;
+            _googleMeetService = googleMeetService;
         }
 
         [HttpGet("appointments/{year:int}")]
@@ -96,6 +100,47 @@ namespace StartedIn.API.Controllers
             {
                 return StatusCode(500, ex.Message);
             }
+        }
+        
+        [HttpPost]
+        [Route("api/meet/create")]
+        public async Task<ActionResult> CreateMeetSession([FromBody] MeetRequestDTO request)
+        {
+            var service = _googleMeetService.GetCalendarService();
+
+            // Create the event
+            Event newEvent = new Event()
+            {
+                Summary = request.Summary,
+                Start = new EventDateTime()
+                {
+                    DateTime = request.StartTime,
+                    TimeZone = "Asia/Bangkok"
+                },
+                End = new EventDateTime()
+                {
+                    DateTime = request.EndTime,
+                    TimeZone = "Asia/Bangkok"
+                },
+                ConferenceData = new ConferenceData()
+                {
+                    CreateRequest = new CreateConferenceRequest()
+                    {
+                        RequestId = Guid.NewGuid().ToString(),
+                        ConferenceSolutionKey = new ConferenceSolutionKey()
+                        {
+                            Type = "hangoutsMeet"
+                        }
+                    }
+                }
+            };
+
+            // Insert the event
+            EventsResource.InsertRequest requestInsert = service.Events.Insert(newEvent, "primary");
+            requestInsert.ConferenceDataVersion = 1;
+            Event createdEvent = requestInsert.Execute();
+
+            return Ok(new { JoinUrl = createdEvent.HangoutLink });
         }
     }
 }
