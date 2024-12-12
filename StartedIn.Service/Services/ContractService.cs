@@ -17,6 +17,8 @@ using StartedIn.CrossCutting.DTOs.ResponseDTO.Contract;
 using StartedIn.CrossCutting.DTOs.RequestDTO.SignNow.SignNowWebhookRequestDTO;
 using StartedIn.CrossCutting.DTOs.ResponseDTO;
 using StartedIn.CrossCutting.DTOs.ResponseDTO.Disbursement;
+using Microsoft.AspNetCore.Http;
+using DocumentFormat.OpenXml.Bibliography;
 
 namespace StartedIn.Service.Services
 {
@@ -497,6 +499,17 @@ namespace StartedIn.Service.Services
                             Event = SignNowServiceConstant.DocumentCompleteEvent,
                         };
                         webHookCreateList.Add(webhookAddInvestorToProject);
+                    }
+                    if (contract.ContractType == ContractTypeEnum.LIQUIDATIONNOTE)
+                    {
+                        var webhookMarkExpiredContract = new SignNowWebhookCreateDTO
+                        {
+                            Action = SignNowServiceConstant.CallBackAction,
+                            CallBackUrl = $"{_apiDomain}/api/projects/{projectId}/contracts/{contractId}/expiration",
+                            EntityId = userInChosenContract.Contract.SignNowDocumentId,
+                            Event = SignNowServiceConstant.DocumentCompleteEvent,
+                        };
+                        webHookCreateList.Add(webhookMarkExpiredContract);
                     }
                     var webhookCompleteSign = new SignNowWebhookCreateDTO
                     {
@@ -1066,13 +1079,71 @@ namespace StartedIn.Service.Services
             }
         }
 
-        public async Task MarkExpiredContract(string userId, string projectId, string contractId)
+        public async Task<Contract> CreateLiquidationNote(string userId, string projectId, string contractId, IFormFile uploadFile)
         {
             var userInProject = await _userService.CheckIfUserInProject(userId, projectId);
-            if (userInProject.RoleInTeam != RoleInTeam.Leader)
+            var projectRole = await _projectRepository.GetUserRoleInProject(userId, projectId);
+            if (projectRole != RoleInTeam.Leader)
             {
                 throw new UnauthorizedProjectRoleException(MessageConstant.RolePermissionError);
             }
+            var project = await _projectRepository.GetProjectById(projectId);
+            var chosenContract = await _contractRepository.GetContractById(contractId);
+            try
+            {
+                _unitOfWork.BeginTransaction();
+                string prefix = "GTL";
+                string currentDateTime = DateTimeOffset.UtcNow.ToString("ddMMyyyyHHmm");
+                string contractIdNumberGen = $"{prefix}-{currentDateTime}";
+                Contract contract = new Contract
+                {
+                    ContractName = $"Biên bản thanh lý cho hợp đồng {chosenContract.ContractIdNumber}",
+                    ContractPolicy = $"Dựa vào điều khoản của hợp đồng {chosenContract.ContractIdNumber}",
+                    ContractType = ContractTypeEnum.LIQUIDATIONNOTE,
+                    CreatedBy = userInProject.User.FullName,
+                    ProjectId = projectId,
+                    ContractStatus = ContractStatusEnum.DRAFT,
+                    ContractIdNumber = contractIdNumberGen,
+                    ParentContractId = chosenContract.Id,
+                    ParentContract = chosenContract.ParentContract,
+                };
+                var leader = userInProject.User;
+                List<UserContract> usersInContract = new List<UserContract>();
+                foreach (var chosenUser in chosenContract.UserContracts)
+                {
+                    UserContract userContract = new UserContract
+                    {
+                        ContractId = contract.Id,
+                        UserId = chosenUser.UserId,
+                    };
+                    usersInContract.Add(userContract);
+                }
+                contract.UserContracts = usersInContract;
+                var contractEntity = _contractRepository.Add(contract);
+                var signingMethod = await _appSettingManager.GetSettingAsync("SignatureType");
+                if (signingMethod == SettingsValue.InternalApp)
+                {
+                    contract.AzureLink = await _azureBlobService.UploadLiquidationNote(uploadFile);
+                }
+                if (signingMethod == SettingsValue.SignNow)
+                {
+                    await _signNowService.AuthenticateAsync();
+                    contract.SignNowDocumentId = await _signNowService.UploadDocumentAsync(uploadFile);
+                }
+                await _unitOfWork.SaveChangesAsync();
+                await _unitOfWork.CommitAsync();
+                return contractEntity;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError($"An error occurred while creating the contract: {ex.Message}");
+                await _unitOfWork.RollbackAsync();
+                throw;
+            }
+        }
+
+        public async Task MarkExpiredContract(string projectId, string contractId)
+        {
             var contract = await _contractRepository.GetContractById(contractId);
             if (contract.ProjectId != projectId)
             {
@@ -1082,20 +1153,23 @@ namespace StartedIn.Service.Services
             {
                 throw new UpdateException(MessageConstant.ContractIsNotValid);
             }
-            var userInContract = await _userService.CheckIfUserBelongToContract(userId, contractId);
+            var project = await _projectRepository.GetProjectById(projectId);
+            if (project == null) 
+            {
+                throw new NotFoundException(MessageConstant.NotFoundProjectError);
+            }
             try
             {
                 _unitOfWork.BeginTransaction();
                 contract.ExpiredDate = DateOnly.FromDateTime(DateTimeOffset.UtcNow.Date);
                 contract.ContractStatus = ContractStatusEnum.EXPIRED;
-                contract.LastUpdatedBy = userInContract.User.FullName;
                 contract.LastUpdatedTime = DateTimeOffset.UtcNow;
                 if (contract.ContractType == ContractTypeEnum.INTERNAL)
                 {
                     decimal expiredContractShare = (decimal)contract.ShareEquities.Sum(x => x.Percentage);
-                    userInProject.Project.RemainingPercentOfShares += expiredContractShare;
-                    _logger.LogInformation($"Hợp đồng nội bộ hết hạn. Trả lại {expiredContractShare}% cổ phần cho dự án {userInProject.Project.ProjectName}. Tổng cổ phần còn lại: {userInProject.Project.RemainingPercentOfShares}%.");
-                    _projectRepository.Update(userInProject.Project);
+                    project.RemainingPercentOfShares += expiredContractShare;
+                    _logger.LogInformation($"Hợp đồng nội bộ hết hạn. Trả lại {expiredContractShare}% cổ phần cho dự án {project.ProjectName}. Tổng cổ phần còn lại: {project.RemainingPercentOfShares}%.");
+                    _projectRepository.Update(project);
                 }
                 else if (contract.ContractType == ContractTypeEnum.INVESTMENT)
                 {
@@ -1103,9 +1177,9 @@ namespace StartedIn.Service.Services
                     decimal investmentShare = (decimal)contract.ShareEquities.Sum(x => x.Percentage);
 
                     // Logic tuỳ chọn: Mua lại, hoàn trả, hoặc chuyển nhượng cổ phần
-                    userInProject.Project.RemainingPercentOfShares += investmentShare;
-                    _logger.LogInformation($"Hợp đồng đầu tư hết hạn. Trả lại {investmentShare}% cổ phần cho dự án {userInProject.Project.ProjectName}. Tổng cổ phần còn lại: {userInProject.Project.RemainingPercentOfShares}%.");
-                    _projectRepository.Update(userInProject.Project);
+                    project.RemainingPercentOfShares += investmentShare;
+                    _logger.LogInformation($"Hợp đồng đầu tư hết hạn. Trả lại {investmentShare}% cổ phần cho dự án {project.ProjectName}. Tổng cổ phần còn lại: {project.RemainingPercentOfShares}%.");
+                    _projectRepository.Update(project);
                     decimal totalPendingAmount = 0;
                     if (contract.Disbursements != null)
                     {
@@ -1119,7 +1193,6 @@ namespace StartedIn.Service.Services
                             }
                         }
                     }
-                    var project = await _projectRepository.GetProjectById(projectId);
                     project.Finance.RemainingDisbursement -= totalPendingAmount;
                     _financeRepository.Update(project.Finance);
                     _logger.LogInformation($"Tổng số tiền chưa giải ngân bị tắt: {totalPendingAmount}.");

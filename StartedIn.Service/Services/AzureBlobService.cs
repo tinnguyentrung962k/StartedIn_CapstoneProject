@@ -72,7 +72,7 @@ namespace StartedIn.Service.Services
             }
             return blobClient.Uri.ToString();
         }
-        public async Task<string> UploadEvidenceOfConfirmation(IFormFile file)
+        public async Task<string> UploadLiquidationNote(IFormFile file)
         {
             var fileName = Guid.NewGuid() + Path.GetExtension(file.FileName);
             var blobClient = _documentContainerClient.GetBlobClient(fileName);
