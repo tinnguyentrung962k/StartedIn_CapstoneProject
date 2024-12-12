@@ -68,6 +68,42 @@ namespace StartedIn.API.Controllers
             }
         }
 
+        [HttpPost("contracts/{contractId}/liquidation-notes")]
+        [Authorize(Roles = RoleConstants.USER)]
+        public async Task<ActionResult<ContractResponseDTO>> CreateLiquidationNote([FromRoute] string projectId, [FromRoute] string contractId, IFormFile uploadFile)
+        {
+            try
+            {
+                var userId = User.FindFirst(ClaimTypes.NameIdentifier).Value;
+                var contract = await _contractService.CreateLiquidationNote(userId,projectId,contractId,uploadFile);
+                var responseContract = _mapper.Map<ContractResponseDTO>(contract);
+                return CreatedAtAction(nameof(GetContractById), new { projectId, contractId = responseContract.Id }, responseContract);
+            }
+            catch (UnauthorizedProjectRoleException ex)
+            {
+                return StatusCode(403, ex.Message);
+            }
+            catch (ExistedRecordException ex)
+            {
+                return BadRequest(ex.Message);
+            }
+            catch (InvalidOperationException ex)
+            {
+                return BadRequest(ex.Message);
+            }
+            catch (InvalidDataException ex)
+            {
+                return BadRequest(ex.Message);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error while creating contract");
+
+                return StatusCode(500, MessageConstant.InternalServerError);
+
+            }
+        }
+
         [HttpPost("investment-contracts/from-deal")]
         [Authorize(Roles = RoleConstants.USER)]
         public async Task<ActionResult<ContractResponseDTO>> CreateInvestmentContractFromDeal([FromRoute] string projectId, [FromBody] InvestmentContractFromDealCreateDTO investmentContractFromDealCreateDTO)
@@ -420,18 +456,12 @@ namespace StartedIn.API.Controllers
             }
         }
         [HttpPut("contracts/{contractId}/expiration")]
-        [Authorize(Roles = RoleConstants.USER)]
         public async Task<IActionResult> MarkContractAsExpired([FromRoute] string projectId, [FromRoute] string contractId)
         {
             try
             {
-                var userId = User.FindFirst(ClaimTypes.NameIdentifier).Value;
-                await _contractService.MarkExpiredContract(userId, projectId, contractId);
+                await _contractService.MarkExpiredContract(projectId, contractId);
                 return Ok("Cập nhật hợp đồng thành công");
-            }
-            catch (UnauthorizedProjectRoleException ex)
-            {
-                return StatusCode(403, ex.Message);
             }
             catch (UpdateException ex)
             {
