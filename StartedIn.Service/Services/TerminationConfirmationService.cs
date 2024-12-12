@@ -178,10 +178,7 @@ namespace StartedIn.Service.Services
                 throw new NotFoundException(MessageConstant.NotFoundTerminateRequest);
             }
 
-            var isAuthorized = terminationRequest.FromId == userId ||
-                       terminationRequest.TerminationConfirmations.Any(c => c.ConfirmUserId == userId);
-
-            if (!isAuthorized)
+            if (!terminationRequest.TerminationConfirmations.Any(c => c.ConfirmUserId == userId))
             {
                 throw new UnauthorizedAccessException(MessageConstant.YouAreNotBelongToThisRequest);
             }
