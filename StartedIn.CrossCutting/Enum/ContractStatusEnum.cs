@@ -12,6 +12,7 @@ namespace StartedIn.CrossCutting.Enum
         SENT = 2,
         COMPLETED = 3,
         CANCELLED = 4,
-        EXPIRED = 5
+        EXPIRED = 5,
+        WAITINGFORLIQUIDATION = 6,
     }
 }

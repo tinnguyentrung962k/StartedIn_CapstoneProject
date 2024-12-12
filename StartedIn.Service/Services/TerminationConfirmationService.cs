@@ -98,6 +98,9 @@ namespace StartedIn.Service.Services
                     request.LastUpdatedBy = userInProject.User.FullName;
                     request.LastUpdatedTime = DateTimeOffset.UtcNow;
                     _terminationRequestRepository.Update(request);
+                    var contract = await _contractRepository.GetOneAsync(request.ContractId);
+                    contract.ContractStatus = CrossCutting.Enum.ContractStatusEnum.WAITINGFORLIQUIDATION;
+                    _contractRepository.Update(contract);
                 }
 
                 // Commit transaction

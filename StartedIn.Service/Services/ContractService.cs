@@ -1065,6 +1065,7 @@ namespace StartedIn.Service.Services
                 throw;
             }
         }
+
         public async Task MarkExpiredContract(string userId, string projectId, string contractId)
         {
             var userInProject = await _userService.CheckIfUserInProject(userId, projectId);
