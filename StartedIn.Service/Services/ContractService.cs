@@ -505,7 +505,7 @@ namespace StartedIn.Service.Services
                         var webhookMarkExpiredContract = new SignNowWebhookCreateDTO
                         {
                             Action = SignNowServiceConstant.CallBackAction,
-                            CallBackUrl = $"{_apiDomain}/api/projects/{projectId}/contracts/{contractId}/expiration",
+                            CallBackUrl = $"{_apiDomain}/api/projects/{projectId}/contracts/{contract.ParentContractId}/expiration",
                             EntityId = userInChosenContract.Contract.SignNowDocumentId,
                             Event = SignNowServiceConstant.DocumentCompleteEvent,
                         };
