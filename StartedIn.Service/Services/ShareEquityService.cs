@@ -50,7 +50,8 @@ namespace StartedIn.Service.Services
             // Bước 2: Lọc các hợp đồng còn hiệu lực (hoặc hết hạn nhưng có phân bổ cổ phần trước ngày tính)
             var allContracts = contracts.Where(c =>
                 (c.ContractStatus == CrossCutting.Enum.ContractStatusEnum.COMPLETED) ||  // Hợp đồng còn hiệu lực
-                (c.ContractStatus == CrossCutting.Enum.ContractStatusEnum.EXPIRED && c.ExpiredDate > equityShareFilterDTO.ToDate)  // Hợp đồng hết hạn nhưng vẫn còn hiệu lực trong ngày tính
+                (c.ContractStatus == CrossCutting.Enum.ContractStatusEnum.EXPIRED && c.ExpiredDate > equityShareFilterDTO.ToDate) ||  // Hợp đồng hết hạn nhưng vẫn còn hiệu lực trong ngày tính
+                (c.ContractStatus == CrossCutting.Enum.ContractStatusEnum.WAITINGFORLIQUIDATION)
             ).ToList();
 
             // Bước 3: Tính tổng cổ phần cho từng thành viên
@@ -101,7 +102,9 @@ namespace StartedIn.Service.Services
         {
             var userInProject = await _userService.CheckIfUserInProject(userId, projectId);
             var contracts = await _contractRepository.GetContractByProjectId(projectId);
-            var contractsOfUser = contracts.Where(c => c.ContractStatus == CrossCutting.Enum.ContractStatusEnum.COMPLETED && c.ShareEquities.Any(se => se.UserId.Equals(userId))).ToList();
+            var contractsOfUser = contracts.Where(c => (c.ContractStatus == CrossCutting.Enum.ContractStatusEnum.COMPLETED 
+            || c.ContractStatus == CrossCutting.Enum.ContractStatusEnum.WAITINGFORLIQUIDATION) 
+            && c.ShareEquities.Any(se => se.UserId.Equals(userId))).ToList();
             decimal totalUserEquity = 0;
             foreach (var contract in contractsOfUser)
             {
