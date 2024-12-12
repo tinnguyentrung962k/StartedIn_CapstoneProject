@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using StartedIn.CrossCutting.Constants;
 using StartedIn.CrossCutting.DTOs.RequestDTO.TerminationRequest;
+using StartedIn.CrossCutting.DTOs.ResponseDTO.TerminationConfirmation;
 using StartedIn.CrossCutting.DTOs.ResponseDTO.TerminationRequest;
 using StartedIn.CrossCutting.Exceptions;
 using StartedIn.Domain.Entities;
@@ -17,13 +18,10 @@ namespace StartedIn.API.Controllers
     public class TerminationRequestController : ControllerBase
     {
         private readonly ITerminationRequestService _terminationRequestService;
-        private readonly IMapper _mapper;
         public TerminationRequestController(
-            ITerminationRequestService terminationRequestService,
-            IMapper mapper)
+            ITerminationRequestService terminationRequestService)
         {
             _terminationRequestService = terminationRequestService;
-            _mapper = mapper;
         }
 
         [HttpPost("contracts/{contractId}/termination-requests")]
@@ -76,61 +74,7 @@ namespace StartedIn.API.Controllers
                 return StatusCode(500, ex.Message);
             }
         }
-        [HttpPut("termination-requests/{requestId}/accept")]
-        [Authorize(Roles = RoleConstants.INVESTOR + "," + RoleConstants.USER + "," + RoleConstants.MENTOR)]
-        public async Task<IActionResult> AcceptATerminationRequest([FromRoute] string projectId, [FromRoute] string requestId)
-        {
-            try
-            {
-                var userId = User.FindFirst(ClaimTypes.NameIdentifier).Value;
-                await _terminationRequestService.AcceptTerminationRequest(userId, projectId, requestId);
-                return Ok("Đã chấp nhận thành công");
-            }
-            catch (NotFoundException ex)
-            {
-                return BadRequest(ex.Message);
-            }
-            catch (InvalidDataException ex)
-            {
-                return BadRequest(ex.Message);
-            }
-            catch (UnauthorizedProjectRoleException ex)
-            {
-                return StatusCode(403, ex.Message);
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(500, ex.Message);
-            }
-        }
-
-        [HttpPut("termination-requests/{requestId}/reject")]
-        [Authorize(Roles = RoleConstants.INVESTOR + "," + RoleConstants.USER + "," + RoleConstants.MENTOR)]
-        public async Task<IActionResult> RejectATerminationRequest([FromRoute] string projectId, [FromRoute] string requestId)
-        {
-            try
-            {
-                var userId = User.FindFirst(ClaimTypes.NameIdentifier).Value;
-                await _terminationRequestService.RejectTerminationRequest(userId, projectId, requestId);
-                return Ok("Đã từ chối thành công");
-            }
-            catch (NotFoundException ex)
-            {
-                return BadRequest(ex.Message);
-            }
-            catch (InvalidDataException ex)
-            {
-                return BadRequest(ex.Message);
-            }
-            catch (UnauthorizedProjectRoleException ex)
-            {
-                return StatusCode(403, ex.Message);
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(500, ex.Message);
-            }
-        }
+        
 
         [HttpGet("termination-requests/{requestId}")]
         [Authorize(Roles = RoleConstants.INVESTOR + "," + RoleConstants.USER + "," + RoleConstants.MENTOR)]
@@ -139,7 +83,7 @@ namespace StartedIn.API.Controllers
             try
             {
                 var userId = User.FindFirst(ClaimTypes.NameIdentifier).Value;
-                var response = await _terminationRequestService.GetContractTerminationDetail(userId, projectId, requestId);
+                var response = await _terminationRequestService.GetContractTerminationDetailById(userId, projectId, requestId);
                 return Ok(response);
             }
             catch (NotFoundException ex)
@@ -159,6 +103,8 @@ namespace StartedIn.API.Controllers
                 return StatusCode(500, ex.Message);
             }
         }
+
+        
 
     }
 }

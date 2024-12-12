@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Logging;
 using StartedIn.CrossCutting.Constants;
 using StartedIn.CrossCutting.DTOs.RequestDTO.TerminationRequest;
+using StartedIn.CrossCutting.DTOs.ResponseDTO.TerminationConfirmation;
 using StartedIn.CrossCutting.DTOs.ResponseDTO.TerminationRequest;
 using StartedIn.CrossCutting.Exceptions;
 using StartedIn.Domain.Entities;
@@ -19,7 +20,6 @@ namespace StartedIn.Service.Services
 {
     public class TerminationRequestService : ITerminationRequestService
     {
-        private readonly IProjectRepository _projectRepository;
         private readonly ITerminationRequestRepository _terminationRequestRepository;
         private readonly IUnitOfWork _unitOfWork;
         private readonly IUserService _userService;
@@ -30,7 +30,6 @@ namespace StartedIn.Service.Services
         private readonly IMapper _mapper;
 
         public TerminationRequestService(
-            IProjectRepository projectRepository,
             ITerminationRequestRepository terminationRequestRepository,
             IUnitOfWork unitOfWork,
             IUserService userService,
@@ -40,7 +39,6 @@ namespace StartedIn.Service.Services
             ITerminationConfirmRepository terminationConfirmRepository,
             IMapper mapper)
         {
-            _projectRepository = projectRepository;
             _terminationRequestRepository = terminationRequestRepository;
             _unitOfWork = unitOfWork;
             _userService = userService;
@@ -103,137 +101,13 @@ namespace StartedIn.Service.Services
         }
         public async Task<List<TerminationRequestResponseDTO>> GetTerminationRequestForUserInProject(string userId, string projectId)
         {
-            // Check if the user is part of the project
             var userInProject = await _userService.CheckIfUserInProject(userId, projectId);
-
-            // Retrieve the list of termination requests for the user in the project
             var requestList = await _terminationRequestRepository.GetTerminationRequestForUserInProject(userId, projectId);
-
-            // Map the data to DTOs
             var response = _mapper.Map<List<TerminationRequestResponseDTO>>(requestList);
-
-            // Update HasResponded for each response
-            foreach (var dto in response)
-            {
-                var userResponse = requestList
-                    .FirstOrDefault(req => req.Id == dto.Id)?
-                    .TerminationConfirmations
-                    .FirstOrDefault(res => res.ConfirmUserId == userId);
-
-                // Only set HasResponded to true if the ConfirmUserId matches userId
-                if (userResponse != null && userResponse.ConfirmUserId == userId)
-                {
-                    dto.HasResponded = userResponse?.IsAgreed.HasValue ?? false;
-                }
-                else
-                {
-                    dto.HasResponded = true;
-                }
-            }
-
             return response;
         }
 
-        public async Task AcceptTerminationRequest(string userId, string projectId, string requestId)
-        {
-            var userInProject = await _userService.CheckIfUserInProject(userId, projectId);
-            var request = await _terminationRequestRepository.GetOneAsync(requestId);
-            var confirmation = await _terminationConfirmRepository.QueryHelper()
-            .Include(x => x.TerminationRequest)
-            .Filter(x => x.TerminationRequestId.Equals(requestId)
-                && x.ConfirmUserId.Equals(userId)
-                && x.TerminationRequest.Status == CrossCutting.Enum.TerminationStatus.WAITING)
-            .GetOneAsync();
-            if (request == null)
-            {
-                throw new NotFoundException(MessageConstant.NotFoundTerminateRequest);
-            }
-            if (request.FromId == userId || request.Status != CrossCutting.Enum.TerminationStatus.WAITING || confirmation == null)
-            {
-                throw new InvalidDataException(MessageConstant.YouCannotAcceptOrRejectTermination);
-            }
-            try
-            {
-                _unitOfWork.BeginTransaction();
-                if (confirmation != null)
-                {
-                    confirmation.IsAgreed = true;
-                    confirmation.LastUpdatedBy = userInProject.User.FullName;
-                    confirmation.LastUpdatedTime = DateTimeOffset.UtcNow;
-                    _terminationConfirmRepository.Update(confirmation);
-                }
-                var allConfirmationsAgreed = await _terminationConfirmRepository.QueryHelper()
-                .Filter(x => x.TerminationRequestId.Equals(requestId) && x.IsAgreed == false)
-                .GetAllAsync();
-
-                if (!allConfirmationsAgreed.Any())
-                {
-                    request.Status = CrossCutting.Enum.TerminationStatus.ACCEPTED;
-                    request.LastUpdatedBy = userInProject.User.FullName;
-                    request.LastUpdatedTime = DateTimeOffset.UtcNow;
-                    _terminationRequestRepository.Update(request);
-                }
-
-                // Commit transaction
-                await _unitOfWork.SaveChangesAsync();
-                await _unitOfWork.CommitAsync();
-            }
-            catch (Exception ex) 
-            {
-                _logger.LogError(ex, "Error while accept request");
-                await _unitOfWork.RollbackAsync();
-                throw;
-            }
-
-        }
-
-        public async Task RejectTerminationRequest(string userId, string projectId, string requestId)
-        {
-            var userInProject = await _userService.CheckIfUserInProject(userId, projectId);
-            var request = await _terminationRequestRepository.GetOneAsync(requestId);
-            var confirmation = await _terminationConfirmRepository.QueryHelper()
-                    .Include(x => x.TerminationRequest)
-                    .Filter(x => x.TerminationRequestId.Equals(requestId)
-                    && x.ConfirmUserId.Equals(userId)
-                    && x.TerminationRequest.Status == CrossCutting.Enum.TerminationStatus.WAITING)
-                    .GetOneAsync();
-            if (request == null)
-            {
-                throw new NotFoundException(MessageConstant.NotFoundTerminateRequest);
-            }
-            if (request.FromId == userId || request.Status != CrossCutting.Enum.TerminationStatus.WAITING || confirmation == null)
-            {
-                throw new InvalidDataException(MessageConstant.YouCannotAcceptOrRejectTermination);
-            }
-            try
-            {
-                _unitOfWork.BeginTransaction();
-                if (confirmation != null)
-                {
-                    confirmation.IsAgreed = false;
-                    confirmation.LastUpdatedBy = userInProject.User.FullName;
-                    confirmation.LastUpdatedTime = DateTimeOffset.UtcNow;
-                    _terminationConfirmRepository.Update(confirmation);
-
-                    request.Status = CrossCutting.Enum.TerminationStatus.REJECT;
-                    request.LastUpdatedBy = userInProject.User.FullName;
-                    request.LastUpdatedTime = DateTimeOffset.UtcNow;
-                    _terminationRequestRepository.Update(request);
-                }
-
-                // Commit transaction
-                await _unitOfWork.SaveChangesAsync();
-                await _unitOfWork.CommitAsync();
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error while accept request");
-                await _unitOfWork.RollbackAsync();
-                throw;
-            }
-        }
-
-        public async Task<TerminationRequestDetailDTO> GetContractTerminationDetail(string userId, string projectId, string requestId)
+        public async Task<TerminationRequestDetailDTO> GetContractTerminationDetailById(string userId, string projectId, string requestId)
         {
             // Validate if the user is part of the project
             var userInProject = await _userService.CheckIfUserInProject(userId, projectId);
@@ -262,6 +136,7 @@ namespace StartedIn.Service.Services
 
             var termination = new TerminationRequestDetailDTO
             {
+                Id = terminationRequest.Id,
                 FromId = terminationRequest.FromId,
                 FromName = fromUser.FullName,
                 ContractId = terminationRequest.ContractId,

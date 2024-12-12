@@ -27,6 +27,7 @@ using StartedIn.Service.Services.Interface;
 using StartedIn.CrossCutting.DTOs.ResponseDTO.Appointment;
 using StartedIn.CrossCutting.DTOs.ResponseDTO.LeavingRequest;
 using StartedIn.CrossCutting.DTOs.ResponseDTO.TerminationRequest;
+using StartedIn.CrossCutting.DTOs.ResponseDTO.TerminationConfirmation;
 
 namespace StartedIn.API.Configuration.AutoMapper
 {
@@ -55,6 +56,7 @@ namespace StartedIn.API.Configuration.AutoMapper
             LeavingRequestMappingProfile();
             ApplicationMappingProfile();
             TerminationRequestMappingProfile();
+            TerminationResponseMappingProfile();
         }
 
 
@@ -369,8 +371,15 @@ namespace StartedIn.API.Configuration.AutoMapper
         private void TerminationRequestMappingProfile()
         {
             CreateMap<TerminationRequest, TerminationRequestResponseDTO>()
-                .ForMember(dest => dest.ContractIdNumber, opt => opt.MapFrom(src => src.Contract.ContractIdNumber))
-                .ForMember(dest => dest.FromName, opt => opt.MapFrom(src => src.Contract.UserContracts.FirstOrDefault(uc => uc.UserId == src.FromId).User.FullName));
+                .ForMember(dest => dest.ContractIdNumber, opt => opt.MapFrom(src => src.Contract.ContractIdNumber));
+        }
+        private void TerminationResponseMappingProfile()
+        {
+            CreateMap<TerminationConfirmation, TerminationConfirmationResponseDTO>()
+                .ForMember(dest => dest.ContractId, opt => opt.MapFrom(src => src.TerminationRequest.ContractId))
+                .ForMember(dest => dest.ContractIdNumber, opt => opt.MapFrom(src => src.TerminationRequest.Contract.ContractIdNumber))
+                .ForMember(dest => dest.FromId, opt => opt.MapFrom(src => src.TerminationRequest.FromId))
+                .ForMember(dest => dest.FromName, opt => opt.MapFrom(src => src.TerminationRequest.Contract.UserContracts.FirstOrDefault(uc => uc.UserId == src.TerminationRequest.FromId).User.FullName));
         }
     }
 }

@@ -12,10 +12,8 @@ namespace StartedIn.CrossCutting.DTOs.ResponseDTO.TerminationRequest
     {
         public string ContractId { get; set; }
         public string ContractIdNumber { get; set; }
-        public string FromId { get; set; }
-        public string FromName { get; set; }
         public string Reason { get; set; }
+        public DateTimeOffset CreatedTime { get; set; }
         public TerminationStatus Status { get; set; }
-        public bool HasResponded { get; set; }
     }
 }

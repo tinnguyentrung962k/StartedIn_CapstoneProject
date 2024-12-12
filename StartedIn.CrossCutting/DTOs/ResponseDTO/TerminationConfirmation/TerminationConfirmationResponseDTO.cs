@@ -5,15 +5,16 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace StartedIn.CrossCutting.DTOs.ResponseDTO.TerminationRequest
+namespace StartedIn.CrossCutting.DTOs.ResponseDTO.TerminationConfirmation
 {
-    public class TerminationRequestDetailDTO : IdentityResponseDTO
+    public class TerminationConfirmationResponseDTO : IdentityResponseDTO
     {
+        public string TerminationRequestId { get; set; }
         public string ContractId { get; set; }
         public string ContractIdNumber { get; set; }
         public string FromId { get; set; }
         public string FromName { get; set; }
-        public string Reason { get; set; }
-        public List<UserPartyInContractInTerminationResponseDTO> UserParties { get; set; }
+        public bool? IsAgreed { get; set; }
+        public DateTimeOffset LastUpdatedTime { get; set; }
     }
 }
