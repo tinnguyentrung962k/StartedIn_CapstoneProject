@@ -13,7 +13,6 @@ namespace StartedIn.Service.Services.Interface
         Task<List<TerminationConfirmationResponseDTO>> GetTerminationConfirmationForUserInProject(string userId, string projectId);
         Task AcceptTerminationRequest(string userId, string projectId, string confirmId);
         Task RejectTerminationRequest(string userId, string projectId, string confirmId);
-        Task<TerminationRequestDetailDTO> GetContractTerminationDetailByConfirmId(string userId, string projectId, string confirmId);
 
     }
 }

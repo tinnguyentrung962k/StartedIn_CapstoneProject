@@ -379,7 +379,8 @@ namespace StartedIn.API.Configuration.AutoMapper
                 .ForMember(dest => dest.ContractId, opt => opt.MapFrom(src => src.TerminationRequest.ContractId))
                 .ForMember(dest => dest.ContractIdNumber, opt => opt.MapFrom(src => src.TerminationRequest.Contract.ContractIdNumber))
                 .ForMember(dest => dest.FromId, opt => opt.MapFrom(src => src.TerminationRequest.FromId))
-                .ForMember(dest => dest.FromName, opt => opt.MapFrom(src => src.TerminationRequest.Contract.UserContracts.FirstOrDefault(uc => uc.UserId == src.TerminationRequest.FromId).User.FullName));
+                .ForMember(dest => dest.FromName, opt => opt.MapFrom(src => src.TerminationRequest.Contract.UserContracts.FirstOrDefault(uc => uc.UserId == src.TerminationRequest.FromId).User.FullName))
+                .ForMember(dest => dest.Reason, opt => opt.MapFrom(src => src.TerminationRequest.Reason));
         }
     }
 }

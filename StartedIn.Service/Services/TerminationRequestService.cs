@@ -57,7 +57,11 @@ namespace StartedIn.Service.Services
                 && x.FromId == userId
                 && x.Status == CrossCutting.Enum.TerminationStatus.WAITING)
                 .GetOneAsync();
-            if (userInContract.Contract.ContractStatus != CrossCutting.Enum.ContractStatusEnum.COMPLETED || existingRequest != null)
+            var otherExistingRequest = await _terminationRequestRepository.QueryHelper()
+                .Filter(x => x.ContractId == contractId
+                && x.Status == CrossCutting.Enum.TerminationStatus.WAITING)
+                .GetOneAsync();
+            if (userInContract.Contract.ContractStatus != CrossCutting.Enum.ContractStatusEnum.COMPLETED || existingRequest != null || otherExistingRequest != null)
             {
                 throw new InvalidDataException(MessageConstant.YouCannotRequestToTerminateThisContract);
             }

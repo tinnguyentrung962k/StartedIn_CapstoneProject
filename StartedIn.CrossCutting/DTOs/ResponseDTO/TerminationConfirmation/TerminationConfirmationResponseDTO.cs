@@ -14,6 +14,7 @@ namespace StartedIn.CrossCutting.DTOs.ResponseDTO.TerminationConfirmation
         public string ContractIdNumber { get; set; }
         public string FromId { get; set; }
         public string FromName { get; set; }
+        public string Reason { get; set; }
         public bool? IsAgreed { get; set; }
         public DateTimeOffset LastUpdatedTime { get; set; }
     }

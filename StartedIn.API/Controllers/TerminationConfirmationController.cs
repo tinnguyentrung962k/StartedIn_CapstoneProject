@@ -100,32 +100,5 @@ namespace StartedIn.API.Controllers
                 return StatusCode(500, ex.Message);
             }
         }
-        [HttpGet("termination-confirmations/{confirmId}/request-detail")]
-        [Authorize(Roles = RoleConstants.INVESTOR + "," + RoleConstants.USER + "," + RoleConstants.MENTOR)]
-        public async Task<ActionResult<TerminationRequestDetailDTO>> GetTerminationDetail([FromRoute] string projectId, [FromRoute] string confirmId)
-        {
-            try
-            {
-                var userId = User.FindFirst(ClaimTypes.NameIdentifier).Value;
-                var response = await _terminationConfirmService.GetContractTerminationDetailByConfirmId(userId, projectId, confirmId);
-                return Ok(response);
-            }
-            catch (NotFoundException ex)
-            {
-                return BadRequest(ex.Message);
-            }
-            catch (UnauthorizedProjectRoleException ex)
-            {
-                return StatusCode(403, ex.Message);
-            }
-            catch (UnauthorizedAccessException ex)
-            {
-                return StatusCode(403, ex.Message);
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(500, ex.Message);
-            }
-        }
     }
 }

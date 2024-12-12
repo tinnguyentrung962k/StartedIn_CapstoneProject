@@ -18,14 +18,14 @@ namespace StartedIn.Repository.Repositories
             _appDbContext = context;
         }
 
-        public async Task<List<TerminationConfirmation>> GetTerminationConfirmationForUserInProject(string userId, string projectId)
+        public async Task<List<TerminationConfirmation>> GetPendingTerminationConfirmationForUserInProject(string userId, string projectId)
         {
             var confirmList = await _appDbContext.TerminationConfirmations
                 .Include(r => r.TerminationRequest)
                 .ThenInclude( r => r.Contract)
                 .ThenInclude( r => r.UserContracts)
                 .ThenInclude( r => r.User)
-                .Where(r => r.TerminationRequest.Contract.ProjectId.Equals(projectId) && r.ConfirmUserId == userId)
+                .Where(r => r.TerminationRequest.Contract.ProjectId.Equals(projectId) && r.ConfirmUserId == userId && r.IsAgreed == null)
                 .ToListAsync();
             return confirmList;
         }

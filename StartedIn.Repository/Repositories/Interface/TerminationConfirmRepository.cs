@@ -9,6 +9,6 @@ namespace StartedIn.Repository.Repositories.Interface
 {
     public interface ITerminationConfirmRepository : IGenericRepository<TerminationConfirmation,string>
     {
-        Task<List<TerminationConfirmation>> GetTerminationConfirmationForUserInProject(string userId, string projectId);
+        Task<List<TerminationConfirmation>> GetPendingTerminationConfirmationForUserInProject(string userId, string projectId);
     }
 }

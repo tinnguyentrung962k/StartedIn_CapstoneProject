@@ -55,7 +55,7 @@ namespace StartedIn.Service.Services
         public async Task<List<TerminationConfirmationResponseDTO>> GetTerminationConfirmationForUserInProject(string userId, string projectId)
         {
             var userInProject = await _userService.CheckIfUserInProject(userId, projectId);
-            var confirmList = await _terminationConfirmRepository.GetTerminationConfirmationForUserInProject(userId, projectId);
+            var confirmList = await _terminationConfirmRepository.GetPendingTerminationConfirmationForUserInProject(userId, projectId);
             var response = _mapper.Map<List<TerminationConfirmationResponseDTO>>(confirmList);
             return response;
         }
@@ -155,64 +155,6 @@ namespace StartedIn.Service.Services
                 await _unitOfWork.RollbackAsync();
                 throw;
             }
-        }
-
-        public async Task<TerminationRequestDetailDTO> GetContractTerminationDetailByConfirmId(string userId, string projectId, string confirmId)
-        {
-            // Validate if the user is part of the project
-            var userInProject = await _userService.CheckIfUserInProject(userId, projectId);
-            var confirm = await _terminationConfirmRepository.GetOneAsync(confirmId);
-            if (confirm == null)
-            {
-                throw new NotFoundException(MessageConstant.NotFoundTerminateRequest);
-            }
-            // Fetch the termination request by ID
-            var terminationRequest = await _terminationRequestRepository.QueryHelper()
-                .Include(x => x.Contract)
-                .Include(x => x.TerminationConfirmations)
-                .Filter(x => x.Id == confirm.TerminationRequestId)
-                .GetOneAsync();
-
-            if (terminationRequest == null)
-            {
-                throw new NotFoundException(MessageConstant.NotFoundTerminateRequest);
-            }
-
-            if (!terminationRequest.TerminationConfirmations.Any(c => c.ConfirmUserId == userId))
-            {
-                throw new UnauthorizedAccessException(MessageConstant.YouAreNotBelongToThisRequest);
-            }
-
-            var fromUser = await _userManager.FindByIdAsync(terminationRequest.FromId);
-
-            var termination = new TerminationRequestDetailDTO
-            {
-                Id = terminationRequest.Id,
-                FromId = terminationRequest.FromId,
-                FromName = fromUser.FullName,
-                ContractId = terminationRequest.ContractId,
-                ContractIdNumber = terminationRequest.Contract.ContractIdNumber,
-                Reason = terminationRequest.Reason
-            };
-
-            // Prepare the list of user responses
-            var listUserPartiesInContract = new List<UserPartyInContractInTerminationResponseDTO>();
-            foreach (var confirmation in terminationRequest.TerminationConfirmations)
-            {
-                var userInContract = await _userManager.FindByIdAsync(confirmation.ConfirmUserId);
-                if (userInContract != null)
-                {
-                    listUserPartiesInContract.Add(new UserPartyInContractInTerminationResponseDTO
-                    {
-                        ToId = confirmation.ConfirmUserId,
-                        ToName = userInContract.FullName,
-                        IsAgreed = confirmation.IsAgreed,
-                    });
-                }
-            }
-
-            termination.UserParties = listUserPartiesInContract;
-            return termination;
         }
     }
 }
