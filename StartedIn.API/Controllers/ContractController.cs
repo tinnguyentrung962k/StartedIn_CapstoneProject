@@ -455,7 +455,7 @@ namespace StartedIn.API.Controllers
                 return StatusCode(500, MessageConstant.InternalServerError);
             }
         }
-        [HttpPut("contracts/{contractId}/expiration")]
+        [HttpPost("contracts/{contractId}/expiration")]
         public async Task<IActionResult> MarkContractAsExpired([FromRoute] string projectId, [FromRoute] string contractId)
         {
             try
