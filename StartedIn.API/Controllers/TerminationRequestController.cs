@@ -50,7 +50,7 @@ namespace StartedIn.API.Controllers
                 return StatusCode(500, ex.Message);
             }
         }
-        [HttpGet("receive-termination-requests")]
+        [HttpGet("received-termination-requests")]
         [Authorize(Roles = RoleConstants.INVESTOR + "," + RoleConstants.USER + "," + RoleConstants.MENTOR)]
         public async Task<ActionResult<List<TerminationRequestReceivedResponseDTO>>> GetUserReceivedTermationRequestInProject([FromRoute] string projectId)
         {
