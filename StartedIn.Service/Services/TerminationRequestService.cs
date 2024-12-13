@@ -4,7 +4,6 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Logging;
 using StartedIn.CrossCutting.Constants;
 using StartedIn.CrossCutting.DTOs.RequestDTO.TerminationRequest;
-using StartedIn.CrossCutting.DTOs.ResponseDTO.TerminationConfirmation;
 using StartedIn.CrossCutting.DTOs.ResponseDTO.TerminationRequest;
 using StartedIn.CrossCutting.Exceptions;
 using StartedIn.Domain.Entities;
@@ -26,8 +25,8 @@ namespace StartedIn.Service.Services
         private readonly IContractRepository _contractRepository;
         private readonly UserManager<User> _userManager;
         private ILogger<TerminationRequestService> _logger;
-        private readonly ITerminationConfirmRepository _terminationConfirmRepository;
         private readonly IMapper _mapper;
+        private readonly IProjectRepository _projectRepository;
 
         public TerminationRequestService(
             ITerminationRequestRepository terminationRequestRepository,
@@ -36,7 +35,6 @@ namespace StartedIn.Service.Services
             IContractRepository contractRepository,
             UserManager<User> userManager,
             ILogger<TerminationRequestService> logger,
-            ITerminationConfirmRepository terminationConfirmRepository,
             IMapper mapper)
         {
             _terminationRequestRepository = terminationRequestRepository;
@@ -45,54 +43,46 @@ namespace StartedIn.Service.Services
             _contractRepository = contractRepository;
             _userManager = userManager;
             _logger = logger;
-            _terminationConfirmRepository = terminationConfirmRepository;
             _mapper = mapper;
         }
-        public async Task CreateTerminationRequest(string userId, string projectId, string contractId, TerminationRequestCreateDTO requestCreateDTO)
+        public async Task CreateTerminationRequest(string userId, string projectId, TerminationRequestCreateDTO requestCreateDTO)
         {
             var userInProject = await _userService.CheckIfUserInProject(userId, projectId);
-            var userInContract = await _userService.CheckIfUserBelongToContract(userId, contractId);
+            var userInContract = await _userService.CheckIfUserBelongToContract(userId, requestCreateDTO.ContractId);
             var existingRequest = await _terminationRequestRepository.QueryHelper()
-                .Filter(x => x.ContractId == contractId
+                .Filter(x => x.ContractId == requestCreateDTO.ContractId
                 && x.FromId == userId
-                && x.Status == CrossCutting.Enum.TerminationStatus.WAITING)
+                && x.IsAgreed == null)
                 .GetOneAsync();
             var otherExistingRequest = await _terminationRequestRepository.QueryHelper()
-                .Filter(x => x.ContractId == contractId
-                && x.Status == CrossCutting.Enum.TerminationStatus.WAITING)
+                .Filter(x => x.ContractId == requestCreateDTO.ContractId
+                && x.IsAgreed == null)
                 .GetOneAsync();
-            if (userInContract.Contract.ContractStatus != CrossCutting.Enum.ContractStatusEnum.COMPLETED || existingRequest != null || otherExistingRequest != null)
+            if (userInContract.Contract.ContractStatus != CrossCutting.Enum.ContractStatusEnum.COMPLETED || 
+                existingRequest != null || 
+                otherExistingRequest != null || 
+                userInProject.RoleInTeam == CrossCutting.Enum.RoleInTeam.Leader)
             {
                 throw new InvalidDataException(MessageConstant.YouCannotRequestToTerminateThisContract);
             }
             try
             {
                 _unitOfWork.BeginTransaction();
-                var contract = await _contractRepository.GetContractById(contractId);
-                var userParties = contract.UserContracts;
+                var contract = await _contractRepository.GetContractById(requestCreateDTO.ContractId);
+                var project = await _projectRepository.GetProjectById(projectId);
+                var leaderId = project.UserProjects.FirstOrDefault(x => x.RoleInTeam == CrossCutting.Enum.RoleInTeam.Leader).UserId;
                 var terminationRequest = new TerminationRequest
                 {
-                    ContractId = contractId,
+                    ContractId = requestCreateDTO.ContractId,
                     Contract = contract,
                     CreatedBy = userInProject.User.FullName,
                     FromId = userInProject.User.Id,
                     Reason = requestCreateDTO.Reason,
-                    Status = CrossCutting.Enum.TerminationStatus.WAITING,
+                    ToId = leaderId
                 };
-                var confirmList = new List<TerminationConfirmation>();
-                foreach (var userParty in userParties.Where(p => p.UserId != userId))
-                {
-                    var confirm = new TerminationConfirmation
-                    {
-                        ConfirmUserId = userParty.UserId,
-                        CreatedBy = userInProject.User.FullName,
-                        TerminationRequestId = terminationRequest.Id,
-                        TerminationRequest = terminationRequest
-                    };
-                    confirmList.Add(confirm);
-                }
                 _terminationRequestRepository.Add(terminationRequest);
-                await _terminationConfirmRepository.AddRangeAsync(confirmList);
+                contract.CurrentTerminationRequestId = terminationRequest.Id;
+                _contractRepository.Update(contract);
                 await _unitOfWork.SaveChangesAsync();
                 await _unitOfWork.CommitAsync();
             }
@@ -103,66 +93,91 @@ namespace StartedIn.Service.Services
                 throw;
             }
         }
-        public async Task<List<TerminationRequestResponseDTO>> GetTerminationRequestForUserInProject(string userId, string projectId)
+        public async Task<List<TerminationRequestSentResponseDTO>> GetTerminationRequestForFromUserInProject(string userId, string projectId)
         {
             var userInProject = await _userService.CheckIfUserInProject(userId, projectId);
-            var requestList = await _terminationRequestRepository.GetTerminationRequestForUserInProject(userId, projectId);
-            var response = _mapper.Map<List<TerminationRequestResponseDTO>>(requestList);
+            var requestList = await _terminationRequestRepository.GetTerminationRequestForFromUserInProject(userId, projectId);
+            var response = _mapper.Map<List<TerminationRequestSentResponseDTO>>(requestList);
             return response;
         }
 
-        public async Task<TerminationRequestDetailDTO> GetContractTerminationDetailById(string userId, string projectId, string requestId)
+        public async Task<List<TerminationRequestReceivedResponseDTO>> GetTerminationRequestForToUserInProject(string userId, string projectId)
         {
-            // Validate if the user is part of the project
             var userInProject = await _userService.CheckIfUserInProject(userId, projectId);
+            var requestList = await _terminationRequestRepository.GetTerminationRequestForToUserInProject(userId, projectId);
+            var response = _mapper.Map<List<TerminationRequestReceivedResponseDTO>>(requestList);
+            return response;
+        }
 
-            // Fetch the termination request by ID
-            var terminationRequest = await _terminationRequestRepository.QueryHelper()
-                .Include(x => x.Contract)
-                .Include(x => x.TerminationConfirmations)
-                .Filter(x => x.Id == requestId)
-                .GetOneAsync();
-
-            if (terminationRequest == null)
+        public async Task AcceptTerminationRequest(string userId, string projectId, string requestId)
+        {
+            var userInProject = await _userService.CheckIfUserInProject(userId, projectId);
+            if (userInProject.RoleInTeam != CrossCutting.Enum.RoleInTeam.Leader)
+            {
+                throw new UnauthorizedProjectRoleException(MessageConstant.RolePermissionError);
+            }
+            var request = await _terminationRequestRepository.QueryHelper().Filter(x=>x.Id.Equals(requestId) 
+            && x.Contract.ProjectId == projectId)
+           .Include(x=>x.Contract).GetOneAsync();
+            if (request == null)
             {
                 throw new NotFoundException(MessageConstant.NotFoundTerminateRequest);
             }
-
-            if (terminationRequest.FromId != userId && !terminationRequest.TerminationConfirmations.Any(x=>x.ConfirmUserId == userId))
+            if (request.IsAgreed != null)
             {
-                throw new UnauthorizedAccessException(MessageConstant.YouAreNotBelongToThisRequest);
+                throw new UpdateException(MessageConstant.UpdateFailed);
+            }
+            try
+            {
+                _unitOfWork.BeginTransaction();
+                request.IsAgreed = true;
+                _terminationRequestRepository.Update(request);
+                request.Contract.ContractStatus = CrossCutting.Enum.ContractStatusEnum.WAITINGFORLIQUIDATION;
+                _contractRepository.Update(request.Contract);
+                await _unitOfWork.SaveChangesAsync();
+                await _unitOfWork.CommitAsync();
+            }
+            catch (Exception ex) {
+                _logger.LogError(ex, MessageConstant.UpdateFailed);
+                await _unitOfWork.RollbackAsync();
+                throw;
             }
 
-            var fromUser = await _userManager.FindByIdAsync(terminationRequest.FromId);
+        }
 
-            var termination = new TerminationRequestDetailDTO
+        public async Task RejectTerminationRequest(string userId, string projectId, string requestId)
+        {
+            var userInProject = await _userService.CheckIfUserInProject(userId, projectId);
+            if (userInProject.RoleInTeam != CrossCutting.Enum.RoleInTeam.Leader)
             {
-                Id = terminationRequest.Id,
-                FromId = terminationRequest.FromId,
-                FromName = fromUser.FullName,
-                ContractId = terminationRequest.ContractId,
-                ContractIdNumber = terminationRequest.Contract.ContractIdNumber,
-                Reason = terminationRequest.Reason
-            };
-
-            // Prepare the list of user responses
-            var listUserPartiesInContract = new List<UserPartyInContractInTerminationResponseDTO>();
-            foreach (var confirmation in terminationRequest.TerminationConfirmations)
+                throw new UnauthorizedProjectRoleException(MessageConstant.RolePermissionError);
+            }
+            var request = await _terminationRequestRepository.QueryHelper().Filter(x => x.Id.Equals(requestId)
+            && x.Contract.ProjectId == projectId)
+           .Include(x => x.Contract).GetOneAsync();
+            if (request == null)
             {
-                var userInContract = await _userManager.FindByIdAsync(confirmation.ConfirmUserId);
-                if (userInContract != null)
-                {
-                    listUserPartiesInContract.Add(new UserPartyInContractInTerminationResponseDTO
-                    {
-                        ToId = confirmation.ConfirmUserId,
-                        ToName = userInContract.FullName,
-                        IsAgreed = confirmation.IsAgreed,
-                    });
-                }
+                throw new NotFoundException(MessageConstant.NotFoundTerminateRequest);
+            }
+            if (request.IsAgreed != null)
+            {
+                throw new UpdateException(MessageConstant.UpdateFailed);
+            }
+            try
+            {
+                _unitOfWork.BeginTransaction();
+                request.IsAgreed = false;
+                _terminationRequestRepository.Update(request);
+                await _unitOfWork.SaveChangesAsync();
+                await _unitOfWork.CommitAsync();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, MessageConstant.UpdateFailed);
+                await _unitOfWork.RollbackAsync();
+                throw;
             }
 
-            termination.UserParties = listUserPartiesInContract;
-            return termination;
         }
     }
 }

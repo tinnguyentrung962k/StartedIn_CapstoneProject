@@ -4,7 +4,6 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using StartedIn.CrossCutting.Constants;
 using StartedIn.CrossCutting.DTOs.RequestDTO.TerminationRequest;
-using StartedIn.CrossCutting.DTOs.ResponseDTO.TerminationConfirmation;
 using StartedIn.CrossCutting.DTOs.ResponseDTO.TerminationRequest;
 using StartedIn.CrossCutting.Exceptions;
 using StartedIn.Domain.Entities;
@@ -24,14 +23,14 @@ namespace StartedIn.API.Controllers
             _terminationRequestService = terminationRequestService;
         }
 
-        [HttpPost("contracts/{contractId}/termination-requests")]
+        [HttpPost("termination-requests")]
         [Authorize(Roles = RoleConstants.INVESTOR + "," + RoleConstants.USER + "," + RoleConstants.MENTOR)]
         public async Task<IActionResult> CreateTerminationRequest([FromRoute] string projectId, [FromRoute] string contractId, [FromBody] TerminationRequestCreateDTO requestCreateDTO) 
         {
             try
             {
                 var userId = User.FindFirst(ClaimTypes.NameIdentifier).Value;
-                await _terminationRequestService.CreateTerminationRequest(userId, projectId, contractId, requestCreateDTO);
+                await _terminationRequestService.CreateTerminationRequest(userId, projectId, requestCreateDTO);
                 return StatusCode(201, "Gửi yêu cầu thành công");
             }
             catch (NotFoundException ex)
@@ -51,14 +50,14 @@ namespace StartedIn.API.Controllers
                 return StatusCode(500, ex.Message);
             }
         }
-        [HttpGet("termination-requests")]
+        [HttpGet("receive-termination-requests")]
         [Authorize(Roles = RoleConstants.INVESTOR + "," + RoleConstants.USER + "," + RoleConstants.MENTOR)]
-        public async Task<ActionResult<List<TerminationRequestResponseDTO>>> GetUserTermationRequestInProject([FromRoute] string projectId)
+        public async Task<ActionResult<List<TerminationRequestReceivedResponseDTO>>> GetUserReceivedTermationRequestInProject([FromRoute] string projectId)
         {
             try
             {
                 var userId = User.FindFirst(ClaimTypes.NameIdentifier).Value;
-                var requestList = await _terminationRequestService.GetTerminationRequestForUserInProject(userId, projectId);
+                var requestList = await _terminationRequestService.GetTerminationRequestForToUserInProject(userId, projectId);
                 return Ok(requestList);
             }
             catch (NotFoundException ex)
@@ -74,17 +73,16 @@ namespace StartedIn.API.Controllers
                 return StatusCode(500, ex.Message);
             }
         }
-        
 
-        [HttpGet("termination-requests/{requestId}")]
+        [HttpGet("sent-termination-requests")]
         [Authorize(Roles = RoleConstants.INVESTOR + "," + RoleConstants.USER + "," + RoleConstants.MENTOR)]
-        public async Task<ActionResult<TerminationRequestDetailDTO>> GetTerminationDetail([FromRoute] string projectId, [FromRoute] string requestId)
+        public async Task<ActionResult<List<TerminationRequestReceivedResponseDTO>>> GetUserSentTermationRequestInProject([FromRoute] string projectId)
         {
             try
             {
                 var userId = User.FindFirst(ClaimTypes.NameIdentifier).Value;
-                var response = await _terminationRequestService.GetContractTerminationDetailById(userId, projectId, requestId);
-                return Ok(response);
+                var requestList = await _terminationRequestService.GetTerminationRequestForFromUserInProject(userId, projectId);
+                return Ok(requestList);
             }
             catch (NotFoundException ex)
             {
@@ -94,17 +92,10 @@ namespace StartedIn.API.Controllers
             {
                 return StatusCode(403, ex.Message);
             }
-            catch (UnauthorizedAccessException ex)
-            {
-                return StatusCode(403, ex.Message);
-            }
             catch (Exception ex)
             {
                 return StatusCode(500, ex.Message);
             }
         }
-
-        
-
     }
 }

@@ -1,5 +1,4 @@
 ﻿using StartedIn.CrossCutting.DTOs.RequestDTO.TerminationRequest;
-using StartedIn.CrossCutting.DTOs.ResponseDTO.TerminationConfirmation;
 using StartedIn.CrossCutting.DTOs.ResponseDTO.TerminationRequest;
 using StartedIn.Domain.Entities;
 using System;
@@ -12,8 +11,11 @@ namespace StartedIn.Service.Services.Interface
 {
     public interface ITerminationRequestService
     {
-        Task CreateTerminationRequest(string userId, string projectId, string contractId, TerminationRequestCreateDTO requestCreateDTO);
-        Task<List<TerminationRequestResponseDTO>> GetTerminationRequestForUserInProject(string userId, string projectId);
-        Task<TerminationRequestDetailDTO> GetContractTerminationDetailById(string userId, string projectId, string requestId);
+        Task CreateTerminationRequest(string userId, string projectId, TerminationRequestCreateDTO requestCreateDTO);
+        Task<List<TerminationRequestSentResponseDTO>> GetTerminationRequestForFromUserInProject(string userId, string projectId);
+        Task<List<TerminationRequestReceivedResponseDTO>> GetTerminationRequestForToUserInProject(string userId, string projectId);
+        Task AcceptTerminationRequest(string userId, string projectId, string requestId);
+        Task RejectTerminationRequest(string userId, string projectId, string requestId);
+
     }
 }

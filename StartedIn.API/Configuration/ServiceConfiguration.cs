@@ -38,7 +38,6 @@ namespace StartedIn.API.Configuration
             services.AddScoped<IRecruitmentImageService, RecruitmentImageService>();
             services.AddScoped<IAppSettingManager,AppSettingManager>();
             services.AddScoped<ITerminationRequestService, TerminationRequestService>();
-            services.AddScoped<ITerminationConfirmationService, TerminationConfirmationService>();
             services.AddScoped<IGoogleMeetService, GoogleMeetService>();
 
             return services;

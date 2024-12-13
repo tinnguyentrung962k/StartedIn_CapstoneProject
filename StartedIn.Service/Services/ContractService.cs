@@ -42,6 +42,7 @@ namespace StartedIn.Service.Services
         private readonly IAzureBlobService _azureBlobService;
         private readonly IDocumentFormatService _documentFormatService;
         private readonly IAppSettingManager _appSettingManager;
+        private readonly ITerminationRequestRepository _terminationRequestRepository;
 
         public ContractService(IContractRepository contractRepository,
             IUnitOfWork unitOfWork,
@@ -59,7 +60,8 @@ namespace StartedIn.Service.Services
             IInvestmentCallRepository investmentCallRepository,
             IAzureBlobService azureBlobService,
             IDocumentFormatService documentFormatService,
-            IAppSettingManager appSettingManager
+            IAppSettingManager appSettingManager,
+            ITerminationRequestRepository terminationRequestRepository
 
             )
         {
@@ -81,6 +83,7 @@ namespace StartedIn.Service.Services
             _azureBlobService = azureBlobService;
             _documentFormatService = documentFormatService;
             _appSettingManager = appSettingManager;
+            _terminationRequestRepository = terminationRequestRepository;
         }
 
         public async Task<Contract> CreateInvestmentContract(string userId, string projectId, InvestmentContractCreateDTO investmentContractCreateDTO)
@@ -1107,17 +1110,23 @@ namespace StartedIn.Service.Services
                     ParentContractId = chosenContract.Id,
                     ParentContract = chosenContract.ParentContract,
                 };
+                
                 var leader = userInProject.User;
-                List<UserContract> usersInContract = new List<UserContract>();
-                foreach (var chosenUser in chosenContract.UserContracts)
+                var leaderInContract = new UserContract
                 {
-                    UserContract userContract = new UserContract
-                    {
-                        ContractId = contract.Id,
-                        UserId = chosenUser.UserId,
-                    };
-                    usersInContract.Add(userContract);
-                }
+                    UserId = leader.Id,
+                    ContractId = contract.Id
+                };
+
+                var request = await _terminationRequestRepository.GetOneAsync(chosenContract.CurrentTerminationRequestId);
+                var requestParty = new UserContract
+                {
+                    UserId = request.Id,
+                    ContractId = contract.Id,
+                };
+                
+                List<UserContract> usersInContract = new List<UserContract> { leaderInContract, requestParty };
+                
                 contract.UserContracts = usersInContract;
                 var contractEntity = _contractRepository.Add(contract);
                 var signingMethod = await _appSettingManager.GetSettingAsync("SignatureType");

@@ -32,6 +32,7 @@ namespace StartedIn.Domain.Entities
         public DateOnly? ValidDate { get; set; }
         public DateOnly? ExpiredDate { get; set; }
         public string? AzureLink { get; set; }
+        public string? CurrentTerminationRequestId { get; set; }
 
         [ForeignKey(nameof(ParentContract))]
         public string? ParentContractId { get; set; }

@@ -18,14 +18,24 @@ namespace StartedIn.Repository.Repositories
             _appDbContext = context;
         }
 
-        public async Task<List<TerminationRequest>> GetTerminationRequestForUserInProject(string userId, string projectId)
+        public async Task<List<TerminationRequest>> GetTerminationRequestForFromUserInProject(string userId, string projectId)
         {
             var requestList = await _appDbContext.TerminationRequests
-                .Include(r => r.TerminationConfirmations)
                 .Include(r => r.Contract)
                 .ThenInclude(c => c.UserContracts)
                 .ThenInclude(uc => uc.User)
                 .Where(r => r.Contract.ProjectId.Equals(projectId) && r.FromId == userId)
+                .ToListAsync();
+            return requestList;
+        }
+
+        public async Task<List<TerminationRequest>> GetTerminationRequestForToUserInProject(string userId, string projectId)
+        {
+            var requestList = await _appDbContext.TerminationRequests
+                .Include(r => r.Contract)
+                .ThenInclude(c => c.UserContracts)
+                .ThenInclude(uc => uc.User)
+                .Where(r => r.Contract.ProjectId.Equals(projectId) && r.ToId == userId)
                 .ToListAsync();
             return requestList;
         }

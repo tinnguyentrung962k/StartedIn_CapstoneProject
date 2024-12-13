@@ -9,6 +9,9 @@ namespace StartedIn.CrossCutting.DTOs.RequestDTO.TerminationRequest
 {
     public class TerminationRequestCreateDTO
     {
+        [Required(ErrorMessage = "Vui lòng chọn hợp đồng")]
+        public string ContractId { get; set; }
+
         [Required(ErrorMessage = "Vui lòng điền lý do huỷ hợp đồng")]
         public string Reason { get; set; }
     }
