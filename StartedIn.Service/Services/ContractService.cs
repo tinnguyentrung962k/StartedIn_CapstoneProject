@@ -1189,6 +1189,7 @@ namespace StartedIn.Service.Services
                             {
                                 totalPendingAmount += disbursement.Amount; // Sum pending disbursement amounts
                                 disbursement.IsValidWithContract = false;
+                                disbursement.DisbursementStatus = DisbursementStatusEnum.CANCELLED;
                                 _disbursementRepository.Update(disbursement);
                             }
                         }

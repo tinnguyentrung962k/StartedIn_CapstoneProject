@@ -13,6 +13,7 @@ namespace StartedIn.CrossCutting.Enum
         REJECTED = 3,
         FINISHED = 4,
         OVERDUE = 5,
-        ERROR = 6
+        ERROR = 6,
+        CANCELLED = 7
     }
 }
