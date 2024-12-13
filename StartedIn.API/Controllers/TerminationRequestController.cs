@@ -25,7 +25,7 @@ namespace StartedIn.API.Controllers
 
         [HttpPost("termination-requests")]
         [Authorize(Roles = RoleConstants.INVESTOR + "," + RoleConstants.USER + "," + RoleConstants.MENTOR)]
-        public async Task<IActionResult> CreateTerminationRequest([FromRoute] string projectId, [FromRoute] string contractId, [FromBody] TerminationRequestCreateDTO requestCreateDTO) 
+        public async Task<IActionResult> CreateTerminationRequest([FromRoute] string projectId, [FromBody] TerminationRequestCreateDTO requestCreateDTO) 
         {
             try
             {
