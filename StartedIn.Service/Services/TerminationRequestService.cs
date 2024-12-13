@@ -35,7 +35,8 @@ namespace StartedIn.Service.Services
             IContractRepository contractRepository,
             UserManager<User> userManager,
             ILogger<TerminationRequestService> logger,
-            IMapper mapper)
+            IMapper mapper,
+            IProjectRepository projectRepository)
         {
             _terminationRequestRepository = terminationRequestRepository;
             _unitOfWork = unitOfWork;
@@ -44,6 +45,7 @@ namespace StartedIn.Service.Services
             _userManager = userManager;
             _logger = logger;
             _mapper = mapper;
+            _projectRepository = projectRepository;
         }
         public async Task CreateTerminationRequest(string userId, string projectId, TerminationRequestCreateDTO requestCreateDTO)
         {
