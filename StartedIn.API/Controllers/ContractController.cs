@@ -255,6 +255,35 @@ namespace StartedIn.API.Controllers
                 return StatusCode(500, MessageConstant.InternalServerError);
             }
         }
+        [HttpGet("liquidation-notes/{contractId}")]
+        [Authorize(Roles = RoleConstants.USER + "," + RoleConstants.MENTOR + "," + RoleConstants.INVESTOR)]
+        public async Task<ActionResult<GroupContractDetailResponseDTO>> GetLiquidationNoteDetail([FromRoute] string projectId, [FromRoute] string contractId)
+        {
+            try
+            {
+                var userId = User.FindFirst(ClaimTypes.NameIdentifier).Value;
+                var contract = await _contractService.GetContractByContractId(userId, contractId, projectId);
+                var responseContract = _mapper.Map<LiquidationNoteDetailResponseDTO>(contract);
+                return Ok(responseContract);
+            }
+            catch (NotFoundException ex)
+            {
+                return BadRequest(ex.Message);
+            }
+            catch (UnmatchedException ex)
+            {
+                return BadRequest(ex.Message);
+            }
+            catch (UnauthorizedProjectRoleException ex)
+            {
+                return StatusCode(403, ex.Message);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, MessageConstant.InternalServerError);
+            }
+        }
+
         [HttpGet("shares-distribution-contracts/{contractId}")]
         [Authorize(Roles = RoleConstants.USER + "," + RoleConstants.MENTOR)]
         public async Task<ActionResult<GroupContractDetailResponseDTO>> GetStartupShareAllMemberContractDetail([FromRoute] string projectId, [FromRoute] string contractId)

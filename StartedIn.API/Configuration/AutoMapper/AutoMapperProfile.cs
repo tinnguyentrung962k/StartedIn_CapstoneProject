@@ -201,6 +201,19 @@ namespace StartedIn.API.Configuration.AutoMapper
                 .ForMember(dest => dest.ProfilePicture, opt => opt.MapFrom(src => src.User.ProfilePicture))
                 .ForMember(dest => dest.FullName, opt => opt.MapFrom(src => src.User.FullName))
                 .ForMember(dest => dest.Email, opt => opt.MapFrom(src => src.User.Email));
+            CreateMap<Contract, LiquidationNoteDetailResponseDTO>()
+                .ForMember(dest => dest.ProjectName, opt => opt.MapFrom(
+                    src => src.Project.ProjectName))
+                .ForMember(dest => dest.Parties, opt => opt.MapFrom(
+                    src => src.UserContracts.Select(uc => new UserInContractResponseDTO
+                    {
+                        Id = uc.UserId,
+                        FullName = uc.User.FullName,
+                        Email = uc.User.Email,
+                        PhoneNumber = uc.User.PhoneNumber,
+                        ProfilePicture = uc.User.ProfilePicture
+
+                    }).ToList()));
 
         }
         private void ShareEquityMappingProfile()

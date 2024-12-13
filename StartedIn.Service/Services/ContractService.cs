@@ -19,6 +19,7 @@ using StartedIn.CrossCutting.DTOs.ResponseDTO;
 using StartedIn.CrossCutting.DTOs.ResponseDTO.Disbursement;
 using Microsoft.AspNetCore.Http;
 using DocumentFormat.OpenXml.Bibliography;
+using DocumentFormat.OpenXml.Office2010.Excel;
 
 namespace StartedIn.Service.Services
 {
@@ -1110,7 +1111,7 @@ namespace StartedIn.Service.Services
                 Contract contract = new Contract
                 {
                     ContractName = $"Biên bản thanh lý cho hợp đồng {chosenContract.ContractIdNumber}",
-                    ContractPolicy = $"Dựa vào điều khoản của hợp đồng {chosenContract.ContractIdNumber}",
+                    ContractPolicy = $"Thanh lý cho hợp đồng {chosenContract.ContractIdNumber}",
                     ContractType = ContractTypeEnum.LIQUIDATIONNOTE,
                     CreatedBy = userInProject.User.FullName,
                     ProjectId = projectId,
@@ -1130,7 +1131,7 @@ namespace StartedIn.Service.Services
                 
                 var requestParty = new UserContract
                 {
-                    UserId = request.Id,
+                    UserId = request.FromId,
                     ContractId = contract.Id,
                 };
                 
