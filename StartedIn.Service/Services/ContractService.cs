@@ -1092,6 +1092,15 @@ namespace StartedIn.Service.Services
             }
             var project = await _projectRepository.GetProjectById(projectId);
             var chosenContract = await _contractRepository.GetContractById(contractId);
+            if (chosenContract.CurrentTerminationRequestId == null)
+            {
+                throw new NotFoundException(MessageConstant.NotFoundTerminateRequest);
+            }
+            var request = await _terminationRequestRepository.GetOneAsync(chosenContract.CurrentTerminationRequestId);
+            if (request.IsAgreed != true)
+            {
+                throw new InvalidDataException(MessageConstant.CannotCancelContractError);
+            }
             try
             {
                 _unitOfWork.BeginTransaction();
@@ -1118,7 +1127,7 @@ namespace StartedIn.Service.Services
                     ContractId = contract.Id
                 };
 
-                var request = await _terminationRequestRepository.GetOneAsync(chosenContract.CurrentTerminationRequestId);
+                
                 var requestParty = new UserContract
                 {
                     UserId = request.Id,

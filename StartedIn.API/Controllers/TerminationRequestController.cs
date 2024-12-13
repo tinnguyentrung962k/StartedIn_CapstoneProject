@@ -97,5 +97,61 @@ namespace StartedIn.API.Controllers
                 return StatusCode(500, ex.Message);
             }
         }
+
+        [HttpPut("termination-requests/{requestId}/accept")]
+        [Authorize(Roles = RoleConstants.USER)]
+        public async Task<IActionResult> AcceptTermationRequest([FromRoute] string projectId, [FromRoute] string requestId)
+        {
+            try
+            {
+                var userId = User.FindFirst(ClaimTypes.NameIdentifier).Value;
+                await _terminationRequestService.AcceptTerminationRequest(userId, projectId, requestId);
+                return Ok("Chấp nhận yêu cầu thành công");
+            }
+            catch (NotFoundException ex)
+            {
+                return BadRequest(ex.Message);
+            }
+            catch (UnauthorizedProjectRoleException ex)
+            {
+                return StatusCode(403, ex.Message);
+            }
+            catch (UpdateException ex)
+            {
+                return BadRequest(ex.Message);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, ex.Message);
+            }
+        }
+
+        [HttpPut("termination-requests/{requestId}/reject")]
+        [Authorize(Roles = RoleConstants.USER)]
+        public async Task<IActionResult> RejectTermationRequest([FromRoute] string projectId, [FromRoute] string requestId)
+        {
+            try
+            {
+                var userId = User.FindFirst(ClaimTypes.NameIdentifier).Value;
+                await _terminationRequestService.RejectTerminationRequest(userId, projectId, requestId);
+                return Ok("Từ chối yêu cầu thành công");
+            }
+            catch (NotFoundException ex)
+            {
+                return BadRequest(ex.Message);
+            }
+            catch (UnauthorizedProjectRoleException ex)
+            {
+                return StatusCode(403, ex.Message);
+            }
+            catch (UpdateException ex)
+            {
+                return BadRequest(ex.Message);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, ex.Message);
+            }
+        }
     }
 }

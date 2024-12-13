@@ -83,14 +83,6 @@ namespace StartedIn.API.Controllers
             {
                 return StatusCode(403, ex.Message);
             }
-            catch (ExistedRecordException ex)
-            {
-                return BadRequest(ex.Message);
-            }
-            catch (InvalidOperationException ex)
-            {
-                return BadRequest(ex.Message);
-            }
             catch (InvalidDataException ex)
             {
                 return BadRequest(ex.Message);
