@@ -12,10 +12,6 @@ namespace StartedIn.Domain.Entities
     {
         [ForeignKey(nameof(Appointment))]
         public string AppointmentId { get; set; }
-        public string HostId { get; set; }
-        public string SecretaryId { get; set; }
-        public string MeetingContent { get; set; }
-        public string Conclusion { get; set; }
         public string? SignNowFileId { get; set; }
         public Appointment Appointment { get; set; }
     }
