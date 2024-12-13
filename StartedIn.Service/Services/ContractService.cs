@@ -1149,7 +1149,7 @@ namespace StartedIn.Service.Services
             {
                 throw new UnmatchedException(MessageConstant.ContractNotBelongToProjectError);
             }
-            if (contract.ContractStatus != ContractStatusEnum.COMPLETED)
+            if (contract.ContractStatus != ContractStatusEnum.COMPLETED && contract.ContractStatus != ContractStatusEnum.WAITINGFORLIQUIDATION)
             {
                 throw new UpdateException(MessageConstant.ContractIsNotValid);
             }
