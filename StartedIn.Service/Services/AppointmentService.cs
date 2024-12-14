@@ -20,12 +20,17 @@ namespace StartedIn.Service.Services
         private readonly IUserService _userService;
         private readonly IUnitOfWork _unitOfWork;
         private readonly ILogger<AppointmentService> _logger;
-        public AppointmentService(IAppointmentRepository appointmentRepository, IUserService userService, IUnitOfWork unitOfWork, ILogger<AppointmentService> logger) 
+        private readonly IEmailService _emailService;
+        private readonly IProjectRepository _projectRepository;
+        public AppointmentService(IAppointmentRepository appointmentRepository, IUserService userService, IUnitOfWork unitOfWork, ILogger<AppointmentService> logger,
+            IEmailService emailService, IProjectRepository projectRepository) 
         {
             _appointmentRepository = appointmentRepository;
             _userService = userService;
             _unitOfWork = unitOfWork;
             _logger = logger;
+            _emailService = emailService;
+            _projectRepository = projectRepository;
         }
         public async Task<IEnumerable<Appointment>> GetAppointmentsInProject(string userId, string projectId, int year)
         {
@@ -56,6 +61,8 @@ namespace StartedIn.Service.Services
             {
                 throw new UnauthorizedProjectRoleException(MessageConstant.RolePermissionError);
             }
+
+            var project = await _projectRepository.QueryHelper().Filter(p => p.Id.Equals(projectId)).GetOneAsync();
             try
             {
                 _unitOfWork.BeginTransaction();
@@ -71,6 +78,13 @@ namespace StartedIn.Service.Services
                     Status = CrossCutting.Enum.MeetingStatus.Proposed
                 };
                 var newAppointmentEntity = _appointmentRepository.Add(newAppointment);
+                foreach (var user in project.UserProjects)
+                {
+                    var receiverName = user.User.FullName;
+                    var receiveEmail = user.User.Email;
+                    await _emailService.SendAppointmentInvite(receiveEmail, project.ProjectName, receiverName,
+                        newAppointmentEntity.MeetingLink, newAppointmentEntity.AppointmentTime);
+                }
                 await _unitOfWork.SaveChangesAsync();
                 await _unitOfWork.CommitAsync();
                 return newAppointmentEntity;

@@ -262,6 +262,17 @@ namespace StartedIn.Service.Services
             return blobClient.Uri.ToString();
         }
 
+        public async Task<string> UploadMeetingNote(IFormFile file)
+        {
+            var fileName = Guid.NewGuid() + Path.GetExtension(file.FileName);
+            var blobClient = _documentContainerClient.GetBlobClient(fileName);
+            using (var stream = file.OpenReadStream())
+            {
+                await blobClient.UploadAsync(stream, new BlobHttpHeaders { ContentType = file.ContentType });
+            }
+            return blobClient.Uri.ToString();
+        }
+
         // Helper method to extract blob name from URL
         private string GetBlobNameFromUrl(string url)
         {
