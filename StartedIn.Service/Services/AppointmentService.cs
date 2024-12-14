@@ -22,8 +22,9 @@ namespace StartedIn.Service.Services
         private readonly ILogger<AppointmentService> _logger;
         private readonly IEmailService _emailService;
         private readonly IProjectRepository _projectRepository;
+        private readonly IAzureBlobService _azureBlobService;
         public AppointmentService(IAppointmentRepository appointmentRepository, IUserService userService, IUnitOfWork unitOfWork, ILogger<AppointmentService> logger,
-            IEmailService emailService, IProjectRepository projectRepository) 
+            IEmailService emailService, IProjectRepository projectRepository, IAzureBlobService azureBlobService) 
         {
             _appointmentRepository = appointmentRepository;
             _userService = userService;
@@ -31,6 +32,7 @@ namespace StartedIn.Service.Services
             _logger = logger;
             _emailService = emailService;
             _projectRepository = projectRepository;
+            _azureBlobService = azureBlobService;
         }
         public async Task<IEnumerable<Appointment>> GetAppointmentsInProject(string userId, string projectId, int year)
         {

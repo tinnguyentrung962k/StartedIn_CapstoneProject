@@ -388,5 +388,10 @@ namespace StartedIn.API.Configuration.AutoMapper
                 .ForMember(dest => dest.ContractIdNumber, opt => opt.MapFrom(src => src.Contract.ContractIdNumber))
                 .ForMember(dest => dest.FromName, opt => opt.MapFrom(src => src.Contract.UserContracts.FirstOrDefault(uc => uc.UserId == src.FromId).User.FullName));
         }
+
+        private void MeetingNoteMappingProfile()
+        {
+            CreateMap<MeetingNote, MeetingNoteResponseDTO>().ReverseMap();
+        }
     }
 }

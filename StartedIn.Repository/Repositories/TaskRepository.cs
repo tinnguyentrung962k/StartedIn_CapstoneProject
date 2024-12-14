@@ -23,7 +23,7 @@ namespace StartedIn.Repository.Repositories
         }
         public IQueryable<TaskEntity> GetTaskListInAProjectQuery(string projectId)
         {
-            var query = _dbSet.Include(t => t.UserTasks).Where(t => t.ProjectId.Equals(projectId) && t.DeletedTime == null);
+            var query = _dbSet.Include(t => t.UserTasks).Where(t => t.ProjectId.Equals(projectId) && t.DeletedTime == null).OrderBy(t => t.CreatedTime);
             return query;
         }
     }
