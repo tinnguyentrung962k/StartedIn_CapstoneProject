@@ -777,6 +777,7 @@ namespace StartedIn.Service.Services
                 .Include(c=>c.Disbursements)
                 .Include(c => c.UserContracts)
                 .ThenInclude(uc => uc.User)
+                .OrderByDescending(x => x.LastUpdatedTime)
                 .ToListAsync();
 
             var contractSearchResponseDTOs = pagedResult.Select(contract => new ContractSearchResponseDTO
