@@ -737,7 +737,7 @@ public class ProjectService : IProjectService
             .GetAllAsync();
         var disbursementList = validContracts.SelectMany(c => c.Disbursements)
             .Where(d => d.DisbursementStatus == DisbursementStatusEnum.OVERDUE
-            || x.DisbursementStatus == DisbursementStatusEnum.ACCEPTED
+            || d.DisbursementStatus == DisbursementStatusEnum.ACCEPTED
             || d.DisbursementStatus == DisbursementStatusEnum.ERROR
             || d.DisbursementStatus == DisbursementStatusEnum.PENDING)
         .ToList();
