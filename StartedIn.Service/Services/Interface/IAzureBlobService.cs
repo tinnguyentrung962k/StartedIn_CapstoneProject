@@ -24,5 +24,6 @@ namespace StartedIn.Service.Services.Interface
         Task<string> UploadLiquidationNote(IFormFile file);
         Task DeleteImageFromRecruitmentBlob(string imageUrl);
         Task<string> UploadCVFileApplication(IFormFile file);
+        Task<string> UploadMeetingNote(IFormFile file);
     }
 }
