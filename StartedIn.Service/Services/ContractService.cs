@@ -1349,6 +1349,51 @@ namespace StartedIn.Service.Services
                     project.Finance.RemainingDisbursement -= totalPendingAmount;
                     _financeRepository.Update(project.Finance);
                     _logger.LogInformation($"Tổng số tiền chưa giải ngân bị tắt: {totalPendingAmount}.");
+
+                    string prefix = "GTL";
+                    string currentDateTime = DateTimeOffset.UtcNow.ToString("ddMMyyyyHHmm");
+                    string contractIdNumberGen = $"{prefix}-{currentDateTime}";
+                    Contract liquidationNote = new Contract
+                    {
+                        ContractName = $"Biên bản thanh lý cho hợp đồng {contract.ContractIdNumber}",
+                        ContractPolicy = $"Thanh lý cho hợp đồng {contract.ContractIdNumber}",
+                        ContractType = ContractTypeEnum.LIQUIDATIONNOTE,
+                        CreatedBy = userInProject.User.FullName,
+                        ProjectId = projectId,
+                        ContractStatus = ContractStatusEnum.DRAFT,
+                        ContractIdNumber = contractIdNumberGen,
+                        ParentContractId = contract.Id,
+                        ParentContract = contract.ParentContract,
+                    };
+
+                    var leader = userInProject.User;
+                    var leaderInContract = new UserContract
+                    {
+                        UserId = leader.Id,
+                        ContractId = contract.Id
+                    };
+
+
+                    var requestParty = new UserContract
+                    {
+                        UserId = request.FromId,
+                        ContractId = contract.Id,
+                    };
+
+                    List<UserContract> usersInContract = new List<UserContract> { leaderInContract, requestParty };
+
+                    contract.UserContracts = usersInContract;
+                    var contractEntity = _contractRepository.Add(contract);
+                    var signingMethod = await _appSettingManager.GetSettingAsync("SignatureType");
+                    if (signingMethod == SettingsValue.InternalApp)
+                    {
+                        contract.AzureLink = await _azureBlobService.UploadLiquidationNote(uploadFile);
+                    }
+                    if (signingMethod == SettingsValue.SignNow)
+                    {
+                        await _signNowService.AuthenticateAsync();
+                        contract.SignNowDocumentId = await _signNowService.UploadDocumentAsync(uploadFile);
+                    }
                 }
                 await _unitOfWork.SaveChangesAsync();
                 await _unitOfWork.CommitAsync();
