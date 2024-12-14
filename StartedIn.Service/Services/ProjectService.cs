@@ -653,6 +653,11 @@ public class ProjectService : IProjectService
             project.ProjectStatus = ProjectStatusEnum.CLOSED;
             project.LastUpdatedTime = DateTime.UtcNow;
             project.LastUpdatedBy = userInProject.User.FullName;
+            foreach (var userProject in project.UserProjects.Where(x=>x.Status != UserStatusInProject.Left))
+            {
+                userProject.Status = UserStatusInProject.Left;
+                await _userRepository.UpdateUserInProject(userProject);
+            }
             _projectRepository.Update(project);
             await _unitOfWork.SaveChangesAsync();
             await _unitOfWork.CommitAsync();
