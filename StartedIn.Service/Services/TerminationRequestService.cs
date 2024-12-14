@@ -60,8 +60,7 @@ namespace StartedIn.Service.Services
                 .Filter(x => x.ContractId == requestCreateDTO.ContractId
                 && x.IsAgreed == null)
                 .GetOneAsync();
-            var contract = userInContract.Contract;
-            if (contract.ContractType == CrossCutting.Enum.ContractTypeEnum.LIQUIDATIONNOTE)
+            if (userInContract.Contract.ContractType == CrossCutting.Enum.ContractTypeEnum.LIQUIDATIONNOTE)
             {
                 throw new InvalidDataException(MessageConstant.YouCannotRequestToTerminateThisContract);
             }
