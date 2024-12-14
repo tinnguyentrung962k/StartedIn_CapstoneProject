@@ -52,6 +52,7 @@ namespace StartedIn.API.Controllers
                 return StatusCode(500, ex.Message);
             }
         }
+        
         [HttpGet("appointments/{appointmentId}")]
         [Authorize(Roles = RoleConstants.INVESTOR + "," + RoleConstants.USER + "," + RoleConstants.MENTOR)]
         public async Task<ActionResult<AppointmentResponseDTO>> GetMeetingsById([FromRoute] string projectId, [FromRoute] string appointmentId)

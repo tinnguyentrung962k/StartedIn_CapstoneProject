@@ -114,6 +114,7 @@ namespace StartedIn.CrossCutting.Constants
         public const string NotFoundTerminateRequest = "Không tìm thấy yêu cầu chấm dứt hợp đồng.";
         public const string YouCannotAcceptOrRejectTermination = "Bạn không thể chấp nhận/từ chối huỷ hợp đồng này.";
         public const string YouAreNotBelongToThisRequest = "Ban không phải người nhận/gửi yêu cầu này.";
+        public const string NotFoundMeetingNote = "Không tìm thấy biên bản cuộc họp.";
 
     }
 }

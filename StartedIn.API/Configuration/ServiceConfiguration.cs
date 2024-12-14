@@ -39,7 +39,7 @@ namespace StartedIn.API.Configuration
             services.AddScoped<IAppSettingManager,AppSettingManager>();
             services.AddScoped<ITerminationRequestService, TerminationRequestService>();
             services.AddScoped<IGoogleMeetService, GoogleMeetService>();
-
+            services.AddScoped<IMeetingNoteService, MeetingNoteService>();
             return services;
         }
     }
