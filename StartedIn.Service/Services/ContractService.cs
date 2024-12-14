@@ -1202,6 +1202,7 @@ namespace StartedIn.Service.Services
             {
                 throw new NotFoundException(MessageConstant.NotFoundProjectError);
             }
+
             try
             {
                 _unitOfWork.BeginTransaction();
@@ -1252,6 +1253,114 @@ namespace StartedIn.Service.Services
                 throw;
             }
         }
+
+        public async Task LeaderTerminateContract(string userId, string projectId, string contractId, IFormFile uploadFile) 
+        {
+            var userInProject = await _userService.CheckIfUserInProject(userId, projectId);
+            if (userInProject.RoleInTeam != RoleInTeam.Leader)
+            {
+                throw new UnauthorizedProjectRoleException(MessageConstant.RolePermissionError);
+            }
+            var contract = await _contractRepository.GetContractById(contractId);
+            if (contract.ProjectId != projectId)
+            {
+                throw new UnmatchedException(MessageConstant.ContractNotBelongToProjectError);
+            }
+            var userInContract = await _userService.CheckIfUserBelongToContract(userId, contractId);
+            if (contract.ProjectId != projectId)
+            {
+                throw new UnmatchedException(MessageConstant.ContractNotBelongToProjectError);
+            }
+            if (contract.ContractStatus != ContractStatusEnum.COMPLETED && contract.ContractStatus != ContractStatusEnum.WAITINGFORLIQUIDATION)
+            {
+                throw new UpdateException(MessageConstant.ContractIsNotValid);
+            }
+
+            // Kiểm tra nếu hợp đồng đã hết hạn hoặc đang chờ thanh lý
+            if (contract.ContractStatus == ContractStatusEnum.EXPIRED ||
+                contract.ContractStatus != ContractStatusEnum.WAITINGFORLIQUIDATION)
+            {
+                throw new InvalidDataException(MessageConstant.CannotCancelContractError);
+            }
+
+            if (contract.ContractType == ContractTypeEnum.LIQUIDATIONNOTE)
+            {
+                throw new InvalidDataException(MessageConstant.CannotCancelContractError);
+            }
+
+            if (contract.CurrentTerminationRequestId == null)
+            {
+                throw new NotFoundException(MessageConstant.NotFoundTerminateRequest);
+            }
+
+            var request = await _terminationRequestRepository.GetOneAsync(contract.CurrentTerminationRequestId);
+            if (request.IsAgreed != true)
+            {
+                throw new InvalidDataException(MessageConstant.CannotCancelContractError);
+            }
+
+            var existingProcessingLiquidation = await _contractRepository.QueryHelper()
+                .Filter(x => x.ParentContractId == contract.Id
+                             && ((x.ContractStatus == ContractStatusEnum.DRAFT && x.DeletedTime == null)
+                             || x.ContractStatus == ContractStatusEnum.SENT))
+                .GetOneAsync();
+
+            if (existingProcessingLiquidation != null)
+            {
+                throw new InvalidDataException(MessageConstant.ExistingProcessingLiquidationError);
+            }
+            try
+            {
+                _unitOfWork.BeginTransaction();
+                var project = await _projectRepository.GetProjectById(projectId);
+                contract.ExpiredDate = DateOnly.FromDateTime(DateTimeOffset.UtcNow.Date);
+                contract.ContractStatus = ContractStatusEnum.EXPIRED;
+                contract.LastUpdatedTime = DateTimeOffset.UtcNow;
+                if (contract.ContractType == ContractTypeEnum.INTERNAL)
+                {
+                    decimal expiredContractShare = (decimal)contract.ShareEquities.Sum(x => x.Percentage);
+                    project.RemainingPercentOfShares += expiredContractShare;
+                    _logger.LogInformation($"Hợp đồng nội bộ hết hạn. Trả lại {expiredContractShare}% cổ phần cho dự án {project.ProjectName}. Tổng cổ phần còn lại: {project.RemainingPercentOfShares}%.");
+                    _projectRepository.Update(project);
+                }
+                else if (contract.ContractType == ContractTypeEnum.INVESTMENT)
+                {
+                    // Xử lý khi hợp đồng đầu tư hết hạn
+                    decimal investmentShare = (decimal)contract.ShareEquities.Sum(x => x.Percentage);
+
+                    // Logic tuỳ chọn: Mua lại, hoàn trả, hoặc chuyển nhượng cổ phần
+                    project.RemainingPercentOfShares += investmentShare;
+                    _logger.LogInformation($"Hợp đồng đầu tư hết hạn. Trả lại {investmentShare}% cổ phần cho dự án {project.ProjectName}. Tổng cổ phần còn lại: {project.RemainingPercentOfShares}%.");
+                    _projectRepository.Update(project);
+                    decimal totalPendingAmount = 0;
+                    if (contract.Disbursements != null)
+                    {
+                        foreach (var disbursement in contract.Disbursements)
+                        {
+                            if (disbursement.DisbursementStatus == DisbursementStatusEnum.PENDING)
+                            {
+                                totalPendingAmount += disbursement.Amount; // Sum pending disbursement amounts
+                                disbursement.IsValidWithContract = false;
+                                disbursement.DisbursementStatus = DisbursementStatusEnum.CANCELLED;
+                                _disbursementRepository.Update(disbursement);
+                            }
+                        }
+                    }
+                    project.Finance.RemainingDisbursement -= totalPendingAmount;
+                    _financeRepository.Update(project.Finance);
+                    _logger.LogInformation($"Tổng số tiền chưa giải ngân bị tắt: {totalPendingAmount}.");
+                }
+                await _unitOfWork.SaveChangesAsync();
+                await _unitOfWork.CommitAsync();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError($"Lỗi xảy ra khi xử lý hết hạn hợp đồng: {ex.Message}");
+                await _unitOfWork.RollbackAsync();
+                throw;
+            }
+        }
+
         public async Task DeleteContract(string userId, string projectId, string contractId)
         {
             var userInProject = await _userService.CheckIfUserInProject(userId, projectId);
