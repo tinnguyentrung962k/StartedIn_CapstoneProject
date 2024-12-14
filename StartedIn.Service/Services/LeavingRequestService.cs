@@ -161,7 +161,8 @@ namespace StartedIn.Service.Services
             .Include(c=>c.UserContracts)
             .Filter(c => c.ProjectId.Equals(projectId) 
             && (c.ContractStatus == ContractStatusEnum.SENT || c.ContractStatus == ContractStatusEnum.COMPLETED)
-            && c.UserContracts.Any(u => u.UserId.Equals(chosenRequest.UserId)))
+            && c.UserContracts.Any(u => u.UserId.Equals(chosenRequest.UserId))
+            && c.ContractType != ContractTypeEnum.LIQUIDATIONNOTE)
             .GetAllAsync();
 
             if (activeContractOfUser.Any())

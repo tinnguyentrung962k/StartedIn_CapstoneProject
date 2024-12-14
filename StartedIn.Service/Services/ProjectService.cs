@@ -610,7 +610,8 @@ public class ProjectService : IProjectService
             .Filter(x=>x.ProjectId == projectId)
             .Include(x=>x.Disbursements)
             .GetAllAsync();
-        if (contractList.Any(x => x.ContractStatus == ContractStatusEnum.SENT || x.ContractStatus == ContractStatusEnum.COMPLETED))
+        if (contractList.Any(x => (x.ContractStatus == ContractStatusEnum.SENT || x.ContractStatus == ContractStatusEnum.COMPLETED) 
+        && x.ContractType != ContractTypeEnum.LIQUIDATIONNOTE))
         {
             throw new UpdateException(MessageConstant.ValidContractsStillExisted);
         }
@@ -618,7 +619,10 @@ public class ProjectService : IProjectService
         {
             if (contract.ContractType == ContractTypeEnum.INVESTMENT)
             {
-                if (contract.Disbursements.Any(x => x.DisbursementStatus == DisbursementStatusEnum.OVERDUE || x.DisbursementStatus == DisbursementStatusEnum.ERROR))
+                if (contract.Disbursements.Any(x => x.DisbursementStatus == DisbursementStatusEnum.OVERDUE 
+                || x.DisbursementStatus == DisbursementStatusEnum.ERROR 
+                || x.DisbursementStatus == DisbursementStatusEnum.ACCEPTED
+                || x.DisbursementStatus == DisbursementStatusEnum.PENDING))
                 {
                     throw new UpdateException(MessageConstant.DisbursementIssueExisted);
                     break;
@@ -671,14 +675,19 @@ public class ProjectService : IProjectService
         }
         var project = await _projectRepository.GetProjectById(projectId);
         var validContracts = await _contractRepository.QueryHelper()
-            .Filter(x=>x.ProjectId.Equals(projectId) && (x.ContractStatus == ContractStatusEnum.COMPLETED || x.ContractStatus == ContractStatusEnum.SENT))
+            .Filter(x=>x.ProjectId.Equals(projectId) 
+            && (x.ContractStatus == ContractStatusEnum.COMPLETED || x.ContractStatus == ContractStatusEnum.SENT || x.ContractStatus == ContractStatusEnum.WAITINGFORLIQUIDATION)
+            && x.ContractType != ContractTypeEnum.LIQUIDATIONNOTE)
             .Include(x=>x.Disbursements)
             .GetAllAsync();
 
         var processingDisbursements = await _disbursementRepository.QueryHelper()
             .Include(x => x.Contract)
             .Filter(x => x.Contract.ProjectId.Equals(projectId) 
-            && (x.DisbursementStatus == DisbursementStatusEnum.OVERDUE || x.DisbursementStatus == DisbursementStatusEnum.ERROR || (x.DisbursementStatus == DisbursementStatusEnum.PENDING && x.IsValidWithContract == true)))
+            && (x.DisbursementStatus == DisbursementStatusEnum.OVERDUE 
+            || x.DisbursementStatus == DisbursementStatusEnum.ERROR 
+            || x.DisbursementStatus == DisbursementStatusEnum.ACCEPTED 
+            || x.DisbursementStatus == DisbursementStatusEnum.PENDING))
             .GetAllAsync();
 
         var assetInProject = await _assetRepository.QueryHelper()
@@ -721,14 +730,16 @@ public class ProjectService : IProjectService
         var validContracts = await _contractRepository.QueryHelper()
             .Filter(x => x.ProjectId.Equals(projectId) 
             && (x.ContractStatus == ContractStatusEnum.COMPLETED || x.ContractStatus == ContractStatusEnum.SENT)
-            && (x.UserContracts.Any(x=>x.UserId.Equals(userId))))
+            && (x.UserContracts.Any(x => x.UserId.Equals(userId))) 
+            && x.ContractType != ContractTypeEnum.LIQUIDATIONNOTE)
             .Include(x => x.Disbursements)
             .Include(x => x.UserContracts)
             .GetAllAsync();
         var disbursementList = validContracts.SelectMany(c => c.Disbursements)
             .Where(d => d.DisbursementStatus == DisbursementStatusEnum.OVERDUE
+            || x.DisbursementStatus == DisbursementStatusEnum.ACCEPTED
             || d.DisbursementStatus == DisbursementStatusEnum.ERROR
-            || (d.DisbursementStatus == DisbursementStatusEnum.PENDING && d.IsValidWithContract == true))
+            || d.DisbursementStatus == DisbursementStatusEnum.PENDING)
         .ToList();
         var leavingProject = new LeavingProjectInfomationDTO
         {
