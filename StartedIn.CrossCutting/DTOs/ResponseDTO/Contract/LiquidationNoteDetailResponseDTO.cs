@@ -15,6 +15,7 @@ namespace StartedIn.CrossCutting.DTOs.ResponseDTO.Contract
         public string ContractPolicy { get; set; }
         public string ContractIdNumber { get; set; }
         public string ProjectName { get; set; }
+        public string ParentContractId { get; set; }
         public List<UserInContractResponseDTO> Parties { get; set; }
     }
 }
