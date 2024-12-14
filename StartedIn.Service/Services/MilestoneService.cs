@@ -27,6 +27,7 @@ namespace StartedIn.Service.Services
         private readonly ILogger<Milestone> _logger;
         private readonly UserManager<User> _userManager;
         private readonly IMilestoneHistoryRepository _milestoneHistoryRepository;
+        private readonly IAppointmentRepository _appointmentRepository;
         private readonly IProjectRepository _projectRepository;
         private readonly IUserService _userService;
         private readonly IMapper _mapper;
@@ -37,6 +38,7 @@ namespace StartedIn.Service.Services
             ILogger<Milestone> logger,
             ITaskRepository taskRepository, UserManager<User> userManager,
             IMilestoneHistoryRepository milestoneHistoryRepository,
+            IAppointmentRepository appointmentRepository,
             IProjectRepository projectRepository, IUserService userService,
             IMapper mapper)
         {
@@ -44,6 +46,7 @@ namespace StartedIn.Service.Services
             _milestoneRepository = milestoneRepository;
             _logger = logger;
             _taskRepository = taskRepository;
+            _appointmentRepository = appointmentRepository;
             _userManager = userManager;
             _milestoneHistoryRepository = milestoneHistoryRepository;
             _projectRepository = projectRepository;
@@ -79,6 +82,23 @@ namespace StartedIn.Service.Services
                     MilestoneId = milestone.Id
                 };
                 var milestoneHistoryEntity = _milestoneHistoryRepository.Add(history);
+
+                foreach (var meeting in milestoneCreateDto.meetingList)
+                {
+                    var appointment = new Appointment
+                    {
+                        MilestoneId = milestone.Id,
+                        ProjectId = projectId,
+                        Title = meeting.Title,
+                        Description = meeting.Description,
+                        AppointmentTime = meeting.AppointmentTime,
+                        CreatedBy = loginUser.User.FullName,
+                        CreatedTime = DateTimeOffset.UtcNow,
+                        MeetingLink = meeting.MeetingLink
+                    };
+                    _appointmentRepository.Add(appointment);
+                }
+
                 await _unitOfWork.SaveChangesAsync();
                 await _unitOfWork.CommitAsync();
                 return milestoneEntity;
@@ -182,7 +202,7 @@ namespace StartedIn.Service.Services
             var pagedResult = await filterMilestones
                 .Skip((page - 1) * size)
                 .Take(size)
-                .Include(x=>x.Phase)
+                .Include(x => x.Phase)
                 .ToListAsync();
 
             var milestonePagination = new PaginationDTO<MilestoneResponseDTO>()
