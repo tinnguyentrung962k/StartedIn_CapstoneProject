@@ -1,4 +1,5 @@
-﻿using StartedIn.CrossCutting.Enum;
+﻿using StartedIn.CrossCutting.DTOs.RequestDTO.Appointment;
+using StartedIn.CrossCutting.Enum;
 using System.ComponentModel.DataAnnotations;
 
 namespace StartedIn.CrossCutting.DTOs.RequestDTO.Milestone
@@ -15,5 +16,6 @@ namespace StartedIn.CrossCutting.DTOs.RequestDTO.Milestone
         [Required]
         public DateTime EndDate { get; set; }
         public string? PhaseId { get; set; }
+        public IList<AppointmentCreateDTO> meetingList { get; set; }
     }
 }
