@@ -115,6 +115,7 @@ namespace StartedIn.CrossCutting.Constants
         public const string YouCannotAcceptOrRejectTermination = "Bạn không thể chấp nhận/từ chối huỷ hợp đồng này.";
         public const string YouAreNotBelongToThisRequest = "Ban không phải người nhận/gửi yêu cầu này.";
         public const string NotFoundMeetingNote = "Không tìm thấy biên bản cuộc họp.";
+        public const string ExistingProcessingLiquidationError = "Hợp đồng này còn biên bản thanh lý chưa được xác nhận";
 
     }
 }

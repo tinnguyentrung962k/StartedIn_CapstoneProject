@@ -1091,16 +1091,41 @@ namespace StartedIn.Service.Services
             {
                 throw new UnauthorizedProjectRoleException(MessageConstant.RolePermissionError);
             }
-            var project = await _projectRepository.GetProjectById(projectId);
+
             var chosenContract = await _contractRepository.GetContractById(contractId);
+
+            // Kiểm tra nếu hợp đồng đã hết hạn hoặc đang chờ thanh lý
+            if (chosenContract.ContractStatus == ContractStatusEnum.EXPIRED ||
+                chosenContract.ContractStatus != ContractStatusEnum.WAITINGFORLIQUIDATION)
+            {
+                throw new InvalidDataException(MessageConstant.CannotCancelContractError);
+            }
+
+            if (chosenContract.ContractType == ContractTypeEnum.LIQUIDATIONNOTE)
+            {
+                throw new InvalidDataException(MessageConstant.CannotCancelContractError);
+            }
+
             if (chosenContract.CurrentTerminationRequestId == null)
             {
                 throw new NotFoundException(MessageConstant.NotFoundTerminateRequest);
             }
+
             var request = await _terminationRequestRepository.GetOneAsync(chosenContract.CurrentTerminationRequestId);
             if (request.IsAgreed != true)
             {
                 throw new InvalidDataException(MessageConstant.CannotCancelContractError);
+            }
+
+            var existingProcessingLiquidation = await _contractRepository.QueryHelper()
+                .Filter(x => x.ParentContractId == chosenContract.Id
+                             && ((x.ContractStatus == ContractStatusEnum.DRAFT && x.DeletedTime == null) 
+                             || x.ContractStatus == ContractStatusEnum.SENT))
+                .GetOneAsync();
+
+            if (existingProcessingLiquidation != null)
+            {
+                throw new InvalidDataException(MessageConstant.ExistingProcessingLiquidationError);
             }
             try
             {
