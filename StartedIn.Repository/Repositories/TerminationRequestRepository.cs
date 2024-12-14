@@ -35,7 +35,7 @@ namespace StartedIn.Repository.Repositories
                 .Include(r => r.Contract)
                 .ThenInclude(c => c.UserContracts)
                 .ThenInclude(uc => uc.User)
-                .Where(r => r.Contract.ProjectId.Equals(projectId) && r.ToId == userId)
+                .Where(r => r.Contract.ProjectId.Equals(projectId) && r.ToId == userId && r.IsAgreed == null)
                 .ToListAsync();
             return requestList;
         }
