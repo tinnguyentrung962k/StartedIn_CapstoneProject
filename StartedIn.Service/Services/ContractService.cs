@@ -1172,9 +1172,9 @@ namespace StartedIn.Service.Services
                 List<UserContract> usersInContract = new List<UserContract> { leaderInContract, requestParty };
                 
                 contract.UserContracts = usersInContract;
-                var contractEntity = _contractRepository.Add(contract);
+                var liquidationEntity = _contractRepository.Add(contract);
 
-                chosenContract.LiquidationNoteId = contractEntity.Id;
+                chosenContract.LiquidationNoteId = liquidationEntity.Id;
                 _contractRepository.Update(chosenContract);
 
                 var signingMethod = await _appSettingManager.GetSettingAsync("SignatureType");
@@ -1189,7 +1189,7 @@ namespace StartedIn.Service.Services
                 }
                 await _unitOfWork.SaveChangesAsync();
                 await _unitOfWork.CommitAsync();
-                return contractEntity;
+                return liquidationEntity;
             }
             catch (Exception ex)
             {
@@ -1395,9 +1395,9 @@ namespace StartedIn.Service.Services
                     List<UserContract> usersInContract = new List<UserContract> { leaderInContract, requestParty };
 
                     contract.UserContracts = usersInContract;
-                    var contractEntity = _contractRepository.Add(contract);
+                    var liquidationEntity = _contractRepository.Add(contract);
 
-                    contract.LiquidationNoteId = contractEntity.Id;
+                    contract.LiquidationNoteId = liquidationEntity.Id;
                     _contractRepository.Update(contract);
 
                     var signingMethod = await _appSettingManager.GetSettingAsync("SignatureType");
