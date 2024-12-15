@@ -39,7 +39,7 @@ namespace StartedIn.Service.Services
             var userInProject = await _userService.CheckIfUserInProject(userId, projectId);
             var appointments = await _appointmentRepository.QueryHelper()
                 .Filter(x=>x.ProjectId.Equals(projectId) && x.AppointmentTime.Year == year)
-                .OrderBy(x=>x.OrderByDescending(x=>x.AppointmentTime))
+                .OrderBy(x=>x.OrderByDescending(x=>x.AppointmentTime)).Include(a => a.MeetingNotes)
                 .GetAllAsync();
             return appointments;
         }
@@ -49,6 +49,7 @@ namespace StartedIn.Service.Services
             var appointment = await _appointmentRepository.QueryHelper()
                 .Filter(x => x.ProjectId.Equals(projectId) && x.Id.Equals(appointmentId))
                 .Include(x=>x.Milestone)
+                .Include(x=>x.MeetingNotes)
                 .GetOneAsync();
             if (appointment == null)
             {

@@ -31,7 +31,8 @@ public class MeetingNoteService : IMeetingNoteService
     {
         var userInProject = await _userService.CheckIfUserInProject(userId, projectId);
         try
-        {
+        { 
+            _unitOfWork.BeginTransaction();
             var noteUrl = await _azureBlobService.UploadMeetingNote(uploadMeetingNoteDto.Note);
             var meetingNote = new MeetingNote
             {

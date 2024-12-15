@@ -786,4 +786,19 @@ public class ProjectService : IProjectService
         };
         return response;
     }
+
+    public async Task<List<ProjectResponseDTO>> GetProjectsThatUserLeft(string userId)
+    {
+        var leftProjects = _projectRepository.GetProjectsThatUserLeft(userId).ToList();
+        var response = _mapper.Map<List<ProjectResponseDTO>>(leftProjects);
+        return response;
+    }
+
+    public async Task<List<ProjectResponseDTO>> GetClosedProjectsForUser(string userId)
+    {
+        var leftProjects = _projectRepository.GetClosedProjectsForUser(userId).ToList();
+        var response = _mapper.Map<List<ProjectResponseDTO>>(leftProjects);
+        return response;
+    }
+    
 }

@@ -36,7 +36,7 @@ namespace StartedIn.API.Controllers
             {
                 var userId = User.FindFirst(ClaimTypes.NameIdentifier).Value;
                 var meetings = await _appointmentService.GetAppointmentsInProject(userId, projectId, year);
-                var response = _mapper.Map<List<AppointmentInCalendarResponseDTO>>(meetings);
+                var response = _mapper.Map<List<AppointmentResponseDTO>>(meetings);
                 return Ok(response);
             }
             catch (NotFoundException ex)

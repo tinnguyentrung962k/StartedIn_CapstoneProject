@@ -18,5 +18,6 @@ namespace StartedIn.CrossCutting.DTOs.ResponseDTO.Appointment
         public string? Description { get; set; }
         public string MeetingLink { get; set; }
         public MeetingStatus Status { get; set; }
+        public List<MeetingNoteResponseDTO> MeetingNotes { get; set; }
     }
 }

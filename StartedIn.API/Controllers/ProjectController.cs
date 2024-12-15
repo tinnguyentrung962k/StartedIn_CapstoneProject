@@ -56,6 +56,28 @@ public class ProjectController : ControllerBase
             return BadRequest(ex.Message);
         }
     }
+    
+    [HttpGet("closed-projects")]
+    [Authorize(Roles = RoleConstants.USER + "," + RoleConstants.INVESTOR + "," + RoleConstants.MENTOR)]
+    public async Task<ActionResult<ClosedProjectsOrUserLeftProjectsDTO>> GetClosedProjectsOrProjectsThatUserLeft()
+    {
+        var userId = User.FindFirst(ClaimTypes.NameIdentifier).Value;
+        try
+        {
+            var closedProjects = await _projectService.GetClosedProjectsForUser(userId);
+            var leftProjects = await _projectService.GetProjectsThatUserLeft(userId);
+            var response = new ClosedProjectsOrUserLeftProjectsDTO
+            {
+                ClosedProjects = closedProjects,
+                UserLeftProjects = leftProjects
+            };
+            return Ok(response);
+        }
+        catch (ArgumentException ex)
+        {
+            return BadRequest(ex.Message);
+        }
+    }
 
     [HttpPost]
     [Authorize(Roles = RoleConstants.USER)]
