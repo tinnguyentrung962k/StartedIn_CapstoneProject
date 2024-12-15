@@ -53,6 +53,31 @@ namespace StartedIn.API.Controllers
             }
         }
         
+        [HttpGet("appointments")]
+        [Authorize(Roles = RoleConstants.INVESTOR + "," + RoleConstants.USER + "," + RoleConstants.MENTOR)]
+        public async Task<ActionResult<List<AppointmentInCalendarResponseDTO>>> GetMeetingsByProjectId([FromRoute] string projectId)
+        {
+            try
+            {
+                var userId = User.FindFirst(ClaimTypes.NameIdentifier).Value;
+                var meetings = await _appointmentService.GetAppointmentsByProjectId(userId, projectId);
+                var response = _mapper.Map<List<AppointmentResponseDTO>>(meetings);
+                return Ok(response);
+            }
+            catch (NotFoundException ex)
+            {
+                return BadRequest(ex.Message);
+            }
+            catch (UnauthorizedProjectRoleException ex)
+            {
+                return StatusCode(403, ex.Message);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, ex.Message);
+            }
+        }
+        
         [HttpGet("appointments/{appointmentId}")]
         [Authorize(Roles = RoleConstants.INVESTOR + "," + RoleConstants.USER + "," + RoleConstants.MENTOR)]
         public async Task<ActionResult<AppointmentResponseDTO>> GetMeetingsById([FromRoute] string projectId, [FromRoute] string appointmentId)
