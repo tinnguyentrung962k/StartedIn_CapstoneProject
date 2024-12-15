@@ -50,6 +50,7 @@ namespace StartedIn.Service.Services
             var appointments = await _appointmentRepository.QueryHelper()
                 .Filter(x=>x.ProjectId.Equals(projectId))
                 .OrderBy(x=>x.OrderByDescending(x=>x.AppointmentTime)).Include(a => a.MeetingNotes)
+                .Include(x=>x.Milestone)
                 .GetPagingAsync(page, size);
             return appointments;
         }

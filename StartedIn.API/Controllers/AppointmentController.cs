@@ -55,7 +55,7 @@ namespace StartedIn.API.Controllers
         
         [HttpGet("appointments")]
         [Authorize(Roles = RoleConstants.INVESTOR + "," + RoleConstants.USER + "," + RoleConstants.MENTOR)]
-        public async Task<ActionResult<List<AppointmentInCalendarResponseDTO>>> GetMeetingsByProjectId([FromRoute] string projectId, [FromQuery]int page, int size)
+        public async Task<ActionResult<List<AppointmentResponseDTO>>> GetMeetingsByProjectId([FromRoute] string projectId, [FromQuery]int page, int size)
         {
             try
             {
