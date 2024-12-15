@@ -1,10 +1,12 @@
 using System.Security.Claims;
 using AutoMapper;
+using DocumentFormat.OpenXml.Spreadsheet;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using StartedIn.CrossCutting.Constants;
 using StartedIn.CrossCutting.DTOs.RequestDTO.EquityShare;
 using StartedIn.CrossCutting.DTOs.RequestDTO.InvestmentCall;
+using StartedIn.CrossCutting.DTOs.ResponseDTO;
 using StartedIn.CrossCutting.DTOs.ResponseDTO.InvestmentCall;
 using StartedIn.CrossCutting.Exceptions;
 using StartedIn.Domain.Entities;
@@ -84,12 +86,23 @@ public class InvestmentCallController : ControllerBase
 
     [HttpGet("investment-calls")]
     [Authorize(Roles = RoleConstants.USER + "," + RoleConstants.MENTOR)]
-    public async Task<ActionResult<List<InvestmentCallResponseDTO>>> GetInvestmentCallsByProjectId(
-        [FromRoute] string projectId)
+    public async Task<ActionResult<PaginationDTO<InvestmentCallResponseDTO>>> GetInvestmentCallsByProjectId(
+        [FromRoute] string projectId, [FromQuery] InvestmentCallSearchDTO investmentCallSearchDTO, [FromQuery] int page, [FromQuery] int size)
     {
-        var calls = await _investmentCallService.GetInvestmentCallByProjectId(projectId);
-        var response = _mapper.Map<List<InvestmentCallResponseDTO>>(calls);
-        return Ok(response);
+        try
+        {
+            var userId = User.FindFirst(ClaimTypes.NameIdentifier).Value;
+            var calls = await _investmentCallService.GetInvestmentCallByProjectId(userId, projectId, investmentCallSearchDTO,page, size);
+            return Ok(calls);
+        }
+        catch (UnauthorizedProjectRoleException ex)
+        {
+            return StatusCode(403, ex.Message);
+        }
+        catch (Exception ex)
+        {
+            return StatusCode(500, MessageConstant.InternalServerError);
+        }
     }
 
 }

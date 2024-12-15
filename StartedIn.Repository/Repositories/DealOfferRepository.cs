@@ -29,5 +29,6 @@ namespace StartedIn.Repository.Repositories
                 .FirstOrDefaultAsync();
             return dealOffer;
         }
+
     }
 }

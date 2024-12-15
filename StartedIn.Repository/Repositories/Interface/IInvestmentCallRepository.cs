@@ -4,5 +4,5 @@ namespace StartedIn.Repository.Repositories.Interface;
 
 public interface IInvestmentCallRepository : IGenericRepository<InvestmentCall, string>
 {
-    public Task<List<InvestmentCall>> GetInvestmentCallByProjectId(string projectId);
+    IQueryable<InvestmentCall> GetInvestmentCallByProjectId(string projectId);
 }
