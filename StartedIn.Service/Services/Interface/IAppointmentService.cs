@@ -13,6 +13,6 @@ namespace StartedIn.Service.Services.Interface
         Task<IEnumerable<Appointment>> GetAppointmentsInProject(string userId, string projectId, int year);
         Task<Appointment> CreateAnAppointment(string userId, string projectId, AppointmentCreateDTO appointmentCreateDTO);
         Task<Appointment> GetAppointmentsById(string userId, string projectId, string appointmentId);
-        Task<IEnumerable<Appointment>> GetAppointmentsByProjectId(string userId, string projectId);
+        Task<IEnumerable<Appointment>> GetAppointmentsByProjectId(string userId, string projectId, int page, int size);
     }
 }

@@ -55,12 +55,12 @@ namespace StartedIn.API.Controllers
         
         [HttpGet("appointments")]
         [Authorize(Roles = RoleConstants.INVESTOR + "," + RoleConstants.USER + "," + RoleConstants.MENTOR)]
-        public async Task<ActionResult<List<AppointmentInCalendarResponseDTO>>> GetMeetingsByProjectId([FromRoute] string projectId)
+        public async Task<ActionResult<List<AppointmentInCalendarResponseDTO>>> GetMeetingsByProjectId([FromRoute] string projectId, [FromQuery]int page, int size)
         {
             try
             {
                 var userId = User.FindFirst(ClaimTypes.NameIdentifier).Value;
-                var meetings = await _appointmentService.GetAppointmentsByProjectId(userId, projectId);
+                var meetings = await _appointmentService.GetAppointmentsByProjectId(userId, projectId, page, size);
                 var response = _mapper.Map<List<AppointmentResponseDTO>>(meetings);
                 return Ok(response);
             }
