@@ -14,5 +14,7 @@ public class ContractSearchResponseDTO : IdentityResponseDTO
     public decimal? TotalDisbursementAmount { get; set; }
     public decimal? DisbursedAmount { get; set; }
     public decimal? PendingAmount { get; set; }
+    public string? LiquidationNoteId { get; set; }
+    public string? ParentContractId { get; set; }
     public List<DisbursementInContractListResponseDTO> Disbursements { get; set; }
 }

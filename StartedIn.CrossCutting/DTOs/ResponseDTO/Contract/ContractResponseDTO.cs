@@ -15,5 +15,6 @@ namespace StartedIn.CrossCutting.DTOs.ResponseDTO.Contract
         public DateOnly? ValidDate { get; set; }
         public DateOnly? ExpiredDate { get; set; }
         public string ParentContractId { get; set; }
+        public string? LiquidationNoteId { get; set; }
     }
 }

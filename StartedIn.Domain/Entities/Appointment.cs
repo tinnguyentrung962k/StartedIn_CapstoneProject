@@ -26,5 +26,6 @@ namespace StartedIn.Domain.Entities
         public MeetingStatus Status { get; set; }
         public Project Project { get; set; }
         public Milestone? Milestone { get; set; }
+        public ICollection<MeetingNote>? MeetingNotes { get; set; }
     }
 }

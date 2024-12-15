@@ -104,6 +104,20 @@ public class ProjectRepository : GenericRepository<Project, string>, IProjectRep
         return query;
     }
 
+    public IQueryable<Project> GetClosedProjectsForUser(string userId)
+    {
+        var projects = _appDbContext.Projects.Include(p => p.UserProjects)
+            .Where(p => p.UserProjects.Any(up => up.UserId == userId) && p.ProjectStatus == ProjectStatusEnum.CLOSED);
+        return projects;
+    }
+
+    public IQueryable<Project> GetProjectsThatUserLeft(string userId)
+    {
+        var projects = _appDbContext.Projects.Include(p => p.UserProjects)
+            .Where(p => p.UserProjects.Any(up => up.UserId == userId && up.Status == UserStatusInProject.Left));
+        return projects;
+    }
+
     public async Task<UserStatusInProject> GetUserStatusInProject(string userId, string projectId)
     {
         var userProject = await _appDbContext.UserProjects.Where(x => x.ProjectId.Equals(projectId) && x.UserId.Equals(userId)).FirstOrDefaultAsync();

@@ -39,8 +39,19 @@ namespace StartedIn.Service.Services
             var userInProject = await _userService.CheckIfUserInProject(userId, projectId);
             var appointments = await _appointmentRepository.QueryHelper()
                 .Filter(x=>x.ProjectId.Equals(projectId) && x.AppointmentTime.Year == year)
-                .OrderBy(x=>x.OrderByDescending(x=>x.AppointmentTime))
+                .OrderBy(x=>x.OrderByDescending(x=>x.AppointmentTime)).Include(a => a.MeetingNotes)
                 .GetAllAsync();
+            return appointments;
+        }
+        
+        public async Task<IEnumerable<Appointment>> GetAppointmentsByProjectId(string userId, string projectId, int page, int size)
+        {
+            var userInProject = await _userService.CheckIfUserInProject(userId, projectId);
+            var appointments = await _appointmentRepository.QueryHelper()
+                .Filter(x=>x.ProjectId.Equals(projectId))
+                .OrderBy(x=>x.OrderByDescending(x=>x.AppointmentTime)).Include(a => a.MeetingNotes)
+                .Include(x=>x.Milestone)
+                .GetPagingAsync(page, size);
             return appointments;
         }
         public async Task<Appointment> GetAppointmentsById(string userId, string projectId, string appointmentId)
@@ -49,6 +60,7 @@ namespace StartedIn.Service.Services
             var appointment = await _appointmentRepository.QueryHelper()
                 .Filter(x => x.ProjectId.Equals(projectId) && x.Id.Equals(appointmentId))
                 .Include(x=>x.Milestone)
+                .Include(x=>x.MeetingNotes)
                 .GetOneAsync();
             if (appointment == null)
             {

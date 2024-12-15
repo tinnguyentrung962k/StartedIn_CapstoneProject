@@ -67,6 +67,36 @@ namespace StartedIn.API.Controllers
 
             }
         }
+        [HttpPost("contracts/{contractId}/leader-terminate")]
+        [Authorize(Roles = RoleConstants.USER)]
+        public async Task<IActionResult> LeaderExpirateContract([FromRoute] string projectId, [FromRoute] string contractId, IFormFile uploadFile)
+        {
+            try
+            {
+                var userId = User.FindFirst(ClaimTypes.NameIdentifier).Value;
+                await _contractService.LeaderTerminateContract(userId, projectId, contractId, uploadFile);
+                return Ok("Chấm dứt hợp đồng thành công");
+            }
+            catch (UpdateException ex)
+            {
+                return BadRequest(ex.Message);
+            }
+            catch (NotFoundException ex)
+            {
+                return BadRequest(ex.Message);
+            }
+            catch (UnmatchedException ex)
+            {
+                return BadRequest(ex.Message);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, ex.Message);
+            }
+
+        }
+
+
 
         [HttpPost("contracts/{contractId}/liquidation-notes")]
         [Authorize(Roles = RoleConstants.USER)]
@@ -502,6 +532,7 @@ namespace StartedIn.API.Controllers
             }
 
         }
+
         [HttpDelete("contracts/{contractId}")]
         [Authorize(Roles = RoleConstants.USER)]
         public async Task<IActionResult> DeleteDraftContract([FromRoute] string projectId, [FromRoute] string contractId)

@@ -55,6 +55,7 @@ namespace StartedIn.API.Configuration.AutoMapper
             LeavingRequestMappingProfile();
             ApplicationMappingProfile();
             TerminationRequestMappingProfile();
+            MeetingNoteMappingProfile();
         }
 
 
@@ -369,7 +370,9 @@ namespace StartedIn.API.Configuration.AutoMapper
         {
             CreateMap<Appointment, AppointmentInCalendarResponseDTO>().ReverseMap();
             CreateMap<Appointment, AppointmentResponseDTO>()
-                .ForMember(dest => dest.MilestoneName, opt => opt.MapFrom(src => src.Milestone.Title));
+                .ForMember(dest => dest.MilestoneName, opt => opt.MapFrom(src => src.Milestone.Title))
+                .ForMember(dest => dest.MeetingNotes, opt => opt.MapFrom(src => src.MeetingNotes))
+                .ReverseMap();
         }
         private void LeavingRequestMappingProfile()
         {

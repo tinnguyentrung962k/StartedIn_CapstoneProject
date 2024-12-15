@@ -777,6 +777,7 @@ namespace StartedIn.Service.Services
                 .Include(c=>c.Disbursements)
                 .Include(c => c.UserContracts)
                 .ThenInclude(uc => uc.User)
+                .OrderByDescending(x => x.LastUpdatedTime)
                 .ToListAsync();
 
             var contractSearchResponseDTOs = pagedResult.Select(contract => new ContractSearchResponseDTO
@@ -787,6 +788,8 @@ namespace StartedIn.Service.Services
                 ContractStatus = contract.ContractStatus,
                 ContractType = contract.ContractType,
                 LastUpdatedTime = contract.LastUpdatedTime,
+                LiquidationNoteId = contract.LiquidationNoteId,
+                ParentContractId = contract.ParentContractId,
                 Parties = contract.UserContracts.Select(userContract => new UserInContractResponseDTO
                 {
                     Id = userContract.User.Id,
@@ -1055,12 +1058,18 @@ namespace StartedIn.Service.Services
                 throw new UnmatchedException(MessageConstant.ContractNotBelongToProjectError);
             }
             var userInContract = await _userService.CheckIfUserBelongToContract(userId, contractId);
-            if (chosenContract.ContractStatus == ContractStatusEnum.COMPLETED || chosenContract.ContractStatus == ContractStatusEnum.EXPIRED)
+            if (chosenContract.ContractStatus != ContractStatusEnum.DRAFT && chosenContract.ContractStatus != ContractStatusEnum.SENT)
             {
                 throw new UpdateException(MessageConstant.CannotCancelContractError);
             }
             try {
                 _unitOfWork.BeginTransaction();
+                if (chosenContract.ContractType == ContractTypeEnum.LIQUIDATIONNOTE)
+                {
+                    var parentContract = await _contractRepository.GetContractById(chosenContract.ParentContractId);
+                    parentContract.LiquidationNoteId = null;
+                    _contractRepository.Update(parentContract);
+                }
                 chosenContract.ContractStatus = ContractStatusEnum.CANCELLED;
                 _contractRepository.Update(chosenContract);
                 if (chosenContract.DealOfferId != null) 
@@ -1091,16 +1100,41 @@ namespace StartedIn.Service.Services
             {
                 throw new UnauthorizedProjectRoleException(MessageConstant.RolePermissionError);
             }
-            var project = await _projectRepository.GetProjectById(projectId);
+
             var chosenContract = await _contractRepository.GetContractById(contractId);
+
+            // Kiểm tra nếu hợp đồng đã hết hạn hoặc đang chờ thanh lý
+            if (chosenContract.ContractStatus == ContractStatusEnum.EXPIRED ||
+                chosenContract.ContractStatus != ContractStatusEnum.WAITINGFORLIQUIDATION)
+            {
+                throw new InvalidDataException(MessageConstant.CannotCancelContractError);
+            }
+
+            if (chosenContract.ContractType == ContractTypeEnum.LIQUIDATIONNOTE)
+            {
+                throw new InvalidDataException(MessageConstant.CannotCancelContractError);
+            }
+
             if (chosenContract.CurrentTerminationRequestId == null)
             {
                 throw new NotFoundException(MessageConstant.NotFoundTerminateRequest);
             }
+
             var request = await _terminationRequestRepository.GetOneAsync(chosenContract.CurrentTerminationRequestId);
             if (request.IsAgreed != true)
             {
                 throw new InvalidDataException(MessageConstant.CannotCancelContractError);
+            }
+
+            var existingProcessingLiquidation = await _contractRepository.QueryHelper()
+                .Filter(x => x.ParentContractId == chosenContract.Id
+                             && ((x.ContractStatus == ContractStatusEnum.DRAFT && x.DeletedTime == null) 
+                             || x.ContractStatus == ContractStatusEnum.SENT))
+                .GetOneAsync();
+
+            if (existingProcessingLiquidation != null)
+            {
+                throw new InvalidDataException(MessageConstant.ExistingProcessingLiquidationError);
             }
             try
             {
@@ -1108,7 +1142,7 @@ namespace StartedIn.Service.Services
                 string prefix = "GTL";
                 string currentDateTime = DateTimeOffset.UtcNow.ToString("ddMMyyyyHHmm");
                 string contractIdNumberGen = $"{prefix}-{currentDateTime}";
-                Contract contract = new Contract
+                Contract liquidationNote = new Contract
                 {
                     ContractName = $"Biên bản thanh lý cho hợp đồng {chosenContract.ContractIdNumber}",
                     ContractPolicy = $"Thanh lý cho hợp đồng {chosenContract.ContractIdNumber}",
@@ -1122,36 +1156,40 @@ namespace StartedIn.Service.Services
                 };
                 
                 var leader = userInProject.User;
-                var leaderInContract = new UserContract
+                var leaderInLiquidationNote = new UserContract
                 {
                     UserId = leader.Id,
-                    ContractId = contract.Id
+                    ContractId = liquidationNote.Id
                 };
 
                 
                 var requestParty = new UserContract
                 {
                     UserId = request.FromId,
-                    ContractId = contract.Id,
+                    ContractId = liquidationNote.Id,
                 };
                 
-                List<UserContract> usersInContract = new List<UserContract> { leaderInContract, requestParty };
-                
-                contract.UserContracts = usersInContract;
-                var contractEntity = _contractRepository.Add(contract);
+                List<UserContract> usersInContract = new List<UserContract> { leaderInLiquidationNote, requestParty };
+
+                liquidationNote.UserContracts = usersInContract;
+                var liquidationEntity = _contractRepository.Add(liquidationNote);
+
+                chosenContract.LiquidationNoteId = liquidationEntity.Id;
+                _contractRepository.Update(chosenContract);
+
                 var signingMethod = await _appSettingManager.GetSettingAsync("SignatureType");
                 if (signingMethod == SettingsValue.InternalApp)
                 {
-                    contract.AzureLink = await _azureBlobService.UploadLiquidationNote(uploadFile);
+                    liquidationNote.AzureLink = await _azureBlobService.UploadLiquidationNote(uploadFile);
                 }
                 if (signingMethod == SettingsValue.SignNow)
                 {
                     await _signNowService.AuthenticateAsync();
-                    contract.SignNowDocumentId = await _signNowService.UploadDocumentAsync(uploadFile);
+                    liquidationNote.SignNowDocumentId = await _signNowService.UploadDocumentAsync(uploadFile);
                 }
                 await _unitOfWork.SaveChangesAsync();
                 await _unitOfWork.CommitAsync();
-                return contractEntity;
+                return liquidationEntity;
             }
             catch (Exception ex)
             {
@@ -1177,6 +1215,7 @@ namespace StartedIn.Service.Services
             {
                 throw new NotFoundException(MessageConstant.NotFoundProjectError);
             }
+
             try
             {
                 _unitOfWork.BeginTransaction();
@@ -1227,6 +1266,133 @@ namespace StartedIn.Service.Services
                 throw;
             }
         }
+
+        public async Task LeaderTerminateContract(string userId, string projectId, string contractId, IFormFile uploadFile) 
+        {
+            var userInProject = await _userService.CheckIfUserInProject(userId, projectId);
+            if (userInProject.RoleInTeam != RoleInTeam.Leader)
+            {
+                throw new UnauthorizedProjectRoleException(MessageConstant.RolePermissionError);
+            }
+            var terminatedContract = await _contractRepository.GetContractById(contractId);
+            if (terminatedContract.ProjectId != projectId)
+            {
+                throw new UnmatchedException(MessageConstant.ContractNotBelongToProjectError);
+            }
+            var userInContract = await _userService.CheckIfUserBelongToContract(userId, contractId);
+            if (terminatedContract.ProjectId != projectId)
+            {
+                throw new UnmatchedException(MessageConstant.ContractNotBelongToProjectError);
+            }
+            if (terminatedContract.ContractStatus != ContractStatusEnum.COMPLETED && terminatedContract.ContractStatus != ContractStatusEnum.WAITINGFORLIQUIDATION)
+            {
+                throw new UpdateException(MessageConstant.ContractIsNotValid);
+            }
+
+            if (terminatedContract.ContractType == ContractTypeEnum.LIQUIDATIONNOTE)
+            {
+                throw new InvalidDataException(MessageConstant.CannotCancelContractError);
+            }
+
+            try
+            {
+                _unitOfWork.BeginTransaction();
+                var project = await _projectRepository.GetProjectById(projectId);
+                terminatedContract.ExpiredDate = DateOnly.FromDateTime(DateTimeOffset.UtcNow.Date);
+                terminatedContract.ContractStatus = ContractStatusEnum.EXPIRED;
+                terminatedContract.LastUpdatedTime = DateTimeOffset.UtcNow;
+                terminatedContract.LastUpdatedBy = userInProject.User.FullName;
+                if (terminatedContract.ContractType == ContractTypeEnum.INTERNAL)
+                {
+                    decimal expiredContractShare = (decimal)terminatedContract.ShareEquities.Sum(x => x.Percentage);
+                    project.RemainingPercentOfShares += expiredContractShare;
+                    _logger.LogInformation($"Hợp đồng nội bộ hết hạn. Trả lại {expiredContractShare}% cổ phần cho dự án {project.ProjectName}. Tổng cổ phần còn lại: {project.RemainingPercentOfShares}%.");
+                    _projectRepository.Update(project);
+                }
+                if (terminatedContract.ContractType == ContractTypeEnum.INVESTMENT)
+                {
+                    // Xử lý khi hợp đồng đầu tư hết hạn
+                    decimal investmentShare = (decimal)terminatedContract.ShareEquities.Sum(x => x.Percentage);
+
+                    // Logic tuỳ chọn: Mua lại, hoàn trả, hoặc chuyển nhượng cổ phần
+                    project.RemainingPercentOfShares += investmentShare;
+                    _logger.LogInformation($"Hợp đồng đầu tư hết hạn. Trả lại {investmentShare}% cổ phần cho dự án {project.ProjectName}. Tổng cổ phần còn lại: {project.RemainingPercentOfShares}%.");
+                    _projectRepository.Update(project);
+                    decimal totalPendingAmount = 0;
+                    if (terminatedContract.Disbursements != null)
+                    {
+                        foreach (var disbursement in terminatedContract.Disbursements)
+                        {
+                            if (disbursement.DisbursementStatus == DisbursementStatusEnum.PENDING)
+                            {
+                                totalPendingAmount += disbursement.Amount; // Sum pending disbursement amounts
+                                disbursement.IsValidWithContract = false;
+                                disbursement.DisbursementStatus = DisbursementStatusEnum.CANCELLED;
+                                _disbursementRepository.Update(disbursement);
+                            }
+                        }
+                    }
+                    project.Finance.RemainingDisbursement -= totalPendingAmount;
+                    _financeRepository.Update(project.Finance);
+                    _logger.LogInformation($"Tổng số tiền chưa giải ngân bị tắt: {totalPendingAmount}.");
+                }
+                string prefix = "GTL";
+                string currentDateTime = DateTimeOffset.UtcNow.ToString("ddMMyyyyHHmm");
+                string contractIdNumberGen = $"{prefix}-{currentDateTime}";
+                Contract liquidationNote = new Contract
+                {
+                    ContractName = $"Biên bản thanh lý cho hợp đồng {terminatedContract.ContractIdNumber}",
+                    ContractPolicy = $"Thanh lý cho hợp đồng {terminatedContract.ContractIdNumber}",
+                    ContractType = ContractTypeEnum.LIQUIDATIONNOTE,
+                    CreatedBy = userInProject.User.FullName,
+                    ProjectId = projectId,
+                    ContractStatus = ContractStatusEnum.COMPLETED,
+                    ContractIdNumber = contractIdNumberGen,
+                    ParentContractId = terminatedContract.Id,
+                    ParentContract = terminatedContract.ParentContract,
+                };
+
+                List<UserContract> usersInLiquidationNote = new List<UserContract>();
+                foreach (var userParty in terminatedContract.UserContracts)
+                {
+                    var userInLiquidation = new UserContract
+                    {
+                        UserId = userParty.UserId,
+                        ContractId = liquidationNote.Id,
+                        IsReject = false,
+                        SignedDate = DateTimeOffset.UtcNow,
+                    };
+                    usersInLiquidationNote.Add(userInLiquidation);
+
+                }
+
+                liquidationNote.UserContracts = usersInLiquidationNote;
+                var liquidationEntity = _contractRepository.Add(liquidationNote);
+
+                terminatedContract.LiquidationNoteId = liquidationEntity.Id;
+                _contractRepository.Update(terminatedContract);
+
+                var signingMethod = await _appSettingManager.GetSettingAsync("SignatureType");
+                if (signingMethod == SettingsValue.InternalApp)
+                {
+                    liquidationNote.AzureLink = await _azureBlobService.UploadLiquidationNote(uploadFile);
+                }
+                if (signingMethod == SettingsValue.SignNow)
+                {
+                    await _signNowService.AuthenticateAsync();
+                    liquidationNote.SignNowDocumentId = await _signNowService.UploadDocumentAsync(uploadFile);
+                }
+                await _unitOfWork.SaveChangesAsync();
+                await _unitOfWork.CommitAsync();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError($"Lỗi xảy ra khi xử lý hết hạn hợp đồng: {ex.Message}");
+                await _unitOfWork.RollbackAsync();
+                throw;
+            }
+        }
+
         public async Task DeleteContract(string userId, string projectId, string contractId)
         {
             var userInProject = await _userService.CheckIfUserInProject(userId, projectId);
@@ -1244,6 +1410,12 @@ namespace StartedIn.Service.Services
             {
                 if (contract.ContractStatus == ContractStatusEnum.DRAFT)
                 {
+                    if (contract.ContractType == ContractTypeEnum.LIQUIDATIONNOTE)
+                    {
+                        var parentContract = await _contractRepository.GetContractById(contract.ParentContractId);
+                        parentContract.LiquidationNoteId = null;
+                        _contractRepository.Update(parentContract);
+                    }
                     await _contractRepository.SoftDeleteById(contractId);
                     await _unitOfWork.SaveChangesAsync();
                 }
@@ -1263,6 +1435,12 @@ namespace StartedIn.Service.Services
                              c.SignDeadline < DateTimeOffset.UtcNow.AddDays(1)).GetAllAsync();
             foreach (var contract in contracts)
             {
+                if (contract.ContractType == ContractTypeEnum.LIQUIDATIONNOTE)
+                {
+                    var parentContract = await _contractRepository.GetContractById(contract.ParentContractId);
+                    parentContract.LiquidationNoteId = null;
+                    _contractRepository.Update(parentContract);
+                }
                 contract.ContractStatus = ContractStatusEnum.CANCELLED; 
                 _contractRepository.Update(contract);
                 if (contract.DealOfferId != null)

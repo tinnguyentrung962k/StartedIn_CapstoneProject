@@ -303,7 +303,7 @@ namespace StartedIn.Service.Services
                 throw new UnauthorizedProjectRoleException(MessageConstant.RolePermissionError);
             }
             var project = await _projectRepository.GetProjectById(projectId);
-            if (project.Finance.CurrentBudget < transactionCreateDTO.Amount)
+            if (project.Finance.CurrentBudget < transactionCreateDTO.Amount && transactionCreateDTO.IsInFlow == false)
             {
                 throw new InvalidOperationException(MessageConstant.TransactionAmountOverProjectBudget);
             }
@@ -336,23 +336,23 @@ namespace StartedIn.Service.Services
                     IsInFlow = transactionCreateDTO.IsInFlow,
                     Type = transactionCreateDTO.Type
                 };
-                if (transactionCreateDTO.ToId != null)
+                if (!string.IsNullOrWhiteSpace(transactionCreateDTO.ToId))
                 {
                     var toUser = await _userManager.FindByIdAsync(transactionCreateDTO.ToId);
                     transaction.ToID = transactionCreateDTO.ToId;
                     transaction.ToName = toUser.FullName;
                 }
-                if (transactionCreateDTO.FromId != null)
+                if (!string.IsNullOrWhiteSpace(transactionCreateDTO.FromId))
                 {
                     var fromUser = await _userManager.FindByIdAsync(transactionCreateDTO.FromId);
                     transaction.FromID = transactionCreateDTO.FromId;
                     transaction.FromName = fromUser.FullName;
                 }
-                if (transactionCreateDTO.FromId == null)
+                if (string.IsNullOrWhiteSpace(transactionCreateDTO.FromId))
                 {
                     transaction.FromName = transactionCreateDTO.FromName;
                 }
-                if (transactionCreateDTO.ToId == null)
+                if (string.IsNullOrWhiteSpace(transactionCreateDTO.ToId))
                 {
                     transaction.ToName = transactionCreateDTO.ToName;
                 }

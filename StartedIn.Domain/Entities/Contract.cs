@@ -36,6 +36,7 @@ namespace StartedIn.Domain.Entities
 
         [ForeignKey(nameof(ParentContract))]
         public string? ParentContractId { get; set; }
+        public string? LiquidationNoteId { get; set; }
         public Project Project { get; set; }
         public ICollection<UserContract> UserContracts { get; set; }
         public ICollection<ShareEquity>? ShareEquities { get; set; }
