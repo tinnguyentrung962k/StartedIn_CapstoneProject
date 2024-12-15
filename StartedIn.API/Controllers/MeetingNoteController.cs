@@ -11,6 +11,7 @@ using StartedIn.Service.Services.Interface;
 namespace StartedIn.API.Controllers;
 
 [ApiController]
+[Route("api/projects/{projectId}")]
 public class MeetingNoteController : ControllerBase
 {
     private readonly IMeetingNoteService _meetingNoteService;
@@ -24,13 +25,13 @@ public class MeetingNoteController : ControllerBase
     
     [HttpPost("appointments/{appointmentId}/meeting-note")]
     [Authorize(Roles = RoleConstants.USER)]
-    public async Task<ActionResult<AppointmentResponseDTO>> UploadMeetingNote([FromRoute] string projectId, string appointmentId, [FromBody] UploadMeetingNoteDTO uploadMeetingNoteDto)
+    public async Task<ActionResult<AppointmentResponseDTO>> UploadMeetingNote([FromRoute] string projectId, string appointmentId, [FromForm] UploadMeetingNoteDTO uploadMeetingNoteDto)
     {
         try 
         {
             var userId = User.FindFirst(ClaimTypes.NameIdentifier).Value;
             var meetingNote = await _meetingNoteService.UploadMeetingNote(userId, projectId, appointmentId, uploadMeetingNoteDto);
-            var response = _mapper.Map<AppointmentResponseDTO>(meetingNote);
+            var response = _mapper.Map<MeetingNoteResponseDTO>(meetingNote);
             return CreatedAtAction(nameof(GetMeetingNoteById), new { projectId, appointmentId, meetingNoteId = response.Id }, response);
         }
         catch (NotFoundException ex)
