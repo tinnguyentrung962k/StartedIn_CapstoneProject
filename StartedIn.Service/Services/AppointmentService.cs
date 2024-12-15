@@ -11,6 +11,10 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using AutoMapper;
+using Microsoft.EntityFrameworkCore;
+using StartedIn.CrossCutting.DTOs.ResponseDTO;
+using StartedIn.CrossCutting.DTOs.ResponseDTO.Appointment;
 
 namespace StartedIn.Service.Services
 {
@@ -23,8 +27,12 @@ namespace StartedIn.Service.Services
         private readonly IEmailService _emailService;
         private readonly IProjectRepository _projectRepository;
         private readonly IAzureBlobService _azureBlobService;
-        public AppointmentService(IAppointmentRepository appointmentRepository, IUserService userService, IUnitOfWork unitOfWork, ILogger<AppointmentService> logger,
-            IEmailService emailService, IProjectRepository projectRepository, IAzureBlobService azureBlobService) 
+        private readonly IMapper _mapper;
+
+        public AppointmentService(IAppointmentRepository appointmentRepository, IUserService userService,
+            IUnitOfWork unitOfWork, ILogger<AppointmentService> logger,
+            IEmailService emailService, IProjectRepository projectRepository, IAzureBlobService azureBlobService,
+            IMapper mapper) 
         {
             _appointmentRepository = appointmentRepository;
             _userService = userService;
@@ -33,6 +41,7 @@ namespace StartedIn.Service.Services
             _emailService = emailService;
             _projectRepository = projectRepository;
             _azureBlobService = azureBlobService;
+            _mapper = mapper;
         }
         public async Task<IEnumerable<Appointment>> GetAppointmentsInProject(string userId, string projectId, int year)
         {
@@ -44,16 +53,25 @@ namespace StartedIn.Service.Services
             return appointments;
         }
         
-        public async Task<IEnumerable<Appointment>> GetAppointmentsByProjectId(string userId, string projectId, int page, int size)
+        public async Task<PaginationDTO<AppointmentResponseDTO>> GetAppointmentsByProjectId(string userId, string projectId, int page, int size)
         {
             var userInProject = await _userService.CheckIfUserInProject(userId, projectId);
-            var appointments = await _appointmentRepository.QueryHelper()
-                .Filter(x=>x.ProjectId.Equals(projectId))
-                .OrderBy(x=>x.OrderByDescending(x=>x.AppointmentTime)).Include(a => a.MeetingNotes)
-                .Include(x=>x.Milestone)
-                .GetPagingAsync(page, size);
-            return appointments;
+            var appointments = _appointmentRepository.GetAppointmentsByProjectId(projectId);
+            int totalCount = await appointments.CountAsync();
+
+            var appointmentPaging = await appointments.Skip((page - 1) * size)
+                .Take(size).ToListAsync();
+            
+            var response = new PaginationDTO<AppointmentResponseDTO>
+            {
+                Data = _mapper.Map<List<AppointmentResponseDTO>>(appointmentPaging),
+                Page = page,
+                Size = size,
+                Total = totalCount
+            };
+            return response;
         }
+        
         public async Task<Appointment> GetAppointmentsById(string userId, string projectId, string appointmentId)
         {
             var userInProject = await _userService.CheckIfUserInProject(userId, projectId);

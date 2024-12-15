@@ -5,6 +5,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using StartedIn.CrossCutting.DTOs.ResponseDTO;
+using StartedIn.CrossCutting.DTOs.ResponseDTO.Appointment;
 
 namespace StartedIn.Service.Services.Interface
 {
@@ -13,6 +15,6 @@ namespace StartedIn.Service.Services.Interface
         Task<IEnumerable<Appointment>> GetAppointmentsInProject(string userId, string projectId, int year);
         Task<Appointment> CreateAnAppointment(string userId, string projectId, AppointmentCreateDTO appointmentCreateDTO);
         Task<Appointment> GetAppointmentsById(string userId, string projectId, string appointmentId);
-        Task<IEnumerable<Appointment>> GetAppointmentsByProjectId(string userId, string projectId, int page, int size);
+        Task<PaginationDTO<AppointmentResponseDTO>> GetAppointmentsByProjectId(string userId, string projectId, int page, int size);
     }
 }

@@ -9,5 +9,6 @@ namespace StartedIn.Repository.Repositories.Interface
 {
     public interface IAppointmentRepository : IGenericRepository<Appointment,string>
     {
+        IQueryable<Appointment> GetAppointmentsByProjectId(string projectId);
     }
 }
