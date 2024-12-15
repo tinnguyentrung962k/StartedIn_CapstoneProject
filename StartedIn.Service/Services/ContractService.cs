@@ -788,6 +788,8 @@ namespace StartedIn.Service.Services
                 ContractStatus = contract.ContractStatus,
                 ContractType = contract.ContractType,
                 LastUpdatedTime = contract.LastUpdatedTime,
+                LiquidationNoteId = contract.LiquidationNoteId,
+                ParentContractId = contract.ParentContractId,
                 Parties = contract.UserContracts.Select(userContract => new UserInContractResponseDTO
                 {
                     Id = userContract.User.Id,
@@ -1056,12 +1058,18 @@ namespace StartedIn.Service.Services
                 throw new UnmatchedException(MessageConstant.ContractNotBelongToProjectError);
             }
             var userInContract = await _userService.CheckIfUserBelongToContract(userId, contractId);
-            if (chosenContract.ContractStatus == ContractStatusEnum.COMPLETED || chosenContract.ContractStatus == ContractStatusEnum.EXPIRED)
+            if (chosenContract.ContractStatus != ContractStatusEnum.DRAFT && chosenContract.ContractStatus != ContractStatusEnum.SENT)
             {
                 throw new UpdateException(MessageConstant.CannotCancelContractError);
             }
             try {
                 _unitOfWork.BeginTransaction();
+                if (chosenContract.ContractType == ContractTypeEnum.LIQUIDATIONNOTE)
+                {
+                    var parentContract = await _contractRepository.GetContractById(chosenContract.ParentContractId);
+                    parentContract.LiquidationNoteId = null;
+                    _contractRepository.Update(parentContract);
+                }
                 chosenContract.ContractStatus = ContractStatusEnum.CANCELLED;
                 _contractRepository.Update(chosenContract);
                 if (chosenContract.DealOfferId != null) 
@@ -1165,6 +1173,10 @@ namespace StartedIn.Service.Services
                 
                 contract.UserContracts = usersInContract;
                 var contractEntity = _contractRepository.Add(contract);
+
+                chosenContract.LiquidationNoteId = contractEntity.Id;
+                _contractRepository.Update(chosenContract);
+
                 var signingMethod = await _appSettingManager.GetSettingAsync("SignatureType");
                 if (signingMethod == SettingsValue.InternalApp)
                 {
@@ -1277,7 +1289,6 @@ namespace StartedIn.Service.Services
                 throw new UpdateException(MessageConstant.ContractIsNotValid);
             }
 
-            // Kiểm tra nếu hợp đồng đã hết hạn hoặc đang chờ thanh lý
             if (contract.ContractStatus == ContractStatusEnum.EXPIRED ||
                 contract.ContractStatus != ContractStatusEnum.WAITINGFORLIQUIDATION)
             {
@@ -1385,6 +1396,10 @@ namespace StartedIn.Service.Services
 
                     contract.UserContracts = usersInContract;
                     var contractEntity = _contractRepository.Add(contract);
+
+                    contract.LiquidationNoteId = contractEntity.Id;
+                    _contractRepository.Update(contract);
+
                     var signingMethod = await _appSettingManager.GetSettingAsync("SignatureType");
                     if (signingMethod == SettingsValue.InternalApp)
                     {
@@ -1424,6 +1439,12 @@ namespace StartedIn.Service.Services
             {
                 if (contract.ContractStatus == ContractStatusEnum.DRAFT)
                 {
+                    if (contract.ContractType == ContractTypeEnum.LIQUIDATIONNOTE)
+                    {
+                        var parentContract = await _contractRepository.GetContractById(contract.ParentContractId);
+                        parentContract.LiquidationNoteId = null;
+                        _contractRepository.Update(parentContract);
+                    }
                     await _contractRepository.SoftDeleteById(contractId);
                     await _unitOfWork.SaveChangesAsync();
                 }
@@ -1443,6 +1464,12 @@ namespace StartedIn.Service.Services
                              c.SignDeadline < DateTimeOffset.UtcNow.AddDays(1)).GetAllAsync();
             foreach (var contract in contracts)
             {
+                if (contract.ContractType == ContractTypeEnum.LIQUIDATIONNOTE)
+                {
+                    var parentContract = await _contractRepository.GetContractById(contract.ParentContractId);
+                    parentContract.LiquidationNoteId = null;
+                    _contractRepository.Update(parentContract);
+                }
                 contract.ContractStatus = ContractStatusEnum.CANCELLED; 
                 _contractRepository.Update(contract);
                 if (contract.DealOfferId != null)
