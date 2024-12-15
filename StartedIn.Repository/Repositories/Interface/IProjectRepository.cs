@@ -13,4 +13,7 @@ public interface IProjectRepository : IGenericRepository<Project, string>
     IQueryable<Project> GetProjectListQuery();
     Task<UserProject> GetAProjectByUserId(string userId);
     IQueryable<Project> GetProjectListQueryForInvestor(string userId);
+    IQueryable<Project> GetClosedProjectsForUser(string userId);
+    IQueryable<Project> GetProjectsThatUserLeft(string userId);
+    
 }
