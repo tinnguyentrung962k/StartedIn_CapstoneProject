@@ -43,6 +43,16 @@ namespace StartedIn.Service.Services
                 .GetAllAsync();
             return appointments;
         }
+        
+        public async Task<IEnumerable<Appointment>> GetAppointmentsByProjectId(string userId, string projectId)
+        {
+            var userInProject = await _userService.CheckIfUserInProject(userId, projectId);
+            var appointments = await _appointmentRepository.QueryHelper()
+                .Filter(x=>x.ProjectId.Equals(projectId))
+                .OrderBy(x=>x.OrderByDescending(x=>x.AppointmentTime)).Include(a => a.MeetingNotes)
+                .GetAllAsync();
+            return appointments;
+        }
         public async Task<Appointment> GetAppointmentsById(string userId, string projectId, string appointmentId)
         {
             var userInProject = await _userService.CheckIfUserInProject(userId, projectId);
