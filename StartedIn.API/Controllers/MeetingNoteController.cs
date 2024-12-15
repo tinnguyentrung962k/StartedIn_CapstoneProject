@@ -69,24 +69,4 @@ public class MeetingNoteController : ControllerBase
         }
     }
     
-    [HttpGet("appointments/{appointmentId}/meeting-note")]
-    [Authorize(Roles = RoleConstants.INVESTOR + "," + RoleConstants.USER + "," + RoleConstants.MENTOR)]
-    public async Task<ActionResult<AppointmentResponseDTO>> GetMeetingNoteByAppointmentId([FromRoute] string projectId, [FromRoute] string appointmentId)
-    {
-        try
-        {
-            var userId = User.FindFirst(ClaimTypes.NameIdentifier).Value;
-            var meeting = await _meetingNoteService.GetMeetingNoteByAppointmentId(projectId, appointmentId);
-            var response = _mapper.Map<List<MeetingNoteResponseDTO>>(meeting);
-            return Ok(response);
-        }
-        catch (NotFoundException ex)
-        {
-            return BadRequest(ex.Message);
-        }
-        catch (Exception ex)
-        {
-            return StatusCode(500, ex.Message);
-        }
-    }
 }
