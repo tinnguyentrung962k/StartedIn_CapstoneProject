@@ -1372,7 +1372,7 @@ namespace StartedIn.Service.Services
                         ContractType = ContractTypeEnum.LIQUIDATIONNOTE,
                         CreatedBy = userInProject.User.FullName,
                         ProjectId = projectId,
-                        ContractStatus = ContractStatusEnum.DRAFT,
+                        ContractStatus = ContractStatusEnum.COMPLETED,
                         ContractIdNumber = contractIdNumberGen,
                         ParentContractId = contract.Id,
                         ParentContract = contract.ParentContract,
@@ -1382,7 +1382,9 @@ namespace StartedIn.Service.Services
                     var leaderInContract = new UserContract
                     {
                         UserId = leader.Id,
-                        ContractId = contract.Id
+                        ContractId = contract.Id,
+                        IsReject = false,
+                        SignedDate = DateTimeOffset.Now
                     };
 
 
@@ -1390,6 +1392,8 @@ namespace StartedIn.Service.Services
                     {
                         UserId = request.FromId,
                         ContractId = contract.Id,
+                        IsReject = false,
+                        SignedDate = DateTimeOffset.Now
                     };
 
                     List<UserContract> usersInContract = new List<UserContract> { leaderInContract, requestParty };
