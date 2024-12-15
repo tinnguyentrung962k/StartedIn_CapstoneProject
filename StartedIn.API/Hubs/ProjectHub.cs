@@ -48,7 +48,11 @@ namespace StartedIn.API.Hubs
                 }
                 else
                 {
-                    projectList[project.ProjectId].Add(userId);
+                    // Check if user is already in the list, if so then don't add it again
+                    if (!projectList[project.ProjectId].Contains(userId))
+                    {
+                        projectList[project.ProjectId].Add(userId);
+                    }
                 }
             }
 
