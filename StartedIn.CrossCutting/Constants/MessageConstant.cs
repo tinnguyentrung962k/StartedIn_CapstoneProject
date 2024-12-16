@@ -117,6 +117,11 @@ namespace StartedIn.CrossCutting.Constants
         public const string NotFoundMeetingNote = "Không tìm thấy biên bản cuộc họp.";
         public const string ExistingProcessingLiquidationError = "Hợp đồng này còn biên bản thanh lý chưa được xác nhận";
         public const string InvalidInformationOfUser = "Thông tin người dùng chưa hợp lệ";
-
+        public const string ThisContractHasBeenCancelled = "Hợp đồng này đã bị huỷ ký";
+        public const string CannotUploadMeetingNote = "Không thể tải lên biên bản cuộc họp khi chưa họp xong.";
+        public const string NotFoundAppointment = "Không tìm thấy cuộc họp";
+        public const string CompleteAppointment = "Đã hoàn thành cuộc họp";
+        public const string CancelAppointment = "Đã huỷ cuộc họp";
+        public const string InvalidLink = "Hãy nhập một đường dẫn Google Meet hợp lệ.";
     }
 }

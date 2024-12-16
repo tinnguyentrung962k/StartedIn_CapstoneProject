@@ -10,11 +10,13 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using AutoMapper;
 using Microsoft.EntityFrameworkCore;
 using StartedIn.CrossCutting.DTOs.ResponseDTO;
 using StartedIn.CrossCutting.DTOs.ResponseDTO.Appointment;
+using StartedIn.CrossCutting.Enum;
 
 namespace StartedIn.Service.Services
 {
@@ -28,6 +30,7 @@ namespace StartedIn.Service.Services
         private readonly IProjectRepository _projectRepository;
         private readonly IAzureBlobService _azureBlobService;
         private readonly IMapper _mapper;
+        private static readonly string GoogleMeetPattern = @"^(https:\/\/meet\.google\.com\/[a-zA-Z0-9-]+)$";
 
         public AppointmentService(IAppointmentRepository appointmentRepository, IUserService userService,
             IUnitOfWork unitOfWork, ILogger<AppointmentService> logger,
@@ -71,7 +74,25 @@ namespace StartedIn.Service.Services
             };
             return response;
         }
-        
+
+        public async Task UpdateAppointmentStatus(string userId, string projectId, string appointmentId, MeetingStatus status)
+        {
+            var projectRole = await _projectRepository.GetUserRoleInProject(userId, projectId);
+            if (projectRole != RoleInTeam.Leader)
+            {
+                throw new UnauthorizedProjectRoleException(MessageConstant.RolePermissionError);
+            }
+            var appointment = await _appointmentRepository.QueryHelper().Filter(a => a.Id.Equals(appointmentId)).GetOneAsync();
+            if (appointment == null)
+            {
+                throw new NotFoundException(MessageConstant.NotFoundAppointment);
+            }
+            
+            appointment.Status = status;
+            _appointmentRepository.Update(appointment);
+            await _unitOfWork.SaveChangesAsync();
+        }
+
         public async Task<Appointment> GetAppointmentsById(string userId, string projectId, string appointmentId)
         {
             var userInProject = await _userService.CheckIfUserInProject(userId, projectId);
@@ -89,12 +110,16 @@ namespace StartedIn.Service.Services
         public async Task<Appointment> CreateAnAppointment(string userId, string projectId, AppointmentCreateDTO appointmentCreateDTO)
         {
             var userInProject = await _userService.CheckIfUserInProject(userId, projectId);
-            if (userInProject.RoleInTeam != CrossCutting.Enum.RoleInTeam.Leader)
+            if (userInProject.RoleInTeam != RoleInTeam.Leader)
             {
                 throw new UnauthorizedProjectRoleException(MessageConstant.RolePermissionError);
             }
-
+            
             var project = await _projectRepository.QueryHelper().Filter(p => p.Id.Equals(projectId)).GetOneAsync();
+            if (!IsValidAppointmentLink(appointmentCreateDTO.MeetingLink))
+            {
+                throw new InvalidLinkException(MessageConstant.InvalidLink);
+            }
             try
             {
                 _unitOfWork.BeginTransaction();
@@ -127,6 +152,11 @@ namespace StartedIn.Service.Services
                 await _unitOfWork.RollbackAsync();
                 throw;
             }
+        }
+        
+        public static bool IsValidAppointmentLink(string link)
+        {
+            return Regex.IsMatch(link, GoogleMeetPattern, RegexOptions.IgnoreCase);
         }
     }
 }

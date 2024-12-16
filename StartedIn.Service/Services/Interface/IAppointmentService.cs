@@ -7,6 +7,7 @@ using System.Text;
 using System.Threading.Tasks;
 using StartedIn.CrossCutting.DTOs.ResponseDTO;
 using StartedIn.CrossCutting.DTOs.ResponseDTO.Appointment;
+using StartedIn.CrossCutting.Enum;
 
 namespace StartedIn.Service.Services.Interface
 {
@@ -16,5 +17,6 @@ namespace StartedIn.Service.Services.Interface
         Task<Appointment> CreateAnAppointment(string userId, string projectId, AppointmentCreateDTO appointmentCreateDTO);
         Task<Appointment> GetAppointmentsById(string userId, string projectId, string appointmentId);
         Task<PaginationDTO<AppointmentResponseDTO>> GetAppointmentsByProjectId(string userId, string projectId, int page, int size);
+        Task UpdateAppointmentStatus(string userId, string projectId, string appointmentId, MeetingStatus status);
     }
 }

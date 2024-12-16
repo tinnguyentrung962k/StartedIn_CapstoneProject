@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using StartedIn.Domain.Context;
@@ -11,9 +12,11 @@ using StartedIn.Domain.Context;
 namespace StartedIn.Domain.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20241216143129_12-16-2024_Migration_09PM30")]
+    partial class _12162024_Migration_09PM30
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -1497,6 +1500,7 @@ namespace StartedIn.Domain.Migrations
                         .HasColumnType("text");
 
                     b.Property<string>("AppointmentId")
+                        .IsRequired()
                         .HasColumnType("text");
 
                     b.Property<string>("ContractId")
@@ -1608,58 +1612,6 @@ namespace StartedIn.Domain.Migrations
                     b.HasIndex("FinanceId");
 
                     b.ToTable("Transaction", (string)null);
-                });
-
-            modelBuilder.Entity("StartedIn.Domain.Entities.TransferLeaderRequest", b =>
-                {
-                    b.Property<string>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("text");
-
-                    b.Property<string>("AppointmentId")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.Property<string>("CreatedBy")
-                        .HasColumnType("text");
-
-                    b.Property<DateTimeOffset>("CreatedTime")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<DateTimeOffset?>("DeletedTime")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<string>("FormerLeaderId")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.Property<bool?>("IsAgreed")
-                        .HasColumnType("boolean");
-
-                    b.Property<string>("LastUpdatedBy")
-                        .HasColumnType("text");
-
-                    b.Property<DateTimeOffset>("LastUpdatedTime")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<string>("NewLeaderId")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.Property<string>("ProjectId")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.Property<DateOnly>("TransferDate")
-                        .HasColumnType("date");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("AppointmentId");
-
-                    b.HasIndex("ProjectId");
-
-                    b.ToTable("TransferLeaderRequest", (string)null);
                 });
 
             modelBuilder.Entity("StartedIn.Domain.Entities.User", b =>
@@ -2272,7 +2224,9 @@ namespace StartedIn.Domain.Migrations
                 {
                     b.HasOne("StartedIn.Domain.Entities.Appointment", "Appointment")
                         .WithMany()
-                        .HasForeignKey("AppointmentId");
+                        .HasForeignKey("AppointmentId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
 
                     b.HasOne("StartedIn.Domain.Entities.Contract", "Contract")
                         .WithMany("TerminationRequests")
@@ -2300,25 +2254,6 @@ namespace StartedIn.Domain.Migrations
                     b.Navigation("Disbursement");
 
                     b.Navigation("Finance");
-                });
-
-            modelBuilder.Entity("StartedIn.Domain.Entities.TransferLeaderRequest", b =>
-                {
-                    b.HasOne("StartedIn.Domain.Entities.Appointment", "Appointment")
-                        .WithMany()
-                        .HasForeignKey("AppointmentId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("StartedIn.Domain.Entities.Project", "Project")
-                        .WithMany()
-                        .HasForeignKey("ProjectId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Appointment");
-
-                    b.Navigation("Project");
                 });
 
             modelBuilder.Entity("StartedIn.Domain.Entities.UserContract", b =>

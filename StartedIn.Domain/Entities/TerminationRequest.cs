@@ -16,7 +16,9 @@ namespace StartedIn.Domain.Entities
         public string FromId { get; set; }
         public string ToId { get; set; }
         public string Reason { get; set; }
+        public string? AppointmentId { get; set; }
         public bool? IsAgreed { get; set; }
+        public Appointment? Appointment { get; set; }
         public Contract Contract { get; set; }
     }
 }

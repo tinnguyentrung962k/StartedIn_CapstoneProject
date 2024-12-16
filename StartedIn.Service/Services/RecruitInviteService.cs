@@ -311,7 +311,8 @@ namespace StartedIn.Service.Services
                     Status = ApplicationStatus.PENDING,
                     Type = ApplicationTypeEnum.APPLY,
                     Role = RoleInTeam.Member,
-                    CVUrl = cvUrl
+                    CVUrl = cvUrl,
+                    CreatedTime = DateTimeOffset.Now
                 };
 
                 _applicationRepository.Add(application);
@@ -368,6 +369,7 @@ namespace StartedIn.Service.Services
             {
                 _unitOfWork.BeginTransaction();
                 application.Status = ApplicationStatus.ACCEPTED;
+                application.LastUpdatedTime = DateTimeOffset.Now;
                 _applicationRepository.Update(application);
 
                 await _userRepository.AddUserToProject(application.CandidateId, projectId, application.Role);

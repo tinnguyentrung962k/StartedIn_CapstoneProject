@@ -1,5 +1,6 @@
 using StartedIn.CrossCutting.Constants;
 using StartedIn.CrossCutting.DTOs.RequestDTO.Appointment;
+using StartedIn.CrossCutting.Enum;
 using StartedIn.CrossCutting.Exceptions;
 using StartedIn.Domain.Entities;
 using StartedIn.Repository.Repositories.Interface;
@@ -30,6 +31,16 @@ public class MeetingNoteService : IMeetingNoteService
         UploadMeetingNoteDTO uploadMeetingNoteDto)
     {
         var userInProject = await _userService.CheckIfUserInProject(userId, projectId);
+        var appointment = await _appointmentRepository.QueryHelper().Filter(a => a.Id.Equals(appointmentId))
+            .GetOneAsync();
+        if (appointment == null)
+        {
+            throw new NotFoundException(MessageConstant.NotFoundAppointment);
+        }
+        if (appointment.Status != MeetingStatus.Finished)
+        {
+            throw new CannotUploadMeetingNoteException(MessageConstant.CannotUploadMeetingNote);
+        }
         try
         { 
             _unitOfWork.BeginTransaction();

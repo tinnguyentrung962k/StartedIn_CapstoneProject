@@ -3,10 +3,12 @@ using Azure.Core;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Logging;
 using StartedIn.CrossCutting.Constants;
+using StartedIn.CrossCutting.DTOs.RequestDTO.Appointment;
 using StartedIn.CrossCutting.DTOs.RequestDTO.TerminationRequest;
 using StartedIn.CrossCutting.DTOs.ResponseDTO.TerminationRequest;
 using StartedIn.CrossCutting.Exceptions;
 using StartedIn.Domain.Entities;
+using StartedIn.Repository.Repositories;
 using StartedIn.Repository.Repositories.Interface;
 using StartedIn.Service.Services.Interface;
 using System;
@@ -27,6 +29,8 @@ namespace StartedIn.Service.Services
         private ILogger<TerminationRequestService> _logger;
         private readonly IMapper _mapper;
         private readonly IProjectRepository _projectRepository;
+        private readonly IAppointmentRepository _appointmentRepository;
+        private readonly IEmailService _emailService;
 
         public TerminationRequestService(
             ITerminationRequestRepository terminationRequestRepository,
@@ -36,7 +40,9 @@ namespace StartedIn.Service.Services
             UserManager<User> userManager,
             ILogger<TerminationRequestService> logger,
             IMapper mapper,
-            IProjectRepository projectRepository)
+            IProjectRepository projectRepository,
+            IAppointmentRepository appointmentRepository,
+            IEmailService emailService)
         {
             _terminationRequestRepository = terminationRequestRepository;
             _unitOfWork = unitOfWork;
@@ -46,6 +52,8 @@ namespace StartedIn.Service.Services
             _logger = logger;
             _mapper = mapper;
             _projectRepository = projectRepository;
+            _appointmentRepository = appointmentRepository;
+            _emailService = emailService;
         }
         public async Task CreateTerminationRequest(string userId, string projectId, TerminationRequestCreateDTO requestCreateDTO)
         {
@@ -115,7 +123,7 @@ namespace StartedIn.Service.Services
             return response;
         }
 
-        public async Task AcceptTerminationRequest(string userId, string projectId, string requestId)
+        public async Task AcceptTerminationRequest(string userId, string projectId, string requestId, TerminationMeetingCreateDTO terminationMeetingCreateDTO)
         {
             var userInProject = await _userService.CheckIfUserInProject(userId, projectId);
             if (userInProject.RoleInTeam != CrossCutting.Enum.RoleInTeam.Leader)
@@ -136,10 +144,31 @@ namespace StartedIn.Service.Services
             try
             {
                 _unitOfWork.BeginTransaction();
-                request.IsAgreed = true;
-                _terminationRequestRepository.Update(request);
                 request.Contract.ContractStatus = CrossCutting.Enum.ContractStatusEnum.WAITINGFORLIQUIDATION;
                 _contractRepository.Update(request.Contract);
+                Appointment appointment = new Appointment
+                {
+                    AppointmentTime = terminationMeetingCreateDTO.AppointmentTime,
+                    CreatedBy = userInProject.User.FullName,
+                    Description = terminationMeetingCreateDTO.Description,
+                    MeetingLink = terminationMeetingCreateDTO.MeetingLink,
+                    Title = terminationMeetingCreateDTO.Title,
+                    Status = CrossCutting.Enum.MeetingStatus.Proposed,
+                    ProjectId = projectId,
+                    Project = userInProject.Project
+                };
+                var newMeeting = _appointmentRepository.Add(appointment);
+                request.IsAgreed = true;
+                request.AppointmentId = appointment.Id;
+                var chosenContract = await _contractRepository.GetContractById(request.Contract.Id);
+                if (chosenContract != null)
+                {
+                    foreach (var userParty in chosenContract.UserContracts.Where(uc => uc.UserId != userId))
+                    {
+                        await _emailService.SendAppointmentInvite(userParty.User.Email, userInProject.Project.ProjectName, userParty.User.FullName, newMeeting.MeetingLink,newMeeting.AppointmentTime);
+                    }
+                }
+                _terminationRequestRepository.Update(request);
                 await _unitOfWork.SaveChangesAsync();
                 await _unitOfWork.CommitAsync();
             }
