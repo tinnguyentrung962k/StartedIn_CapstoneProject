@@ -99,7 +99,7 @@ namespace StartedIn.API.Controllers
             }
         }
 
-        [HttpPut("termination-requests/{requestId}/accept")]
+        [HttpPost("termination-requests/{requestId}/accept")]
         [Authorize(Roles = RoleConstants.USER)]
         public async Task<IActionResult> AcceptTermationRequest([FromRoute] string projectId, [FromRoute] string requestId, [FromBody] TerminationMeetingCreateDTO terminationMeetingCreateDTO)
         {
