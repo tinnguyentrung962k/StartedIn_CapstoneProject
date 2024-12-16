@@ -17,7 +17,8 @@ namespace StartedIn.API.Hubs
     public class ProjectHub : Hub
     {
         private static readonly ConcurrentDictionary<string, List<string>> projectList = new ConcurrentDictionary<string, List<string>>();
-        private static readonly ConcurrentDictionary<string, string> userConnections = new ConcurrentDictionary<string, string>();
+        private static readonly ConcurrentDictionary<string, HashSet<string>> userConnections =
+            new ConcurrentDictionary<string, HashSet<string>>();
         private readonly IMapper _mapper;
         private IServiceProvider _serviceProvider;
         private readonly IHubContext<ProjectHub> _hubContext;
@@ -33,6 +34,19 @@ namespace StartedIn.API.Hubs
         {
             var userId = Context.User.FindFirst(ClaimTypes.NameIdentifier).Value;
             IEnumerable<UserProject> userProjects;
+
+            // Instead of directly overwriting, maintain a collection of connection IDs for each user
+            userConnections.AddOrUpdate(
+                userId,
+                // If the key doesn't exist, create a new HashSet with the current connection ID
+                new HashSet<string> { Context.ConnectionId },
+                // If the key exists, add the new connection ID to the existing set
+                (key, existingConnections) =>
+                {
+                    existingConnections.Add(Context.ConnectionId);
+                    return existingConnections;
+                }
+            );
 
             using (var scope = _serviceProvider.CreateScope())
             {
@@ -54,14 +68,9 @@ namespace StartedIn.API.Hubs
                         projectList[project.ProjectId].Add(userId);
                     }
                 }
-            }
 
-            if (!userConnections.ContainsKey(userId))
-            {
-                userConnections.AddOrUpdate(userId, Context.ConnectionId, (key, value) => Context.ConnectionId);
+                await base.OnConnectedAsync();
             }
-
-            await base.OnConnectedAsync();
         }
 
         public override async Task OnDisconnectedAsync(Exception exception)
@@ -89,7 +98,12 @@ namespace StartedIn.API.Hubs
                 {
                     if (userConnections.ContainsKey(userId))
                     {
-                        await _hubContext.Clients.Client(userConnections[userId]).SendAsync("Project", payload);
+                        // Get the connection IDs for the userId
+                        var connectionIds = userConnections[userId];
+                        foreach (var connectionId in connectionIds)
+                        {
+                            await _hubContext.Clients.Client(connectionId).SendAsync("Project", payload);
+                        }
                     }
                 }
             }
@@ -103,7 +117,11 @@ namespace StartedIn.API.Hubs
                 {
                     if (userConnections.ContainsKey(userId))
                     {
-                        await _hubContext.Clients.Client(userConnections[userId]).SendAsync("Project", payload);
+                        var connectionIds = userConnections[userId];
+                        foreach (var connectionId in connectionIds)
+                        {
+                            await _hubContext.Clients.Client(connectionId).SendAsync("Project", payload);
+                        }
                     }
                 }
             }
