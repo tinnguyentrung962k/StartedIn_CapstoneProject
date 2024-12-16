@@ -21,6 +21,7 @@ namespace StartedIn.Repository.Repositories
         {
             var query = _dbSet.Where(m => m.ProjectId.Equals(projectId) && m.DeletedTime == null)
                 .Include(m => m.Tasks)
+                .Include(m => m.Appointments)
                 .OrderBy(m => m.CreatedTime);
             return query;
         }

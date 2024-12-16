@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Identity;
 using StartedIn.Domain.Context;
 using StartedIn.Domain.Entities;
 using System.Security.Claims;
+using StartedIn.API.Hubs;
 
 namespace StartedIn.API.Configuration
 {
@@ -31,15 +32,20 @@ namespace StartedIn.API.Configuration
         }
         public static IApplicationBuilder UseSecurityConfiguration(this IApplicationBuilder app)
         {
+            app.UseRouting();
             app.UseCors(options =>
             {
                 options.AllowAnyOrigin();
                 options.AllowAnyMethod();
                 options.AllowAnyHeader();
             });
-
             app.UseAuthentication();
-            app.UseAuthorization();
+            app.UseAuthorization(); 
+            app.UseEndpoints(endpoints =>
+            {
+                endpoints.MapHub<ProjectHub>("/project");
+                endpoints.MapControllers();
+            });
 
             return app;
         }

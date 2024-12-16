@@ -1,5 +1,6 @@
 using Serilog;
 using StartedIn.API.Configuration;
+using StartedIn.API.Hubs;
 
 var builder = WebApplication.CreateBuilder(args);
 var config = builder.Configuration;
@@ -12,6 +13,7 @@ builder.Services.AddSecurityConfiguration(config);
 builder.Services.AddDatabaseConfiguration(config);
 builder.Services.AddRepositoryConfiguration();
 builder.Services.AddServiceConfiguration(config);
+builder.Services.AddSignalRHub();
 builder.Services.AddBackgroundWorkerConfiguration(config);
 builder.Services.AddAutoMapper(typeof(Program));
 
@@ -42,6 +44,5 @@ if (app.Environment.IsDevelopment())
 app.SeedIdentity();
 app.SeedSettings();
 app.UseSecurityConfiguration();
-app.MapControllers();
 
 app.Run();

@@ -37,6 +37,7 @@ namespace StartedIn.Service.Services.Interface
         Task <UserContract> CheckIfUserBelongToContract(string userId, string contractId);
         Task<bool> IsUserInProject(string userId, string projectId);
         Task ToggleUserStatus(string userId);
+        Task<ICollection<UserProject>> GetProjectsByUserId(string userId);
 
         //Task<IEnumerable<User>> GetUserSuggestedFriendList(string userId, int pageIndex, int pageSize);
     }

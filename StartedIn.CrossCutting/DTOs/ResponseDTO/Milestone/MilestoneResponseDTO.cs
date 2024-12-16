@@ -1,4 +1,5 @@
 ﻿using StartedIn.CrossCutting.DTOs.BaseDTO;
+using StartedIn.CrossCutting.DTOs.ResponseDTO.Appointment;
 using StartedIn.CrossCutting.Enum;
 namespace StartedIn.CrossCutting.DTOs.ResponseDTO.Milestone
 {
@@ -11,5 +12,6 @@ namespace StartedIn.CrossCutting.DTOs.ResponseDTO.Milestone
         public int? Progress { get; set; }
         public string PhaseId { get; set; }
         public string? PhaseName { get; set; }
+        public ICollection<AppointmentResponseDTO> Appointments { get; set; } = new List<AppointmentResponseDTO>();
     }
 }
