@@ -42,6 +42,12 @@ namespace StartedIn.API.Controllers
                 var userId = User.FindFirst(ClaimTypes.NameIdentifier).Value;
                 var task = await _taskService.CreateTask(taskCreateDto, userId, projectId);
                 var response = _mapper.Map<TaskResponseDTO>(task);
+                var payload = new PayloadDTO<TaskResponseDTO>
+                {
+                    Data = response,
+                    Action = PayloadActionConstant.Create
+                };
+                await _projectHub.SendTaskDataToUsersInProject(projectId, payload);
                 return Ok(response);
             }
             catch (UnauthorizedProjectRoleException ex)
@@ -151,6 +157,12 @@ namespace StartedIn.API.Controllers
             {
                 var userId = User.FindFirst(ClaimTypes.NameIdentifier).Value;
                 var responseTask = _mapper.Map<TaskResponseDTO>(await _taskService.UpdateTaskStatus(userId, taskId, projectId, updateTaskStatusDTO));
+                var payload = new PayloadDTO<TaskResponseDTO>
+                {
+                    Data = responseTask,
+                    Action = PayloadActionConstant.Update
+                };
+                await _projectHub.SendTaskDataToUsersInProject(projectId, payload);
                 return Ok(responseTask);
             }
             catch (UnauthorizedProjectRoleException ex)
@@ -299,6 +311,12 @@ namespace StartedIn.API.Controllers
             {
                 var userId = User.FindFirst(ClaimTypes.NameIdentifier).Value;
                 await _taskService.DeleteTask(userId, taskId, projectId);
+                var payload = new PayloadDTO<TaskResponseDTO>
+                {
+                    Data = new TaskResponseDTO { Id = taskId },
+                    Action = PayloadActionConstant.Delete
+                };
+                await _projectHub.SendTaskDataToUsersInProject(projectId, payload);
                 return Ok();
             }
             catch (UnauthorizedProjectRoleException ex)
