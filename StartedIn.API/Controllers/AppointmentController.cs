@@ -12,6 +12,7 @@ using System.Security.Claims;
 using Google.Apis.Calendar.v3;
 using Google.Apis.Calendar.v3.Data;
 using StartedIn.CrossCutting.DTOs.ResponseDTO;
+using StartedIn.CrossCutting.Enum;
 
 namespace StartedIn.API.Controllers
 {
@@ -22,7 +23,9 @@ namespace StartedIn.API.Controllers
         private readonly IAppointmentService _appointmentService;
         private readonly IMapper _mapper;
         private readonly IGoogleMeetService _googleMeetService;
-        public AppointmentController(IAppointmentService appointmentService, IMapper mapper, IGoogleMeetService googleMeetService)
+
+        public AppointmentController(IAppointmentService appointmentService, IMapper mapper,
+            IGoogleMeetService googleMeetService)
         {
             _appointmentService = appointmentService;
             _mapper = mapper;
@@ -31,7 +34,8 @@ namespace StartedIn.API.Controllers
 
         [HttpGet("appointments/{year:int}")]
         [Authorize(Roles = RoleConstants.INVESTOR + "," + RoleConstants.USER + "," + RoleConstants.MENTOR)]
-        public async Task<ActionResult<List<AppointmentInCalendarResponseDTO>>> GetMeetingsInAYearOfAProject([FromRoute] string projectId, [FromRoute] int year)
+        public async Task<ActionResult<List<AppointmentInCalendarResponseDTO>>> GetMeetingsInAYearOfAProject(
+            [FromRoute] string projectId, [FromRoute] int year)
         {
             try
             {
@@ -53,10 +57,11 @@ namespace StartedIn.API.Controllers
                 return StatusCode(500, ex.Message);
             }
         }
-        
+
         [HttpGet("appointments")]
         [Authorize(Roles = RoleConstants.INVESTOR + "," + RoleConstants.USER + "," + RoleConstants.MENTOR)]
-        public async Task<ActionResult<PaginationDTO<AppointmentResponseDTO>>> GetMeetingsByProjectId([FromRoute] string projectId, [FromQuery]int page, int size)
+        public async Task<ActionResult<PaginationDTO<AppointmentResponseDTO>>> GetMeetingsByProjectId(
+            [FromRoute] string projectId, [FromQuery] int page, int size)
         {
             try
             {
@@ -77,10 +82,11 @@ namespace StartedIn.API.Controllers
                 return StatusCode(500, ex.Message);
             }
         }
-        
+
         [HttpGet("appointments/{appointmentId}")]
         [Authorize(Roles = RoleConstants.INVESTOR + "," + RoleConstants.USER + "," + RoleConstants.MENTOR)]
-        public async Task<ActionResult<AppointmentResponseDTO>> GetMeetingsById([FromRoute] string projectId, [FromRoute] string appointmentId)
+        public async Task<ActionResult<AppointmentResponseDTO>> GetMeetingsById([FromRoute] string projectId,
+            [FromRoute] string appointmentId)
         {
             try
             {
@@ -105,14 +111,16 @@ namespace StartedIn.API.Controllers
 
         [HttpPost("appointments")]
         [Authorize(Roles = RoleConstants.USER)]
-        public async Task<ActionResult<AppointmentResponseDTO>> CreateAnAppointment([FromRoute] string projectId, [FromBody] AppointmentCreateDTO appointmentCreateDTO)
+        public async Task<ActionResult<AppointmentResponseDTO>> CreateAnAppointment([FromRoute] string projectId,
+            [FromBody] AppointmentCreateDTO appointmentCreateDTO)
         {
-            try 
+            try
             {
                 var userId = User.FindFirst(ClaimTypes.NameIdentifier).Value;
                 var meeting = await _appointmentService.CreateAnAppointment(userId, projectId, appointmentCreateDTO);
                 var response = _mapper.Map<AppointmentResponseDTO>(meeting);
-                return CreatedAtAction(nameof(GetMeetingsById), new { projectId, appointmentId = response.Id }, response);
+                return CreatedAtAction(nameof(GetMeetingsById), new { projectId, appointmentId = response.Id },
+                    response);
             }
             catch (NotFoundException ex)
             {
@@ -127,7 +135,7 @@ namespace StartedIn.API.Controllers
                 return StatusCode(500, ex.Message);
             }
         }
-        
+
         [HttpPost]
         [Route("api/meet/create")]
         public async Task<ActionResult> CreateMeetSession([FromBody] MeetRequestDTO request)
@@ -167,6 +175,46 @@ namespace StartedIn.API.Controllers
             Event createdEvent = await requestInsert.ExecuteAsync();
 
             return Ok(new { JoinUrl = createdEvent.HangoutLink });
+        }
+
+        [HttpPut("appointments/{appointmentId}/complete")]
+        [Authorize(Roles = RoleConstants.USER)]
+        public async Task<ActionResult> CompleteAppointment([FromRoute] string appointmentId, [FromRoute] string projectId)
+        {
+            try
+            {
+                var userId = User.FindFirst(ClaimTypes.NameIdentifier).Value;
+                await _appointmentService.UpdateAppointmentStatus(userId, projectId, appointmentId, MeetingStatus.Finished);
+                return Ok(MessageConstant.CompleteAppointment);
+            }
+            catch (NotFoundException ex)
+            {
+                return BadRequest(ex.Message);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
+        }
+
+        [HttpDelete("appointments/{appointmentId}/cancel")]
+        [Authorize(Roles = RoleConstants.USER)]
+        public async Task<ActionResult> CancelAppointment([FromRoute] string appointmentId, [FromRoute] string projectId)
+        {
+            try
+            {
+                var userId = User.FindFirst(ClaimTypes.NameIdentifier).Value;
+                await _appointmentService.UpdateAppointmentStatus(userId, projectId, appointmentId, MeetingStatus.Cancelled);
+                return Ok(MessageConstant.CancelAppointment);
+            }
+            catch (NotFoundException ex)
+            {
+                return BadRequest(ex.Message);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
         }
     }
 }

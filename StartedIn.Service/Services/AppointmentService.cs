@@ -15,6 +15,7 @@ using AutoMapper;
 using Microsoft.EntityFrameworkCore;
 using StartedIn.CrossCutting.DTOs.ResponseDTO;
 using StartedIn.CrossCutting.DTOs.ResponseDTO.Appointment;
+using StartedIn.CrossCutting.Enum;
 
 namespace StartedIn.Service.Services
 {
@@ -71,7 +72,25 @@ namespace StartedIn.Service.Services
             };
             return response;
         }
-        
+
+        public async Task UpdateAppointmentStatus(string userId, string projectId, string appointmentId, MeetingStatus status)
+        {
+            var projectRole = await _projectRepository.GetUserRoleInProject(userId, projectId);
+            if (projectRole != RoleInTeam.Leader)
+            {
+                throw new UnauthorizedProjectRoleException(MessageConstant.RolePermissionError);
+            }
+            var appointment = await _appointmentRepository.QueryHelper().Filter(a => a.Id.Equals(appointmentId)).GetOneAsync();
+            if (appointment == null)
+            {
+                throw new NotFoundException(MessageConstant.NotFoundAppointment);
+            }
+            
+            appointment.Status = status;
+            _appointmentRepository.Update(appointment);
+            await _unitOfWork.SaveChangesAsync();
+        }
+
         public async Task<Appointment> GetAppointmentsById(string userId, string projectId, string appointmentId)
         {
             var userInProject = await _userService.CheckIfUserInProject(userId, projectId);

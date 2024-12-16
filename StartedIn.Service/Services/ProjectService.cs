@@ -779,6 +779,7 @@ public class ProjectService : IProjectService
         var response = new ProjectInformationWithMembersResponseDTO
         {
             ProjectName = project.ProjectName,
+            StartDate = project.StartDate,
             Description = project.Description,
             LogoUrl = project.LogoUrl,
             Members = listMember,
