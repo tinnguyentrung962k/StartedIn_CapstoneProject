@@ -14,11 +14,12 @@ public class InvestmentCallRepository : GenericRepository<InvestmentCall, string
         _appDbContext = context;
     }
 
-    public async Task<List<InvestmentCall>> GetInvestmentCallByProjectId(string projectId)
+    public IQueryable<InvestmentCall> GetInvestmentCallByProjectId(string projectId)
     {
-        var list = await _appDbContext.InvestmentCalls.Where(ic => ic.ProjectId.Equals(projectId))
+        var investmentCallsQuery = _appDbContext.InvestmentCalls
+            .Where(ic => ic.ProjectId.Equals(projectId) && ic.DeletedTime == null)
             .Include(ic => ic.DealOffers)
-            .ThenInclude(d => d.Investor).ToListAsync();
-        return list;
+            .ThenInclude(d => d.Investor);
+        return investmentCallsQuery;
     }
 }

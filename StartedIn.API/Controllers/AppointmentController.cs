@@ -11,6 +11,7 @@ using StartedIn.Service.Services.Interface;
 using System.Security.Claims;
 using Google.Apis.Calendar.v3;
 using Google.Apis.Calendar.v3.Data;
+using StartedIn.CrossCutting.DTOs.ResponseDTO;
 
 namespace StartedIn.API.Controllers
 {
@@ -55,14 +56,13 @@ namespace StartedIn.API.Controllers
         
         [HttpGet("appointments")]
         [Authorize(Roles = RoleConstants.INVESTOR + "," + RoleConstants.USER + "," + RoleConstants.MENTOR)]
-        public async Task<ActionResult<List<AppointmentResponseDTO>>> GetMeetingsByProjectId([FromRoute] string projectId, [FromQuery]int page, int size)
+        public async Task<ActionResult<PaginationDTO<AppointmentResponseDTO>>> GetMeetingsByProjectId([FromRoute] string projectId, [FromQuery]int page, int size)
         {
             try
             {
                 var userId = User.FindFirst(ClaimTypes.NameIdentifier).Value;
                 var meetings = await _appointmentService.GetAppointmentsByProjectId(userId, projectId, page, size);
-                var response = _mapper.Map<List<AppointmentResponseDTO>>(meetings);
-                return Ok(response);
+                return Ok(meetings);
             }
             catch (NotFoundException ex)
             {

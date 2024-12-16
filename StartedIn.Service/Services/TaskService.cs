@@ -224,7 +224,8 @@ namespace StartedIn.Service.Services
                 LastUpdatedBy = task.LastUpdatedBy,
                 LastUpdatedTime = task.LastUpdatedTime,
                 Status = task.Status,
-                Title = task.Title
+                Title = task.Title,
+                ManHour = task.ManHour
             }).ToList();
 
             var pagination = new PaginationDTO<TaskResponseDTO>()

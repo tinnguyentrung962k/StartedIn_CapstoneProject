@@ -116,6 +116,7 @@ namespace StartedIn.CrossCutting.Constants
         public const string YouAreNotBelongToThisRequest = "Ban không phải người nhận/gửi yêu cầu này.";
         public const string NotFoundMeetingNote = "Không tìm thấy biên bản cuộc họp.";
         public const string ExistingProcessingLiquidationError = "Hợp đồng này còn biên bản thanh lý chưa được xác nhận";
+        public const string InvalidInformationOfUser = "Thông tin người dùng chưa hợp lệ";
 
     }
 }

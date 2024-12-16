@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using StartedIn.Domain.Context;
@@ -11,9 +12,11 @@ using StartedIn.Domain.Context;
 namespace StartedIn.Domain.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20241216012118_12-16-2024_Migration_08AM20")]
+    partial class _12162024_Migration_08AM20
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -1389,9 +1392,6 @@ namespace StartedIn.Domain.Migrations
                     b.Property<DateTimeOffset?>("ActualFinishAt")
                         .HasColumnType("timestamp with time zone");
 
-                    b.Property<DateTimeOffset?>("ActualStartAt")
-                        .HasColumnType("timestamp with time zone");
-
                     b.Property<string>("CreatedBy")
                         .HasColumnType("text");
 
@@ -1442,9 +1442,6 @@ namespace StartedIn.Domain.Migrations
                         .IsRequired()
                         .HasMaxLength(50)
                         .HasColumnType("character varying(50)");
-
-                    b.Property<float?>("TotalActualManHour")
-                        .HasColumnType("real");
 
                     b.HasKey("Id");
 
@@ -1779,9 +1776,6 @@ namespace StartedIn.Domain.Migrations
 
                     b.Property<string>("TaskId")
                         .HasColumnType("text");
-
-                    b.Property<float?>("ActualManHour")
-                        .HasColumnType("real");
 
                     b.HasKey("UserId", "TaskId");
 

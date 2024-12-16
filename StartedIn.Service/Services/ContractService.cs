@@ -9,7 +9,6 @@ using StartedIn.Domain.Entities;
 using StartedIn.Repository.Repositories.Interface;
 using StartedIn.Service.Services.Interface;
 using StartedIn.CrossCutting.Enum;
-using CrossCutting.Exceptions;
 using Microsoft.EntityFrameworkCore;
 using StartedIn.Repository.Repositories.Extensions;
 using StartedIn.CrossCutting.DTOs.RequestDTO.Contract;
@@ -18,8 +17,6 @@ using StartedIn.CrossCutting.DTOs.RequestDTO.SignNow.SignNowWebhookRequestDTO;
 using StartedIn.CrossCutting.DTOs.ResponseDTO;
 using StartedIn.CrossCutting.DTOs.ResponseDTO.Disbursement;
 using Microsoft.AspNetCore.Http;
-using DocumentFormat.OpenXml.Bibliography;
-using DocumentFormat.OpenXml.Office2010.Excel;
 
 namespace StartedIn.Service.Services
 {
@@ -109,14 +106,25 @@ namespace StartedIn.Service.Services
             {
                 throw new InvalidOperationException(MessageConstant.DisbursementGreaterThanBuyPriceError);
             }
+            var investor = await _userManager.FindByIdAsync(investmentContractCreateDTO.InvestorInfo.UserId);
+            if (investor == null)
+            {
+                throw new NotFoundException(MessageConstant.NotFoundInvestorError);
+            }
+            if (string.IsNullOrWhiteSpace(investor.Address) || string.IsNullOrWhiteSpace(investor.PhoneNumber)
+               || string.IsNullOrWhiteSpace(investor.IdCardNumber)) 
+            {
+                throw new InvalidInputException(MessageConstant.InvalidInformationOfUser + $" {investor.FullName}");
+            }
+            var leader = userInProject.User;
+            if (string.IsNullOrWhiteSpace(leader.Address) || string.IsNullOrWhiteSpace(leader.PhoneNumber)
+                || string.IsNullOrWhiteSpace(leader.IdCardNumber))
+            {
+                throw new InvalidInputException(MessageConstant.InvalidInformationOfUser + $" {leader.FullName}");
+            }
             try
             {
                 _unitOfWork.BeginTransaction();
-                var investor = await _userManager.FindByIdAsync(investmentContractCreateDTO.InvestorInfo.UserId);
-                if (investor == null)
-                {
-                    throw new NotFoundException(MessageConstant.NotFoundInvestorError);
-                }
                 string prefix = "HDDT";
                 string currentDateTime = DateTimeOffset.UtcNow.ToString("ddMMyyyyHHmm");
                 string contractIdNumberGen = $"{prefix}-{currentDateTime}";
@@ -130,7 +138,6 @@ namespace StartedIn.Service.Services
                     ContractStatus = ContractStatusEnum.DRAFT,
                     ContractIdNumber = contractIdNumberGen
                 };
-                var leader = userInProject.User;
                 List<UserContract> usersInContract = new List<UserContract>();
                 List<User> chosenUsersList = new List<User> { investor, leader };
                 foreach (var chosenUser in chosenUsersList)
@@ -220,6 +227,28 @@ namespace StartedIn.Service.Services
             {
                 throw new InvalidOperationException(MessageConstant.TotalDistributePercentageGreaterThanRemainingPercentage);
             }
+            foreach (var shareEquityOfAMember in groupContractCreateDTO.ShareEquitiesOfMembers)
+            {
+                var userMemberInContract = await _userManager.FindByIdAsync(shareEquityOfAMember.UserId);
+                if (userMemberInContract == null)
+                {
+                    throw new NotFoundException(MessageConstant.NotFoundUserError + $" {userMemberInContract.Id}");
+                    break;
+                }
+                if (string.IsNullOrWhiteSpace(userMemberInContract.Address) || string.IsNullOrWhiteSpace(userMemberInContract.PhoneNumber)
+                || string.IsNullOrWhiteSpace(userMemberInContract.IdCardNumber))
+                {
+                    throw new InvalidInputException(MessageConstant.InvalidInformationOfUser + $" {userMemberInContract.FullName}");
+                    break;
+                }
+
+            }
+            var leader = userInProject.User;
+            if (string.IsNullOrWhiteSpace(leader.Address) || string.IsNullOrWhiteSpace(leader.PhoneNumber)
+                || string.IsNullOrWhiteSpace(leader.IdCardNumber))
+            {
+                throw new InvalidInputException(MessageConstant.InvalidInformationOfUser + $" {leader.FullName}");
+            }
             try
             {
                 _unitOfWork.BeginTransaction();
@@ -263,7 +292,6 @@ namespace StartedIn.Service.Services
                     };
                     shareEquitiesOfMembers.Add(shareEquity);
                 }
-                var leader = userInProject.User;
                 contract.UserContracts = usersInContract;
                 var contractEntity = _contractRepository.Add(contract);
                 await _shareEquityRepository.AddRangeAsync(shareEquitiesOfMembers);
@@ -335,14 +363,25 @@ namespace StartedIn.Service.Services
             {
                 throw new InvalidOperationException(MessageConstant.DisbursementGreaterThanBuyPriceError);
             }
+            var investor = await _userManager.FindByIdAsync(chosenDeal.InvestorId);
+            if (investor == null)
+            {
+                throw new NotFoundException(MessageConstant.NotFoundInvestorError);
+            }
+            if (string.IsNullOrWhiteSpace(investor.Address) || string.IsNullOrWhiteSpace(investor.PhoneNumber)
+               || string.IsNullOrWhiteSpace(investor.IdCardNumber))
+            {
+                throw new InvalidInputException(MessageConstant.InvalidInformationOfUser + $" {investor.FullName}");
+            }
+            var leader = userInProject.User;
+            if (string.IsNullOrWhiteSpace(leader.Address) || string.IsNullOrWhiteSpace(leader.PhoneNumber)
+                || string.IsNullOrWhiteSpace(leader.IdCardNumber))
+            {
+                throw new InvalidInputException(MessageConstant.InvalidInformationOfUser + $" {leader.FullName}");
+            }
             try
             {
                 _unitOfWork.BeginTransaction();
-                var investor = await _userManager.FindByIdAsync(chosenDeal.InvestorId);
-                if (investor == null)
-                {
-                    throw new NotFoundException(MessageConstant.NotFoundInvestorError);
-                }
                 string prefix = "HDDT";
                 string currentDateTime = DateTimeOffset.UtcNow.ToString("ddMMyyyyHHmm");
                 string contractIdNumberGen = $"{prefix}-{currentDateTime}";
@@ -358,7 +397,6 @@ namespace StartedIn.Service.Services
                     DealOffer = chosenDeal,
                     DealOfferId = chosenDeal.Id
                 };
-                var leader = userInProject.User;
                 List<UserContract> usersInContract = new List<UserContract>();
                 List<User> chosenUsersList = new List<User> { investor, leader };
                 foreach (var chosenUser in chosenUsersList)
@@ -809,7 +847,8 @@ namespace StartedIn.Service.Services
                     StartDate = d.StartDate,
                     EndDate = d.EndDate,
                     Title = d.Title
-                }).ToList()
+                }).ToList(),
+                ValidDate = contract.ValidDate
 
             }).ToList();
 
@@ -1350,6 +1389,7 @@ namespace StartedIn.Service.Services
                     ContractIdNumber = contractIdNumberGen,
                     ParentContractId = terminatedContract.Id,
                     ParentContract = terminatedContract.ParentContract,
+                    ValidDate = DateOnly.FromDateTime(DateTimeOffset.UtcNow.Date)
                 };
 
                 List<UserContract> usersInLiquidationNote = new List<UserContract>();

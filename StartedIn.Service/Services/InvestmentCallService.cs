@@ -1,7 +1,11 @@
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using StartedIn.CrossCutting.Constants;
 using StartedIn.CrossCutting.DTOs.RequestDTO.EquityShare;
 using StartedIn.CrossCutting.DTOs.RequestDTO.InvestmentCall;
+using StartedIn.CrossCutting.DTOs.ResponseDTO;
+using StartedIn.CrossCutting.DTOs.ResponseDTO.DealOffer;
+using StartedIn.CrossCutting.DTOs.ResponseDTO.InvestmentCall;
 using StartedIn.CrossCutting.Enum;
 using StartedIn.CrossCutting.Exceptions;
 using StartedIn.Domain.Entities;
@@ -121,9 +125,84 @@ public class InvestmentCallService : IInvestmentCallService
         return investmentCall;
     }
 
-    public async Task<List<InvestmentCall>> GetInvestmentCallByProjectId(string projectId)
+    public async Task<PaginationDTO<InvestmentCallResponseDTO>> GetInvestmentCallByProjectId(string userId, string projectId, InvestmentCallSearchDTO investmentCallSearchDTO, int page, int size)
     {
-        var calls = await _investmentCallRepository.GetInvestmentCallByProjectId(projectId);
-        return calls;
+        var userInProject = await _userService.CheckIfUserInProject(userId, projectId);
+        var searchResult = _investmentCallRepository.GetInvestmentCallByProjectId(projectId);
+
+        //ToDo: add filter category
+        if (investmentCallSearchDTO.Status.HasValue)
+            searchResult = searchResult.Where(ic => ic.Status == investmentCallSearchDTO.Status.Value);
+
+        if (investmentCallSearchDTO.FromAmountRaised.HasValue)
+            searchResult = searchResult.Where(ic => ic.AmountRaised >= investmentCallSearchDTO.FromAmountRaised.Value);
+
+        if (investmentCallSearchDTO.ToAmountRaised.HasValue)
+            searchResult = searchResult.Where(ic => ic.AmountRaised <= investmentCallSearchDTO.ToAmountRaised.Value);
+
+        if (investmentCallSearchDTO.FromEquityShareCall.HasValue)
+            searchResult = searchResult.Where(ic => ic.EquityShareCall >= investmentCallSearchDTO.FromEquityShareCall.Value);
+
+        if (investmentCallSearchDTO.ToEquityShareCall.HasValue)
+            searchResult = searchResult.Where(ic => ic.EquityShareCall <= investmentCallSearchDTO.ToEquityShareCall.Value);
+
+        if (investmentCallSearchDTO.FromTargetCall.HasValue)
+            searchResult = searchResult.Where(ic => ic.TargetCall >= investmentCallSearchDTO.FromTargetCall.Value);
+
+        if (investmentCallSearchDTO.ToTargetCall.HasValue)
+            searchResult = searchResult.Where(ic => ic.TargetCall <= investmentCallSearchDTO.ToTargetCall.Value);
+
+        if (investmentCallSearchDTO.StartDate.HasValue)
+            searchResult = searchResult.Where(ic => ic.StartDate >= investmentCallSearchDTO.StartDate.Value);
+
+        if (investmentCallSearchDTO.EndDate.HasValue)
+            searchResult = searchResult.Where(ic => ic.EndDate <= investmentCallSearchDTO.EndDate.Value);
+
+        // Get total count after filtering
+
+        int totalCount = await searchResult.CountAsync();
+        var pagedResult = await searchResult
+                .Skip((page - 1) * size)
+                .Take(size)
+                .Include(p => p.DealOffers)
+                .ThenInclude(d => d.Investor)
+                .OrderByDescending(p => p.CreatedTime)
+                .ToListAsync();
+        var investmentCallSearchResponse = pagedResult.Select(investmentCall => new InvestmentCallResponseDTO
+        {
+            Id = investmentCall.Id,
+            AmountRaised = investmentCall.AmountRaised.ToString(),
+            EndDate = investmentCall.EndDate,
+            EquityShareCall = investmentCall.EquityShareCall.ToString(),
+            ProjectId = investmentCall.ProjectId,
+            RemainAvailableEquityShare = investmentCall.RemainAvailableEquityShare.ToString(),
+            StartDate = investmentCall.StartDate,
+            Status = investmentCall.Status,
+            TargetCall = investmentCall.TargetCall.ToString(),
+            TotalInvestor = investmentCall.TotalInvestor,
+            DealOffers = investmentCall.DealOffers.Select(dealOffer => new DealOfferForProjectResponseDTO
+            {
+                Id = dealOffer.Id,
+                Amount = dealOffer.Amount.ToString(),
+                DealStatus = dealOffer.DealStatus,
+                EquityShareOffer = dealOffer.EquityShareOffer.ToString(),
+                InvestorId = dealOffer.InvestorId,
+                InvestorName = dealOffer.Investor.FullName,
+                TermCondition = dealOffer.TermCondition
+
+            }).ToList()
+        });
+
+        var response = new PaginationDTO<InvestmentCallResponseDTO>
+        {
+            Data = investmentCallSearchResponse,
+            Total = totalCount,
+            Page = page,
+            Size = size
+        };
+
+        return response;
     }
+
+
 }

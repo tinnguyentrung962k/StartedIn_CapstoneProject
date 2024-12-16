@@ -61,7 +61,10 @@ namespace StartedIn.API.Configuration.AutoMapper
 
         private void TaskMappingProfile()
         {
-            CreateMap<TaskEntity, TaskResponseDTO>().ReverseMap();
+            CreateMap<TaskEntity, TaskResponseDTO>()
+                .ForMember(dest => dest.Assignees, opt => opt.MapFrom(src => src.UserTasks))
+                .ForMember(dest => dest.ActualManHour, opt => opt.MapFrom(src => src.UserTasks.Sum(x => x.ActualManHour)))
+                .ReverseMap();
             CreateMap<TaskEntity, TaskDetailDTO>()
                 .ForMember(dest => dest.Assignees, opt => opt.MapFrom(src => src.UserTasks.Select(ut => ut.User)))
                 .ForMember(dest => dest.Milestone, opt => opt.MapFrom(src => src.Milestone))
@@ -108,6 +111,16 @@ namespace StartedIn.API.Configuration.AutoMapper
                     .ForMember(dest => dest.Id, opt => opt.MapFrom(src => src.Id))
                     .ReverseMap();
             CreateMap<User, ProjectInviteUserDTO>().ReverseMap();
+            CreateMap<User, AssigneeInTaskDTO>()
+                    .ForMember(dest => dest.Id, opt => opt.MapFrom(src => src.Id))
+                    .ForMember(dest => dest.FullName, opt => opt.MapFrom(src => src.FullName))
+                    .ForMember(dest => dest.Email, opt => opt.MapFrom(src => src.Email))
+                    .ReverseMap();
+            CreateMap<UserTask, AssigneeInTaskDTO>()
+                .ForMember(dest => dest.Id, opt => opt.MapFrom(src => src.User.Id))
+                .ForMember(dest => dest.FullName, opt => opt.MapFrom(src => src.User.FullName))
+                .ForMember(dest => dest.Email, opt => opt.MapFrom(src => src.User.Email))
+                .ForMember(dest => dest.ActualManHour, opt => opt.MapFrom(src => src.ActualManHour));
         }
         private void ProjectMappingProfile()
         {
