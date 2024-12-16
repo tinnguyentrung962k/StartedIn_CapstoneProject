@@ -10,6 +10,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using AutoMapper;
 using Microsoft.EntityFrameworkCore;
@@ -29,6 +30,7 @@ namespace StartedIn.Service.Services
         private readonly IProjectRepository _projectRepository;
         private readonly IAzureBlobService _azureBlobService;
         private readonly IMapper _mapper;
+        private static readonly string GoogleMeetPattern = @"^(https:\/\/meet\.google\.com\/[a-zA-Z0-9-]+)$";
 
         public AppointmentService(IAppointmentRepository appointmentRepository, IUserService userService,
             IUnitOfWork unitOfWork, ILogger<AppointmentService> logger,
@@ -108,12 +110,16 @@ namespace StartedIn.Service.Services
         public async Task<Appointment> CreateAnAppointment(string userId, string projectId, AppointmentCreateDTO appointmentCreateDTO)
         {
             var userInProject = await _userService.CheckIfUserInProject(userId, projectId);
-            if (userInProject.RoleInTeam != CrossCutting.Enum.RoleInTeam.Leader)
+            if (userInProject.RoleInTeam != RoleInTeam.Leader)
             {
                 throw new UnauthorizedProjectRoleException(MessageConstant.RolePermissionError);
             }
-
+            
             var project = await _projectRepository.QueryHelper().Filter(p => p.Id.Equals(projectId)).GetOneAsync();
+            if (!IsValidAppointmentLink(appointmentCreateDTO.MeetingLink))
+            {
+                throw new InvalidLinkException(MessageConstant.InvalidLink);
+            }
             try
             {
                 _unitOfWork.BeginTransaction();
@@ -146,6 +152,11 @@ namespace StartedIn.Service.Services
                 await _unitOfWork.RollbackAsync();
                 throw;
             }
+        }
+        
+        public static bool IsValidAppointmentLink(string link)
+        {
+            return Regex.IsMatch(link, GoogleMeetPattern, RegexOptions.IgnoreCase);
         }
     }
 }
