@@ -69,7 +69,7 @@ namespace StartedIn.Repository.Repositories
         }
         public async Task<bool> IsUserBelongToAContract(string userId, string contractId)
         {
-            var isUserBelongContract = await _appDbContext.UserContracts.AnyAsync(x => x.UserId.Equals(userId) 
+            var isUserBelongContract = await _appDbContext.UserContracts.AnyAsync(x => (x.UserId.Equals(userId) || x.TransferToId.Equals(userId))
             && x.ContractId.Equals(contractId));
             return isUserBelongContract;
         }

@@ -17,6 +17,9 @@ using StartedIn.CrossCutting.DTOs.RequestDTO.SignNow.SignNowWebhookRequestDTO;
 using StartedIn.CrossCutting.DTOs.ResponseDTO;
 using StartedIn.CrossCutting.DTOs.ResponseDTO.Disbursement;
 using Microsoft.AspNetCore.Http;
+using StartedIn.CrossCutting.DTOs.RequestDTO.Appointment;
+using Azure.Core;
+using DocumentFormat.OpenXml.Office2016.Excel;
 
 namespace StartedIn.Service.Services
 {
@@ -41,6 +44,8 @@ namespace StartedIn.Service.Services
         private readonly IDocumentFormatService _documentFormatService;
         private readonly IAppSettingManager _appSettingManager;
         private readonly ITerminationRequestRepository _terminationRequestRepository;
+        private readonly IAppointmentRepository _appointmentRepository;
+        private readonly IEmailService _emailService;
 
         public ContractService(IContractRepository contractRepository,
             IUnitOfWork unitOfWork,
@@ -59,9 +64,10 @@ namespace StartedIn.Service.Services
             IAzureBlobService azureBlobService,
             IDocumentFormatService documentFormatService,
             IAppSettingManager appSettingManager,
-            ITerminationRequestRepository terminationRequestRepository
-
-            )
+            ITerminationRequestRepository terminationRequestRepository,
+            IAppointmentRepository appointmentRepository,
+            IEmailService emailService
+        )
         {
             _contractRepository = contractRepository;
             _unitOfWork = unitOfWork;
@@ -82,6 +88,8 @@ namespace StartedIn.Service.Services
             _documentFormatService = documentFormatService;
             _appSettingManager = appSettingManager;
             _terminationRequestRepository = terminationRequestRepository;
+            _appointmentRepository = appointmentRepository;
+            _emailService = emailService;
         }
 
         public async Task<Contract> CreateInvestmentContract(string userId, string projectId, InvestmentContractCreateDTO investmentContractCreateDTO)
@@ -1172,6 +1180,22 @@ namespace StartedIn.Service.Services
             {
                 throw new InvalidDataException(MessageConstant.CannotCancelContractError);
             }
+            if (request.AppointmentId == null)
+            {
+                throw new InvalidDataException(MessageConstant.MeetingNotFound);
+            }
+            var appointment = await _appointmentRepository.QueryHelper()
+                .Include(x => x.MeetingNotes)
+                .Filter(x => x.Id.Equals(request.AppointmentId) && x.Status == MeetingStatus.Finished)
+                .GetOneAsync();
+            if (appointment == null)
+            {
+                throw new InvalidDataException(MessageConstant.MeetingIsNotFinished);
+            }
+            if (appointment.MeetingNotes == null)
+            {
+                throw new InvalidDataException(MessageConstant.NotFoundMeetingNote);
+            }
 
             var existingProcessingLiquidation = await _contractRepository.QueryHelper()
                 .Filter(x => x.ParentContractId == chosenContract.Id
@@ -1314,6 +1338,60 @@ namespace StartedIn.Service.Services
             }
         }
 
+        public async Task CreateMeetingForLeaderTerminationContract(string userId, string projectId, string contractId, TerminationMeetingCreateDTO terminationMeetingCreateDTO)
+        {
+            var userInProject = await _userService.CheckIfUserInProject(userId, projectId);
+            if (userInProject.RoleInTeam != CrossCutting.Enum.RoleInTeam.Leader)
+            {
+                throw new UnauthorizedProjectRoleException(MessageConstant.RolePermissionError);
+            }
+            var userInContract = await _userService.CheckIfUserBelongToContract(userId, contractId);
+            var chosenContract = await _contractRepository.GetContractById(contractId);
+            if (chosenContract.ContractStatus != ContractStatusEnum.COMPLETED && chosenContract.ContractStatus != ContractStatusEnum.WAITINGFORLIQUIDATION)
+            {
+                throw new UpdateException(MessageConstant.ContractIsNotValid);
+            }
+
+            if (chosenContract.ContractType == ContractTypeEnum.LIQUIDATIONNOTE)
+            {
+                throw new InvalidDataException(MessageConstant.CannotCancelContractError);
+            }
+            try
+            {
+                _unitOfWork.BeginTransaction();
+                Appointment appointment = new Appointment
+                {
+                    AppointmentTime = terminationMeetingCreateDTO.AppointmentTime,
+                    CreatedBy = userInProject.User.FullName,
+                    Description = terminationMeetingCreateDTO.Description,
+                    MeetingLink = terminationMeetingCreateDTO.MeetingLink,
+                    Title = terminationMeetingCreateDTO.Title,
+                    Status = CrossCutting.Enum.MeetingStatus.Proposed,
+                    ProjectId = projectId,
+                    Project = userInProject.Project
+                };
+                var newMeeting = _appointmentRepository.Add(appointment);
+                chosenContract.TerminationMeetingId = newMeeting.Id;
+                chosenContract.ContractStatus = ContractStatusEnum.WAITINGFORLIQUIDATION;
+                _contractRepository.Update(chosenContract);
+                if (chosenContract != null)
+                {
+                    foreach (var userParty in chosenContract.UserContracts.Where(uc => uc.UserId != userId))
+                    {
+                        await _emailService.SendAppointmentInvite(userParty.User.Email, userInProject.Project.ProjectName, userParty.User.FullName, newMeeting.MeetingLink, newMeeting.AppointmentTime);
+                    }
+                }
+                await _unitOfWork.SaveChangesAsync();
+                await _unitOfWork.CommitAsync();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, MessageConstant.UpdateFailed);
+                await _unitOfWork.RollbackAsync();
+                throw;
+            }
+        }
+
         public async Task LeaderTerminateContract(string userId, string projectId, string contractId, IFormFile uploadFile) 
         {
             var userInProject = await _userService.CheckIfUserInProject(userId, projectId);
@@ -1331,14 +1409,34 @@ namespace StartedIn.Service.Services
             {
                 throw new UnmatchedException(MessageConstant.ContractNotBelongToProjectError);
             }
-            if (terminatedContract.ContractStatus != ContractStatusEnum.COMPLETED && terminatedContract.ContractStatus != ContractStatusEnum.WAITINGFORLIQUIDATION)
+
+            // Kiểm tra nếu hợp đồng đã hết hạn hoặc đang chờ thanh lý
+            if (terminatedContract.ContractStatus == ContractStatusEnum.EXPIRED ||
+                terminatedContract.ContractStatus != ContractStatusEnum.WAITINGFORLIQUIDATION)
             {
-                throw new UpdateException(MessageConstant.ContractIsNotValid);
+                throw new InvalidDataException(MessageConstant.CannotCancelContractError);
             }
 
             if (terminatedContract.ContractType == ContractTypeEnum.LIQUIDATIONNOTE)
             {
                 throw new InvalidDataException(MessageConstant.CannotCancelContractError);
+            }
+
+            var appointment = await _appointmentRepository.QueryHelper()
+            .Include(x => x.MeetingNotes)
+                .Filter(x => x.Id.Equals(terminatedContract.TerminationMeetingId))
+                .GetOneAsync();
+            if (appointment == null)
+            {
+                throw new InvalidDataException(MessageConstant.MeetingNotFound);
+            }
+            if (appointment.Status != MeetingStatus.Finished)
+            {
+                throw new InvalidDataException(MessageConstant.MeetingIsNotFinished);
+            }
+            if (appointment.MeetingNotes == null)
+            {
+                throw new InvalidDataException(MessageConstant.NotFoundMeetingNote);
             }
 
             try

@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Http;
 using StartedIn.CrossCutting.DTOs.BaseDTO;
+using StartedIn.CrossCutting.DTOs.RequestDTO.Appointment;
 using StartedIn.CrossCutting.DTOs.RequestDTO.Contract;
 using StartedIn.CrossCutting.DTOs.ResponseDTO;
 using StartedIn.CrossCutting.DTOs.ResponseDTO.Contract;
@@ -30,5 +31,6 @@ namespace StartedIn.Service.Services.Interface
         Task<List<UserContract>> GetUserSignHistoryInAContract(string userId, string projectId, string contractId);
         Task<Contract> CreateLiquidationNote(string userId, string projectId, string contractId, IFormFile uploadFile);
         Task LeaderTerminateContract(string userId, string projectId, string contractId, IFormFile uploadFile);
+        Task CreateMeetingForLeaderTerminationContract(string userId, string projectId, string contractId, TerminationMeetingCreateDTO terminationMeetingCreateDTO);
     }
 }

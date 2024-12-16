@@ -15,6 +15,7 @@ using StartedIn.CrossCutting.DTOs.ResponseDTO.DealOffer;
 using StartedIn.Domain.Entities;
 using StartedIn.CrossCutting.DTOs.ResponseDTO;
 using StartedIn.CrossCutting.Enum;
+using StartedIn.CrossCutting.DTOs.RequestDTO.Appointment;
 
 namespace StartedIn.API.Controllers
 {
@@ -129,6 +130,38 @@ namespace StartedIn.API.Controllers
 
             }
         }
+
+        [HttpPost("contracts/{contractId}/terminated-meeting")]
+        [Authorize(Roles = RoleConstants.USER)]
+        public async Task<IActionResult> CreateMeetingToTerminateContractByLeader([FromRoute] string projectId, [FromRoute] string contractId, TerminationMeetingCreateDTO terminationMeetingCreateDTO)
+        {
+            try
+            {
+                var userId = User.FindFirst(ClaimTypes.NameIdentifier).Value;
+                await _contractService.CreateMeetingForLeaderTerminationContract(userId, projectId, contractId, terminationMeetingCreateDTO);
+                return StatusCode(201, "Tạo cuộc họp thành công");
+            }
+            catch (UnauthorizedProjectRoleException ex)
+            {
+                return StatusCode(403, ex.Message);
+            }
+            catch (InvalidDataException ex)
+            {
+                return BadRequest(ex.Message);
+            }
+            catch (UpdateException ex)
+            {
+                return BadRequest(ex.Message);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error while creating contract");
+
+                return StatusCode(500, MessageConstant.InternalServerError);
+
+            }
+        }
+
 
         [HttpPost("investment-contracts/from-deal")]
         [Authorize(Roles = RoleConstants.USER)]

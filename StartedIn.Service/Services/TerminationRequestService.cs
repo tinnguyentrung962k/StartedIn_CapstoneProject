@@ -94,8 +94,8 @@ namespace StartedIn.Service.Services
                     Reason = requestCreateDTO.Reason,
                     ToId = leaderId
                 };
-                _terminationRequestRepository.Add(terminationRequest);
-                contract.CurrentTerminationRequestId = terminationRequest.Id;
+                var newRequest= _terminationRequestRepository.Add(terminationRequest);
+                contract.CurrentTerminationRequestId = newRequest.Id;
                 _contractRepository.Update(contract);
                 await _unitOfWork.SaveChangesAsync();
                 await _unitOfWork.CommitAsync();
