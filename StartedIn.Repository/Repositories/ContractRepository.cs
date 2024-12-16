@@ -81,7 +81,9 @@ namespace StartedIn.Repository.Repositories
             var query = _appDbContext.Contracts
                 .Include(x => x.Disbursements)
                 .Include(x => x.UserContracts)
-                .Where(x => x.ProjectId.Equals(projectId) && x.UserContracts.Any(us => us.UserId.Equals(userId)) && x.DeletedTime == null)
+                .Where(x => x.ProjectId.Equals(projectId) 
+                && x.UserContracts.Any(us => us.UserId.Equals(userId))
+                && x.DeletedTime == null)
                 .OrderByDescending(x => x.LastUpdatedTime);
             return query;
         }

@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using StartedIn.CrossCutting.Constants;
+using StartedIn.CrossCutting.DTOs.RequestDTO.Appointment;
 using StartedIn.CrossCutting.DTOs.RequestDTO.TerminationRequest;
 using StartedIn.CrossCutting.DTOs.ResponseDTO.TerminationRequest;
 using StartedIn.CrossCutting.Exceptions;
@@ -100,12 +101,12 @@ namespace StartedIn.API.Controllers
 
         [HttpPut("termination-requests/{requestId}/accept")]
         [Authorize(Roles = RoleConstants.USER)]
-        public async Task<IActionResult> AcceptTermationRequest([FromRoute] string projectId, [FromRoute] string requestId)
+        public async Task<IActionResult> AcceptTermationRequest([FromRoute] string projectId, [FromRoute] string requestId, [FromBody] TerminationMeetingCreateDTO terminationMeetingCreateDTO)
         {
             try
             {
                 var userId = User.FindFirst(ClaimTypes.NameIdentifier).Value;
-                await _terminationRequestService.AcceptTerminationRequest(userId, projectId, requestId);
+                await _terminationRequestService.AcceptTerminationRequest(userId, projectId, requestId, terminationMeetingCreateDTO);
                 return Ok("Chấp nhận yêu cầu thành công");
             }
             catch (NotFoundException ex)
