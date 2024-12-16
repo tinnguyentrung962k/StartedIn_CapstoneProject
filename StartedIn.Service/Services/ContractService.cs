@@ -809,7 +809,8 @@ namespace StartedIn.Service.Services
                     StartDate = d.StartDate,
                     EndDate = d.EndDate,
                     Title = d.Title
-                }).ToList()
+                }).ToList(),
+                ValidDate = contract.ValidDate
 
             }).ToList();
 
