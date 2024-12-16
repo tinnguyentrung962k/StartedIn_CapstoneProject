@@ -1351,6 +1351,7 @@ namespace StartedIn.Service.Services
                     ContractIdNumber = contractIdNumberGen,
                     ParentContractId = terminatedContract.Id,
                     ParentContract = terminatedContract.ParentContract,
+                    ValidDate = DateOnly.FromDateTime(DateTimeOffset.UtcNow.Date)
                 };
 
                 List<UserContract> usersInLiquidationNote = new List<UserContract>();
