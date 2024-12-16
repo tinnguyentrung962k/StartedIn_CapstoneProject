@@ -26,7 +26,11 @@ namespace StartedIn.CrossCutting.DTOs.RequestDTO.Auth
         [Required(ErrorMessage = "Vui lòng chọn vai trò")]
         public string? Role { get; set; }
         public string? StudentCode { get; set; }
+
+        [Required(ErrorMessage = "Vui lòng nhập địa chỉ")]
         public string? Address { get; set; }
+
+        [Required(ErrorMessage = "Vui lòng nhập CMND/CCCD")]
         public string? IdCardNumber { get; set; }
         public string? AcademicYear { get; set; }
 

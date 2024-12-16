@@ -109,14 +109,14 @@ namespace StartedIn.Service.Services
             {
                 throw new InvalidOperationException(MessageConstant.DisbursementGreaterThanBuyPriceError);
             }
+            var investor = await _userManager.FindByIdAsync(investmentContractCreateDTO.InvestorInfo.UserId);
+            if (investor == null)
+            {
+                throw new NotFoundException(MessageConstant.NotFoundInvestorError);
+            }
             try
             {
                 _unitOfWork.BeginTransaction();
-                var investor = await _userManager.FindByIdAsync(investmentContractCreateDTO.InvestorInfo.UserId);
-                if (investor == null)
-                {
-                    throw new NotFoundException(MessageConstant.NotFoundInvestorError);
-                }
                 string prefix = "HDDT";
                 string currentDateTime = DateTimeOffset.UtcNow.ToString("ddMMyyyyHHmm");
                 string contractIdNumberGen = $"{prefix}-{currentDateTime}";
