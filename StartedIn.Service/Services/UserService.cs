@@ -39,7 +39,7 @@ namespace StartedIn.Service.Services
             IConfiguration configuration, IEmailService emailService,
             ILogger<UserService> logger, IHttpContextAccessor httpContextAccessor,
             RoleManager<Role> roleManager,
-            IProjectRepository projectRepository,IContractRepository contractRepository,
+            IProjectRepository projectRepository, IContractRepository contractRepository,
             IUserRepository userRepository,
             IMapper mapper
         )
@@ -182,6 +182,7 @@ namespace StartedIn.Service.Services
             user.Verified = DateTimeOffset.UtcNow;
             await _userManager.UpdateAsync(user);
         }
+
         public async Task<User> GetUserByUserName(string name)
         {
             var user = await _userManager.FindByNameAsync(name);
@@ -229,15 +230,15 @@ namespace StartedIn.Service.Services
             return user;
         }
 
-        public async Task<PaginationDTO<FullProfileDTO>> GetUsersListForAdmin(UserAdminFilterDTO userAdminFilterDTO,int page, int size)
+        public async Task<PaginationDTO<FullProfileDTO>> GetUsersListForAdmin(UserAdminFilterDTO userAdminFilterDTO, int page, int size)
         {
             var userListQuery = _userRepository.GetUsersInTheSystemQuery()
-                .Where(x => x.UserRoles.Any(u=>u.RoleId != "role_admin"));
+                .Where(x => x.UserRoles.Any(u => u.RoleId != "role_admin"));
             if (!string.IsNullOrWhiteSpace(userAdminFilterDTO.FullName))
             {
                 userListQuery = userListQuery.Where(x => x.FullName.ToLower().Contains(userAdminFilterDTO.FullName.ToLower()));
             }
-            if(!string.IsNullOrWhiteSpace(userAdminFilterDTO.Email))
+            if (!string.IsNullOrWhiteSpace(userAdminFilterDTO.Email))
             {
                 userListQuery = userListQuery.Where(x => x.Email.ToLower().Contains(userAdminFilterDTO.Email.ToLower()));
             }
@@ -270,6 +271,7 @@ namespace StartedIn.Service.Services
             };
             return pagination;
         }
+
         public async Task ImportUsersFromExcel(IFormFile file)
         {
             // Check if file is valid
@@ -380,6 +382,7 @@ namespace StartedIn.Service.Services
                 throw;
             }
         }
+
         private string GenerateRandomPassword(int length)
         {
             const string chars = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890!@#$%^&*";
@@ -426,6 +429,22 @@ namespace StartedIn.Service.Services
                 }
             }
         }
+
+        public async Task<ICollection<UserProject>> GetProjectsByUserId(string userId)
+        {
+            var user = await _userManager.Users
+                .Include(u => u.UserProjects)
+                .ThenInclude(up => up.Project)
+                .FirstOrDefaultAsync(u => u.Id == userId);
+
+            if (user is null)
+            {
+                throw new NotFoundException(MessageConstant.NotFoundUserError);
+            }
+
+            return user.UserProjects;
+        }
+
         public async Task<UserProject> CheckIfUserInProject(string userId, string projectId)
         {
             var user = await _userManager.Users

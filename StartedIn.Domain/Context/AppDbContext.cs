@@ -58,6 +58,8 @@ namespace StartedIn.Domain.Context
         public DbSet<LeavingRequest> LeavingRequests { get; set; }
         public DbSet<AppSetting> AppSettings { get; set; }
         public DbSet<TerminationRequest> TerminationRequests { get; set; }
+        public DbSet<TransferLeaderRequest> TransferLeaderRequests { get; set; }
+
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);
@@ -159,6 +161,9 @@ namespace StartedIn.Domain.Context
 
             modelBuilder.Entity<TerminationRequest>()
                 .ToTable("TerminationRequest");
+
+            modelBuilder.Entity<TransferLeaderRequest>()
+                .ToTable("TransferLeaderRequest");
 
             modelBuilder.Entity<LeavingRequest>()
             .Property(u => u.Status)

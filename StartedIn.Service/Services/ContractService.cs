@@ -612,6 +612,10 @@ namespace StartedIn.Service.Services
             {
                 throw new NotFoundException(MessageConstant.NotFoundContractError);
             }
+            if (chosenContract.ContractStatus == ContractStatusEnum.CANCELLED)
+            {
+                throw new UpdateException(MessageConstant.ThisContractHasBeenCancelled);
+            }
             if (projectId != chosenContract.ProjectId)
             {
                 throw new UnmatchedException(MessageConstant.ContractNotBelongToProjectError);
@@ -660,6 +664,10 @@ namespace StartedIn.Service.Services
             if (chosenContract == null)
             {
                 throw new NotFoundException(MessageConstant.NotFoundContractError);
+            }
+            if (chosenContract.ContractStatus == ContractStatusEnum.CANCELLED)
+            {
+                throw new UpdateException(MessageConstant.ThisContractHasBeenCancelled);
             }
             if (projectId != chosenContract.ProjectId)
             {

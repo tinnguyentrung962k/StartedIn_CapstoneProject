@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using StartedIn.Domain.Context;
@@ -11,9 +12,11 @@ using StartedIn.Domain.Context;
 namespace StartedIn.Domain.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20241216144931_12-16-2024_Migration_09PM48")]
+    partial class _12162024_Migration_09PM48
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -1497,6 +1500,7 @@ namespace StartedIn.Domain.Migrations
                         .HasColumnType("text");
 
                     b.Property<string>("AppointmentId")
+                        .IsRequired()
                         .HasColumnType("text");
 
                     b.Property<string>("ContractId")
@@ -1633,7 +1637,7 @@ namespace StartedIn.Domain.Migrations
                         .IsRequired()
                         .HasColumnType("text");
 
-                    b.Property<bool?>("IsAgreed")
+                    b.Property<bool>("IsAgreed")
                         .HasColumnType("boolean");
 
                     b.Property<string>("LastUpdatedBy")
@@ -2272,7 +2276,9 @@ namespace StartedIn.Domain.Migrations
                 {
                     b.HasOne("StartedIn.Domain.Entities.Appointment", "Appointment")
                         .WithMany()
-                        .HasForeignKey("AppointmentId");
+                        .HasForeignKey("AppointmentId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
 
                     b.HasOne("StartedIn.Domain.Entities.Contract", "Contract")
                         .WithMany("TerminationRequests")

@@ -3,6 +3,7 @@ using AutoMapper;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using StartedIn.API.Hubs;
 using StartedIn.CrossCutting.Constants;
 using StartedIn.CrossCutting.DTOs.RequestDTO.Tasks;
 using StartedIn.CrossCutting.DTOs.ResponseDTO;
@@ -20,12 +21,14 @@ namespace StartedIn.API.Controllers
         private readonly IMapper _mapper;
         private readonly ILogger<TaskController> _logger;
         private readonly ITaskService _taskService;
+        private readonly ProjectHub _projectHub;
 
-        public TaskController(IMapper mapper, ILogger<TaskController> logger, ITaskService taskService)
+        public TaskController(IMapper mapper, ILogger<TaskController> logger, ITaskService taskService, ProjectHub projectHub)
         {
             _taskService = taskService;
             _mapper = mapper;
             _logger = logger;
+            _projectHub = projectHub;
         }
 
         [HttpPost]
@@ -115,6 +118,12 @@ namespace StartedIn.API.Controllers
             {
                 var userId = User.FindFirst(ClaimTypes.NameIdentifier).Value;
                 var responseTask = _mapper.Map<TaskResponseDTO>(await _taskService.UpdateTaskInfo(userId, taskId, projectId, updateTaskInfoDTO));
+                var payload = new PayloadDTO<TaskResponseDTO>
+                {
+                    Data = responseTask,
+                    Action = PayloadActionConstant.Update
+                };
+                await _projectHub.SendTaskDataToUsersInProject(projectId, payload);
                 return Ok(responseTask);
             }
             catch (UnauthorizedProjectRoleException ex)

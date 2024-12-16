@@ -13,6 +13,7 @@ namespace StartedIn.Domain.Entities
         public string UserId { get; set; }
         public DateTimeOffset? SignedDate { get; set; }
         public bool IsReject { get; set; }
+        public string? TransferToId { get; set; }
         public virtual Contract Contract { get; set; }
         public virtual User User { get; set; }
     }
