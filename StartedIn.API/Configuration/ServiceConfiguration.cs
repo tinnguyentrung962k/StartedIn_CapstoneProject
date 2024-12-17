@@ -41,6 +41,7 @@ namespace StartedIn.API.Configuration
             services.AddScoped<IGoogleMeetService, GoogleMeetService>();
             services.AddScoped<IMeetingNoteService, MeetingNoteService>();
             services.AddScoped<ITransferLeaderRequestService, TransferLeaderRequestService>();
+            services.AddScoped<IApplicationFileService, ApplicationFileService>();
             return services;
         }
     }

@@ -9,6 +9,6 @@ namespace StartedIn.CrossCutting.DTOs.ResponseDTO.RecruitInvite
 {
     public class ApplyRecruitmentDTO
     {
-        public IFormFile cvFile { get; set; }
+        public List<IFormFile> cvFiles { get; set; }
     }
 }

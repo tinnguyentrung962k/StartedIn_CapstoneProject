@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using StartedIn.Domain.Context;
@@ -11,9 +12,11 @@ using StartedIn.Domain.Context;
 namespace StartedIn.Domain.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20241217155908_12-17-2024_Migration_2258PM")]
+    partial class _12172024_Migration_2258PM
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -183,7 +186,7 @@ namespace StartedIn.Domain.Migrations
                     b.ToTable("Application", (string)null);
                 });
 
-            modelBuilder.Entity("StartedIn.Domain.Entities.ApplicationFile", b =>
+            modelBuilder.Entity("StartedIn.Domain.Entities.ApplicationFiles", b =>
                 {
                     b.Property<string>("Id")
                         .ValueGeneratedOnAdd()
@@ -1954,7 +1957,7 @@ namespace StartedIn.Domain.Migrations
                     b.Navigation("Recruitment");
                 });
 
-            modelBuilder.Entity("StartedIn.Domain.Entities.ApplicationFile", b =>
+            modelBuilder.Entity("StartedIn.Domain.Entities.ApplicationFiles", b =>
                 {
                     b.HasOne("StartedIn.Domain.Entities.Application", "Application")
                         .WithMany("ApplicationFiles")
