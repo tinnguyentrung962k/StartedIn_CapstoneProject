@@ -37,6 +37,7 @@ namespace StartedIn.API.Configuration
             services.AddScoped<ITerminationRequestRepository, TerminationRequestRepository>();
             services.AddScoped<IMeetingNoteRepository, MeetingNoteRepository>();
             services.AddScoped<ITransferLeaderRequestRepository, TransferLeaderRequestRepository>();
+            services.AddScoped<IApplicationFileRepository, ApplicationFileRepository>();
             return services;
         }
     }

@@ -18,7 +18,7 @@ namespace StartedIn.Service.Services.Interface
         Task AddUserToProject(string projectId, string userId, RoleInTeam roleInTeam);
         Task<ProjectInviteOverviewDTO> GetProjectInviteOverview(string projectId);
         Task AcceptProjectInvitation(string userId, string projectId, AcceptInviteDTO acceptInviteDTO);
-        Task<Application> ApplyRecruitment(string userId, string projectId, string recruitmentId, IFormFile file);
+        Task<Application> ApplyRecruitment(string userId, string projectId, string recruitmentId, List<IFormFile> files);
 
         //TODO: make it pagination someday
         Task<IEnumerable<Application>> GetApplicationsOfProject(string userId, string projectId);

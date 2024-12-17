@@ -22,9 +22,9 @@ namespace StartedIn.Domain.Entities
         public ApplicationStatus Status { get; set; }
         public ApplicationTypeEnum Type { get; set; }
         public RoleInTeam Role { get; set; }
-        public string? CVUrl { get; set; }
         public User Candidate { get; set; }
         public Recruitment? Recruitment { get; set; }
         public Project Project { get; set; }
+        public ICollection<ApplicationFile> ApplicationFiles { get; set; }
     }
 }

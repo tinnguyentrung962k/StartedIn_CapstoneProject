@@ -16,6 +16,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using StartedIn.Repository.Repositories;
 
 namespace StartedIn.Service.Services
 {
@@ -30,6 +31,7 @@ namespace StartedIn.Service.Services
         private readonly IUserService _userService;
         private readonly IMapper _mapper;
         private readonly IUnitOfWork _unitOfWork;
+        private readonly IApplicationFileRepository _applicationFileRepository;
 
         public RecruitInviteService(
             IProjectRepository projectRepository,
@@ -40,7 +42,8 @@ namespace StartedIn.Service.Services
             IUserService userService,
             IUnitOfWork unitOfWork,
             IMapper mapper,
-            IApplicationRepository applicationRepository)
+            IApplicationRepository applicationRepository,
+            IApplicationFileRepository applicationFileRepository)
         {
             _projectRepository = projectRepository;
             _emailService = emailService;
@@ -51,6 +54,7 @@ namespace StartedIn.Service.Services
             _unitOfWork = unitOfWork;
             _mapper = mapper;
             _applicationRepository = applicationRepository;
+            _applicationFileRepository = applicationFileRepository;
         }
 
         public async Task SendJoinProjectInvitation(string userId, List<string> inviteUserEmails, string projectId)
@@ -273,7 +277,7 @@ namespace StartedIn.Service.Services
             }
         }
 
-        public async Task<Application> ApplyRecruitment(string userId, string projectId, string recruitmentId, IFormFile file)
+        public async Task<Application> ApplyRecruitment(string userId, string projectId, string recruitmentId, List<IFormFile> files)
         {
             var existedApplication = await _applicationRepository.QueryHelper()
                 .Filter(x => x.CandidateId.Equals(userId)
@@ -301,8 +305,6 @@ namespace StartedIn.Service.Services
 
             try
             {
-                // Upload CV to get the URL string
-                var cvUrl = await _azureBlobService.UploadCVFileApplication(file);
                 var application = new Application
                 {
                     CandidateId = userId,
@@ -311,11 +313,21 @@ namespace StartedIn.Service.Services
                     Status = ApplicationStatus.PENDING,
                     Type = ApplicationTypeEnum.APPLY,
                     Role = RoleInTeam.Member,
-                    CVUrl = cvUrl,
                     CreatedTime = DateTimeOffset.Now
                 };
-
                 _applicationRepository.Add(application);
+                foreach (var file in files)
+                {
+                    // Upload CV to get the URL string
+                    var url = await _azureBlobService.UploadCVFileApplication(file);
+                    var applicationFile = new ApplicationFile
+                    {
+                        ApplicationId = application.Id,
+                        FileName = file.FileName,
+                        FileUrl = url
+                    };
+                    _applicationFileRepository.Add(applicationFile);
+                }
                 await _unitOfWork.SaveChangesAsync();
                 return application;
             }
@@ -373,7 +385,8 @@ namespace StartedIn.Service.Services
                 _applicationRepository.Update(application);
 
                 await _userRepository.AddUserToProject(application.CandidateId, projectId, application.Role);
-
+                await CancelExistingApplicationsOnceUserJoinAProject(userId);
+                
                 await _unitOfWork.CommitAsync();
                 await _unitOfWork.SaveChangesAsync();
             }
@@ -409,6 +422,7 @@ namespace StartedIn.Service.Services
             {
                 _unitOfWork.BeginTransaction();
                 application.Status = ApplicationStatus.REJECTED;
+                application.LastUpdatedTime = DateTimeOffset.Now;
                 _applicationRepository.Update(application);
 
                 await _unitOfWork.CommitAsync();
@@ -418,6 +432,22 @@ namespace StartedIn.Service.Services
             {
                 await _unitOfWork.RollbackAsync();
                 throw new Exception(ex.Message);
+            }
+        }
+
+        private async Task CancelExistingApplicationsOnceUserJoinAProject(string userId)
+        {
+            var query = _applicationRepository.QueryHelper();
+            var userApplications = await query.Filter(a => a.CandidateId.Equals(userId)).GetAllAsync();
+            var acceptedApplication = await query.Filter(a => a.CandidateId.Equals(userId) && a.Status == ApplicationStatus.ACCEPTED).GetOneAsync();
+            if (acceptedApplication != null)
+            {
+                foreach (var application in userApplications)
+                {
+                    application.Status = ApplicationStatus.CANCELED;
+                    _applicationRepository.Update(application);
+                    await _unitOfWork.SaveChangesAsync();
+                }
             }
         }
     }
