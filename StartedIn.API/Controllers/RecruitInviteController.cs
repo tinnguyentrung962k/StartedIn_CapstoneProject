@@ -148,7 +148,7 @@ namespace StartedIn.API.Controllers
             try
             {
                 var userId = User.FindFirst(ClaimTypes.NameIdentifier).Value;
-                await _recruitInviteService.ApplyRecruitment(userId, projectId, recruitmentId, applyRecruitmentDTO.cvFile);
+                await _recruitInviteService.ApplyRecruitment(userId, projectId, recruitmentId, applyRecruitmentDTO.cvFiles);
                 return Ok("Ứng tuyển thành công!");
             }
             catch (NotFoundException ex)
