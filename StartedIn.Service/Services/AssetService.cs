@@ -212,6 +212,11 @@ namespace StartedIn.Service.Services
             {
                 throw new InvalidDataException(MessageConstant.RemainingAmountOfAssetNotGreaterThanInitial);
             }
+            var oldRemainQuantity = chosenAsset.RemainQuantity;
+            if (oldRemainQuantity < assetUpdateDTO.RemainQuantity)
+            {
+                throw new InvalidDataException(MessageConstant.OldRemainingQuantityMustBeGreaterThanNewRemainQuantity);
+            }
             try
             {
                 _unitOfWork.BeginTransaction();
