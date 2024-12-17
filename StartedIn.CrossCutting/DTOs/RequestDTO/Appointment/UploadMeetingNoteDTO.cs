@@ -4,5 +4,5 @@ namespace StartedIn.CrossCutting.DTOs.RequestDTO.Appointment;
 
 public class UploadMeetingNoteDTO
 {
-    public IFormFile Note { get; set; }
+    public List<IFormFile> Notes { get; set; }
 }
