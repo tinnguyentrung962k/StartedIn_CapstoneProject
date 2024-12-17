@@ -1159,10 +1159,9 @@ namespace StartedIn.Service.Services
             var chosenContract = await _contractRepository.GetContractById(contractId);
 
             // Kiểm tra nếu hợp đồng đã hết hạn hoặc đang chờ thanh lý
-            if (chosenContract.ContractStatus == ContractStatusEnum.EXPIRED ||
-                chosenContract.ContractStatus != ContractStatusEnum.WAITINGFORLIQUIDATION)
+            if (chosenContract.ContractStatus != ContractStatusEnum.WAITINGFORLIQUIDATION)
             {
-                throw new InvalidDataException(MessageConstant.CannotCancelContractError);
+                throw new InvalidDataException(MessageConstant.ThisContractIsNotInLiquidatedState);
             }
 
             if (chosenContract.ContractType == ContractTypeEnum.LIQUIDATIONNOTE)
@@ -1410,11 +1409,9 @@ namespace StartedIn.Service.Services
                 throw new UnmatchedException(MessageConstant.ContractNotBelongToProjectError);
             }
 
-            // Kiểm tra nếu hợp đồng đã hết hạn hoặc đang chờ thanh lý
-            if (terminatedContract.ContractStatus == ContractStatusEnum.EXPIRED ||
-                terminatedContract.ContractStatus != ContractStatusEnum.WAITINGFORLIQUIDATION)
+            if (terminatedContract.ContractStatus != ContractStatusEnum.WAITINGFORLIQUIDATION)
             {
-                throw new InvalidDataException(MessageConstant.CannotCancelContractError);
+                throw new InvalidDataException(MessageConstant.ThisContractIsNotInLiquidatedState);
             }
 
             if (terminatedContract.ContractType == ContractTypeEnum.LIQUIDATIONNOTE)
@@ -1534,6 +1531,98 @@ namespace StartedIn.Service.Services
             catch (Exception ex)
             {
                 _logger.LogError($"Lỗi xảy ra khi xử lý hết hạn hợp đồng: {ex.Message}");
+                await _unitOfWork.RollbackAsync();
+                throw;
+            }
+        }
+
+        public async Task CancelLiquidationAfterMeeting(string userId, string projectId, string contractId)
+        {
+            var userInProject = await _userService.CheckIfUserInProject(userId, projectId);
+            if (userInProject.RoleInTeam != RoleInTeam.Leader)
+            {
+                throw new UnauthorizedProjectRoleException(MessageConstant.RolePermissionError);
+            }
+            var terminatedContract = await _contractRepository.GetContractById(contractId);
+            if (terminatedContract.ProjectId != projectId)
+            {
+                throw new UnmatchedException(MessageConstant.ContractNotBelongToProjectError);
+            }
+            var userInContract = await _userService.CheckIfUserBelongToContract(userId, contractId);
+            if (terminatedContract.ProjectId != projectId)
+            {
+                throw new UnmatchedException(MessageConstant.ContractNotBelongToProjectError);
+            }
+
+            if (terminatedContract.ContractStatus != ContractStatusEnum.WAITINGFORLIQUIDATION)
+            {
+                throw new InvalidDataException(MessageConstant.ThisContractIsNotInLiquidatedState);
+            }
+
+            if (terminatedContract.ContractType == ContractTypeEnum.LIQUIDATIONNOTE)
+            {
+                throw new InvalidDataException(MessageConstant.CannotCancelContractError);
+            }
+
+            if (terminatedContract.CurrentTerminationRequestId != null)
+            {
+                var request = await _terminationRequestRepository.GetOneAsync(terminatedContract.CurrentTerminationRequestId);
+                if (request.IsAgreed != true)
+                {
+                    throw new InvalidDataException(MessageConstant.CannotCancelContractError);
+                }
+                if (request.AppointmentId == null)
+                {
+                    throw new InvalidDataException(MessageConstant.MeetingNotFound);
+                }
+                var appointment = await _appointmentRepository.QueryHelper()
+                .Include(x => x.MeetingNotes)
+                .Filter(x => x.Id.Equals(request.AppointmentId) && x.Status == MeetingStatus.Finished)
+                .GetOneAsync();
+                if (appointment == null)
+                {
+                    throw new InvalidDataException(MessageConstant.MeetingIsNotFinished);
+                }
+                if (appointment.MeetingNotes == null)
+                {
+                    throw new InvalidDataException(MessageConstant.NotFoundMeetingNote);
+                }
+            }
+
+            else 
+            {
+                var appointment = await _appointmentRepository.QueryHelper()
+                .Include(x => x.MeetingNotes)
+                .Filter(x => x.Id.Equals(terminatedContract.TerminationMeetingId))
+                .GetOneAsync();
+                if (appointment == null)
+                {
+                    throw new InvalidDataException(MessageConstant.MeetingNotFound);
+                }
+                if (appointment.Status != MeetingStatus.Finished)
+                {
+                    throw new InvalidDataException(MessageConstant.MeetingIsNotFinished);
+                }
+                if (appointment.MeetingNotes == null)
+                {
+                    throw new InvalidDataException(MessageConstant.NotFoundMeetingNote);
+                }
+            }
+
+            try
+            {
+                _unitOfWork.BeginTransaction();
+                var project = await _projectRepository.GetProjectById(projectId);
+                terminatedContract.ExpiredDate = DateOnly.FromDateTime(DateTimeOffset.UtcNow.Date);
+                terminatedContract.ContractStatus = ContractStatusEnum.COMPLETED;
+                terminatedContract.LastUpdatedTime = DateTimeOffset.UtcNow;
+                terminatedContract.LastUpdatedBy = userInProject.User.FullName;
+                _contractRepository.Update(terminatedContract);
+                await _unitOfWork.SaveChangesAsync();
+                await _unitOfWork.CommitAsync();
+            }
+            catch (Exception ex) {
+                _logger.LogError(ex, MessageConstant.UpdateFailed);
                 await _unitOfWork.RollbackAsync();
                 throw;
             }

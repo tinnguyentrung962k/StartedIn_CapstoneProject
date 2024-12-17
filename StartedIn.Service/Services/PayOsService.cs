@@ -126,9 +126,12 @@ namespace StartedIn.Service.Services
                 await _unitOfWork.CommitAsync();
                 return paymentResultResponseDTO.CreatedPaymentResult.CheckoutUrl;
             }
-            catch (Exception ex) {
-                _logger.LogError("Error while creating payment link:", ex.Message);
-                await _unitOfWork.RollbackAsync();
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error while creating transaction.");
+                disbursement.DisbursementStatus = DisbursementStatusEnum.ERROR; // Update status only if there is an error
+                await _unitOfWork.CommitAsync();
+                await _unitOfWork.SaveChangesAsync();
                 throw;
             }
         }

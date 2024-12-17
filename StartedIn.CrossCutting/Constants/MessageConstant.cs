@@ -124,5 +124,6 @@ namespace StartedIn.CrossCutting.Constants
         public const string CancelAppointment = "Đã huỷ cuộc họp";
         public const string InvalidLink = "Hãy nhập một đường dẫn Google Meet hợp lệ.";
         public const string MeetingIsNotFinished = "Cuộc họp huỷ hợp đồng chưa hoàn thành";
+        public const string ThisContractIsNotInLiquidatedState = "Hợp đồng này không ở trong trạng thái chờ thanh lý";
     }
 }

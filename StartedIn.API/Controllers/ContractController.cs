@@ -124,10 +124,7 @@ namespace StartedIn.API.Controllers
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error while creating contract");
-
                 return StatusCode(500, MessageConstant.InternalServerError);
-
             }
         }
 
@@ -155,13 +152,37 @@ namespace StartedIn.API.Controllers
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error while creating contract");
-
                 return StatusCode(500, MessageConstant.InternalServerError);
-
             }
         }
 
+        [HttpPut("contracts/{contractId}/liquidation-cancel")]
+        [Authorize(Roles = RoleConstants.USER)]
+        public async Task<IActionResult> CancelLiquidationOfAContract([FromRoute] string projectId, [FromRoute] string contractId)
+        {
+            try
+            {
+                var userId = User.FindFirst(ClaimTypes.NameIdentifier).Value;
+                await _contractService.CancelLiquidationAfterMeeting(userId,projectId,contractId);
+                return Ok("Huỷ thanh lý thành công");
+            }
+            catch (UnauthorizedProjectRoleException ex)
+            {
+                return StatusCode(403, ex.Message);
+            }
+            catch (InvalidDataException ex)
+            {
+                return BadRequest(ex.Message);
+            }
+            catch (UnmatchedException ex)
+            {
+                return BadRequest(ex.Message);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, MessageConstant.InternalServerError);
+            }
+        }
 
         [HttpPost("investment-contracts/from-deal")]
         [Authorize(Roles = RoleConstants.USER)]
