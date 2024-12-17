@@ -311,7 +311,6 @@ namespace StartedIn.Service.Services
                     Status = ApplicationStatus.PENDING,
                     Type = ApplicationTypeEnum.APPLY,
                     Role = RoleInTeam.Member,
-                    CVUrl = cvUrl,
                     CreatedTime = DateTimeOffset.Now
                 };
 
@@ -409,6 +408,7 @@ namespace StartedIn.Service.Services
             {
                 _unitOfWork.BeginTransaction();
                 application.Status = ApplicationStatus.REJECTED;
+                application.LastUpdatedTime = DateTimeOffset.Now;
                 _applicationRepository.Update(application);
 
                 await _unitOfWork.CommitAsync();

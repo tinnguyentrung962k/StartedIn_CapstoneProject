@@ -59,6 +59,7 @@ namespace StartedIn.Domain.Context
         public DbSet<AppSetting> AppSettings { get; set; }
         public DbSet<TerminationRequest> TerminationRequests { get; set; }
         public DbSet<TransferLeaderRequest> TransferLeaderRequests { get; set; }
+        public DbSet<ApplicationFile> ApplicationFiles { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {

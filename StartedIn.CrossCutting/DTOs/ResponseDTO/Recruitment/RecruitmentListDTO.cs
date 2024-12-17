@@ -13,4 +13,6 @@ public class RecruitmentListDTO : IdentityResponseDTO
     public string LeaderName { get; set; }
     public string LeaderAvatarUrl { get; set; }
     public string LogoUrl { get; set; }
+    public DateTimeOffset CreatedTime { get; set; }
+    public DateTimeOffset LastUpdatedTime { get; set; }
 }
