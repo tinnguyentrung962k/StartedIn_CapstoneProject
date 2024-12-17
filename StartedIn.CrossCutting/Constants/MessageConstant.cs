@@ -128,7 +128,7 @@ namespace StartedIn.CrossCutting.Constants
         public const string OldRemainingQuantityMustBeGreaterThanNewRemainQuantity = "Số lượng tồn kho sau khi cập nhật phải nhỏ hơn hoặc bằng số lượng ban đầu";
         public const string NoTransferRequestWasFound = "Không có yêu cầu chuyển nhóm trưởng nào được gửi.";
         public const string ExistingTransferLeaderRequestWasFound = "Bạn có yêu cầu chuyển nhóm trưởng chưa được xử lý.";
-        public const string InternalContractExisted = ""
+        public const string InternalContractExisted = "Hợp đồng nội bộ đã có trong dự án";
 
     }
 }
