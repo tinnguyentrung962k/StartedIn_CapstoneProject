@@ -20,6 +20,7 @@ using Microsoft.AspNetCore.Http;
 using StartedIn.CrossCutting.DTOs.RequestDTO.Appointment;
 using Azure.Core;
 using DocumentFormat.OpenXml.Office2016.Excel;
+using CrossCutting.Exceptions;
 
 namespace StartedIn.Service.Services
 {
@@ -224,6 +225,16 @@ namespace StartedIn.Service.Services
             if (projectRole != RoleInTeam.Leader)
             {
                 throw new UnauthorizedProjectRoleException(MessageConstant.RolePermissionError);
+            }
+            var existingContract = await _contractRepository.QueryHelper()
+                .Filter(x=>x.ContractType == ContractTypeEnum.INTERNAL 
+                && x.ProjectId.Equals(projectId)
+                && (x.ContractStatus == ContractStatusEnum.COMPLETED 
+                || x.ContractStatus == ContractStatusEnum.WAITINGFORLIQUIDATION
+                || x.ContractStatus == ContractStatusEnum.SENT)).GetOneAsync();
+            if (existingContract != null)
+            {
+                throw new ExistedRecordException(MessageConstant.InternalContractExisted);
             }
             if (groupContractCreateDTO.ShareEquitiesOfMembers == null)
             {
