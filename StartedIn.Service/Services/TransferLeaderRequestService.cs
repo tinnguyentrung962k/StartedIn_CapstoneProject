@@ -24,6 +24,8 @@ namespace StartedIn.Service.Services
         private readonly ILogger<TransferLeaderRequest> _logger;
         private readonly UserManager<User> _userManager;
         private readonly IUserRepository _userRepository;
+        private readonly IProjectRepository _projectRepository;
+        private readonly IEmailService _emailService;
 
         public TransferLeaderRequestService(
             IUnitOfWork unitOfWork, 
@@ -32,7 +34,9 @@ namespace StartedIn.Service.Services
             IAppointmentRepository appointmentRepository,
             ILogger<TransferLeaderRequest> logger,
             UserManager<User> userManager,
-            IUserRepository userRepository
+            IUserRepository userRepository,
+            IProjectRepository projectRepository,
+            IEmailService emailService
             )
         {
             _unitOfWork = unitOfWork;
@@ -42,6 +46,8 @@ namespace StartedIn.Service.Services
             _logger = logger;
             _userManager = userManager;
             _userRepository = userRepository;
+            _projectRepository = projectRepository;
+            _emailService = emailService;
         }
 
         public async Task CreateLeaderTransferRequestInAProject(string userId, string projectId, TerminationMeetingCreateDTO terminationMeetingCreateDTO)
@@ -74,6 +80,8 @@ namespace StartedIn.Service.Services
                     Title = terminationMeetingCreateDTO.Title
                 };
                 var transferAppointment = _appointmentRepository.Add(appointment);
+                var project = await _projectRepository.GetProjectAndMemberByProjectId(projectId);
+
                 TransferLeaderRequest transferLeaderRequest = new TransferLeaderRequest
                 {
                     CreatedBy = userInProject.User.FullName,
@@ -85,6 +93,12 @@ namespace StartedIn.Service.Services
                     AppointmentId = transferAppointment.Id
                 };
                 var newTransferRequest = _transferLeaderRequestRepository.Add(transferLeaderRequest);
+
+                foreach (var activeUserInProject in project.UserProjects.Where(x => x.RoleInTeam == CrossCutting.Enum.RoleInTeam.Member || x.RoleInTeam == CrossCutting.Enum.RoleInTeam.Mentor))
+                {
+                    var user = await _userManager.FindByIdAsync(activeUserInProject.UserId);
+                    await _emailService.SendAppointmentInvite(user.Email, project.ProjectName, user.FullName, transferAppointment.MeetingLink, transferAppointment.AppointmentTime.AddHours(7));
+                }
                 await _unitOfWork.SaveChangesAsync();
                 await _unitOfWork.CommitAsync();
             }
@@ -122,7 +136,11 @@ namespace StartedIn.Service.Services
             {
                 throw new NotFoundException(MessageConstant.NotFoundUserError);
             }
-
+            var newAssignedLeaderInProject = await _userService.CheckIfUserInProject(newLeaderId, projectId);
+            if (newAssignedLeaderInProject.RoleInTeam != CrossCutting.Enum.RoleInTeam.Member)
+            {
+                throw new InvalidAssignRoleException(MessageConstant.CannotTransferLeaderRoleForNotMember);
+            }
             try
             {
                 _unitOfWork.BeginTransaction();
@@ -130,17 +148,17 @@ namespace StartedIn.Service.Services
                 transferRequest.NewLeaderId = newLeaderId;
                 transferRequest.LastUpdatedBy = userInProject.User.FullName;
                 transferRequest.LastUpdatedTime = DateTimeOffset.UtcNow;
-                transferRequest.TransferDate = DateOnly.FromDateTime(DateTime.UtcNow);
+                transferRequest.TransferDate = DateOnly.FromDateTime(DateTimeOffset.UtcNow.AddHours(7).Date);
                 transferRequest.IsAgreed = true;
 
                 _transferLeaderRequestRepository.Update(transferRequest);
 
-                var newLeaderInProject = await _userService.CheckIfUserInProject(newLeaderId, projectId);
 
-                newLeaderInProject.RoleInTeam = CrossCutting.Enum.RoleInTeam.Leader;
+
+                newAssignedLeaderInProject.RoleInTeam = CrossCutting.Enum.RoleInTeam.Leader;
                 userInProject.RoleInTeam = CrossCutting.Enum.RoleInTeam.Member;
 
-                _userRepository.UpdateUserInProject(newLeaderInProject);
+                _userRepository.UpdateUserInProject(newAssignedLeaderInProject);
                 _userRepository.UpdateUserInProject(userInProject);
 
                 await _unitOfWork.SaveChangesAsync();
