@@ -25,14 +25,14 @@ public class MeetingNoteController : ControllerBase
     
     [HttpPost("appointments/{appointmentId}/meeting-note")]
     [Authorize(Roles = RoleConstants.USER)]
-    public async Task<ActionResult<MeetingNoteResponseDTO>> UploadMeetingNote([FromRoute] string projectId, string appointmentId, [FromForm] UploadMeetingNoteDTO uploadMeetingNoteDto)
+    public async Task<ActionResult<List<MeetingNoteResponseDTO>>> UploadMeetingNote([FromRoute] string projectId, string appointmentId, [FromForm] UploadMeetingNoteDTO uploadMeetingNoteDto)
     {
         try 
         {
             var userId = User.FindFirst(ClaimTypes.NameIdentifier).Value;
-            var meetingNote = await _meetingNoteService.UploadMeetingNote(userId, projectId, appointmentId, uploadMeetingNoteDto);
-            var response = _mapper.Map<MeetingNoteResponseDTO>(meetingNote);
-            return CreatedAtAction(nameof(GetMeetingNoteById), new { projectId, appointmentId, meetingNoteId = response.Id }, response);
+            var meetingNotes = await _meetingNoteService.UploadMeetingNote(userId, projectId, appointmentId, uploadMeetingNoteDto);
+            var response = _mapper.Map<List<MeetingNoteResponseDTO>>(meetingNotes);
+            return StatusCode(201, response);
         }
         catch (NotFoundException ex)
         {
