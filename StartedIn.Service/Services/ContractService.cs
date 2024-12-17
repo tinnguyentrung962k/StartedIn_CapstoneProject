@@ -844,6 +844,8 @@ namespace StartedIn.Service.Services
                 LastUpdatedTime = contract.LastUpdatedTime,
                 LiquidationNoteId = contract.LiquidationNoteId,
                 ParentContractId = contract.ParentContractId,
+                CurrentTerminationRequestId = contract.CurrentTerminationRequestId,
+                TerminationMeetingId = contract.TerminationMeetingId,
                 Parties = contract.UserContracts.Select(userContract => new UserInContractResponseDTO
                 {
                     Id = userContract.User.Id,
@@ -865,9 +867,16 @@ namespace StartedIn.Service.Services
                     Title = d.Title
                 }).ToList(),
                 ValidDate = contract.ValidDate
-
             }).ToList();
-
+            foreach (var contractItem in contractSearchResponseDTOs)
+            {
+                if (contractItem.TerminationMeetingId != null) {
+                    var meeting = await _appointmentRepository.GetOneAsync(contractItem.TerminationMeetingId);
+                    if (meeting != null) {
+                        contractItem.MeetingStatus = meeting.Status;
+                    }
+                }
+            }
             // Construct pagination DTO
             var response = new PaginationDTO<ContractSearchResponseDTO>
             {
