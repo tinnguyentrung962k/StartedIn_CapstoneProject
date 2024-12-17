@@ -82,6 +82,10 @@ namespace StartedIn.API.Controllers
                 await _contractService.LeaderTerminateContract(userId, projectId, contractId, uploadFile);
                 return Ok("Chấm dứt hợp đồng thành công");
             }
+            catch (UnauthorizedProjectRoleException ex)
+            {
+                return StatusCode(403, ex.Message);
+            }
             catch (UpdateException ex)
             {
                 return BadRequest(ex.Message);
