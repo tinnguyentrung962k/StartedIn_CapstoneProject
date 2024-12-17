@@ -40,6 +40,7 @@ namespace StartedIn.API.Configuration
             services.AddScoped<ITerminationRequestService, TerminationRequestService>();
             services.AddScoped<IGoogleMeetService, GoogleMeetService>();
             services.AddScoped<IMeetingNoteService, MeetingNoteService>();
+            services.AddScoped<ITransferLeaderRequestService, TransferLeaderRequestService>();
             return services;
         }
     }

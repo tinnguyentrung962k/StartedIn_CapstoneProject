@@ -12,12 +12,18 @@ namespace StartedIn.Domain.Entities
     {
         [ForeignKey(nameof(Project))]
         public string ProjectId { get; set; }
+
+        [ForeignKey(nameof(FormerLeader))]
         public string FormerLeaderId { get; set; }
-        public string NewLeaderId { get; set; }
-        public DateOnly TransferDate { get; set; }
+
+        [ForeignKey(nameof(NewLeader))]
+        public string? NewLeaderId { get; set; }
+        public DateOnly? TransferDate { get; set; }
         public bool? IsAgreed { get; set; }
         public string AppointmentId { get; set; }
         public Appointment Appointment { get; set; }
         public Project Project { get; set; }
+        public User FormerLeader { get; set; }
+        public User? NewLeader { get; set; }
     }
 }
