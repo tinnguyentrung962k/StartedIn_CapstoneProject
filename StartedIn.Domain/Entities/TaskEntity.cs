@@ -21,7 +21,6 @@ public class TaskEntity : BaseAuditEntity<string>
     public bool IsLate { get; set; }
     public int ManHour { get; set; } = 0;
     public DateTimeOffset? ActualFinishAt { get; set; }
-    public DateTimeOffset? ActualStartAt { get; set; }
     public DateTimeOffset? StartDate { get; set; }
     public DateTimeOffset? EndDate { get; set; }
     public Milestone Milestone { get; set; }
