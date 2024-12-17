@@ -694,11 +694,11 @@ namespace StartedIn.Service.Services
             try
             {
                 _unitOfWork.BeginTransaction();
-                chosenContract.ValidDate = DateOnly.FromDateTime(DateTime.Now);
+                chosenContract.ValidDate = DateOnly.FromDateTime(DateTimeOffset.UtcNow.AddHours(7).Date);
                 chosenContract.ContractStatus = ContractStatusEnum.COMPLETED;
                 foreach (var equityShare in chosenContract.ShareEquities)
                 {
-                    equityShare.DateAssigned = DateOnly.FromDateTime(DateTime.Now);
+                    equityShare.DateAssigned = DateOnly.FromDateTime(DateTimeOffset.UtcNow.AddHours(7).Date);
                     _shareEquityRepository.Update(equityShare);
                 }
                 var totalEquitiesSharePercentageInContract = chosenContract.ShareEquities.Sum(e => e.Percentage);
