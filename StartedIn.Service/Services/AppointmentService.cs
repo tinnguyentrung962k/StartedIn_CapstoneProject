@@ -140,7 +140,7 @@ namespace StartedIn.Service.Services
                     var receiverName = user.User.FullName;
                     var receiveEmail = user.User.Email;
                     await _emailService.SendAppointmentInvite(receiveEmail, project.ProjectName, receiverName,
-                        newAppointmentEntity.MeetingLink, newAppointmentEntity.AppointmentTime);
+                        newAppointmentEntity.MeetingLink, newAppointmentEntity.AppointmentTime.AddHours(7));
                 }
                 await _unitOfWork.SaveChangesAsync();
                 await _unitOfWork.CommitAsync();
