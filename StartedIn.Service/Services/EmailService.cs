@@ -116,8 +116,16 @@ namespace StartedIn.Service.Services
 
         public async Task SendAppointmentInvite(string receiveEmail, string projectName, string receiverName, string meetingLink, DateTimeOffset appointmentTime)
         {
-            var subject = "Thông báo về cuộc họp ngày: " + DateOnly.FromDateTime(appointmentTime.Date);
-            var body = $"Kính gửi {receiverName}, \n{projectName} gửi cho bạn thông báo về cuộc họp vào ngày: {appointmentTime.DateTime} \nBạn hãy truy cập vào đường link sau để tham gia cuộc họp: {meetingLink}";
+            // Format the appointment time
+            var formattedAppointmentTime = appointmentTime.DateTime.ToString("dd/MM/yyyy HH:mm");
+
+            // Subject of the email
+            var subject = "Thông báo về cuộc họp ngày: " + appointmentTime.Date.ToString("dd/MM/yyyy");
+
+            // Body of the email
+            var body = $"Kính gửi {receiverName},\n{projectName} gửi cho bạn thông báo về cuộc họp vào ngày: {formattedAppointmentTime}\nBạn hãy truy cập vào đường link sau để tham gia cuộc họp: {meetingLink}";
+
+            // Send the email
             await SendEmailAsync(receiveEmail, subject, body);
         }
     }
