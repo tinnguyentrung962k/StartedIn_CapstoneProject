@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using StartedIn.Domain.Context;
@@ -11,9 +12,11 @@ using StartedIn.Domain.Context;
 namespace StartedIn.Domain.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20241216163820_12-16-2024_Migration_2337PM")]
+    partial class _12162024_Migration_2337PM
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -372,9 +375,6 @@ namespace StartedIn.Domain.Migrations
                         .HasColumnType("timestamp with time zone");
 
                     b.Property<string>("SignNowDocumentId")
-                        .HasColumnType("text");
-
-                    b.Property<string>("TerminationMeetingId")
                         .HasColumnType("text");
 
                     b.Property<DateOnly?>("ValidDate")
@@ -862,6 +862,7 @@ namespace StartedIn.Domain.Migrations
                         .HasColumnType("timestamp with time zone");
 
                     b.Property<string>("FileName")
+                        .IsRequired()
                         .HasColumnType("text");
 
                     b.Property<string>("LastUpdatedBy")
@@ -1649,22 +1650,19 @@ namespace StartedIn.Domain.Migrations
                         .HasColumnType("timestamp with time zone");
 
                     b.Property<string>("NewLeaderId")
+                        .IsRequired()
                         .HasColumnType("text");
 
                     b.Property<string>("ProjectId")
                         .IsRequired()
                         .HasColumnType("text");
 
-                    b.Property<DateOnly?>("TransferDate")
+                    b.Property<DateOnly>("TransferDate")
                         .HasColumnType("date");
 
                     b.HasKey("Id");
 
                     b.HasIndex("AppointmentId");
-
-                    b.HasIndex("FormerLeaderId");
-
-                    b.HasIndex("NewLeaderId");
 
                     b.HasIndex("ProjectId");
 
@@ -2319,16 +2317,6 @@ namespace StartedIn.Domain.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("StartedIn.Domain.Entities.User", "FormerLeader")
-                        .WithMany()
-                        .HasForeignKey("FormerLeaderId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("StartedIn.Domain.Entities.User", "NewLeader")
-                        .WithMany()
-                        .HasForeignKey("NewLeaderId");
-
                     b.HasOne("StartedIn.Domain.Entities.Project", "Project")
                         .WithMany()
                         .HasForeignKey("ProjectId")
@@ -2336,10 +2324,6 @@ namespace StartedIn.Domain.Migrations
                         .IsRequired();
 
                     b.Navigation("Appointment");
-
-                    b.Navigation("FormerLeader");
-
-                    b.Navigation("NewLeader");
 
                     b.Navigation("Project");
                 });

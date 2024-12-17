@@ -48,7 +48,8 @@ public class MeetingNoteService : IMeetingNoteService
             var meetingNote = new MeetingNote
             {
                 AppointmentId = appointmentId,
-                MeetingNoteLink = noteUrl
+                MeetingNoteLink = noteUrl,
+                FileName = uploadMeetingNoteDto.Note.FileName
             };
             var meetingNoteEntity = _meetingNoteRepository.Add(meetingNote);
             await _unitOfWork.SaveChangesAsync();

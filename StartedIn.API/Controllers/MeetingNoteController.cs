@@ -25,7 +25,7 @@ public class MeetingNoteController : ControllerBase
     
     [HttpPost("appointments/{appointmentId}/meeting-note")]
     [Authorize(Roles = RoleConstants.USER)]
-    public async Task<ActionResult<AppointmentResponseDTO>> UploadMeetingNote([FromRoute] string projectId, string appointmentId, [FromForm] UploadMeetingNoteDTO uploadMeetingNoteDto)
+    public async Task<ActionResult<MeetingNoteResponseDTO>> UploadMeetingNote([FromRoute] string projectId, string appointmentId, [FromForm] UploadMeetingNoteDTO uploadMeetingNoteDto)
     {
         try 
         {
@@ -50,7 +50,7 @@ public class MeetingNoteController : ControllerBase
     
     [HttpGet("appointments/{appointmentId}/meeting-note/{meetingNoteId}")]
     [Authorize(Roles = RoleConstants.INVESTOR + "," + RoleConstants.USER + "," + RoleConstants.MENTOR)]
-    public async Task<ActionResult<AppointmentResponseDTO>> GetMeetingNoteById([FromRoute] string projectId, [FromRoute] string appointmentId, [FromRoute] string meetingNoteId)
+    public async Task<ActionResult<MeetingNoteResponseDTO>> GetMeetingNoteById([FromRoute] string projectId, [FromRoute] string appointmentId, [FromRoute] string meetingNoteId)
     {
         try
         {
@@ -71,7 +71,7 @@ public class MeetingNoteController : ControllerBase
     
     [HttpGet("appointments/{appointmentId}/meeting-note")]
     [Authorize(Roles = RoleConstants.INVESTOR + "," + RoleConstants.USER + "," + RoleConstants.MENTOR)]
-    public async Task<ActionResult<AppointmentResponseDTO>> GetMeetingNoteByAppointmentId([FromRoute] string projectId, [FromRoute] string appointmentId)
+    public async Task<ActionResult<MeetingNoteResponseDTO>> GetMeetingNoteByAppointmentId([FromRoute] string projectId, [FromRoute] string appointmentId)
     {
         try
         {
