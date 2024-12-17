@@ -385,7 +385,8 @@ namespace StartedIn.Service.Services
                 _applicationRepository.Update(application);
 
                 await _userRepository.AddUserToProject(application.CandidateId, projectId, application.Role);
-
+                await CancelExistingApplicationsOnceUserJoinAProject(userId);
+                
                 await _unitOfWork.CommitAsync();
                 await _unitOfWork.SaveChangesAsync();
             }
@@ -431,6 +432,22 @@ namespace StartedIn.Service.Services
             {
                 await _unitOfWork.RollbackAsync();
                 throw new Exception(ex.Message);
+            }
+        }
+
+        private async Task CancelExistingApplicationsOnceUserJoinAProject(string userId)
+        {
+            var query = _applicationRepository.QueryHelper();
+            var userApplications = await query.Filter(a => a.CandidateId.Equals(userId)).GetAllAsync();
+            var acceptedApplication = await query.Filter(a => a.CandidateId.Equals(userId) && a.Status == ApplicationStatus.ACCEPTED).GetOneAsync();
+            if (acceptedApplication != null)
+            {
+                foreach (var application in userApplications)
+                {
+                    application.Status = ApplicationStatus.CANCELED;
+                    _applicationRepository.Update(application);
+                    await _unitOfWork.SaveChangesAsync();
+                }
             }
         }
     }
