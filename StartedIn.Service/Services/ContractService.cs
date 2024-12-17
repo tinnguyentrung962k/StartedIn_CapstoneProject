@@ -1230,7 +1230,7 @@ namespace StartedIn.Service.Services
             {
                 _unitOfWork.BeginTransaction();
                 string prefix = "GTL";
-                string currentDateTime = DateTimeOffset.UtcNow.ToString("ddMMyyyyHHmm");
+                string currentDateTime = DateTimeOffset.UtcNow.AddHours(7).ToString("ddMMyyyyHHmm"); ;
                 string contractIdNumberGen = $"{prefix}-{currentDateTime}";
                 Contract liquidationNote = new Contract
                 {
@@ -1499,7 +1499,7 @@ namespace StartedIn.Service.Services
                     _logger.LogInformation($"Tổng số tiền chưa giải ngân bị tắt: {totalPendingAmount}.");
                 }
                 string prefix = "GTL";
-                string currentDateTime = DateTimeOffset.UtcNow.ToString("ddMMyyyyHHmm");
+                string currentDateTime = DateTimeOffset.UtcNow.AddHours(7).ToString("ddMMyyyyHHmm");
                 string contractIdNumberGen = $"{prefix}-{currentDateTime}";
                 Contract liquidationNote = new Contract
                 {
