@@ -229,9 +229,8 @@ namespace StartedIn.Service.Services
             var existingContract = await _contractRepository.QueryHelper()
                 .Filter(x=>x.ContractType == ContractTypeEnum.INTERNAL 
                 && x.ProjectId.Equals(projectId)
-                && (x.ContractStatus == ContractStatusEnum.COMPLETED 
-                || x.ContractStatus == ContractStatusEnum.WAITINGFORLIQUIDATION
-                || x.ContractStatus == ContractStatusEnum.SENT)).GetOneAsync();
+                && (x.ContractStatus != ContractStatusEnum.CANCELLED 
+                && x.ContractStatus != ContractStatusEnum.EXPIRED)).GetOneAsync();
             if (existingContract != null)
             {
                 throw new ExistedRecordException(MessageConstant.InternalContractExisted);
