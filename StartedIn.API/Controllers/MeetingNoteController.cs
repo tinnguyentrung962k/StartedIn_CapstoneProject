@@ -25,14 +25,14 @@ public class MeetingNoteController : ControllerBase
     
     [HttpPost("appointments/{appointmentId}/meeting-note")]
     [Authorize(Roles = RoleConstants.USER)]
-    public async Task<ActionResult<AppointmentResponseDTO>> UploadMeetingNote([FromRoute] string projectId, string appointmentId, [FromForm] UploadMeetingNoteDTO uploadMeetingNoteDto)
+    public async Task<ActionResult<List<MeetingNoteResponseDTO>>> UploadMeetingNote([FromRoute] string projectId, string appointmentId, [FromForm] UploadMeetingNoteDTO uploadMeetingNoteDto)
     {
         try 
         {
             var userId = User.FindFirst(ClaimTypes.NameIdentifier).Value;
-            var meetingNote = await _meetingNoteService.UploadMeetingNote(userId, projectId, appointmentId, uploadMeetingNoteDto);
-            var response = _mapper.Map<MeetingNoteResponseDTO>(meetingNote);
-            return CreatedAtAction(nameof(GetMeetingNoteById), new { projectId, appointmentId, meetingNoteId = response.Id }, response);
+            var meetingNotes = await _meetingNoteService.UploadMeetingNote(userId, projectId, appointmentId, uploadMeetingNoteDto);
+            var response = _mapper.Map<List<MeetingNoteResponseDTO>>(meetingNotes);
+            return StatusCode(201, response);
         }
         catch (NotFoundException ex)
         {
@@ -50,7 +50,7 @@ public class MeetingNoteController : ControllerBase
     
     [HttpGet("appointments/{appointmentId}/meeting-note/{meetingNoteId}")]
     [Authorize(Roles = RoleConstants.INVESTOR + "," + RoleConstants.USER + "," + RoleConstants.MENTOR)]
-    public async Task<ActionResult<AppointmentResponseDTO>> GetMeetingNoteById([FromRoute] string projectId, [FromRoute] string appointmentId, [FromRoute] string meetingNoteId)
+    public async Task<ActionResult<MeetingNoteResponseDTO>> GetMeetingNoteById([FromRoute] string projectId, [FromRoute] string appointmentId, [FromRoute] string meetingNoteId)
     {
         try
         {
@@ -71,7 +71,7 @@ public class MeetingNoteController : ControllerBase
     
     [HttpGet("appointments/{appointmentId}/meeting-note")]
     [Authorize(Roles = RoleConstants.INVESTOR + "," + RoleConstants.USER + "," + RoleConstants.MENTOR)]
-    public async Task<ActionResult<AppointmentResponseDTO>> GetMeetingNoteByAppointmentId([FromRoute] string projectId, [FromRoute] string appointmentId)
+    public async Task<ActionResult<MeetingNoteResponseDTO>> GetMeetingNoteByAppointmentId([FromRoute] string projectId, [FromRoute] string appointmentId)
     {
         try
         {

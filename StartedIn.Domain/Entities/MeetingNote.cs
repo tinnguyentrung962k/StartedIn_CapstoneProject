@@ -13,6 +13,7 @@ namespace StartedIn.Domain.Entities
         [ForeignKey(nameof(Appointment))]
         public string AppointmentId { get; set; }
         public string? MeetingNoteLink { get; set; }
+        public string? FileName { get; set; }
         public Appointment? Appointment { get; set; }
     }
 }

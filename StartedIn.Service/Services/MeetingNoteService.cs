@@ -27,7 +27,7 @@ public class MeetingNoteService : IMeetingNoteService
         _appointmentRepository = appointmentRepository;
     }
     
-    public async Task<MeetingNote> UploadMeetingNote(string userId, string projectId, string appointmentId,
+    public async Task<List<MeetingNote>> UploadMeetingNote(string userId, string projectId, string appointmentId,
         UploadMeetingNoteDTO uploadMeetingNoteDto)
     {
         var userInProject = await _userService.CheckIfUserInProject(userId, projectId);
@@ -41,19 +41,26 @@ public class MeetingNoteService : IMeetingNoteService
         {
             throw new CannotUploadMeetingNoteException(MessageConstant.CannotUploadMeetingNote);
         }
+
+        var listResponse = new List<MeetingNote>();
         try
         { 
             _unitOfWork.BeginTransaction();
-            var noteUrl = await _azureBlobService.UploadMeetingNote(uploadMeetingNoteDto.Note);
-            var meetingNote = new MeetingNote
+            foreach (var note in uploadMeetingNoteDto.Notes)
             {
-                AppointmentId = appointmentId,
-                MeetingNoteLink = noteUrl
-            };
-            var meetingNoteEntity = _meetingNoteRepository.Add(meetingNote);
+                var noteUrl = await _azureBlobService.UploadMeetingNote(note);
+                var meetingNote = new MeetingNote
+                {
+                    AppointmentId = appointmentId,
+                    MeetingNoteLink = noteUrl,
+                    FileName = note.FileName
+                };
+                var meetingNoteEntity = _meetingNoteRepository.Add(meetingNote);
+                listResponse.Add(meetingNoteEntity);
+            }
             await _unitOfWork.SaveChangesAsync();
             await _unitOfWork.CommitAsync();
-            return meetingNoteEntity;
+            return listResponse;
         }
         catch
         {
