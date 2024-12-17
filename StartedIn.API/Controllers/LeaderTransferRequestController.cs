@@ -40,6 +40,28 @@ namespace StartedIn.API.Controllers
                 return StatusCode(500, MessageConstant.CreateFailed);
             }
         }
-        
+        [HttpPut("leader-transfer/{newLeaderId}")]
+        public async Task<IActionResult> LeaderTransferAfterMeetingConfirm([FromRoute] string projectId, [FromRoute] string newLeaderId)
+        {
+            try
+            {
+                var userId = User.FindFirst(ClaimTypes.NameIdentifier).Value;
+                await _transferLeaderRequestService.TransferLeaderAfterMeeting(userId,projectId,newLeaderId);
+                return Ok("Chuyển quyền thành công.");
+            }
+            catch (NotFoundException ex)
+            {
+                return BadRequest(ex.Message);
+            }
+            catch (UnauthorizedProjectRoleException ex)
+            {
+                return StatusCode(403, ex.Message);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, MessageConstant.UpdateFailed);
+            }
+        }
+
     }
 }

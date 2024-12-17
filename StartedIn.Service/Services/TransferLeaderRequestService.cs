@@ -1,4 +1,6 @@
-﻿using Microsoft.Extensions.Logging;
+﻿using CrossCutting.Exceptions;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.Extensions.Logging;
 using StartedIn.CrossCutting.Constants;
 using StartedIn.CrossCutting.DTOs.RequestDTO.Appointment;
 using StartedIn.CrossCutting.Exceptions;
@@ -20,13 +22,17 @@ namespace StartedIn.Service.Services
         private readonly IAppointmentRepository _appointmentRepository;
         private readonly IUnitOfWork _unitOfWork;
         private readonly ILogger<TransferLeaderRequest> _logger;
+        private readonly UserManager<User> _userManager;
+        private readonly IUserRepository _userRepository;
 
         public TransferLeaderRequestService(
             IUnitOfWork unitOfWork, 
             IUserService userService, 
             ITransferLeaderRequestRepository transferLeaderRequestRepository,
             IAppointmentRepository appointmentRepository,
-            ILogger<TransferLeaderRequest> logger
+            ILogger<TransferLeaderRequest> logger,
+            UserManager<User> userManager,
+            IUserRepository userRepository
             )
         {
             _unitOfWork = unitOfWork;
@@ -34,6 +40,8 @@ namespace StartedIn.Service.Services
             _transferLeaderRequestRepository = transferLeaderRequestRepository;
             _appointmentRepository = appointmentRepository;
             _logger = logger;
+            _userManager = userManager;
+            _userRepository = userRepository;
         }
 
         public async Task CreateLeaderTransferRequestInAProject(string userId, string projectId, TerminationMeetingCreateDTO terminationMeetingCreateDTO)
@@ -43,6 +51,15 @@ namespace StartedIn.Service.Services
             {
                 throw new UnauthorizedProjectRoleException(MessageConstant.RolePermissionError);
             }
+            var existingRequest = await _transferLeaderRequestRepository.QueryHelper()
+                .Filter(r => r.ProjectId == projectId && r.IsAgreed == null && r.FormerLeaderId == userId)
+                .GetOneAsync();
+
+            if (existingRequest != null)
+            {
+                throw new ExistedRecordException(MessageConstant.ExistingTransferLeaderRequestWasFound);
+            }
+
             try
             {
                 _unitOfWork.BeginTransaction();
@@ -73,6 +90,65 @@ namespace StartedIn.Service.Services
             }
             catch (Exception ex) {
                 _logger.LogError(ex,"Error while sending request");
+                await _unitOfWork.RollbackAsync();
+                throw;
+            }
+        }
+
+        public async Task TransferLeaderAfterMeeting(string userId, string projectId, string newLeaderId)
+        {
+            var userInProject = await _userService.CheckIfUserInProject(userId, projectId);
+            if (userInProject.RoleInTeam != CrossCutting.Enum.RoleInTeam.Leader)
+            {
+                throw new UnauthorizedProjectRoleException(MessageConstant.RolePermissionError);
+            }
+
+            var transferRequest = await _transferLeaderRequestRepository.QueryHelper()
+                .Filter(x => x.FormerLeaderId.Equals(userId)
+                && x.ProjectId.Equals(projectId)
+                && x.IsAgreed == null)
+                .Include(x=>x.Appointment)
+                .GetOneAsync();
+            if (transferRequest == null) 
+            {
+                throw new NotFoundException(MessageConstant.NoTransferRequestWasFound);
+            }
+            if (transferRequest.Appointment.Status != CrossCutting.Enum.MeetingStatus.Finished)
+            {
+                throw new NotFoundException(MessageConstant.MeetingIsNotFinished);
+            }
+            var newLeader = await _userManager.FindByIdAsync(userId);
+            if (newLeader == null) 
+            {
+                throw new NotFoundException(MessageConstant.NotFoundUserError);
+            }
+
+            try
+            {
+                _unitOfWork.BeginTransaction();
+                transferRequest.NewLeader = newLeader;
+                transferRequest.NewLeaderId = newLeaderId;
+                transferRequest.LastUpdatedBy = userInProject.User.FullName;
+                transferRequest.LastUpdatedTime = DateTimeOffset.UtcNow;
+                transferRequest.TransferDate = DateOnly.FromDateTime(DateTime.UtcNow);
+                transferRequest.IsAgreed = true;
+
+                _transferLeaderRequestRepository.Update(transferRequest);
+
+                var newLeaderInProject = await _userService.CheckIfUserInProject(newLeaderId, projectId);
+
+                newLeaderInProject.RoleInTeam = CrossCutting.Enum.RoleInTeam.Leader;
+                userInProject.RoleInTeam = CrossCutting.Enum.RoleInTeam.Member;
+
+                _userRepository.UpdateUserInProject(newLeaderInProject);
+                _userRepository.UpdateUserInProject(userInProject);
+
+                await _unitOfWork.SaveChangesAsync();
+                await _unitOfWork.CommitAsync();
+            }
+            catch (Exception ex) 
+            {
+                _logger.LogError(ex, MessageConstant.UpdateFailed);
                 await _unitOfWork.RollbackAsync();
                 throw;
             }

@@ -10,5 +10,6 @@ namespace StartedIn.Service.Services.Interface
     public interface ITransferLeaderRequestService
     {
         Task CreateLeaderTransferRequestInAProject(string userId, string projectId, TerminationMeetingCreateDTO terminationMeetingCreateDTO);
+        Task TransferLeaderAfterMeeting(string userId, string projectId, string newLeaderId);
     }
 }
