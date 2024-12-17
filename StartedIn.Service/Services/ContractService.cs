@@ -21,6 +21,7 @@ using StartedIn.CrossCutting.DTOs.RequestDTO.Appointment;
 using Azure.Core;
 using DocumentFormat.OpenXml.Office2016.Excel;
 using CrossCutting.Exceptions;
+using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace StartedIn.Service.Services
 {
@@ -1308,7 +1309,7 @@ namespace StartedIn.Service.Services
             try
             {
                 _unitOfWork.BeginTransaction();
-                contract.ExpiredDate = DateOnly.FromDateTime(DateTimeOffset.UtcNow.Date);
+                contract.ExpiredDate = DateOnly.FromDateTime(DateTimeOffset.UtcNow.AddHours(7).Date);
                 contract.ContractStatus = ContractStatusEnum.EXPIRED;
                 contract.LastUpdatedTime = DateTimeOffset.UtcNow;
                 if (contract.ContractType == ContractTypeEnum.INTERNAL)
@@ -1459,7 +1460,7 @@ namespace StartedIn.Service.Services
             {
                 _unitOfWork.BeginTransaction();
                 var project = await _projectRepository.GetProjectById(projectId);
-                terminatedContract.ExpiredDate = DateOnly.FromDateTime(DateTimeOffset.UtcNow.Date);
+                terminatedContract.ExpiredDate = DateOnly.FromDateTime(DateTimeOffset.UtcNow.AddHours(7).Date);
                 terminatedContract.ContractStatus = ContractStatusEnum.EXPIRED;
                 terminatedContract.LastUpdatedTime = DateTimeOffset.UtcNow;
                 terminatedContract.LastUpdatedBy = userInProject.User.FullName;
@@ -1632,7 +1633,6 @@ namespace StartedIn.Service.Services
             {
                 _unitOfWork.BeginTransaction();
                 var project = await _projectRepository.GetProjectById(projectId);
-                terminatedContract.ExpiredDate = DateOnly.FromDateTime(DateTimeOffset.UtcNow.Date);
                 terminatedContract.ContractStatus = ContractStatusEnum.COMPLETED;
                 terminatedContract.LastUpdatedTime = DateTimeOffset.UtcNow;
                 terminatedContract.LastUpdatedBy = userInProject.User.FullName;
