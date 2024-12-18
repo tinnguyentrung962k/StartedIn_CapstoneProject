@@ -132,5 +132,6 @@ namespace StartedIn.CrossCutting.Constants
         public const string CannotTransferLeaderRoleForNotMember = "Bạn không thể quyền nhóm trưởng cho cố vấn hoặc nhà đầu tư";
         public const string NotFoundUserTask = "Không tìm thấy tác vụ liên quan tới người dùng";
         public const string NotFoundProjectApprovalRequest = "Không tìm thấy yêu cầu duyệt dự án";
+        public const string NotFoundTransferOrTerminatedRequest = "Không tìm thấy yêu cầu huỷ hợp đồng hay chuyển nhóm trưởng";
     }
 }
