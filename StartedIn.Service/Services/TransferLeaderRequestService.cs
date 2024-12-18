@@ -160,8 +160,7 @@ namespace StartedIn.Service.Services
                 userInProject.RoleInTeam = CrossCutting.Enum.RoleInTeam.Member;
 
                 var contractList = await _contractRepository.GetContractByProjectId(projectId);
-                var investmentContractList = contractList.Where(x => x.ContractType == CrossCutting.Enum.ContractTypeEnum.INVESTMENT && x.DeletedTime == null);
-                foreach (var contract in investmentContractList)
+                foreach (var contract in contractList)
                 {
                     foreach (var userInContract in contract.UserContracts.Where(x => x.Role == CrossCutting.Enum.RoleInContract.CREATOR))
                     {
