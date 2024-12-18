@@ -26,7 +26,6 @@ namespace StartedIn.Service.Services
         private readonly IUserService _userService;
         private readonly IMapper _mapper;
 
-
         public TaskService(
             IUnitOfWork unitOfWork,
             ITaskRepository taskRepository,
@@ -107,7 +106,8 @@ namespace StartedIn.Service.Services
                     task.UserTasks.Add(new UserTask
                     {
                         UserId = assignee,
-                        TaskId = task.Id
+                        TaskId = task.Id,
+                        LastUpdatedTime = DateTimeOffset.Now
                     });
                 }
 
@@ -225,7 +225,7 @@ namespace StartedIn.Service.Services
                 LastUpdatedTime = task.LastUpdatedTime,
                 Status = task.Status,
                 Title = task.Title,
-                ManHour = task.ManHour
+                ExpectedManHour = task.ManHour
             }).ToList();
 
             var pagination = new PaginationDTO<TaskResponseDTO>()
@@ -556,6 +556,18 @@ namespace StartedIn.Service.Services
                 _taskRepository.Update(task);
                 await _unitOfWork.SaveChangesAsync();
             }
+        }
+
+        public async Task UpdateManHourForTask(string projectId, string taskId, string userId, float hour)
+        {
+            var userProject = await _userService.CheckIfUserInProject(userId, projectId);
+            await _taskRepository.UpdateManHourForTask(taskId, userId, hour);
+        }
+
+        public async Task<List<UserTask>> GetManHoursForTask(string projectId, string userId, string taskId)
+        {
+            var userProject = await _userService.CheckIfUserInProject(userId, projectId);
+            return await _taskRepository.GetManHoursForTask(taskId);
         }
     }
 }

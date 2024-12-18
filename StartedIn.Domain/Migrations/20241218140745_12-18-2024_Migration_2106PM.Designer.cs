@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using StartedIn.Domain.Context;
@@ -11,9 +12,11 @@ using StartedIn.Domain.Context;
 namespace StartedIn.Domain.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20241218140745_12-18-2024_Migration_2106PM")]
+    partial class _12182024_Migration_2106PM
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -673,17 +676,11 @@ namespace StartedIn.Domain.Migrations
                     b.Property<DateTimeOffset>("LastUpdatedTime")
                         .HasColumnType("timestamp with time zone");
 
-                    b.Property<string>("ProjectApprovalId")
-                        .IsRequired()
-                        .HasColumnType("text");
-
                     b.Property<string>("ProjectId")
                         .IsRequired()
                         .HasColumnType("text");
 
                     b.HasKey("Id");
-
-                    b.HasIndex("ProjectApprovalId");
 
                     b.HasIndex("ProjectId");
 
@@ -1123,44 +1120,6 @@ namespace StartedIn.Domain.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("Project", (string)null);
-                });
-
-            modelBuilder.Entity("StartedIn.Domain.Entities.ProjectApproval", b =>
-                {
-                    b.Property<string>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("text");
-
-                    b.Property<string>("CreatedBy")
-                        .HasColumnType("text");
-
-                    b.Property<DateTimeOffset>("CreatedTime")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<DateTimeOffset?>("DeletedTime")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<string>("LastUpdatedBy")
-                        .HasColumnType("text");
-
-                    b.Property<DateTimeOffset>("LastUpdatedTime")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<string>("ProjectId")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.Property<string>("RejectReason")
-                        .HasColumnType("text");
-
-                    b.Property<int>("Status")
-                        .HasColumnType("integer");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("ProjectId");
-
-                    b.ToTable("ProjectApprovals");
                 });
 
             modelBuilder.Entity("StartedIn.Domain.Entities.ProjectCharter", b =>
@@ -1931,9 +1890,6 @@ namespace StartedIn.Domain.Migrations
                     b.Property<float?>("ActualManHour")
                         .HasColumnType("real");
 
-                    b.Property<DateTimeOffset?>("LastUpdatedTime")
-                        .HasColumnType("timestamp with time zone");
-
                     b.HasKey("UserId", "TaskId");
 
                     b.HasIndex("TaskId");
@@ -2138,12 +2094,6 @@ namespace StartedIn.Domain.Migrations
 
             modelBuilder.Entity("StartedIn.Domain.Entities.Document", b =>
                 {
-                    b.HasOne("StartedIn.Domain.Entities.ProjectApproval", "ProjectApproval")
-                        .WithMany("Documents")
-                        .HasForeignKey("ProjectApprovalId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
                     b.HasOne("StartedIn.Domain.Entities.Project", "Project")
                         .WithMany()
                         .HasForeignKey("ProjectId")
@@ -2151,8 +2101,6 @@ namespace StartedIn.Domain.Migrations
                         .IsRequired();
 
                     b.Navigation("Project");
-
-                    b.Navigation("ProjectApproval");
                 });
 
             modelBuilder.Entity("StartedIn.Domain.Entities.DocumentComment", b =>
@@ -2263,17 +2211,6 @@ namespace StartedIn.Domain.Migrations
                         .IsRequired();
 
                     b.Navigation("ProjectCharter");
-                });
-
-            modelBuilder.Entity("StartedIn.Domain.Entities.ProjectApproval", b =>
-                {
-                    b.HasOne("StartedIn.Domain.Entities.Project", "Project")
-                        .WithMany()
-                        .HasForeignKey("ProjectId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Project");
                 });
 
             modelBuilder.Entity("StartedIn.Domain.Entities.ProjectCharter", b =>
@@ -2605,11 +2542,6 @@ namespace StartedIn.Domain.Migrations
                         .IsRequired();
 
                     b.Navigation("UserProjects");
-                });
-
-            modelBuilder.Entity("StartedIn.Domain.Entities.ProjectApproval", b =>
-                {
-                    b.Navigation("Documents");
                 });
 
             modelBuilder.Entity("StartedIn.Domain.Entities.ProjectCharter", b =>

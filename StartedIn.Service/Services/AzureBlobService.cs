@@ -262,7 +262,7 @@ namespace StartedIn.Service.Services
             return blobClient.Uri.ToString();
         }
 
-        public async Task<string> UploadMeetingNote(IFormFile file)
+        public async Task<string> UploadMeetingNoteAndProjectDocuments(IFormFile file)
         {
             var fileName = Guid.NewGuid() + Path.GetExtension(file.FileName);
             var blobClient = _documentContainerClient.GetBlobClient(fileName);

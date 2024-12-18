@@ -60,6 +60,7 @@ namespace StartedIn.Domain.Context
         public DbSet<TerminationRequest> TerminationRequests { get; set; }
         public DbSet<TransferLeaderRequest> TransferLeaderRequests { get; set; }
         public DbSet<ApplicationFile> ApplicationFiles { get; set; }
+        public DbSet<ProjectApproval> ProjectApprovals { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {

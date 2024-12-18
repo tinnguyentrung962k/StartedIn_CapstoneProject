@@ -332,5 +332,21 @@ namespace StartedIn.API.Controllers
                 return StatusCode(500, MessageConstant.InternalServerError);
             }
         }
+
+        [HttpPut("{taskId}/log-time")]
+        [Authorize(Roles = RoleConstants.USER)]
+        public async Task<ActionResult> UpdateManHourToTask([FromRoute] string projectId, [FromRoute] string taskId, [FromBody] float hour)
+        {
+            try
+            {
+                var userId = User.FindFirst(ClaimTypes.NameIdentifier).Value;
+                await _taskService.UpdateManHourForTask(projectId, taskId, userId, hour);
+                return Ok();
+            }
+            catch (NotFoundException ex)
+            {
+                return BadRequest(ex.Message);
+            }
+        }
     }
 }

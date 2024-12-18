@@ -58,6 +58,7 @@ namespace StartedIn.API.Configuration.AutoMapper
             TerminationRequestMappingProfile();
             MeetingNoteMappingProfile();
             TransferRequestMappingProfile();
+            UserTaskMappingProfile();
         }
 
 
@@ -65,13 +66,17 @@ namespace StartedIn.API.Configuration.AutoMapper
         {
             CreateMap<TaskEntity, TaskResponseDTO>()
                 .ForMember(dest => dest.Assignees, opt => opt.MapFrom(src => src.UserTasks))
+                .ForMember(dest => dest.ExpectedManHour, opt => opt.MapFrom(src => src.ManHour))
                 .ForMember(dest => dest.ActualManHour, opt => opt.MapFrom(src => src.UserTasks.Sum(x => x.ActualManHour)))
                 .ReverseMap();
             CreateMap<TaskEntity, TaskDetailDTO>()
                 .ForMember(dest => dest.Assignees, opt => opt.MapFrom(src => src.UserTasks.Select(ut => ut.User)))
+                .ForMember(dest => dest.ExpectedManHour, opt => opt.MapFrom(src => src.ManHour))
                 .ForMember(dest => dest.Milestone, opt => opt.MapFrom(src => src.Milestone))
                 .ForMember(dest => dest.ParentTask, opt => opt.MapFrom(src => src.ParentTask))
                 .ForMember(dest => dest.SubTasks, opt => opt.MapFrom(src => src.SubTasks))
+                .ForMember(dest => dest.UserTasks, opt => opt.MapFrom(src => src.UserTasks))
+                .ForMember(dest => dest.ActualManHour, opt => opt.MapFrom(src => src.UserTasks.Sum(x => x.ActualManHour)))
                 .ReverseMap();
         }
 
@@ -423,6 +428,13 @@ namespace StartedIn.API.Configuration.AutoMapper
                 .ForMember(dest => dest.AppointmentTitle, opt => opt.MapFrom(src => src.Appointment.Title))
                 .ForMember(dest => dest.FormerLeaderName, opt => opt.MapFrom(src => src.FormerLeader.FullName))
                 .ForMember(dest => dest.Description, opt => opt.MapFrom(src => src.Appointment.Description));
+        }
+
+        private void UserTaskMappingProfile()
+        {
+            CreateMap<UserTask, UserTaskResponseDTO>()
+                .ForMember(dest => dest.FullName, opt => opt.MapFrom(src => src.User.FullName))
+                .ReverseMap();
         }
     }
 }
