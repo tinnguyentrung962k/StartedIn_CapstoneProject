@@ -145,7 +145,7 @@ namespace StartedIn.Service.Services
                     .GetOneAsync();
                 if (acceptedTerminateRequest == null && transferRequest == null)
                 {
-                    throw new NotFoundException(MessageConstant.NotFoundTerminateRequest);
+                    throw new NotFoundException(MessageConstant.NotFoundTransferOrTerminatedRequest);
                 }
 
                 if (transferRequest != null)
