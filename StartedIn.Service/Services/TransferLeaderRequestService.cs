@@ -26,6 +26,7 @@ namespace StartedIn.Service.Services
         private readonly IUserRepository _userRepository;
         private readonly IProjectRepository _projectRepository;
         private readonly IEmailService _emailService;
+        private readonly IContractRepository _contractRepository;
 
         public TransferLeaderRequestService(
             IUnitOfWork unitOfWork, 
@@ -36,7 +37,8 @@ namespace StartedIn.Service.Services
             UserManager<User> userManager,
             IUserRepository userRepository,
             IProjectRepository projectRepository,
-            IEmailService emailService
+            IEmailService emailService,
+            IContractRepository contractRepository
             )
         {
             _unitOfWork = unitOfWork;
@@ -48,6 +50,7 @@ namespace StartedIn.Service.Services
             _userRepository = userRepository;
             _projectRepository = projectRepository;
             _emailService = emailService;
+            _contractRepository = contractRepository;
         }
 
         public async Task CreateLeaderTransferRequestInAProject(string userId, string projectId, TerminationMeetingCreateDTO terminationMeetingCreateDTO)
@@ -153,11 +156,19 @@ namespace StartedIn.Service.Services
 
                 _transferLeaderRequestRepository.Update(transferRequest);
 
-
-
                 newAssignedLeaderInProject.RoleInTeam = CrossCutting.Enum.RoleInTeam.Leader;
                 userInProject.RoleInTeam = CrossCutting.Enum.RoleInTeam.Member;
 
+                var contractList = await _contractRepository.GetContractByProjectId(projectId);
+                var investmentContractList = contractList.Where(x => x.ContractType == CrossCutting.Enum.ContractTypeEnum.INVESTMENT && x.DeletedTime == null);
+                foreach (var contract in investmentContractList)
+                {
+                    foreach (var userInContract in contract.UserContracts.Where(x => x.Role == CrossCutting.Enum.RoleInContract.CREATOR))
+                    {
+                        userInContract.TransferToId = newAssignedLeaderInProject.UserId;
+                        await _userRepository.UpdateUserInContract(userInContract);
+                    }
+                }
                 _userRepository.UpdateUserInProject(newAssignedLeaderInProject);
                 _userRepository.UpdateUserInProject(userInProject);
 

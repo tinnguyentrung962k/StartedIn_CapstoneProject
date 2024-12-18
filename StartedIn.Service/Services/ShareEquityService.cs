@@ -58,7 +58,7 @@ namespace StartedIn.Service.Services
             var shareEquitySummary = new List<ShareEquitySummaryDTO>();
 
             // Lấy ngày tính cổ phần (nếu không có, sử dụng ngày hiện tại)
-            var targetDate = equityShareFilterDTO.ToDate ?? DateOnly.FromDateTime(DateTime.UtcNow);
+            var targetDate = equityShareFilterDTO.ToDate ?? DateOnly.FromDateTime(DateTimeOffset.UtcNow.Date);
 
             foreach (var contract in allContracts)
             {

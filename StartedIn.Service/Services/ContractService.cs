@@ -155,7 +155,8 @@ namespace StartedIn.Service.Services
                     UserContract userContract = new UserContract
                     {
                         ContractId = contract.Id,
-                        UserId = chosenUser.Id
+                        UserId = chosenUser.Id,
+                        Role = chosenUser.Id == leader.Id ? RoleInContract.CREATOR : RoleInContract.SIGNER
                     };
                     usersInContract.Add(userContract);
                 }
@@ -297,6 +298,7 @@ namespace StartedIn.Service.Services
                         ContractId = contract.Id,
                         Contract = contract,
                         User = userMemberInContract,
+                        Role = userMemberInContract.Id == leader.Id ? RoleInContract.CREATOR : RoleInContract.SIGNER
                     };
                     usersInContract.Add(userInContract);
                     ShareEquity shareEquity = new ShareEquity
@@ -423,7 +425,8 @@ namespace StartedIn.Service.Services
                     UserContract userContract = new UserContract
                     {
                         ContractId = contract.Id,
-                        UserId = chosenUser.Id
+                        UserId = chosenUser.Id,
+                        Role = chosenUser.Id == leader.Id ? RoleInContract.CREATOR : RoleInContract.SIGNER
                     };
                     usersInContract.Add(userContract);
                 }
@@ -1054,7 +1057,7 @@ namespace StartedIn.Service.Services
             try
             {
                 _unitOfWork.BeginTransaction();
-
+                var leader = userInProject.User;
                 // Update contract details
                 contract.ContractName = groupContractUpdateDTO.Contract.ContractName;
                 contract.ContractPolicy = groupContractUpdateDTO.Contract.ContractPolicy;
@@ -1077,6 +1080,7 @@ namespace StartedIn.Service.Services
                         ContractId = contract.Id,
                         Contract = contract,
                         User = userMemberInContract,
+                        Role = userMemberInContract.Id == leader.Id ? RoleInContract.CREATOR : RoleInContract.SIGNER
                     };
                     usersInContract.Add(userInContract);
                     ShareEquity shareEquity = new ShareEquity
@@ -1091,7 +1095,7 @@ namespace StartedIn.Service.Services
                     };
                     shareEquitiesOfMembers.Add(shareEquity);
                 }
-                var leader = userInProject.User;
+                
                 contract.UserContracts = usersInContract;
                 var contractEntity = _contractRepository.Update(contract);
                 await _shareEquityRepository.AddRangeAsync(shareEquitiesOfMembers);
@@ -1249,7 +1253,8 @@ namespace StartedIn.Service.Services
                 var leaderInLiquidationNote = new UserContract
                 {
                     UserId = leader.Id,
-                    ContractId = liquidationNote.Id
+                    ContractId = liquidationNote.Id,
+                    Role = RoleInContract.CREATOR
                 };
 
                 
@@ -1257,6 +1262,7 @@ namespace StartedIn.Service.Services
                 {
                     UserId = request.FromId,
                     ContractId = liquidationNote.Id,
+                    Role = RoleInContract.SIGNER,
                 };
                 
                 List<UserContract> usersInContract = new List<UserContract> { leaderInLiquidationNote, requestParty };
@@ -1524,6 +1530,7 @@ namespace StartedIn.Service.Services
                         ContractId = liquidationNote.Id,
                         IsReject = false,
                         SignedDate = DateTimeOffset.UtcNow,
+                        Role = userParty.Role,
                     };
                     usersInLiquidationNote.Add(userInLiquidation);
 
