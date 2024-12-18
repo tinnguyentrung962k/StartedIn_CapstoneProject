@@ -56,10 +56,51 @@ namespace StartedIn.Service.Services
             return appointments;
         }
         
-        public async Task<PaginationDTO<AppointmentResponseDTO>> GetAppointmentsByProjectId(string userId, string projectId, int page, int size)
+        public async Task<PaginationDTO<AppointmentResponseDTO>> GetAppointmentsByProjectId(string userId, string projectId, AppointmentFilterDTO appointmentFilterDTO ,int page, int size)
         {
             var userInProject = await _userService.CheckIfUserInProject(userId, projectId);
             var appointments = _appointmentRepository.GetAppointmentsByProjectId(projectId);
+            if (!string.IsNullOrEmpty(appointmentFilterDTO.MilestoneId))
+            {
+                appointments = appointments.Where(a => a.MilestoneId == appointmentFilterDTO.MilestoneId);
+            }
+            if (!string.IsNullOrEmpty(appointmentFilterDTO.Title))
+            {
+                appointments = appointments.Where(a => a.Title.Contains(appointmentFilterDTO.Title));
+            }
+            if (appointmentFilterDTO.FromDate.HasValue)
+            {
+                var fromDate = appointmentFilterDTO.FromDate.Value;
+                appointments = appointments.Where(a => DateOnly.FromDateTime(a.AppointmentTime.UtcDateTime.AddHours(7).Date) >= fromDate);
+            }
+            if (appointmentFilterDTO.ToDate.HasValue)
+            {
+                var toDate = appointmentFilterDTO.ToDate.Value;
+                appointments = appointments.Where(a => DateOnly.FromDateTime(a.AppointmentTime.UtcDateTime.AddHours(7).Date) <= toDate);
+            }
+            if (appointmentFilterDTO.MeetingStatus.HasValue)
+            {
+                appointments = appointments.Where(a => a.Status == appointmentFilterDTO.MeetingStatus.Value);
+            }
+
+            if (!appointmentFilterDTO.FromDate.HasValue && !appointmentFilterDTO.ToDate.HasValue && !appointmentFilterDTO.MeetingStatus.HasValue && string.IsNullOrEmpty(appointmentFilterDTO.MilestoneId) && string.IsNullOrEmpty(appointmentFilterDTO.Title))
+            {
+                var currentMonthStart = new DateOnly(DateOnly.FromDateTime(DateTime.UtcNow).Year, DateOnly.FromDateTime(DateTime.UtcNow).Month, 1);
+                var currentMonthEnd = currentMonthStart.AddMonths(1).AddDays(-1);
+
+                appointments = appointments.Where(a => DateOnly.FromDateTime(a.AppointmentTime.UtcDateTime.AddHours(7).Date) >= currentMonthStart &&
+                                                        DateOnly.FromDateTime(a.AppointmentTime.UtcDateTime.AddHours(7).Date) <= currentMonthEnd);
+            }
+
+            if (appointmentFilterDTO.IsDescending.HasValue && appointmentFilterDTO.IsDescending.Value)
+            {
+                appointments = appointments.OrderByDescending(a => a.AppointmentTime.UtcDateTime);
+            }
+            else
+            {
+                appointments = appointments.OrderBy(a => a.AppointmentTime.UtcDateTime);
+            }
+
             int totalCount = await appointments.CountAsync();
 
             var appointmentPaging = await appointments.Skip((page - 1) * size)

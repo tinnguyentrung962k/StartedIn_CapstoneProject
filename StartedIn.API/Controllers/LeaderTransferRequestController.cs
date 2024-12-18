@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using StartedIn.CrossCutting.Constants;
+using StartedIn.CrossCutting.DTOs.RequestDTO;
 using StartedIn.CrossCutting.DTOs.RequestDTO.Appointment;
 using StartedIn.CrossCutting.DTOs.ResponseDTO.TransferLeaderRequest;
 using StartedIn.CrossCutting.Exceptions;
@@ -49,12 +50,12 @@ namespace StartedIn.API.Controllers
 
         [HttpPut("leader-transfer/{requestId}/accept")]
         [Authorize(Roles = RoleConstants.USER)]
-        public async Task<IActionResult> LeaderTransferAfterMeetingConfirm([FromRoute] string projectId, [FromRoute] string requestId, [FromBody] string newLeaderId)
+        public async Task<IActionResult> LeaderTransferAfterMeetingConfirm([FromRoute] string projectId, [FromRoute] string requestId, [FromBody] LeaderTransferRequestDTO leaderTransferRequestDTO)
         {
             try
             {
                 var userId = User.FindFirst(ClaimTypes.NameIdentifier).Value;
-                await _transferLeaderRequestService.TransferLeaderAfterMeeting(userId,projectId,requestId,newLeaderId);
+                await _transferLeaderRequestService.TransferLeaderAfterMeeting(userId,projectId,requestId,leaderTransferRequestDTO);
                 return Ok("Chuyển quyền thành công.");
             }
             catch (NotFoundException ex)

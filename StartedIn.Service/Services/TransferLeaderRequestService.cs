@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Logging;
 using StartedIn.CrossCutting.Constants;
+using StartedIn.CrossCutting.DTOs.RequestDTO;
 using StartedIn.CrossCutting.DTOs.RequestDTO.Appointment;
 using StartedIn.CrossCutting.Exceptions;
 using StartedIn.Domain.Entities;
@@ -123,7 +124,7 @@ namespace StartedIn.Service.Services
             return pendingTransferRequest;
         }
 
-        public async Task TransferLeaderAfterMeeting(string userId, string projectId, string requestId, string newLeaderId)
+        public async Task TransferLeaderAfterMeeting(string userId, string projectId, string requestId, LeaderTransferRequestDTO leaderTransferRequestDTO)
         {
             var userInProject = await _userService.CheckIfUserInProject(userId, projectId);
             if (userInProject.RoleInTeam != CrossCutting.Enum.RoleInTeam.Leader)
@@ -144,12 +145,7 @@ namespace StartedIn.Service.Services
             {
                 throw new NotFoundException(MessageConstant.NotFoundMeetingNote);
             }
-            var newLeader = await _userManager.FindByIdAsync(userId);
-            if (newLeader == null) 
-            {
-                throw new NotFoundException(MessageConstant.NotFoundUserError);
-            }
-            var newAssignedLeaderInProject = await _userService.CheckIfUserInProject(newLeaderId, projectId);
+            var newAssignedLeaderInProject = await _userService.CheckIfUserInProject(leaderTransferRequestDTO.NewLeaderId, projectId);
             if (newAssignedLeaderInProject.RoleInTeam != CrossCutting.Enum.RoleInTeam.Member)
             {
                 throw new InvalidAssignRoleException(MessageConstant.CannotTransferLeaderRoleForNotMember);
@@ -157,8 +153,8 @@ namespace StartedIn.Service.Services
             try
             {
                 _unitOfWork.BeginTransaction();
-                transferRequest.NewLeader = newLeader;
-                transferRequest.NewLeaderId = newLeaderId;
+                transferRequest.NewLeader = newAssignedLeaderInProject.User;
+                transferRequest.NewLeaderId = newAssignedLeaderInProject.UserId;
                 transferRequest.LastUpdatedBy = userInProject.User.FullName;
                 transferRequest.LastUpdatedTime = DateTimeOffset.UtcNow;
                 transferRequest.TransferDate = DateOnly.FromDateTime(DateTimeOffset.UtcNow.AddHours(7).Date);

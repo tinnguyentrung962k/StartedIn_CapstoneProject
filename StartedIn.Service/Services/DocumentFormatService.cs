@@ -18,6 +18,79 @@ namespace StartedIn.Service.Services
             _projectRepository = projectRepository;
         }
 
+        public Table CreateSignatureFieldTable(List<UserContract> userContracts)
+        {
+            Table table = new Table();
+
+            // Define table properties with borders
+            TableProperties tblProperties = new TableProperties(
+                new TableBorders(
+                    new TopBorder { Val = BorderValues.Single, Size = 6 },
+                    new BottomBorder { Val = BorderValues.Single, Size = 6 },
+                    new LeftBorder { Val = BorderValues.Single, Size = 6 },
+                    new RightBorder { Val = BorderValues.Single, Size = 6 },
+                    new InsideHorizontalBorder { Val = BorderValues.Single, Size = 6 },
+                    new InsideVerticalBorder { Val = BorderValues.Single, Size = 6 }
+                ),
+                new TableWidth { Width = "5000", Type = TableWidthUnitValues.Pct } // Scale table width to fit
+            );
+            table.AppendChild(tblProperties);
+
+            // Add header row
+            TableRow headerRow = new TableRow();
+            headerRow.Append(
+                CreateTableForSignatureFieldCell("Họ và tên", true),
+                CreateTableForSignatureFieldCell("Chữ ký", true)
+            );
+            table.AppendChild(headerRow);
+
+            // Add rows for each user contract
+            foreach (var userContract in userContracts)
+            {
+                TableRow row = new TableRow();
+
+                // Set row height for larger signature space
+                TableRowProperties rowProps = new TableRowProperties(
+                    new TableRowHeight { Val = 500 } // Height in twips (1/20 of a point)
+                );
+                row.Append(rowProps);
+
+                row.Append(
+                    CreateTableForSignatureFieldCell(userContract.User.FullName),
+                    CreateTableForSignatureFieldCell("\n\n_________________________") // Signature placeholder with spacing
+                );
+
+                table.AppendChild(row);
+            }
+
+            return table;
+        }
+
+        private TableCell CreateTableForSignatureFieldCell(string text, bool isBold = false)
+        {
+            TableCell cell = new TableCell();
+
+            // Add cell margin to make it larger
+            TableCellProperties cellProperties = new TableCellProperties(
+                new TableCellWidth { Type = TableWidthUnitValues.Dxa, Width = "2400" }, // Set cell width
+                new TableCellMargin(
+                    new TopMargin { Width = "200", Type = TableWidthUnitValues.Dxa },
+                    new BottomMargin { Width = "200", Type = TableWidthUnitValues.Dxa }
+                )
+            );
+
+            cell.Append(cellProperties);
+
+            Paragraph para = new Paragraph(new Run(new Text(text)));
+            if (isBold)
+            {
+                para = new Paragraph(new Run(new RunProperties(new Bold()), new Text(text)));
+            }
+            cell.Append(para);
+
+            return cell;
+        }
+
         public Table CreateDisbursementTable(List<Disbursement> disbursements)
         {
             Table table = new Table();
@@ -235,7 +308,7 @@ namespace StartedIn.Service.Services
                 { "CREATEDDATE", DateOnly.FromDateTime(DateTime.Now).ToString("dd-MM-yyyy") },
                 { "PROJECT", project.ProjectName },
                 { "CONTRACTPOLICY", contract.ContractPolicy },
-                { "LEADER", leader.FullName}
+                { "LEADER", leader.FullName},
             };
 
             // Bước 2: Mở file Word để thay thế placeholders
@@ -291,6 +364,23 @@ namespace StartedIn.Service.Services
                         placeholderShareHoldersDistributionParagraph.AppendChild(new Run(new Text(" ")));
                     }
                     placeholderShareHoldersDistributionParagraph.Remove();
+                }
+
+                var placeholderShareHoldersSignatureParagraph = body.Elements<Paragraph>().FirstOrDefault(p => p.InnerText.Contains("SIGNATURES"));
+                if (placeholderShareHoldersSignatureParagraph != null)
+                {
+                    if (usersInContract.Count > 0)
+                    {
+                        // Insert shareholder info table if usersInContract list is not empty
+                        Table shareHolderSignatureTable = CreateSignatureFieldTable(usersInContract);
+                        placeholderShareHoldersSignatureParagraph.InsertAfterSelf(shareHolderSignatureTable);
+                    }
+                    else
+                    {
+                        // Replace with whitespace if usersInContract list is empty
+                        placeholderShareHoldersSignatureParagraph.AppendChild(new Run(new Text(" ")));
+                    }
+                    placeholderShareHoldersSignatureParagraph.Remove();
                 }
 
                 doc.MainDocumentPart.Document.Save();

@@ -22,7 +22,8 @@ namespace StartedIn.Repository.Repositories
         {
             var appointments = _appDbContext.Appointments.Where(a => a.ProjectId.Equals(projectId))
                 .Include(a => a.Milestone)
-                .Include(a => a.MeetingNotes);
+                .Include(a => a.MeetingNotes)
+                .OrderBy(a => a.AppointmentTime);
             return appointments;
         }
     }
