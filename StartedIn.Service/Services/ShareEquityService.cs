@@ -72,7 +72,7 @@ namespace StartedIn.Service.Services
 
                         if (existingEntry == null)
                         {
-                            var userProject = await _userService.CheckIfUserInProject(shareEquity.UserId, projectId);
+                            var userofProject = await _userService.CheckIfUserInProject(shareEquity.UserId, projectId);
 
                             // Nếu chưa có, tạo mới và thêm vào danh sách
                             shareEquitySummary.Add(new ShareEquitySummaryDTO
@@ -81,7 +81,7 @@ namespace StartedIn.Service.Services
                                 UserFullName = shareEquity.User.FullName,  // Lấy tên đầy đủ từ bảng User
                                 TotalPercentage = shareEquity.Percentage ?? 0,
                                 LatestShareDate = shareEquity.DateAssigned.Value,
-                                StakeHolderType = userInProject.RoleInTeam,
+                                StakeHolderType = userofProject.RoleInTeam,
                             });
                         }
                         else
