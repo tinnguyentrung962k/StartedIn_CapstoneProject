@@ -48,7 +48,7 @@ public class MeetingNoteService : IMeetingNoteService
             _unitOfWork.BeginTransaction();
             foreach (var note in uploadMeetingNoteDto.Notes)
             {
-                var noteUrl = await _azureBlobService.UploadMeetingNote(note);
+                var noteUrl = await _azureBlobService.UploadMeetingNoteAndProjectDocuments(note);
                 var meetingNote = new MeetingNote
                 {
                     AppointmentId = appointmentId,
