@@ -884,6 +884,20 @@ namespace StartedIn.Service.Services
             }).ToList();
             foreach (var contractItem in contractSearchResponseDTOs)
             {
+                if (contractItem.CurrentTerminationRequestId != null)
+                {
+                    var request = await _terminationRequestRepository.QueryHelper().Filter(x=>x.Id.Equals(contractItem.CurrentTerminationRequestId))
+                        .Include(x => x.Appointment)
+                        .GetOneAsync();
+                    if (request != null)
+                    {
+                        if (request.Appointment != null)
+                        {
+                            contractItem.MeetingStatus = request.Appointment.Status;
+                        }
+                    }
+                }
+
                 if (contractItem.TerminationMeetingId != null) {
                     var meeting = await _appointmentRepository.GetOneAsync(contractItem.TerminationMeetingId);
                     if (meeting != null) {
@@ -1643,6 +1657,8 @@ namespace StartedIn.Service.Services
                 terminatedContract.ContractStatus = ContractStatusEnum.COMPLETED;
                 terminatedContract.LastUpdatedTime = DateTimeOffset.UtcNow;
                 terminatedContract.LastUpdatedBy = userInProject.User.FullName;
+                terminatedContract.TerminationMeetingId = null;
+                terminatedContract.CurrentTerminationRequestId = null;
                 _contractRepository.Update(terminatedContract);
                 await _unitOfWork.SaveChangesAsync();
                 await _unitOfWork.CommitAsync();
