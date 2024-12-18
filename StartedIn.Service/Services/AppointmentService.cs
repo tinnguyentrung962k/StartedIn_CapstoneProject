@@ -29,13 +29,17 @@ namespace StartedIn.Service.Services
         private readonly IEmailService _emailService;
         private readonly IProjectRepository _projectRepository;
         private readonly IAzureBlobService _azureBlobService;
+        private readonly ITransferLeaderRequestRepository _transfersLeaderRequestRepository;
         private readonly IMapper _mapper;
         private static readonly string GoogleMeetPattern = @"^(https:\/\/meet\.google\.com\/[a-zA-Z0-9-]+)$";
+        private readonly ITerminationRequestRepository _terminationRequestRepository;
+        private readonly IContractRepository _contractRepository;
 
         public AppointmentService(IAppointmentRepository appointmentRepository, IUserService userService,
             IUnitOfWork unitOfWork, ILogger<AppointmentService> logger,
             IEmailService emailService, IProjectRepository projectRepository, IAzureBlobService azureBlobService,
-            IMapper mapper) 
+            IMapper mapper, ITransferLeaderRequestRepository transferLeaderRequestRepository, ITerminationRequestRepository terminationRequestRepository,
+            IContractRepository contractRepository) 
         {
             _appointmentRepository = appointmentRepository;
             _userService = userService;
@@ -45,6 +49,10 @@ namespace StartedIn.Service.Services
             _projectRepository = projectRepository;
             _azureBlobService = azureBlobService;
             _mapper = mapper;
+            _transfersLeaderRequestRepository = transferLeaderRequestRepository;
+            _terminationRequestRepository = terminationRequestRepository;
+            _contractRepository = contractRepository;
+
         }
         public async Task<IEnumerable<Appointment>> GetAppointmentsInProject(string userId, string projectId, int year)
         {
@@ -127,6 +135,41 @@ namespace StartedIn.Service.Services
             if (appointment == null)
             {
                 throw new NotFoundException(MessageConstant.NotFoundAppointment);
+            }
+            if (status == MeetingStatus.Cancelled)
+            {
+                var transferRequest = await _transfersLeaderRequestRepository.GetLeaderTransferRequestPending(projectId);
+                if (transferRequest == null)
+                {
+                    throw new NotFoundException(MessageConstant.NoTransferRequestWasFound);
+                }
+                var acceptedTerminateRequest = await _terminationRequestRepository.QueryHelper()
+                    .Filter(x => x.AppointmentId.Equals(appointment.Id) && x.IsAgreed == true)
+                    .Include(x=>x.Contract)
+                    .GetOneAsync();
+                if (acceptedTerminateRequest == null)
+                {
+                    throw new NotFoundException(MessageConstant.NotFoundTerminateRequest);
+                }
+
+                if (transferRequest != null)
+                {
+                    transferRequest.IsAgreed = false;
+                    _transfersLeaderRequestRepository.Update(transferRequest);
+                }
+                if (acceptedTerminateRequest != null)
+                {
+                    acceptedTerminateRequest.IsAgreed = false;
+                    _terminationRequestRepository.Update(acceptedTerminateRequest);
+                    acceptedTerminateRequest.Contract.ContractStatus = ContractStatusEnum.COMPLETED;
+                    _contractRepository.Update(acceptedTerminateRequest.Contract);
+                }
+                var contract = await _contractRepository.QueryHelper().Filter(x => x.TerminationMeetingId.Equals(appointment.Id)).GetOneAsync();
+                if (contract != null)
+                {
+                    contract.ContractStatus = ContractStatusEnum.COMPLETED;
+                    _contractRepository.Update(contract);
+                }
             }
             
             appointment.Status = status;
