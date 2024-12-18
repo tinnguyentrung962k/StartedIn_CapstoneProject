@@ -38,6 +38,8 @@ namespace StartedIn.API.Configuration
             services.AddScoped<IMeetingNoteRepository, MeetingNoteRepository>();
             services.AddScoped<ITransferLeaderRequestRepository, TransferLeaderRequestRepository>();
             services.AddScoped<IApplicationFileRepository, ApplicationFileRepository>();
+            services.AddScoped<IProjectApprovalRepository, ProjectApprovalRepository>();
+            services.AddScoped<IDocumentRepository, DocumentRepository>();
             return services;
         }
     }

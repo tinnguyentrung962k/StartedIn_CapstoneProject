@@ -42,6 +42,7 @@ namespace StartedIn.API.Configuration
             services.AddScoped<IMeetingNoteService, MeetingNoteService>();
             services.AddScoped<ITransferLeaderRequestService, TransferLeaderRequestService>();
             services.AddScoped<IApplicationFileService, ApplicationFileService>();
+            services.AddScoped<IProjectApprovalService, ProjectApprovalService>();
             return services;
         }
     }
