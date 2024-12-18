@@ -14,15 +14,33 @@ namespace StartedIn.Service.Services.Interface
     public interface ITaskService
     {
         Task<TaskEntity> CreateTask(TaskCreateDTO taskCreateDto, string userId, string projectId);
-        Task<TaskEntity> UpdateTaskInfo(string userId, string taskId, string projectId, UpdateTaskInfoDTO updateTaskInfoDTO);
-        Task<TaskEntity> UpdateTaskStatus(string userId, string taskId, string projectId, UpdateTaskStatusDTO updateTaskStatusDTO);
-        Task<TaskEntity> UpdateTaskAssignment(string userId, string taskId, string projectId, UpdateTaskAssignmentDTO updateTaskAssignmentDTO);
-        Task<TaskEntity> UpdateTaskUnassignment(string userId, string taskId, string projectId, UpdateTaskAssignmentDTO updateTaskAssignmentDTO);
-        Task<TaskEntity> UpdateTaskMilestone(string userId, string taskId, string projectId, UpdateTaskMilestoneDTO updateTaskMilestoneDTO);
-        Task<TaskEntity> UpdateParentTask(string userId, string taskId, string projectId, UpdateParentTaskDTO updateParentTaskDTO);
+
+        Task<TaskEntity> UpdateTaskInfo(string userId, string taskId, string projectId,
+            UpdateTaskInfoDTO updateTaskInfoDTO);
+
+        Task<TaskEntity> UpdateTaskStatus(string userId, string taskId, string projectId,
+            UpdateTaskStatusDTO updateTaskStatusDTO);
+
+        Task<TaskEntity> UpdateTaskAssignment(string userId, string taskId, string projectId,
+            UpdateTaskAssignmentDTO updateTaskAssignmentDTO);
+
+        Task<TaskEntity> UpdateTaskUnassignment(string userId, string taskId, string projectId,
+            UpdateTaskAssignmentDTO updateTaskAssignmentDTO);
+
+        Task<TaskEntity> UpdateTaskMilestone(string userId, string taskId, string projectId,
+            UpdateTaskMilestoneDTO updateTaskMilestoneDTO);
+
+        Task<TaskEntity> UpdateParentTask(string userId, string taskId, string projectId,
+            UpdateParentTaskDTO updateParentTaskDTO);
+
         Task<TaskEntity> GetTaskDetail(string userId, string taskId, string projectId);
-        Task<PaginationDTO<TaskResponseDTO>> FilterTask(string userId, string projectId, TaskFilterDTO taskFilterDto, int size, int page);
+
+        Task<PaginationDTO<TaskResponseDTO>> FilterTask(string userId, string projectId, TaskFilterDTO taskFilterDto,
+            int size, int page);
+
         Task DeleteTask(string userId, string taskId, string projectId);
         Task MarkTaskAsLate();
+        Task UpdateManHourForTask(string projectId, string taskId, string userId, float hour);
+        Task<List<UserTask>> GetManHoursForTask(string projectId, string userId, string taskId);
     }
 }
