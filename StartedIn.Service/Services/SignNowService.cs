@@ -378,7 +378,6 @@ namespace StartedIn.Service.Services
                 throw new Exception($"Error retrieving free form invite: {ex.Message}", ex);
             }
         }
-        
     }
 }
 

@@ -108,6 +108,7 @@ namespace StartedIn.Domain.Context
                 .HasConversion(
                     v => v.ToString(),
                     v => (RoleInTeam)Enum.Parse(typeof(RoleInTeam), v));
+
             
             modelBuilder.Entity<UserProject>()
                .Property(u => u.Status)
@@ -122,6 +123,12 @@ namespace StartedIn.Domain.Context
                 .HasOne(up => up.Contract)
                 .WithMany(p => p.UserContracts)
                 .HasForeignKey(up => up.ContractId);
+
+            modelBuilder.Entity<UserContract>()
+                .Property(u => u.Role)
+                .HasConversion(
+                    v => v.ToString(),
+                    v => (RoleInContract)Enum.Parse(typeof(RoleInContract), v));
 
             modelBuilder.Entity<UserTask>()
                 .HasKey(up => new { up.UserId, up.TaskId });

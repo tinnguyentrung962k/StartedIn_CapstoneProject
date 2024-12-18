@@ -58,7 +58,7 @@ namespace StartedIn.Service.Services
             var shareEquitySummary = new List<ShareEquitySummaryDTO>();
 
             // Lấy ngày tính cổ phần (nếu không có, sử dụng ngày hiện tại)
-            var targetDate = equityShareFilterDTO.ToDate ?? DateOnly.FromDateTime(DateTime.UtcNow);
+            var targetDate = equityShareFilterDTO.ToDate ?? DateOnly.FromDateTime(DateTimeOffset.UtcNow.Date);
 
             foreach (var contract in allContracts)
             {
@@ -72,6 +72,8 @@ namespace StartedIn.Service.Services
 
                         if (existingEntry == null)
                         {
+                            var userofProject = await _userService.CheckIfUserInProject(shareEquity.UserId, projectId);
+
                             // Nếu chưa có, tạo mới và thêm vào danh sách
                             shareEquitySummary.Add(new ShareEquitySummaryDTO
                             {
@@ -79,7 +81,7 @@ namespace StartedIn.Service.Services
                                 UserFullName = shareEquity.User.FullName,  // Lấy tên đầy đủ từ bảng User
                                 TotalPercentage = shareEquity.Percentage ?? 0,
                                 LatestShareDate = shareEquity.DateAssigned.Value,
-                                StakeHolderType = shareEquity.StakeHolderType
+                                StakeHolderType = userofProject.RoleInTeam,
                             });
                         }
                         else

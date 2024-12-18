@@ -19,6 +19,7 @@ namespace StartedIn.Service.Services.Interface
         Task<Table> CreateShareDistributionTable(List<UserContract> usersInContract, string projectId, string contractId);
         Task<MemoryStream> ReplacePlaceHolderForStartUpShareDistributionDocumentAsync(Contract contract, User leader, Project project, List<ShareEquity> shareEquities, List<UserContract> usersInContract);
         TableCell CreateBoldCell(string text, bool isBold = false);
+        Table CreateSignatureFieldTable(List<UserContract> userContracts);
 
     }
 }

@@ -12,7 +12,6 @@ namespace StartedIn.CrossCutting.DTOs.ResponseDTO.Tasks
         public TaskEntityStatus Status { get; set; }
         public DateTimeOffset? StartDate { get; set; }
         public DateTimeOffset? EndDate { get; set; }
-        public DateTimeOffset? ActualStartAt { get; set; }
         public DateTimeOffset? ActualFinishAt { get; set; }
         public float? ActualManHour { get; set; }
         public ICollection<AssigneeInTaskDTO> Assignees { get; set; } = [];

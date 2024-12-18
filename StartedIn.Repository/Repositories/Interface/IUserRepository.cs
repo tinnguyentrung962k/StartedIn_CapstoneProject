@@ -15,5 +15,6 @@ namespace StartedIn.Repository.Repositories.Interface
         IQueryable<User> GetUsersInTheSystemQuery();
         Task DeleteUserFromAProject(string userId, string projectId);
         Task UpdateUserInProject(UserProject userProject);
+        Task UpdateUserInContract(UserContract userContract);
     }
 }

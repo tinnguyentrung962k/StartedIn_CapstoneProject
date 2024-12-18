@@ -20,6 +20,8 @@ using Microsoft.AspNetCore.Http;
 using StartedIn.CrossCutting.DTOs.RequestDTO.Appointment;
 using Azure.Core;
 using DocumentFormat.OpenXml.Office2016.Excel;
+using CrossCutting.Exceptions;
+using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace StartedIn.Service.Services
 {
@@ -134,7 +136,7 @@ namespace StartedIn.Service.Services
             {
                 _unitOfWork.BeginTransaction();
                 string prefix = "HDDT";
-                string currentDateTime = DateTimeOffset.UtcNow.ToString("ddMMyyyyHHmm");
+                string currentDateTime = DateTimeOffset.UtcNow.AddHours(7).ToString("ddMMyyyyHHmm");
                 string contractIdNumberGen = $"{prefix}-{currentDateTime}";
                 Contract contract = new Contract
                 {
@@ -153,7 +155,8 @@ namespace StartedIn.Service.Services
                     UserContract userContract = new UserContract
                     {
                         ContractId = contract.Id,
-                        UserId = chosenUser.Id
+                        UserId = chosenUser.Id,
+                        Role = chosenUser.Id == leader.Id ? RoleInContract.CREATOR : RoleInContract.SIGNER
                     };
                     usersInContract.Add(userContract);
                 }
@@ -225,6 +228,15 @@ namespace StartedIn.Service.Services
             {
                 throw new UnauthorizedProjectRoleException(MessageConstant.RolePermissionError);
             }
+            var existingContract = await _contractRepository.QueryHelper()
+                .Filter(x=>x.ContractType == ContractTypeEnum.INTERNAL 
+                && x.ProjectId.Equals(projectId)
+                && (x.ContractStatus != ContractStatusEnum.CANCELLED 
+                && x.ContractStatus != ContractStatusEnum.EXPIRED)).GetOneAsync();
+            if (existingContract != null)
+            {
+                throw new ExistedRecordException(MessageConstant.InternalContractExisted);
+            }
             if (groupContractCreateDTO.ShareEquitiesOfMembers == null)
             {
                 throw new InvalidDataException(MessageConstant.ShareDistributionListEmptyInContract);
@@ -261,7 +273,7 @@ namespace StartedIn.Service.Services
             {
                 _unitOfWork.BeginTransaction();
                 string prefix = "HDNB";
-                string currentDateTime = DateTimeOffset.UtcNow.ToString("ddMMyyyyHHmm");
+                string currentDateTime = DateTimeOffset.UtcNow.AddHours(7).ToString("ddMMyyyyHHmm");
                 string contractIdNumberGen = $"{prefix}-{currentDateTime}";
                 Contract contract = new Contract
                 {
@@ -286,6 +298,7 @@ namespace StartedIn.Service.Services
                         ContractId = contract.Id,
                         Contract = contract,
                         User = userMemberInContract,
+                        Role = userMemberInContract.Id == leader.Id ? RoleInContract.CREATOR : RoleInContract.SIGNER
                     };
                     usersInContract.Add(userInContract);
                     ShareEquity shareEquity = new ShareEquity
@@ -391,7 +404,7 @@ namespace StartedIn.Service.Services
             {
                 _unitOfWork.BeginTransaction();
                 string prefix = "HDDT";
-                string currentDateTime = DateTimeOffset.UtcNow.ToString("ddMMyyyyHHmm");
+                string currentDateTime = DateTimeOffset.UtcNow.AddHours(7).ToString("ddMMyyyyHHmm");
                 string contractIdNumberGen = $"{prefix}-{currentDateTime}";
                 Contract contract = new Contract
                 {
@@ -412,7 +425,8 @@ namespace StartedIn.Service.Services
                     UserContract userContract = new UserContract
                     {
                         ContractId = contract.Id,
-                        UserId = chosenUser.Id
+                        UserId = chosenUser.Id,
+                        Role = chosenUser.Id == leader.Id ? RoleInContract.CREATOR : RoleInContract.SIGNER
                     };
                     usersInContract.Add(userContract);
                 }
@@ -684,11 +698,11 @@ namespace StartedIn.Service.Services
             try
             {
                 _unitOfWork.BeginTransaction();
-                chosenContract.ValidDate = DateOnly.FromDateTime(DateTime.Now);
+                chosenContract.ValidDate = DateOnly.FromDateTime(DateTimeOffset.UtcNow.AddHours(7).Date);
                 chosenContract.ContractStatus = ContractStatusEnum.COMPLETED;
                 foreach (var equityShare in chosenContract.ShareEquities)
                 {
-                    equityShare.DateAssigned = DateOnly.FromDateTime(DateTime.Now);
+                    equityShare.DateAssigned = DateOnly.FromDateTime(DateTimeOffset.UtcNow.AddHours(7).Date);
                     _shareEquityRepository.Update(equityShare);
                 }
                 var totalEquitiesSharePercentageInContract = chosenContract.ShareEquities.Sum(e => e.Percentage);
@@ -1043,7 +1057,7 @@ namespace StartedIn.Service.Services
             try
             {
                 _unitOfWork.BeginTransaction();
-
+                var leader = userInProject.User;
                 // Update contract details
                 contract.ContractName = groupContractUpdateDTO.Contract.ContractName;
                 contract.ContractPolicy = groupContractUpdateDTO.Contract.ContractPolicy;
@@ -1066,6 +1080,7 @@ namespace StartedIn.Service.Services
                         ContractId = contract.Id,
                         Contract = contract,
                         User = userMemberInContract,
+                        Role = userMemberInContract.Id == leader.Id ? RoleInContract.CREATOR : RoleInContract.SIGNER
                     };
                     usersInContract.Add(userInContract);
                     ShareEquity shareEquity = new ShareEquity
@@ -1080,7 +1095,7 @@ namespace StartedIn.Service.Services
                     };
                     shareEquitiesOfMembers.Add(shareEquity);
                 }
-                var leader = userInProject.User;
+                
                 contract.UserContracts = usersInContract;
                 var contractEntity = _contractRepository.Update(contract);
                 await _shareEquityRepository.AddRangeAsync(shareEquitiesOfMembers);
@@ -1219,7 +1234,7 @@ namespace StartedIn.Service.Services
             {
                 _unitOfWork.BeginTransaction();
                 string prefix = "GTL";
-                string currentDateTime = DateTimeOffset.UtcNow.ToString("ddMMyyyyHHmm");
+                string currentDateTime = DateTimeOffset.UtcNow.AddHours(7).ToString("ddMMyyyyHHmm"); ;
                 string contractIdNumberGen = $"{prefix}-{currentDateTime}";
                 Contract liquidationNote = new Contract
                 {
@@ -1238,7 +1253,8 @@ namespace StartedIn.Service.Services
                 var leaderInLiquidationNote = new UserContract
                 {
                     UserId = leader.Id,
-                    ContractId = liquidationNote.Id
+                    ContractId = liquidationNote.Id,
+                    Role = RoleInContract.CREATOR
                 };
 
                 
@@ -1246,6 +1262,7 @@ namespace StartedIn.Service.Services
                 {
                     UserId = request.FromId,
                     ContractId = liquidationNote.Id,
+                    Role = RoleInContract.SIGNER,
                 };
                 
                 List<UserContract> usersInContract = new List<UserContract> { leaderInLiquidationNote, requestParty };
@@ -1298,7 +1315,7 @@ namespace StartedIn.Service.Services
             try
             {
                 _unitOfWork.BeginTransaction();
-                contract.ExpiredDate = DateOnly.FromDateTime(DateTimeOffset.UtcNow.Date);
+                contract.ExpiredDate = DateOnly.FromDateTime(DateTimeOffset.UtcNow.AddHours(7).Date);
                 contract.ContractStatus = ContractStatusEnum.EXPIRED;
                 contract.LastUpdatedTime = DateTimeOffset.UtcNow;
                 if (contract.ContractType == ContractTypeEnum.INTERNAL)
@@ -1386,7 +1403,7 @@ namespace StartedIn.Service.Services
                 {
                     foreach (var userParty in chosenContract.UserContracts.Where(uc => uc.UserId != userId))
                     {
-                        await _emailService.SendAppointmentInvite(userParty.User.Email, userInProject.Project.ProjectName, userParty.User.FullName, newMeeting.MeetingLink, newMeeting.AppointmentTime);
+                        await _emailService.SendAppointmentInvite(userParty.User.Email, userInProject.Project.ProjectName, userParty.User.FullName, newMeeting.MeetingLink, newMeeting.AppointmentTime.AddHours(7));
                     }
                 }
                 await _unitOfWork.SaveChangesAsync();
@@ -1449,7 +1466,7 @@ namespace StartedIn.Service.Services
             {
                 _unitOfWork.BeginTransaction();
                 var project = await _projectRepository.GetProjectById(projectId);
-                terminatedContract.ExpiredDate = DateOnly.FromDateTime(DateTimeOffset.UtcNow.Date);
+                terminatedContract.ExpiredDate = DateOnly.FromDateTime(DateTimeOffset.UtcNow.AddHours(7).Date);
                 terminatedContract.ContractStatus = ContractStatusEnum.EXPIRED;
                 terminatedContract.LastUpdatedTime = DateTimeOffset.UtcNow;
                 terminatedContract.LastUpdatedBy = userInProject.User.FullName;
@@ -1488,7 +1505,7 @@ namespace StartedIn.Service.Services
                     _logger.LogInformation($"Tổng số tiền chưa giải ngân bị tắt: {totalPendingAmount}.");
                 }
                 string prefix = "GTL";
-                string currentDateTime = DateTimeOffset.UtcNow.ToString("ddMMyyyyHHmm");
+                string currentDateTime = DateTimeOffset.UtcNow.AddHours(7).ToString("ddMMyyyyHHmm");
                 string contractIdNumberGen = $"{prefix}-{currentDateTime}";
                 Contract liquidationNote = new Contract
                 {
@@ -1513,6 +1530,7 @@ namespace StartedIn.Service.Services
                         ContractId = liquidationNote.Id,
                         IsReject = false,
                         SignedDate = DateTimeOffset.UtcNow,
+                        Role = userParty.Role,
                     };
                     usersInLiquidationNote.Add(userInLiquidation);
 
@@ -1622,7 +1640,6 @@ namespace StartedIn.Service.Services
             {
                 _unitOfWork.BeginTransaction();
                 var project = await _projectRepository.GetProjectById(projectId);
-                terminatedContract.ExpiredDate = DateOnly.FromDateTime(DateTimeOffset.UtcNow.Date);
                 terminatedContract.ContractStatus = ContractStatusEnum.COMPLETED;
                 terminatedContract.LastUpdatedTime = DateTimeOffset.UtcNow;
                 terminatedContract.LastUpdatedBy = userInProject.User.FullName;

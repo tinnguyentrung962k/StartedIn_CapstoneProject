@@ -123,7 +123,13 @@ namespace StartedIn.CrossCutting.Constants
         public const string CompleteAppointment = "Đã hoàn thành cuộc họp";
         public const string CancelAppointment = "Đã huỷ cuộc họp";
         public const string InvalidLink = "Hãy nhập một đường dẫn Google Meet hợp lệ.";
-        public const string MeetingIsNotFinished = "Cuộc họp huỷ hợp đồng chưa hoàn thành";
+        public const string MeetingIsNotFinished = "Cuộc họp chưa hoàn thành";
         public const string ThisContractIsNotInLiquidatedState = "Hợp đồng này không ở trong trạng thái chờ thanh lý";
+        public const string OldRemainingQuantityMustBeGreaterThanNewRemainQuantity = "Số lượng tồn kho sau khi cập nhật phải nhỏ hơn hoặc bằng số lượng ban đầu";
+        public const string NoTransferRequestWasFound = "Không có yêu cầu chuyển nhóm trưởng nào được gửi.";
+        public const string ExistingTransferLeaderRequestWasFound = "Bạn có yêu cầu chuyển nhóm trưởng chưa được xử lý.";
+        public const string InternalContractExisted = "Hợp đồng nội bộ đã có trong dự án";
+        public const string CannotTransferLeaderRoleForNotMember = "Bạn không thể quyền nhóm trưởng cho cố vấn hoặc nhà đầu tư";
+
     }
 }

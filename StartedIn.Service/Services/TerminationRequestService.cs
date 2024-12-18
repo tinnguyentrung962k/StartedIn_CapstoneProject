@@ -165,7 +165,7 @@ namespace StartedIn.Service.Services
                 {
                     foreach (var userParty in chosenContract.UserContracts.Where(uc => uc.UserId != userId))
                     {
-                        await _emailService.SendAppointmentInvite(userParty.User.Email, userInProject.Project.ProjectName, userParty.User.FullName, newMeeting.MeetingLink,newMeeting.AppointmentTime);
+                        await _emailService.SendAppointmentInvite(userParty.User.Email, userInProject.Project.ProjectName, userParty.User.FullName, newMeeting.MeetingLink, newMeeting.AppointmentTime.AddHours(7));
                     }
                 }
                 _terminationRequestRepository.Update(request);

@@ -49,6 +49,12 @@ namespace StartedIn.Repository.Repositories
             await _appDbContext.SaveChangesAsync();
         }
 
+        public async Task UpdateUserInContract(UserContract userContract)
+        {
+            _appDbContext.Set<UserContract>().Update(userContract);
+            await _appDbContext.SaveChangesAsync();
+        }
+
         public async Task<UserProject> GetAUserInProject(string projectId, string userId)
         {
             return await _appDbContext.Set<UserProject>().Where(x => x.ProjectId.Equals(projectId) 
