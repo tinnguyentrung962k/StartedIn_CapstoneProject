@@ -57,7 +57,7 @@ namespace StartedIn.Service.Services
 
                 row.Append(
                     CreateTableForSignatureFieldCell(userContract.User.FullName),
-                    CreateTableForSignatureFieldCell("\n\n_________________________") // Signature placeholder with spacing
+                    CreateTableForSignatureFieldCell("\n\n\n\n_______________________________") // Signature placeholder with spacing
                 );
 
                 table.AppendChild(row);
