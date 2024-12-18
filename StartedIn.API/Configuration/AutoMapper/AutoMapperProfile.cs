@@ -27,6 +27,7 @@ using StartedIn.Service.Services.Interface;
 using StartedIn.CrossCutting.DTOs.ResponseDTO.Appointment;
 using StartedIn.CrossCutting.DTOs.ResponseDTO.LeavingRequest;
 using StartedIn.CrossCutting.DTOs.ResponseDTO.TerminationRequest;
+using StartedIn.CrossCutting.DTOs.ResponseDTO.TransferLeaderRequest;
 
 namespace StartedIn.API.Configuration.AutoMapper
 {
@@ -56,6 +57,7 @@ namespace StartedIn.API.Configuration.AutoMapper
             ApplicationMappingProfile();
             TerminationRequestMappingProfile();
             MeetingNoteMappingProfile();
+            TransferRequestMappingProfile();
         }
 
 
@@ -408,6 +410,17 @@ namespace StartedIn.API.Configuration.AutoMapper
         private void MeetingNoteMappingProfile()
         {
             CreateMap<MeetingNote, MeetingNoteResponseDTO>().ReverseMap();
+        }
+
+        private void TransferRequestMappingProfile() 
+        {
+            CreateMap<TransferLeaderRequest, TransferLeaderRequestDetailDTO>()
+                .ForMember(dest => dest.MeetingNotes, opt => opt.MapFrom(src => src.Appointment.MeetingNotes))
+                .ForMember(dest => dest.MeetingStatus, opt => opt.MapFrom(src => src.Appointment.Status))
+                .ForMember(dest => dest.AppointmentTime, opt => opt.MapFrom(src => src.Appointment.AppointmentTime))
+                .ForMember(dest => dest.AppointmentTitle, opt => opt.MapFrom(src => src.Appointment.Title))
+                .ForMember(dest => dest.FormerLeaderName, opt => opt.MapFrom(src => src.FormerLeader.FullName))
+                .ForMember(dest => dest.Description, opt => opt.MapFrom(src => src.Appointment.Description));
         }
     }
 }

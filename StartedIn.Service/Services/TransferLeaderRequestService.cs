@@ -112,7 +112,18 @@ namespace StartedIn.Service.Services
             }
         }
 
-        public async Task TransferLeaderAfterMeeting(string userId, string projectId, string newLeaderId)
+        public async Task<TransferLeaderRequest> GetPendingTransferLeaderRequest(string userId, string projectId) 
+        {
+            var userInProject = await _userService.CheckIfUserInProject(userId, projectId);
+            var pendingTransferRequest = await _transferLeaderRequestRepository.GetLeaderTransferRequestPending(projectId);
+            if (pendingTransferRequest == null)
+            {
+                throw new NotFoundException(MessageConstant.NoTransferRequestWasFound);
+            }
+            return pendingTransferRequest;
+        }
+
+        public async Task TransferLeaderAfterMeeting(string userId, string projectId, string requestId, string newLeaderId)
         {
             var userInProject = await _userService.CheckIfUserInProject(userId, projectId);
             if (userInProject.RoleInTeam != CrossCutting.Enum.RoleInTeam.Leader)
@@ -120,12 +131,7 @@ namespace StartedIn.Service.Services
                 throw new UnauthorizedProjectRoleException(MessageConstant.RolePermissionError);
             }
 
-            var transferRequest = await _transferLeaderRequestRepository.QueryHelper()
-                .Filter(x => x.FormerLeaderId.Equals(userId)
-                && x.ProjectId.Equals(projectId)
-                && x.IsAgreed == null)
-                .Include(x=>x.Appointment)
-                .GetOneAsync();
+            var transferRequest = await _transferLeaderRequestRepository.GetLeaderTransferRequestPending(projectId);
             if (transferRequest == null) 
             {
                 throw new NotFoundException(MessageConstant.NoTransferRequestWasFound);
@@ -133,6 +139,10 @@ namespace StartedIn.Service.Services
             if (transferRequest.Appointment.Status != CrossCutting.Enum.MeetingStatus.Finished)
             {
                 throw new NotFoundException(MessageConstant.MeetingIsNotFinished);
+            }
+            if (transferRequest.Appointment.MeetingNotes == null)
+            {
+                throw new NotFoundException(MessageConstant.NotFoundMeetingNote);
             }
             var newLeader = await _userManager.FindByIdAsync(userId);
             if (newLeader == null) 
@@ -180,6 +190,48 @@ namespace StartedIn.Service.Services
                 await _unitOfWork.RollbackAsync();
                 throw;
             }
+        }
+
+        public async Task CancelTransferLeaderRequest(string userId, string projectId, string requestId)
+        {
+            var userInProject = await _userService.CheckIfUserInProject(userId, projectId);
+            if (userInProject.RoleInTeam != CrossCutting.Enum.RoleInTeam.Leader)
+            {
+                throw new UnauthorizedProjectRoleException(MessageConstant.RolePermissionError);
+            }
+
+            var transferRequest = await _transferLeaderRequestRepository.GetLeaderTransferRequestPending(projectId);
+            if (transferRequest == null)
+            {
+                throw new NotFoundException(MessageConstant.NoTransferRequestWasFound);
+            }
+            if (transferRequest.Appointment.Status != CrossCutting.Enum.MeetingStatus.Finished)
+            {
+                throw new NotFoundException(MessageConstant.MeetingIsNotFinished);
+            }
+            if (transferRequest.Appointment.MeetingNotes == null)
+            {
+                throw new NotFoundException(MessageConstant.NotFoundMeetingNote);
+            }
+            try
+            {
+                _unitOfWork.BeginTransaction();
+                transferRequest.LastUpdatedBy = userInProject.User.FullName;
+                transferRequest.LastUpdatedTime = DateTimeOffset.UtcNow;
+                transferRequest.IsAgreed = false;
+
+                _transferLeaderRequestRepository.Update(transferRequest);
+
+                await _unitOfWork.SaveChangesAsync();
+                await _unitOfWork.CommitAsync();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, MessageConstant.UpdateFailed);
+                await _unitOfWork.RollbackAsync();
+                throw;
+            }
+
         }
     }
 }
