@@ -130,6 +130,6 @@ namespace StartedIn.CrossCutting.Constants
         public const string ExistingTransferLeaderRequestWasFound = "Bạn có yêu cầu chuyển nhóm trưởng chưa được xử lý.";
         public const string InternalContractExisted = "Hợp đồng nội bộ đã có trong dự án";
         public const string CannotTransferLeaderRoleForNotMember = "Bạn không thể quyền nhóm trưởng cho cố vấn hoặc nhà đầu tư";
-
+        public const string NotFoundUserTask = "Không tìm thấy tác vụ liên quan tới người dùng";
     }
 }

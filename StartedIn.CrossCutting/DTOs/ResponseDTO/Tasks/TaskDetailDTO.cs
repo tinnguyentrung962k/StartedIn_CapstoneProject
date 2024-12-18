@@ -20,12 +20,14 @@ namespace StartedIn.CrossCutting.DTOs.ResponseDTO.Tasks
         public TaskEntityStatus Status { get; set; }
         public DateTimeOffset? StartDate { get; set; }
         public DateTimeOffset? EndDate { get; set; }
-        public int ManHour { get; set; }
+        public int ExpectedManHour { get; set; }
+        public float ActualManHour { get; set; }
         public TaskResponseDTO ParentTask { get; set; }
         public MilestoneResponseDTO Milestone { get; set; }
         public ICollection<TaskResponseDTO> SubTasks { get; set; }
         public ICollection<MemberWithRoleInProjectResponseDTO> Assignees { get; set; } = [];
         public ICollection<TaskCommentDTO> TaskComments { get; set; } = [];
         public ICollection<TaskAttachmentResponseDTO> TaskAttachments { get; set; } = [];
+        public ICollection<UserTaskResponseDTO> UserTasks { get; set; } = [];
     }
 }
