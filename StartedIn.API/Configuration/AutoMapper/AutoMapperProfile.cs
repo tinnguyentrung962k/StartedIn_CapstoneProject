@@ -351,6 +351,8 @@ namespace StartedIn.API.Configuration.AutoMapper
                 .ForMember(dest => dest.LeaderId, opt => opt.MapFrom(src => src.Project.UserProjects.FirstOrDefault(up => up.RoleInTeam == RoleInTeam.Leader).UserId))
                 .ForMember(dest => dest.LeaderName, opt => opt.MapFrom(src => src.Project.UserProjects.FirstOrDefault(up => up.RoleInTeam == RoleInTeam.Leader).User.FullName))
                 .ForMember(dest => dest.LeaderAvatarUrl, opt => opt.MapFrom(src => src.Project.UserProjects.FirstOrDefault(up => up.RoleInTeam == RoleInTeam.Leader).User.ProfilePicture))
+                .ForMember(dest => dest.LogoUrl, opt => opt.MapFrom(src => src.Project.LogoUrl))
+                .ForMember(dest => dest.ProjectName, opt => opt.MapFrom(src => src.Project.ProjectName))
                 .ReverseMap();
             
             CreateMap<Recruitment, RecruitmentListDTO>()
