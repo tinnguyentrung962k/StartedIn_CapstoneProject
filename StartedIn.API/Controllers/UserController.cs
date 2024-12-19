@@ -51,13 +51,17 @@ namespace StartedIn.API.Controllers
         
         [HttpGet("my-task-history")]
         [Authorize(Roles = RoleConstants.USER)]
-        public async Task<ActionResult<AllTaskHistoryForUserDTO>> GetAllTaskHistoryForUser([FromRoute] string projectId)
+        public async Task<ActionResult<AllTaskHistoryForUserDTO>> GetAllTaskHistoryForUser()
         {
             try
             {
                 var userId = User.FindFirst(ClaimTypes.NameIdentifier).Value;
                 var responseTask = await _taskService.GetAllTaskHistoryForUser(userId);
                 return Ok(responseTask);
+            }
+            catch (NotFoundException ex)
+            {
+                return BadRequest(ex.Message);
             }
             catch (Exception ex)
             {
