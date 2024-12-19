@@ -10,8 +10,10 @@ namespace StartedIn.Repository.Repositories
 {
     public class TaskRepository : GenericRepository<TaskEntity, string>, ITaskRepository
     {
+        private readonly AppDbContext _appDbContext;
         public TaskRepository(AppDbContext context) : base(context)
         {
+            _appDbContext = context;
         }
 
         public Task<TaskEntity> GetTaskDetails(string taskId)
@@ -34,20 +36,20 @@ namespace StartedIn.Repository.Repositories
 
         public async Task UpdateManHourForTask(string taskId, string userId, float hour)
         {
-            var queryTask = _context.UserTasks.FirstOrDefault(ut => ut.TaskId.Equals(taskId) && ut.UserId.Equals(userId));
+            var queryTask = _appDbContext.UserTasks.FirstOrDefault(ut => ut.TaskId.Equals(taskId) && ut.UserId.Equals(userId));
             if (queryTask == null)
             {
                 throw new NotFoundException(MessageConstant.NotFoundUserTask);
             }
             queryTask.ActualManHour = hour; 
             queryTask.LastUpdatedTime = DateTimeOffset.UtcNow;
-            _context.Set<UserTask>().Update(queryTask);
+            _appDbContext.Set<UserTask>().Update(queryTask);
             await _context.SaveChangesAsync();
         }
 
         public async Task<float> GetManHoursForTask(string taskId)
         {
-            var queryTask = await _context.UserTasks.Where(ut => ut.TaskId.Equals(taskId)).ToListAsync();
+            var queryTask = await _appDbContext.UserTasks.Where(ut => ut.TaskId.Equals(taskId)).ToListAsync();
             if (queryTask == null)
             {
                 throw new NotFoundException(MessageConstant.NotFoundUserTask);
@@ -61,10 +63,10 @@ namespace StartedIn.Repository.Repositories
             return manHour;
         }
 
-        public async Task<List<UserTask>> GetAllTasksOfUserInOneProject(string userId, string projectId)
+        public async Task<List<UserTask>> GetAllUserTasksInOneProject(string userId, string projectId)
         {
-            var queryTasks = await _context.UserTasks.Where(ut => ut.UserId.Equals(userId))
-                .Include(ut => ut.Task).ToListAsync();
+            var queryTasks = await _appDbContext.UserTasks.Where(ut => ut.UserId.Equals(userId))
+                .Include(ut => ut.Task).ThenInclude(t => t.Project).ToListAsync();
              
             if (!queryTasks.Any())
             {
@@ -80,6 +82,13 @@ namespace StartedIn.Repository.Repositories
                 }
             }
             return queryTasksInProject;
+        }
+        
+        public async Task<List<TaskEntity>> GetAllTaskEntitiesOfUserInOneProject(string projectId, string userId)
+        {
+            var tasks = await _appDbContext.TaskEntities.Where(t =>
+                t.ProjectId.Equals(projectId) && t.UserTasks.Any(ut => ut.UserId.Equals(userId))).ToListAsync();
+            return tasks;
         }
     }
 }

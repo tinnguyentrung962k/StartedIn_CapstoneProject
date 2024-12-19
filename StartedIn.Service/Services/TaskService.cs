@@ -573,7 +573,7 @@ namespace StartedIn.Service.Services
 
         public async Task<TasksForUserDTO> GetAllTasksInformationOfUser(string userId, string projectId)
         {
-            var tasks = await _taskRepository.GetAllTasksOfUserInOneProject(userId, projectId);
+            var tasks = await _taskRepository.GetAllUserTasksInOneProject(userId, projectId);
             var response = new TasksForUserDTO();
 
             foreach (var task in tasks)
@@ -585,6 +585,35 @@ namespace StartedIn.Service.Services
             response.NotStartedTasks = tasks.Count(t => t.Task.Status == TaskEntityStatus.NOT_STARTED);
             response.PendingTasks = tasks.Count(t => t.Task.Status == TaskEntityStatus.PENDING);
             response.InProgressTasks = tasks.Count(t => t.Task.Status == TaskEntityStatus.IN_PROGRESS);
+            return response;
+        }
+
+        public async Task<List<AllTaskHistoryForUserDTO>> GetAllTaskHistoryForUser(string userId)
+        {
+            var userProjects = await _userService.GetProjectsByUserId(userId);
+            var eachProjectResponse = new AllTaskHistoryForUserDTO();
+            var response = new List<AllTaskHistoryForUserDTO>();
+            var userTaskHistory = new List<UserTaskInTaskHistoryDTO>();
+            foreach (var userProject in userProjects)
+            {
+                var userTasksQuery = await _taskRepository.GetAllUserTasksInOneProject(userId, userProject.ProjectId);
+                foreach (var userTask in userTasksQuery)
+                {
+                    eachProjectResponse.TotalManHoursInProject += userTask.ActualManHour;
+                    var task = new UserTaskInTaskHistoryDTO
+                    {
+                        Title = userTask.Task.Title,
+                        ActualManHour = userTask.ActualManHour,
+                        Status = userTask.Task.Status
+                    };
+                    userTaskHistory.Add(task);
+                }
+                eachProjectResponse.ProjectName = userProject.Project.ProjectName;
+                eachProjectResponse.UserStatusInProject = userProject.Status;
+                eachProjectResponse.UserTasks = userTaskHistory;
+            }
+            
+            response.Add(eachProjectResponse);
             return response;
         }
     }

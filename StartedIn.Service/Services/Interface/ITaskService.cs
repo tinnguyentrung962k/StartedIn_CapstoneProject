@@ -43,5 +43,6 @@ namespace StartedIn.Service.Services.Interface
         Task UpdateManHourForTask(string projectId, string taskId, string userId, float hour);
         Task<float> GetManHoursForTask(string projectId, string userId, string taskId);
         Task<TasksForUserDTO> GetAllTasksInformationOfUser(string userId, string projectId);
+        Task<List<AllTaskHistoryForUserDTO>> GetAllTaskHistoryForUser(string userId);
     }
 }

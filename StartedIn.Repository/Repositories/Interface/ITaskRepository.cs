@@ -8,6 +8,7 @@ namespace StartedIn.Repository.Repositories.Interface
         IQueryable<TaskEntity> GetTaskListInAProjectQuery(string projectId);
         Task UpdateManHourForTask(string taskId, string userId, float hour);
         Task<float> GetManHoursForTask(string taskId);
-        Task<List<UserTask>> GetAllTasksOfUserInOneProject(string userId, string projectId);
+        Task<List<UserTask>> GetAllUserTasksInOneProject(string userId, string projectId);
+        Task<List<TaskEntity>> GetAllTaskEntitiesOfUserInOneProject(string projectId, string userId);
     }
 }
