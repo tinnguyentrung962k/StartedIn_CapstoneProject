@@ -30,7 +30,6 @@ namespace StartedIn.Service.Services.Interface
         Task DeleteContract(string userId, string projectId, string contractId);
         Task<List<UserContract>> GetUserSignHistoryInAContract(string userId, string projectId, string contractId);
         Task<Contract> CreateLiquidationNote(string userId, string projectId, string contractId, IFormFile uploadFile);
-        Task LeaderTerminateContract(string userId, string projectId, string contractId, IFormFile uploadFile);
         Task CreateMeetingForLeaderTerminationContract(string userId, string projectId, string contractId, TerminationMeetingCreateDTO terminationMeetingCreateDTO);
         Task CancelLiquidationAfterMeeting(string userId, string projectId, string contractId);
     }

@@ -143,9 +143,8 @@ namespace StartedIn.Service.Services
                     .Filter(x => x.AppointmentId.Equals(appointment.Id) && x.IsAgreed == true)
                     .Include(x=>x.Contract)
                     .GetOneAsync();
-                var contract = await _contractRepository.QueryHelper().Filter(x => x.TerminationMeetingId.Equals(appointment.Id)).GetOneAsync();
 
-                if (acceptedTerminateRequest == null && transferRequest == null && contract == null)
+                if (acceptedTerminateRequest == null && transferRequest == null)
                 {
                     throw new NotFoundException(MessageConstant.NotFoundTransferOrTerminatedRequest);
                 }
@@ -161,12 +160,6 @@ namespace StartedIn.Service.Services
                     _terminationRequestRepository.Update(acceptedTerminateRequest);
                     acceptedTerminateRequest.Contract.ContractStatus = ContractStatusEnum.COMPLETED;
                     _contractRepository.Update(acceptedTerminateRequest.Contract);
-                }
-                
-                if (contract != null)
-                {
-                    contract.ContractStatus = ContractStatusEnum.COMPLETED;
-                    _contractRepository.Update(contract);
                 }
             }
             

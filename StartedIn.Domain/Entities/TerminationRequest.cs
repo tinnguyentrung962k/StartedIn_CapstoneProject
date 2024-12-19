@@ -14,7 +14,7 @@ namespace StartedIn.Domain.Entities
         [ForeignKey(nameof(Contract))]
         public string ContractId { get; set; }
         public string FromId { get; set; }
-        public string ToId { get; set; }
+        public string? ToId { get; set; }
         public string Reason { get; set; }
         public string? AppointmentId { get; set; }
         public bool? IsAgreed { get; set; }
