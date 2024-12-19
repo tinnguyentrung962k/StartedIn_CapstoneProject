@@ -93,9 +93,20 @@ public class RecruitmentService : IRecruitmentService
         }
     }
 
-    public async Task<Recruitment> GetRecruitmentPostById(string recruitmentId)
+    public async Task<Recruitment> GetRecruitmentPostByProjectId(string projectId)
     {
-        var recruitment = await _recruitmentRepository.GetRecruitmentPostById(recruitmentId);
+        var recruitment = await _recruitmentRepository.GetRecruitmentPostByProjectId(projectId);
+        if (recruitment == null)
+        {
+            throw new NotFoundException(MessageConstant.NotFoundRecruitmentPost);
+        }
+
+        return recruitment;
+    }
+
+    public async Task<Recruitment> GetRecruitmentPostByRecruitmentId(string recruitmentId)
+    {
+        var recruitment = await _recruitmentRepository.GetRecruitmentPostByRecruitmentId(recruitmentId);
         if (recruitment == null)
         {
             throw new NotFoundException(MessageConstant.NotFoundRecruitmentPost);
@@ -119,7 +130,7 @@ public class RecruitmentService : IRecruitmentService
             throw new UnauthorizedProjectRoleException(MessageConstant.RolePermissionError);
         }
 
-        var recruitment = await _recruitmentRepository.GetRecruitmentPostById(projectId);
+        var recruitment = await _recruitmentRepository.GetRecruitmentPostByProjectId(projectId);
         if (recruitment == null)
         {
             throw new NotFoundException(MessageConstant.NotFoundRecruitmentPost);

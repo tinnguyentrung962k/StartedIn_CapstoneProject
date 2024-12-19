@@ -14,10 +14,22 @@ public class RecruitmentRepository : GenericRepository<Recruitment, string>, IRe
         _appDbContext = context;
     }
 
-    public async Task<Recruitment> GetRecruitmentPostById(string projectId)
+    public async Task<Recruitment> GetRecruitmentPostByProjectId(string projectId)
     {
         var recruitment =
             await _dbSet.Where(r => r.ProjectId.Equals(projectId))
+                .Include(r => r.RecruitmentImgs)
+                .Include(r => r.Project)
+                .ThenInclude(p => p.UserProjects)
+                .ThenInclude(p => p.User)
+                .FirstOrDefaultAsync();
+        return recruitment;
+    }
+
+    public async Task<Recruitment> GetRecruitmentPostByRecruitmentId(string recruitmentId)
+    {
+        var recruitment =
+            await _dbSet.Where(r => r.Id.Equals(recruitmentId))
                 .Include(r => r.RecruitmentImgs)
                 .Include(r => r.Project)
                 .ThenInclude(p => p.UserProjects)

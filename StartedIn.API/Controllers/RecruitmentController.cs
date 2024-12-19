@@ -27,7 +27,7 @@ public class RecruitmentController : ControllerBase
     }
 
     // Create recruitment post for users in the project
-    [HttpPost("projects/{projectId}/recruitments")]
+    [HttpPost("projects/{projectId}/recruitment")]
     [Authorize(Roles = RoleConstants.USER)]
     public async Task<ActionResult<RecruitmentResponseDTO>> CreateRecruitmentPost([FromRoute] string projectId,
         [FromForm] CreateRecruitmentDTO createRecruitmentDto)
@@ -51,7 +51,7 @@ public class RecruitmentController : ControllerBase
     }
 
     // Get created recruitment post info for users in the project
-    [HttpGet("projects/{projectId}/recruitments")]
+    [HttpGet("projects/{projectId}/recruitment")]
     [Authorize(Roles = RoleConstants.USER)]
     public async Task<ActionResult<RecruitmentInProjectDTO>> GetRecruitmentPostInProject([FromRoute] string projectId)
     {
@@ -59,7 +59,7 @@ public class RecruitmentController : ControllerBase
         {
             var userId = User.FindFirst(ClaimTypes.NameIdentifier).Value;
             var recruitment = await _recruitmentService.GetRecruitmentPostInProject(userId, projectId);
-            var response = _mapper.Map<RecruitmentInProjectDTO>(recruitment);
+            var response = _mapper.Map<RecruitmentResponseDTO>(recruitment);
             return Ok(response);
         }
         catch (NotFoundException ex)
@@ -74,7 +74,7 @@ public class RecruitmentController : ControllerBase
 
 
     // Update recruitment post for users in the project
-    [HttpPut("projects/{projectId}/recruitments")]
+    [HttpPut("projects/{projectId}/recruitment")]
     [Authorize(Roles = RoleConstants.USER)]
     public async Task<ActionResult<RecruitmentResponseDTO>> UpdateRecruitment([FromRoute] string projectId, [FromBody] UpdateRecruitmentDTO updateRecruitmentDto)
     {
@@ -116,12 +116,21 @@ public class RecruitmentController : ControllerBase
     [Authorize(Roles = RoleConstants.USER + "," + RoleConstants.INVESTOR)]
     public async Task<ActionResult<RecruitmentResponseDTO>> GetRecruitmentPostById([FromRoute] string recruitmentId)
     {
-        var recruitment = await _recruitmentService.GetRecruitmentPostById(recruitmentId);
-        var response = _mapper.Map<RecruitmentResponseDTO>(recruitment);
-        return Ok(response);
+        try
+        {
+            var recruitment = await _recruitmentService.GetRecruitmentPostByRecruitmentId(recruitmentId);
+            var response = _mapper.Map<RecruitmentResponseDTO>(recruitment);
+            return Ok(response);
+        } catch (NotFoundException ex)
+        {
+            return BadRequest(ex.Message);
+        } catch (Exception ex)
+        {
+            return StatusCode(500, ex.Message);
+        }
     }
 
-    [HttpPost("projects/{projectId}/recruitments/images/add")]
+    [HttpPost("projects/{projectId}/recruitment/images/add")]
     [Authorize(Roles = RoleConstants.USER)]
     public async Task<ActionResult<RecruitmentImgResponseDTO>> AddImageToRecruitmentPost([FromRoute] string projectId,
         [FromForm] RecruitmentImageCreateDTO recruitmentImage)
@@ -139,7 +148,7 @@ public class RecruitmentController : ControllerBase
         }
     }
 
-    [HttpDelete("projects/{projectId}/recruitments/images/{recruitmentImgId}/remove")]
+    [HttpDelete("projects/{projectId}/recruitment/images/{recruitmentImgId}/remove")]
     [Authorize(Roles = RoleConstants.USER)]
     public async Task<IActionResult> RemoveImageFromRecruitmentPost([FromRoute] string projectId,
         string recruitmentImgId)
