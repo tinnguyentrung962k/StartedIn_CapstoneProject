@@ -1509,17 +1509,6 @@ namespace StartedIn.Service.Services
             {
                 _unitOfWork.BeginTransaction();
                 var project = await _projectRepository.GetProjectById(projectId);
-                var terminationRequest = new TerminationRequest
-                {
-                    ContractId = contractId,
-                    Contract = chosenContract,
-                    CreatedBy = userInProject.User.FullName,
-                    FromId = userInProject.User.Id,
-                    Reason = "Huỷ hợp đồng",
-                    IsAgreed = true,
-                };
-
-                var leaderRequest = _terminationRequestRepository.Add(terminationRequest);
 
                 Appointment appointment = new Appointment
                 {
@@ -1534,22 +1523,29 @@ namespace StartedIn.Service.Services
                 };
 
                 var newMeeting = _appointmentRepository.Add(appointment);
+                var terminationRequest = new TerminationRequest
+                {
+                    ContractId = contractId,
+                    Contract = chosenContract,
+                    CreatedBy = userInProject.User.FullName,
+                    FromId = userInProject.User.Id,
+                    Reason = "Huỷ hợp đồng",
+                    IsAgreed = true,
+                    Appointment = appointment,
+                    AppointmentId = appointment.Id
+                };
 
-                leaderRequest.Appointment = newMeeting;
-                leaderRequest.AppointmentId = newMeeting.Id;
-
+                var leaderRequest = _terminationRequestRepository.Add(terminationRequest);
 
                 chosenContract.CurrentTerminationRequestId = leaderRequest.Id;
                 chosenContract.ContractStatus = ContractStatusEnum.WAITINGFORLIQUIDATION;
-
                 _contractRepository.Update(chosenContract);
-                _terminationRequestRepository.Update(leaderRequest);
 
                 foreach (var userParty in chosenContract.UserContracts.Where(uc => uc.UserId != userId))
                 {
                     await _emailService.SendAppointmentInvite(userParty.User.Email, userInProject.Project.ProjectName, userParty.User.FullName, newMeeting.MeetingLink, newMeeting.AppointmentTime.AddHours(7));
                 }
-                
+
                 await _unitOfWork.SaveChangesAsync();
                 await _unitOfWork.CommitAsync();
             }
