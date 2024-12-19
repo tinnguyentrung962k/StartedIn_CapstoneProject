@@ -84,7 +84,7 @@ namespace StartedIn.API.Controllers
             }
             catch (NotFoundException ex)
             {
-                return BadRequest(ex.Message);
+                return NotFound(ex.Message);
             }
             catch (UnauthorizedProjectRoleException ex)
             {
