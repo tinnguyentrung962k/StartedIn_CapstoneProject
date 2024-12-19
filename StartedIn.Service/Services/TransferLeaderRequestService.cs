@@ -176,6 +176,10 @@ namespace StartedIn.Service.Services
                     foreach (var userInContract in contract.UserContracts.Where(x => x.Role == CrossCutting.Enum.RoleInContract.CREATOR))
                     {
                         userInContract.TransferToId = newAssignedLeaderInProject.UserId;
+                        if (userInContract.TransferToId.Equals(newAssignedLeaderInProject.UserId))
+                        {
+                            userInContract.TransferToId = null;
+                        }
                         await _userRepository.UpdateUserInContract(userInContract);
                     }
                 }
