@@ -162,8 +162,13 @@ namespace StartedIn.Service.Services
 
                 _transferLeaderRequestRepository.Update(transferRequest);
 
+
+
                 newAssignedLeaderInProject.RoleInTeam = CrossCutting.Enum.RoleInTeam.Leader;
+                await _userRepository.UpdateUserInProject(newAssignedLeaderInProject);
+                
                 userInProject.RoleInTeam = CrossCutting.Enum.RoleInTeam.Member;
+                await _userRepository.UpdateUserInProject(userInProject);
 
                 var contractList = await _contractRepository.GetContractByProjectId(projectId);
                 foreach (var contract in contractList)
@@ -171,11 +176,14 @@ namespace StartedIn.Service.Services
                     foreach (var userInContract in contract.UserContracts.Where(x => x.Role == CrossCutting.Enum.RoleInContract.CREATOR))
                     {
                         userInContract.TransferToId = newAssignedLeaderInProject.UserId;
+                        if (userInContract.TransferToId.Equals(newAssignedLeaderInProject.UserId))
+                        {
+                            userInContract.TransferToId = null;
+                        }
                         await _userRepository.UpdateUserInContract(userInContract);
                     }
                 }
-                _userRepository.UpdateUserInProject(newAssignedLeaderInProject);
-                _userRepository.UpdateUserInProject(userInProject);
+               
 
                 await _unitOfWork.SaveChangesAsync();
                 await _unitOfWork.CommitAsync();

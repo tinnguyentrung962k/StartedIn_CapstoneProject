@@ -1,6 +1,7 @@
 using AutoMapper;
 using CrossCutting.Exceptions;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
 using StartedIn.CrossCutting.Constants;
 using StartedIn.CrossCutting.DTOs.BaseDTO;
@@ -258,7 +259,7 @@ public class ProjectController : ControllerBase
         }
         catch (NotFoundException ex)
         {
-            return BadRequest(ex.Message);
+            return NotFound(ex.Message);
         }
         catch (UnauthorizedProjectRoleException ex)
         {

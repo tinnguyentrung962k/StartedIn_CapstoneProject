@@ -45,6 +45,16 @@ namespace StartedIn.Repository.Repositories
 
         public async Task UpdateUserInProject(UserProject userProject)
         {
+            var trackedEntity = _appDbContext.Set<UserProject>().Local
+            .FirstOrDefault(up => up.UserId == userProject.UserId && up.ProjectId == userProject.ProjectId);
+
+            // Detach the tracked entity if found
+            if (trackedEntity != null)
+            {
+                _appDbContext.Entry(trackedEntity).State = EntityState.Detached;
+            }
+
+            // Update the entity
             _appDbContext.Set<UserProject>().Update(userProject);
             await _appDbContext.SaveChangesAsync();
         }

@@ -254,7 +254,7 @@ public class ProjectService : IProjectService
     {
         var projects = _projectRepository.QueryHelper()
             .Include(x => x.UserProjects)
-            .Filter(p => p.UserProjects.Any(up => up.UserId == userId && up.RoleInTeam == RoleInTeam.Leader));
+            .Filter(p => p.UserProjects.Any(up => up.UserId == userId && up.RoleInTeam == RoleInTeam.Leader && up.Status == UserStatusInProject.Active));
         var records = await projects.GetAllAsync();
         var totalRecord = records.Count();
         List<ProjectResponseDTO> listProjects = new List<ProjectResponseDTO>();
@@ -291,7 +291,7 @@ public class ProjectService : IProjectService
     {
         var projects = _projectRepository.QueryHelper()
             .Include(x => x.UserProjects)
-            .Filter(p => p.UserProjects.Any(up => up.UserId == userId && up.RoleInTeam != RoleInTeam.Leader));
+            .Filter(p => p.UserProjects.Any(up => up.UserId == userId && up.RoleInTeam != RoleInTeam.Leader && up.Status == UserStatusInProject.Active));
         var records = await projects.GetAllAsync();
         var totalRecord = records.Count();
         List<ProjectResponseDTO> listProjects = new List<ProjectResponseDTO>();

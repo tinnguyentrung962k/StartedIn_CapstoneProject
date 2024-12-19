@@ -113,7 +113,8 @@ namespace StartedIn.API.Configuration.AutoMapper
                 .ForMember(x => x.Id, opt => opt.MapFrom(src => src.User.Id))
                 .ForMember(x => x.FullName, opt => opt.MapFrom(src => src.User.FullName))
                 .ForMember(x => x.RoleInTeam, opt => opt.MapFrom(src => src.RoleInTeam))
-                .ForMember(x => x.Email, opt => opt.MapFrom(src => src.User.Email));
+                .ForMember(x => x.Email, opt => opt.MapFrom(src => src.User.Email))
+                .ForMember(x => x.ProfilePicture, opt => opt.MapFrom(src => src.User.ProfilePicture));
             CreateMap<User, MemberWithRoleInProjectResponseDTO>()
                     .ForMember(dest => dest.Id, opt => opt.MapFrom(src => src.Id))
                     .ReverseMap();

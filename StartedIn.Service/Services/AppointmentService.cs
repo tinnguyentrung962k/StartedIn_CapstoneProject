@@ -139,17 +139,14 @@ namespace StartedIn.Service.Services
             if (status == MeetingStatus.Cancelled)
             {
                 var transferRequest = await _transfersLeaderRequestRepository.GetLeaderTransferRequestPending(projectId);
-                if (transferRequest == null)
-                {
-                    throw new NotFoundException(MessageConstant.NoTransferRequestWasFound);
-                }
                 var acceptedTerminateRequest = await _terminationRequestRepository.QueryHelper()
                     .Filter(x => x.AppointmentId.Equals(appointment.Id) && x.IsAgreed == true)
                     .Include(x=>x.Contract)
                     .GetOneAsync();
-                if (acceptedTerminateRequest == null)
+
+                if (acceptedTerminateRequest == null && transferRequest == null)
                 {
-                    throw new NotFoundException(MessageConstant.NotFoundTerminateRequest);
+                    throw new NotFoundException(MessageConstant.NotFoundTransferOrTerminatedRequest);
                 }
 
                 if (transferRequest != null)
@@ -163,12 +160,6 @@ namespace StartedIn.Service.Services
                     _terminationRequestRepository.Update(acceptedTerminateRequest);
                     acceptedTerminateRequest.Contract.ContractStatus = ContractStatusEnum.COMPLETED;
                     _contractRepository.Update(acceptedTerminateRequest.Contract);
-                }
-                var contract = await _contractRepository.QueryHelper().Filter(x => x.TerminationMeetingId.Equals(appointment.Id)).GetOneAsync();
-                if (contract != null)
-                {
-                    contract.ContractStatus = ContractStatusEnum.COMPLETED;
-                    _contractRepository.Update(contract);
                 }
             }
             
