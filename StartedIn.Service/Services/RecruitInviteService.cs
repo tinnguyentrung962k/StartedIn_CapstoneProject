@@ -313,7 +313,7 @@ namespace StartedIn.Service.Services
                     Status = ApplicationStatus.PENDING,
                     Type = ApplicationTypeEnum.APPLY,
                     Role = RoleInTeam.Member,
-                    CreatedTime = DateTimeOffset.Now
+                    CreatedTime = DateTimeOffset.UtcNow
                 };
                 _applicationRepository.Add(application);
                 foreach (var file in files)
@@ -381,7 +381,7 @@ namespace StartedIn.Service.Services
             {
                 _unitOfWork.BeginTransaction();
                 application.Status = ApplicationStatus.ACCEPTED;
-                application.LastUpdatedTime = DateTimeOffset.Now;
+                application.LastUpdatedTime = DateTimeOffset.UtcNow;
                 _applicationRepository.Update(application);
 
                 await _userRepository.AddUserToProject(application.CandidateId, projectId, application.Role);
@@ -422,7 +422,7 @@ namespace StartedIn.Service.Services
             {
                 _unitOfWork.BeginTransaction();
                 application.Status = ApplicationStatus.REJECTED;
-                application.LastUpdatedTime = DateTimeOffset.Now;
+                application.LastUpdatedTime = DateTimeOffset.UtcNow;
                 _applicationRepository.Update(application);
 
                 await _unitOfWork.CommitAsync();

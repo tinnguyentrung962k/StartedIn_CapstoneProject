@@ -1,6 +1,10 @@
+using AutoMapper;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using StartedIn.CrossCutting.Constants;
 using StartedIn.CrossCutting.DTOs.RequestDTO.ProjectApproval;
+using StartedIn.CrossCutting.DTOs.ResponseDTO;
+using StartedIn.CrossCutting.DTOs.ResponseDTO.ProjectApproval;
 using StartedIn.CrossCutting.Enum;
 using StartedIn.CrossCutting.Exceptions;
 using StartedIn.Domain.Entities;
@@ -13,14 +17,16 @@ public class ProjectApprovalService : IProjectApprovalService
 {
     private readonly IProjectApprovalRepository _projectApprovalRepository;
     private readonly IProjectService _projectService;
+    private readonly IProjectRepository _projectRepository;
     private readonly IUserService _userService;
     private readonly IUnitOfWork _unitOfWork;
     private readonly IAzureBlobService _azureBlobService;
     private readonly IDocumentRepository _documentRepository;
     private readonly ILogger<ProjectApprovalService> _logger;
+    private readonly IMapper _mapper;
 
     public ProjectApprovalService(IProjectApprovalRepository projectApprovalRepository, IProjectService projectService, IUserService userService, IUnitOfWork unitOfWork,
-        IAzureBlobService azureBlobService, IDocumentRepository documentRepository, ILogger<ProjectApprovalService> logger)
+        IAzureBlobService azureBlobService, IDocumentRepository documentRepository, ILogger<ProjectApprovalService> logger, IMapper mapper, IProjectRepository projectRepository)
     {
         _projectApprovalRepository = projectApprovalRepository;
         _projectService = projectService;
@@ -29,18 +35,25 @@ public class ProjectApprovalService : IProjectApprovalService
         _azureBlobService = azureBlobService;
         _documentRepository = documentRepository;
         _logger = logger;
+        _mapper = mapper;
+        _projectRepository = projectRepository;
     }
 
     public async Task<ProjectApproval> CreateProjectApprovalRequest(string userId, string projectId, CreateProjectApprovalDTO createProjectApprovalDto)
     {
         var userProject = await _userService.CheckIfUserInProject(userId, projectId);
+        var projectRole = await _projectRepository.GetUserRoleInProject(userId, projectId);
+        if (projectRole != RoleInTeam.Leader)
+        {
+            throw new UnauthorizedProjectRoleException(MessageConstant.RolePermissionError);
+        }
         try
         {
             _unitOfWork.BeginTransaction();
             var projectApproval = new ProjectApproval
             {
                 ProjectId = projectId,
-                CreatedTime = DateTimeOffset.Now,
+                CreatedTime = DateTimeOffset.UtcNow,
             };
             var entity = _projectApprovalRepository.Add(projectApproval);
 
@@ -53,7 +66,7 @@ public class ProjectApprovalService : IProjectApprovalService
                     ProjectApprovalId = entity.Id,
                     AttachmentLink = link,
                     DocumentName = document.FileName,
-                    CreatedTime = DateTimeOffset.Now
+                    CreatedTime = DateTimeOffset.UtcNow
                 };
                 _documentRepository.Add(createdDocument);
             }
@@ -102,7 +115,39 @@ public class ProjectApprovalService : IProjectApprovalService
         }
 
         approval.Status = ProjectApprovalStatus.REJECTED;
+        approval.LastUpdatedTime = DateTimeOffset.UtcNow;
         approval.RejectReason = rejectReason;
         _projectApprovalRepository.Update(approval);
+    }
+
+    public async Task<PaginationDTO<ProjectApprovalResponseDTO>> GetAllProjectApprovals(ProjectApprovalFilterDTO filter, int page, int size)
+    {
+        var projectApprovals = _projectApprovalRepository.GetProjectApprovalsQuery();
+        if (filter.Status != null)
+        {
+            projectApprovals = projectApprovals.Where(pa => pa.Status == filter.Status);
+        }
+        
+        if (filter.PeriodFrom.HasValue)
+        {
+            var fromDate = filter.PeriodFrom.Value;
+            projectApprovals = projectApprovals.Where(a => DateOnly.FromDateTime(a.CreatedTime.UtcDateTime.AddHours(7).Date) >= fromDate);
+        }
+        if (filter.PeriodTo.HasValue)
+        {
+            var toDate = filter.PeriodTo.Value;
+            projectApprovals = projectApprovals.Where(a => DateOnly.FromDateTime(a.CreatedTime.UtcDateTime.AddHours(7).Date) <= toDate);
+        }
+
+        var pagedResults = await projectApprovals.Skip((page - 1) * size).Take(size).ToListAsync();
+        var pagination = new PaginationDTO<ProjectApprovalResponseDTO>()
+        {
+            Data = _mapper.Map<List<ProjectApprovalResponseDTO>>(pagedResults),
+            Total = await projectApprovals.CountAsync(),
+            Page = page,
+            Size = size
+        };
+
+        return pagination;
     }
 }

@@ -107,7 +107,7 @@ namespace StartedIn.Service.Services
                     {
                         UserId = assignee,
                         TaskId = task.Id,
-                        LastUpdatedTime = DateTimeOffset.Now
+                        LastUpdatedTime = DateTimeOffset.UtcNow
                     });
                 }
 

@@ -26,6 +26,7 @@ using StartedIn.Domain.Entities;
 using StartedIn.Service.Services.Interface;
 using StartedIn.CrossCutting.DTOs.ResponseDTO.Appointment;
 using StartedIn.CrossCutting.DTOs.ResponseDTO.LeavingRequest;
+using StartedIn.CrossCutting.DTOs.ResponseDTO.ProjectApproval;
 using StartedIn.CrossCutting.DTOs.ResponseDTO.TerminationRequest;
 using StartedIn.CrossCutting.DTOs.ResponseDTO.TransferLeaderRequest;
 
@@ -59,6 +60,7 @@ namespace StartedIn.API.Configuration.AutoMapper
             MeetingNoteMappingProfile();
             TransferRequestMappingProfile();
             UserTaskMappingProfile();
+            ProjectApprovalMappingProfile();
         }
 
 
@@ -435,6 +437,18 @@ namespace StartedIn.API.Configuration.AutoMapper
         {
             CreateMap<UserTask, UserTaskResponseDTO>()
                 .ForMember(dest => dest.FullName, opt => opt.MapFrom(src => src.User.FullName))
+                .ReverseMap();
+        }
+
+        private void ProjectApprovalMappingProfile()
+        {
+            CreateMap<ProjectApproval, ProjectApprovalResponseDTO>()
+                .ForMember(dest => dest.LeaderName,
+                    opt => opt.MapFrom(src =>
+                        src.Project.UserProjects.FirstOrDefault(x => x.RoleInTeam == RoleInTeam.Leader).User.FullName))
+                .ForMember(dest => dest.ProjectName, opt => opt.MapFrom(src => src.Project.ProjectName))
+                .ForMember(dest => dest.SentDate, opt => opt.MapFrom(src => src.CreatedTime))
+                .ForMember(dest => dest.ApprovalDate, opt => opt.MapFrom(src => src.LastUpdatedTime))
                 .ReverseMap();
         }
     }

@@ -39,7 +39,7 @@ namespace StartedIn.Repository.Repositories
                 throw new NotFoundException(MessageConstant.NotFoundUserTask);
             }
             queryTask.ActualManHour = hour; 
-            queryTask.LastUpdatedTime = DateTimeOffset.Now;
+            queryTask.LastUpdatedTime = DateTimeOffset.UtcNow;
             _context.Set<UserTask>().Update(queryTask);
             await _context.SaveChangesAsync();
         }
