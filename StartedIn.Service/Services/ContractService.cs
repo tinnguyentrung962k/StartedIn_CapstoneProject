@@ -1500,8 +1500,7 @@ namespace StartedIn.Service.Services
             }
             if (userInContract.Contract.ContractStatus != CrossCutting.Enum.ContractStatusEnum.COMPLETED ||
                 existingRequest != null ||
-                otherExistingRequest != null ||
-                userInProject.RoleInTeam == CrossCutting.Enum.RoleInTeam.Leader)
+                otherExistingRequest != null)
             {
                 throw new InvalidDataException(MessageConstant.YouCannotRequestToTerminateThisContract);
             }
