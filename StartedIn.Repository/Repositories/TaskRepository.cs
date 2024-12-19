@@ -1,5 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using StartedIn.CrossCutting.Constants;
+using StartedIn.CrossCutting.DTOs.ResponseDTO;
 using StartedIn.CrossCutting.Exceptions;
 using StartedIn.Domain.Context;
 using StartedIn.Domain.Entities;
@@ -44,7 +45,7 @@ namespace StartedIn.Repository.Repositories
             await _context.SaveChangesAsync();
         }
 
-        public async Task<List<UserTask>> GetManHoursForTask(string taskId)
+        public async Task<float> GetManHoursForTask(string taskId)
         {
             var queryTask = await _context.UserTasks.Where(ut => ut.TaskId.Equals(taskId)).ToListAsync();
             if (queryTask == null)
@@ -52,7 +53,33 @@ namespace StartedIn.Repository.Repositories
                 throw new NotFoundException(MessageConstant.NotFoundUserTask);
             }
 
-            return queryTask;
+            float manHour = 0;
+            foreach (var task in queryTask)
+            {
+                manHour += task.ActualManHour;
+            }
+            return manHour;
+        }
+
+        public async Task<List<UserTask>> GetAllTasksOfUserInOneProject(string userId, string projectId)
+        {
+            var queryTasks = await _context.UserTasks.Where(ut => ut.UserId.Equals(userId))
+                .Include(ut => ut.Task).ToListAsync();
+             
+            if (!queryTasks.Any())
+            {
+                throw new NotFoundException(MessageConstant.NotFoundUserTask);
+            }
+            
+            var queryTasksInProject = new List<UserTask>();
+            foreach (var task in queryTasks)
+            {
+                if (task.Task.ProjectId.Equals(projectId))
+                {
+                    queryTasksInProject.Add(task);
+                }
+            }
+            return queryTasksInProject;
         }
     }
 }
