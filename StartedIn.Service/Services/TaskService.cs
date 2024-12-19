@@ -297,7 +297,8 @@ namespace StartedIn.Service.Services
                 chosenTask.UserTasks.Add(new UserTask
                 {
                     UserId = updateTaskAssignmentDTO.AssigneeId,
-                    TaskId = taskId
+                    TaskId = taskId,
+                    ActualManHour = 0
                 });
                 chosenTask.LastUpdatedBy = userInProject.User.FullName;
                 chosenTask.LastUpdatedTime = DateTimeOffset.UtcNow;

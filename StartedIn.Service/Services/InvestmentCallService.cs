@@ -73,7 +73,7 @@ public class InvestmentCallService : IInvestmentCallService
                 AmountRaised = 0,
                 TotalInvestor = 0,
                 EquityShareCall = investmentCallCreateDto.EquityShareCall,
-                StartDate = investmentCallCreateDto.StartDate,
+                StartDate = DateOnly.FromDateTime(DateTimeOffset.UtcNow.AddHours(7).Date),
                 EndDate = investmentCallCreateDto.EndDate,
                 Status = InvestmentCallStatus.Open,
                 RemainAvailableEquityShare = investmentCallCreateDto.EquityShareCall
