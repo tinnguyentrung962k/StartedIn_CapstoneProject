@@ -144,11 +144,6 @@ namespace StartedIn.Service.Services
                     .Include(x=>x.Contract)
                     .GetOneAsync();
 
-                if (acceptedTerminateRequest == null && transferRequest == null)
-                {
-                    throw new NotFoundException(MessageConstant.NotFoundTransferOrTerminatedRequest);
-                }
-
                 if (transferRequest != null)
                 {
                     transferRequest.IsAgreed = false;
