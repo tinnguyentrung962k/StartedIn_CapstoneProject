@@ -196,6 +196,26 @@ namespace StartedIn.API.Controllers
                 return BadRequest(ex.Message);
             }
         }
+        
+        [HttpPut("appointments/{appointmentId}/start")]
+        [Authorize(Roles = RoleConstants.USER)]
+        public async Task<ActionResult> StartAppointment([FromRoute] string appointmentId, [FromRoute] string projectId)
+        {
+            try
+            {
+                var userId = User.FindFirst(ClaimTypes.NameIdentifier).Value;
+                await _appointmentService.UpdateAppointmentStatus(userId, projectId, appointmentId, MeetingStatus.Ongoing);
+                return Ok(MessageConstant.CompleteAppointment);
+            }
+            catch (NotFoundException ex)
+            {
+                return BadRequest(ex.Message);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
+        }
 
         [HttpDelete("appointments/{appointmentId}/cancel")]
         [Authorize(Roles = RoleConstants.USER)]
