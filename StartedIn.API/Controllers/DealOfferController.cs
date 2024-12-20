@@ -77,16 +77,20 @@ namespace StartedIn.API.Controllers
             try
             {
                 var userId = User.FindFirst(ClaimTypes.NameIdentifier).Value;
-                await _dealOfferService.DeleteADealOffer(userId,dealOfferId);
+                await _dealOfferService.DeleteADealOffer(userId, dealOfferId);
                 return Ok("Xoá yêu cầu thành công");
             }
             catch (NotFoundException ex)
             {
                 return BadRequest(ex.Message);
             }
+            catch (UpdateException ex)
+            {
+                return BadRequest(ex.Message);
+            }
             catch (UnauthorizedAccessException ex)
             {
-                return StatusCode(403,ex.Message);
+                return StatusCode(403, ex.Message);
             }
             catch (Exception ex)
             {
