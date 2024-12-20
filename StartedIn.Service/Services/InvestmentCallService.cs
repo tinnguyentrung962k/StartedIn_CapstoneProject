@@ -164,7 +164,7 @@ public class InvestmentCallService : IInvestmentCallService
         var pagedResult = await searchResult
                 .Skip((page - 1) * size)
                 .Take(size)
-                .Include(p => p.DealOffers)
+                .Include(p => p.DealOffers.Where(x=>x.DeletedTime == null))
                 .ThenInclude(d => d.Investor)
                 .OrderByDescending(p => p.CreatedTime)
                 .ToListAsync();
