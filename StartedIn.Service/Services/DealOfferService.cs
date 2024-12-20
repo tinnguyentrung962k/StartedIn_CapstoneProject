@@ -331,6 +331,10 @@ namespace StartedIn.Service.Services
             {
                 throw new NotFoundException(MessageConstant.NotFoundDealError);
             }
+            if (dealOffer.DealStatus != DealStatusEnum.Waiting)
+            {
+                throw new UpdateException(MessageConstant.CannotDeleteDeal);
+            }
             if (dealOffer.InvestorId != user.Id)
             {
                 throw new UnauthorizedAccessException(MessageConstant.NotFoundDealError);
