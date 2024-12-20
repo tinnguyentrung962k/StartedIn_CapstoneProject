@@ -70,7 +70,7 @@ namespace StartedIn.API.Controllers
             }
         }
 
-        [HttpGet("deal-offers/{dealOfferId}")]
+        [HttpDelete("deal-offers/{dealOfferId}")]
         [Authorize(Roles = RoleConstants.INVESTOR)]
         public async Task<IActionResult> DeleteADealOffer([FromRoute] string dealOfferId)
         {
