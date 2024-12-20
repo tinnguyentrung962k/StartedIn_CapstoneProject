@@ -318,5 +318,25 @@ namespace StartedIn.Service.Services
             }
             return deal;
         }
+
+        public async Task DeleteADealOffer(string userId, string offerId)
+        {
+            var user = await _userManager.FindByIdAsync(userId);
+            if (user == null)
+            {
+                throw new NotFoundException(MessageConstant.NotFoundUserError);
+            }
+            var dealOffer = await _dealOfferRepository.GetOneAsync(offerId);
+            if (dealOffer == null) 
+            {
+                throw new NotFoundException(MessageConstant.NotFoundDealError);
+            }
+            if (dealOffer.InvestorId != user.Id)
+            {
+                throw new UnauthorizedAccessException(MessageConstant.NotFoundDealError);
+            }
+            await _dealOfferRepository.SoftDeleteById(offerId);
+            await _unitOfWork.SaveChangesAsync();
+        }
     }
 }
