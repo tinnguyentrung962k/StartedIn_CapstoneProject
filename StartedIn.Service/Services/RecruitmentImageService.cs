@@ -81,7 +81,7 @@ public class RecruitmentImageService : IRecruitmentImageService
         {
             _unitOfWork.BeginTransaction();
             await _azureBlobService.DeleteImageFromRecruitmentBlob(recruitFile.ImageUrl);
-            await _recruitmentImageRepository.SoftDeleteById(recruitFileId);
+            await _recruitmentImageRepository.DeleteByIdAsync(recruitFileId);
 
             await _unitOfWork.CommitAsync();
             await _unitOfWork.SaveChangesAsync();

@@ -18,7 +18,7 @@ public class InvestmentCallRepository : GenericRepository<InvestmentCall, string
     {
         var investmentCallsQuery = _appDbContext.InvestmentCalls
             .Where(ic => ic.ProjectId.Equals(projectId) && ic.DeletedTime == null)
-            .Include(ic => ic.DealOffers)
+            .Include(ic => ic.DealOffers.Where(x => x.DeletedTime == null))
             .ThenInclude(d => d.Investor);
         return investmentCallsQuery;
     }

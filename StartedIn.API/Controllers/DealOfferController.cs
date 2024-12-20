@@ -70,6 +70,34 @@ namespace StartedIn.API.Controllers
             }
         }
 
+        [HttpDelete("deal-offers/{dealOfferId}")]
+        [Authorize(Roles = RoleConstants.INVESTOR)]
+        public async Task<IActionResult> DeleteADealOffer([FromRoute] string dealOfferId)
+        {
+            try
+            {
+                var userId = User.FindFirst(ClaimTypes.NameIdentifier).Value;
+                await _dealOfferService.DeleteADealOffer(userId, dealOfferId);
+                return Ok("Xoá yêu cầu thành công");
+            }
+            catch (NotFoundException ex)
+            {
+                return BadRequest(ex.Message);
+            }
+            catch (UpdateException ex)
+            {
+                return BadRequest(ex.Message);
+            }
+            catch (UnauthorizedAccessException ex)
+            {
+                return StatusCode(403, ex.Message);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, MessageConstant.InternalServerError);
+            }
+        }
+
         [HttpGet("projects/{projectId}/deal-offers")]
         [Authorize(Roles = RoleConstants.USER)]
         public async Task<ActionResult<PaginationDTO<DealOfferForProjectResponseDTO>>> GetDealListForAProject([FromRoute] string projectId, [FromQuery] int page, int size)

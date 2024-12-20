@@ -73,7 +73,7 @@ public class InvestmentCallService : IInvestmentCallService
                 AmountRaised = 0,
                 TotalInvestor = 0,
                 EquityShareCall = investmentCallCreateDto.EquityShareCall,
-                StartDate = investmentCallCreateDto.StartDate,
+                StartDate = DateOnly.FromDateTime(DateTimeOffset.UtcNow.AddHours(7).Date),
                 EndDate = investmentCallCreateDto.EndDate,
                 Status = InvestmentCallStatus.Open,
                 RemainAvailableEquityShare = investmentCallCreateDto.EquityShareCall
@@ -164,7 +164,7 @@ public class InvestmentCallService : IInvestmentCallService
         var pagedResult = await searchResult
                 .Skip((page - 1) * size)
                 .Take(size)
-                .Include(p => p.DealOffers)
+                .Include(p => p.DealOffers.Where(x=>x.DeletedTime == null))
                 .ThenInclude(d => d.Investor)
                 .OrderByDescending(p => p.CreatedTime)
                 .ToListAsync();

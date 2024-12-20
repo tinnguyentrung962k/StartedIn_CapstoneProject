@@ -14,8 +14,7 @@ public class InvestmentCallCreateDTO
     [Required]
     [Range(0, float.MaxValue)]
     public decimal ValuePerPercentage { get; set; }
-    [Required]
-    public DateOnly StartDate { get; set; }
+
     [Required]
     public DateOnly EndDate { get; set; }
 }
