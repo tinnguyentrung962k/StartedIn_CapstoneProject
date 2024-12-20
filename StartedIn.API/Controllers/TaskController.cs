@@ -112,6 +112,22 @@ namespace StartedIn.API.Controllers
                 return StatusCode(500, MessageConstant.InternalServerError);
             }
         }
+        
+        [HttpGet("user/all-tasks")]
+        [Authorize(Roles = RoleConstants.USER + "," + RoleConstants.MENTOR)]
+        public async Task<ActionResult<TasksForUserDTO>> GetTaskInformationForUser([FromRoute] string projectId)
+        {
+            try
+            {
+                var userId = User.FindFirst(ClaimTypes.NameIdentifier).Value;
+                var responseTask = await _taskService.GetAllTasksInformationOfUser(userId, projectId);
+                return Ok(responseTask);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, MessageConstant.InternalServerError);
+            }
+        }
 
         [HttpPut("{taskId}")]
         [Authorize(Roles = RoleConstants.USER)]
@@ -348,5 +364,7 @@ namespace StartedIn.API.Controllers
                 return BadRequest(ex.Message);
             }
         }
+        
+        
     }
 }

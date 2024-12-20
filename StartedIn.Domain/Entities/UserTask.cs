@@ -14,7 +14,7 @@ namespace StartedIn.Domain.Entities
         public string TaskId { get; set; }
         public virtual User User { get; set; }
         public virtual TaskEntity Task { get; set; }
-        public float? ActualManHour { get; set; }
+        public float ActualManHour { get; set; }
         public DateTimeOffset? LastUpdatedTime { get; set; }
     }
 }
