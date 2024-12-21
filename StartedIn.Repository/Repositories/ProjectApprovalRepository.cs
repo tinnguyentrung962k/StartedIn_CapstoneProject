@@ -16,7 +16,9 @@ public class ProjectApprovalRepository : GenericRepository<ProjectApproval, stri
     public IQueryable<ProjectApproval> GetProjectApprovalsQuery()
     {
         var projectApprovals = _appDbContext.ProjectApprovals
-            .Include(pa => pa.Project).ThenInclude(p => p.UserProjects).ThenInclude(up => up.User)
+            .Include(pa => pa.Project)
+            .ThenInclude(p => p.UserProjects)
+            .ThenInclude(up => up.User)
             .Include(pa => pa.Documents)
             .Where(x => x.DeletedTime == null);
         return projectApprovals;

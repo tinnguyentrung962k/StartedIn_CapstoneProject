@@ -225,7 +225,7 @@ public class ProjectService : IProjectService
             EndDate = project.EndDate,
             MaxMember = project.MaxMember,
             MinMember = project.MinMember,
-            CurrentMember = project.UserProjects.Where(x => x.RoleInTeam == RoleInTeam.Leader || x.RoleInTeam == RoleInTeam.Member).Count()
+            CurrentMember = project.UserProjects.Where(x => (x.RoleInTeam == RoleInTeam.Leader || x.RoleInTeam == RoleInTeam.Member) && x.Status == UserStatusInProject.Active).Count()
         }).ToList();
         var pagination = new PaginationDTO<ProjectResponseDTO>()
         {

@@ -13,7 +13,7 @@ using StartedIn.Service.Services.Interface;
 
 namespace StartedIn.API.Controllers;
 
-[Route("api/projects")]
+[Route("api")]
 [ApiController]
 public class ProjectApprovalController : ControllerBase
 {
@@ -42,29 +42,8 @@ public class ProjectApprovalController : ControllerBase
         }
     }
     
-    [HttpGet("{projectId}/approval")]
-    [Authorize(Roles = RoleConstants.USER + "," + RoleConstants.ADMIN)]
-    public async Task<ActionResult<List<ProjectApprovalResponseDTO>>> GetProjectApprovalsByProjectId([FromRoute] string projectId)
-    {
-        try
-        {
-            var userId = User.FindFirst(ClaimTypes.NameIdentifier).Value;
-            var projectApproval = await _projectApprovalService.GetProjectApprovalRequestByProjectId(userId, projectId);
-            var response = _mapper.Map<List<ProjectApprovalResponseDTO>>(projectApproval);
-            return Ok(response);
-        }
-        catch (NotFoundException ex)
-        {
-            return BadRequest(ex.Message);
-        }
-        catch (Exception ex)
-        {
-            return BadRequest(ex.Message);
-        }
-    }
-    
-    [HttpGet("{projectId}/approval/{approvalId}")]
-    [Authorize(Roles = RoleConstants.USER + "," + RoleConstants.ADMIN)]
+    [HttpGet("projects/{projectId}/request-register/{approvalId}")]
+    [Authorize(Roles = RoleConstants.USER)]
     public async Task<ActionResult<ProjectApprovalResponseDTO>> GetProjectApprovalByApprovalId([FromRoute] string projectId, [FromRoute] string approvalId)
     {
         try
@@ -84,15 +63,15 @@ public class ProjectApprovalController : ControllerBase
         }
     }
     
-    [HttpGet("{projectId}/request-register")]
+    [HttpGet("projects/{projectId}/request-register")]
     [Authorize(Roles = RoleConstants.USER)]
-    public async Task<ActionResult<List<ApprovalRequestsResponseDTO>>> GetProjectApprovalsForProject([FromRoute] string projectId)
+    public async Task<ActionResult<List<ProjectApprovalResponseDTO>>> GetProjectApprovalsForProject([FromRoute] string projectId)
     {
         try
         {
             var userId = User.FindFirst(ClaimTypes.NameIdentifier).Value;
             var projectApproval = await _projectApprovalService.GetProjectApprovalRequestByProjectId(userId, projectId);
-            var response = _mapper.Map<List<ApprovalRequestsResponseDTO>>(projectApproval);
+            var response = _mapper.Map<List<ProjectApprovalResponseDTO>>(projectApproval);
             return Ok(response);
         }
         catch (NotFoundException ex)
@@ -105,7 +84,7 @@ public class ProjectApprovalController : ControllerBase
         }
     }
     
-    [HttpPost("{projectId}/request-approval")]
+    [HttpPost("projects/{projectId}/request-approval")]
     [Authorize(Roles = RoleConstants.USER)]
     public async Task<ActionResult<ProjectApprovalResponseDTO>> CreateProjectApprovalRequest([FromRoute]string projectId, [FromForm] CreateProjectApprovalDTO createProjectApprovalDto)
     {
@@ -130,13 +109,13 @@ public class ProjectApprovalController : ControllerBase
     
     
 
-    [HttpPut("{projectId}/approval/{approvalId}/approve-project-request")]
+    [HttpPut("approvals/{approvalId}/approve-project-request")]
     [Authorize(Roles = RoleConstants.ADMIN)]
-    public async Task<ActionResult> ApproveProjectRequest([FromRoute] string projectId, [FromRoute] string approvalId)
+    public async Task<ActionResult> ApproveProjectRequest([FromRoute] string approvalId)
     {
         try
         {
-            await _projectApprovalService.ApproveProjectRequest(projectId, approvalId);
+            await _projectApprovalService.ApproveProjectRequest(approvalId);
             return Ok();
         }
         catch (NotFoundException ex)
@@ -145,13 +124,13 @@ public class ProjectApprovalController : ControllerBase
         }
     }
     
-    [HttpPut("{projectId}/approval/{approvalId}/reject-project-request")]
+    [HttpPut("approvals/{approvalId}/reject-project-request")]
     [Authorize(Roles = RoleConstants.ADMIN)]
-    public async Task<ActionResult> RejectProjectRequest([FromRoute] string projectId, [FromRoute] string approvalId, [FromBody] string rejectReason)
+    public async Task<ActionResult> RejectProjectRequest([FromRoute] string approvalId, [FromBody] string rejectReason)
     {
         try
         {
-            await _projectApprovalService.RejectProjectRequest(projectId, approvalId, rejectReason);
+            await _projectApprovalService.RejectProjectRequest(approvalId, rejectReason);
             return Ok();
         }
         catch (NotFoundException ex)

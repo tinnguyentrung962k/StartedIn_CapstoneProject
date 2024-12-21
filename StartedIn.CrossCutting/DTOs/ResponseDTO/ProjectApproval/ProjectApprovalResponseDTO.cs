@@ -9,9 +9,9 @@ public class ProjectApprovalResponseDTO : IdentityResponseDTO
     public string LeaderName { get; set; }
     public string ProjectName { get; set; }
     public string Reason { get; set; }
+    public string? RejectReason { get; set; }
     public ProjectApprovalStatus Status { get; set; }
     public DateTimeOffset SentDate { get; set; }
     public DateTimeOffset? ApprovalDate { get; set; }
     public List<DocumentResponseDTO> Documents { get; set; }
-    
 }

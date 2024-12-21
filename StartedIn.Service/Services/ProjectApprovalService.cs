@@ -63,6 +63,7 @@ public class ProjectApprovalService : IProjectApprovalService
                 ProjectId = projectId,
                 Reason = createProjectApprovalDto.Reason,
                 CreatedTime = DateTimeOffset.UtcNow,
+                CreatedBy = userProject.User.FullName,
                 Status = ProjectApprovalStatus.PENDING
             };
             var entity = _projectApprovalRepository.Add(projectApproval);
@@ -110,14 +111,20 @@ public class ProjectApprovalService : IProjectApprovalService
         return approval;
     }
 
-    public async Task ApproveProjectRequest(string projectId, string projectApprovalId)
+    public async Task ApproveProjectRequest(string approvalId)
     {
-        var approval = await _projectApprovalRepository.QueryHelper().Filter(pa => pa.ProjectId.Equals(projectId)).GetOneAsync();
-        var project = await _projectRepository.QueryHelper().Filter(p => p.Id.Equals(projectId)).GetOneAsync();
+        var approval = await _projectApprovalRepository.QueryHelper()
+            .Filter(pa => pa.Id.Equals(approvalId))
+            .GetOneAsync();
+        
         if (approval == null)
         {
             throw new NotFoundException(MessageConstant.NotFoundProjectApprovalRequest);
         }
+
+        var project = await _projectRepository.QueryHelper()
+            .Filter(p => p.Id.Equals(approval.ProjectId))
+            .GetOneAsync();
 
         if (project == null)
         {
@@ -127,17 +134,17 @@ public class ProjectApprovalService : IProjectApprovalService
         approval.Status = ProjectApprovalStatus.ACCEPTED;
         project.ProjectStatus = ProjectStatusEnum.ACTIVE;
         _projectApprovalRepository.Update(approval);
+        _projectRepository.Update(project);
         await _unitOfWork.SaveChangesAsync();
     }
 
-    public async Task RejectProjectRequest(string projectId, string projectApprovalId, string rejectReason)
+    public async Task RejectProjectRequest(string approvalId, string rejectReason)
     {
-        var approval = await _projectApprovalRepository.QueryHelper().Filter(pa => pa.ProjectId.Equals(projectId)).GetOneAsync();
+        var approval = await _projectApprovalRepository.QueryHelper().Filter(pa => pa.ProjectId.Equals(approvalId)).GetOneAsync();
         if (approval == null)
         {
             throw new NotFoundException(MessageConstant.NotFoundProjectApprovalRequest);
         }
-
         approval.Status = ProjectApprovalStatus.REJECTED;
         approval.LastUpdatedTime = DateTimeOffset.UtcNow;
         approval.RejectReason = rejectReason;
@@ -186,6 +193,18 @@ public class ProjectApprovalService : IProjectApprovalService
         }
         var approval = await _projectApprovalRepository.QueryHelper()
             .Filter(a => a.ProjectId.Equals(projectId) && a.Id.Equals(approvalId)).GetOneAsync();
+        if (approval == null)
+        {
+            throw new NotFoundException(MessageConstant.NotFoundProjectApprovalRequest);
+        }
+
+        return approval;
+    }
+
+    public async Task<ProjectApproval> GetProjectApprovalRequestByApprovalIdForAdmin(string approvalId)
+    {
+        var approval = await _projectApprovalRepository.QueryHelper()
+            .Filter(a => a.Id.Equals(approvalId)).GetOneAsync();
         if (approval == null)
         {
             throw new NotFoundException(MessageConstant.NotFoundProjectApprovalRequest);

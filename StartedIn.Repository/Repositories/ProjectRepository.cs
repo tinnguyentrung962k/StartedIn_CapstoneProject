@@ -46,7 +46,7 @@ public class ProjectRepository : GenericRepository<Project, string>, IProjectRep
     public IQueryable<Project> GetProjectListQuery()
     {
         var projects = _appDbContext.Projects
-            .Include(p => p.UserProjects.Where(x => x.Status == UserStatusInProject.Active))
+            .Include(p => p.UserProjects)
             .ThenInclude(up => up.User)
             .Include(p => p.InvestmentCalls)
             .Include(p => p.Finance)

@@ -449,8 +449,7 @@ namespace StartedIn.API.Configuration.AutoMapper
         {
             CreateMap<ProjectApproval, ProjectApprovalResponseDTO>()
                 .ForMember(dest => dest.LeaderName,
-                    opt => opt.MapFrom(src =>
-                        src.Project.UserProjects.FirstOrDefault(x => x.RoleInTeam == RoleInTeam.Leader).User.FullName))
+                    opt => opt.MapFrom(src =>src.CreatedBy))
                 .ForMember(dest => dest.ProjectName, opt => opt.MapFrom(src => src.Project.ProjectName))
                 .ForMember(dest => dest.SentDate, opt => opt.MapFrom(src => src.CreatedTime))
                 .ForMember(dest => dest.ApprovalDate, opt => opt.MapFrom(src => src.LastUpdatedTime))
