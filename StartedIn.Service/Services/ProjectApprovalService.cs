@@ -93,8 +93,14 @@ public class ProjectApprovalService : IProjectApprovalService
         }
     }
 
-    public async Task<IEnumerable<ProjectApproval>> GetProjectApprovalRequestByProjectId(string projectId)
+    public async Task<IEnumerable<ProjectApproval>> GetProjectApprovalRequestByProjectId(string userId, string projectId)
     {
+        var userProject = await _userService.CheckIfUserInProject(userId, projectId);
+        var projectRole = await _projectRepository.GetUserRoleInProject(userId, projectId);
+        if (projectRole != RoleInTeam.Leader)
+        {
+            throw new UnauthorizedProjectRoleException(MessageConstant.RolePermissionError);
+        }
         var approval = _projectApprovalRepository.GetProjectApprovalsQuery().Where(a => a.ProjectId.Equals(projectId));
         if (!approval.Any())
         {
@@ -170,8 +176,14 @@ public class ProjectApprovalService : IProjectApprovalService
         return pagination;
     }
 
-    public async Task<ProjectApproval> GetProjectApprovalRequestByApprovalId(string projectId, string approvalId)
+    public async Task<ProjectApproval> GetProjectApprovalRequestByApprovalId(string userId, string projectId, string approvalId)
     {
+        var userProject = await _userService.CheckIfUserInProject(userId, projectId);
+        var projectRole = await _projectRepository.GetUserRoleInProject(userId, projectId);
+        if (projectRole != RoleInTeam.Leader)
+        {
+            throw new UnauthorizedProjectRoleException(MessageConstant.RolePermissionError);
+        }
         var approval = await _projectApprovalRepository.QueryHelper()
             .Filter(a => a.ProjectId.Equals(projectId) && a.Id.Equals(approvalId)).GetOneAsync();
         if (approval == null)
