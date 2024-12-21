@@ -8,8 +8,9 @@ namespace StartedIn.Service.Services.Interface;
 public interface IProjectApprovalService
 {
     Task<ProjectApproval> CreateProjectApprovalRequest(string userId, string projectId, CreateProjectApprovalDTO createProjectApprovalDto);
-    Task<ProjectApproval> GetProjectApprovalRequestByProjectId(string projectId);
-    Task ApproveProjectRequest(string projectId);
-    Task RejectProjectRequest(string projectId, string rejectReason);
+    Task<IEnumerable<ProjectApproval>> GetProjectApprovalRequestByProjectId(string projectId);
+    Task ApproveProjectRequest(string projectId, string projectApprovalId);
+    Task RejectProjectRequest(string projectId, string projectApprovalId, string rejectReason);
     Task<PaginationDTO<ProjectApprovalResponseDTO>> GetAllProjectApprovals(ProjectApprovalFilterDTO filter, int page, int size);
+    Task<ProjectApproval> GetProjectApprovalRequestByApprovalId(string projectId, string approvalId);
 }
