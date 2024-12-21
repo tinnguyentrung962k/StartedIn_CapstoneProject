@@ -20,6 +20,7 @@ namespace StartedIn.Domain.Entities
         [MaxLength(50)]
         public string Title { get; set; }
         public DateTimeOffset AppointmentTime { get; set; }
+        public DateTimeOffset AppointmentEndTime { get; set; }
         [MaxLength(255)]
         public string? Description { get; set; }
         public string MeetingLink { get; set; }
