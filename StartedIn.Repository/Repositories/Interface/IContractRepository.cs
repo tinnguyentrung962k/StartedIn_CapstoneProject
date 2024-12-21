@@ -1,4 +1,5 @@
-﻿using StartedIn.Domain.Entities;
+﻿using StartedIn.CrossCutting.Enum;
+using StartedIn.Domain.Entities;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -15,5 +16,6 @@ namespace StartedIn.Repository.Repositories.Interface
         Task<List<Contract>> GetContractByProjectId(string projectId);
         IQueryable<Contract> GetContractListQuery(string userId, string projectId);
         Task UpdateUserInContract(UserContract userContract);
+        Task<RoleInContract> GetUserRoleInContract(string userId, string contractId);
     }
 }

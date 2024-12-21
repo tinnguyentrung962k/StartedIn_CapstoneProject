@@ -87,6 +87,13 @@ namespace StartedIn.Repository.Repositories
                 .OrderByDescending(x => x.LastUpdatedTime);
             return query;
         }
+
+        public async Task<RoleInContract> GetUserRoleInContract(string userId, string contractId)
+        {
+            var userContract = await _appDbContext.UserContracts.Where(x => x.ContractId.Equals(contractId) && x.UserId.Equals(userId)).FirstOrDefaultAsync();
+            return userContract.Role;
+        }
+
         public async Task UpdateUserInContract(UserContract userContract)
         {
             var trackedEntity = _appDbContext.Set<UserContract>().Local

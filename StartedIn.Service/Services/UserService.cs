@@ -500,12 +500,14 @@ namespace StartedIn.Service.Services
             {
                 throw new UnauthorizedProjectRoleException(MessageConstant.UserNotBelongContractError);
             }
+            var roleInContract = await _contractRepository.GetUserRoleInContract(userId, contractId);
             var userInContract = new UserContract
             {
                 UserId = userId,
                 ContractId = contractId,
                 User = user,
                 Contract = chosenContract,
+                Role = roleInContract
             };
             return userInContract;
         }
