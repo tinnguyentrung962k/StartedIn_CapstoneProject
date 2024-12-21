@@ -8,6 +8,8 @@ public static class BackgroundWorkerConfiguration
     {
         services.AddHostedService<ContractBackgroundWorker>();
         services.AddHostedService<DisbursementBackgroundWorker>();
+        services.AddHostedService<TaskBackgroundWorker>();
+        services.AddHostedService<AppointmentBackgroundWorker>();
         return services;
     }
 }

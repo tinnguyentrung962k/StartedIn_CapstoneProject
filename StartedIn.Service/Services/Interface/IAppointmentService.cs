@@ -18,5 +18,7 @@ namespace StartedIn.Service.Services.Interface
         Task<Appointment> GetAppointmentsById(string userId, string projectId, string appointmentId);
         Task<PaginationDTO<AppointmentResponseDTO>> GetAppointmentsByProjectId(string userId, string projectId, AppointmentFilterDTO appointmentFilterDTO, int page, int size);
         Task UpdateAppointmentStatus(string userId, string projectId, string appointmentId, MeetingStatus status);
+        Task StartAppointment();
+        Task CompleteAppointment();
     }
 }

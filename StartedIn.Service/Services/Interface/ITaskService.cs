@@ -40,6 +40,7 @@ namespace StartedIn.Service.Services.Interface
 
         Task DeleteTask(string userId, string taskId, string projectId);
         Task MarkTaskAsLate();
+        Task StartTask();
         Task UpdateManHourForTask(string projectId, string taskId, string userId, float hour);
         Task<float> GetManHoursForTask(string projectId, string userId, string taskId);
         Task<TasksForUserDTO> GetAllTasksInformationOfUser(string userId, string projectId);

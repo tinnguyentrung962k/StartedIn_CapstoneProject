@@ -163,6 +163,30 @@ namespace StartedIn.Service.Services
             await _unitOfWork.SaveChangesAsync();
         }
 
+        public async Task StartAppointment()
+        {
+            var appointments = await _appointmentRepository.QueryHelper()
+                .Filter(a => a.AppointmentTime <= DateTimeOffset.UtcNow).GetAllAsync();
+            foreach (var appointment in appointments)
+            {
+                appointment.Status = MeetingStatus.Ongoing;
+                _appointmentRepository.Update(appointment);
+            }
+            await _unitOfWork.SaveChangesAsync();
+        }
+
+        public async Task CompleteAppointment()
+        {
+            var appointments = await _appointmentRepository.QueryHelper()
+                .Filter(a => a.AppointmentEndTime <= DateTimeOffset.UtcNow).GetAllAsync();
+            foreach (var appointment in appointments)
+            {
+                appointment.Status = MeetingStatus.Finished;
+                _appointmentRepository.Update(appointment);
+            }
+            await _unitOfWork.SaveChangesAsync();
+        }
+
         public async Task<Appointment> GetAppointmentsById(string userId, string projectId, string appointmentId)
         {
             var userInProject = await _userService.CheckIfUserInProject(userId, projectId);
@@ -190,6 +214,12 @@ namespace StartedIn.Service.Services
             {
                 throw new InvalidLinkException(MessageConstant.InvalidLink);
             }
+
+            if ((appointmentCreateDTO.AppointmentEndTime.Date != appointmentCreateDTO.AppointmentTime.Date) ||
+                (appointmentCreateDTO.AppointmentEndTime.Hour < appointmentCreateDTO.AppointmentTime.Hour))
+            {
+                throw new InvalidInputException(MessageConstant.AppointmentEndTimeError);
+            }
             try
             {
                 _unitOfWork.BeginTransaction();
@@ -197,6 +227,7 @@ namespace StartedIn.Service.Services
                 {
                     Title = appointmentCreateDTO.Title,
                     AppointmentTime = appointmentCreateDTO.AppointmentTime,
+                    AppointmentEndTime = appointmentCreateDTO.AppointmentEndTime,
                     Description = appointmentCreateDTO.Description,
                     CreatedBy = userInProject.User.FullName,
                     ProjectId = projectId,

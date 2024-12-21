@@ -136,5 +136,7 @@ namespace StartedIn.CrossCutting.Constants
         public const string ThisDealNotBelongToYou = "Yêu cầu thương lượng này không phải của bạn";
         public const string CannotDeleteDeal = "Không thể xoá yêu cầu thương lượng này";
         public const string NoMoreThanOnePendingApproval = "Không thể tồn tại nhiều hơn một yêu cầu duyệt dự án cùng một lúc";
+        public const string AppointmentEndTimeError =
+            "Ngày kết thúc cuộc họp phải trùng với ngày họp, và thời gian kết thúc cuộc họp phải trễ hơn so với giờ bắt đầu.";
     }
 }
