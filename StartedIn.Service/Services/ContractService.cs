@@ -229,7 +229,7 @@ namespace StartedIn.Service.Services
                 .Filter(x=>x.ContractType == ContractTypeEnum.INTERNAL 
                 && x.ProjectId.Equals(projectId)
                 && (x.ContractStatus != ContractStatusEnum.CANCELLED 
-                && x.ContractStatus != ContractStatusEnum.EXPIRED)).GetOneAsync();
+                && x.ContractStatus != ContractStatusEnum.EXPIRED) && x.DeletedTime == null).GetOneAsync();
             if (existingContract != null)
             {
                 throw new ExistedRecordException(MessageConstant.InternalContractExisted);
