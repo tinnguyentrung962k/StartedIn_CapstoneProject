@@ -1,4 +1,5 @@
 using StartedIn.CrossCutting.DTOs.BaseDTO;
+using StartedIn.CrossCutting.DTOs.ResponseDTO.Document;
 using StartedIn.CrossCutting.Enum;
 
 namespace StartedIn.CrossCutting.DTOs.ResponseDTO.ProjectApproval;
@@ -10,4 +11,5 @@ public class ApprovalRequestsResponseDTO : IdentityResponseDTO
     public string? RejectReason { get; set; }
     public DateTimeOffset CreatedTime { get; set; }
     public DateTimeOffset LastUpdatedTime { get; set; }
+    public List<DocumentResponseDTO> Documents { get; set; }
 }

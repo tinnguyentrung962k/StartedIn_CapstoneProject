@@ -25,6 +25,7 @@ using StartedIn.CrossCutting.Enum;
 using StartedIn.Domain.Entities;
 using StartedIn.Service.Services.Interface;
 using StartedIn.CrossCutting.DTOs.ResponseDTO.Appointment;
+using StartedIn.CrossCutting.DTOs.ResponseDTO.Document;
 using StartedIn.CrossCutting.DTOs.ResponseDTO.LeavingRequest;
 using StartedIn.CrossCutting.DTOs.ResponseDTO.ProjectApproval;
 using StartedIn.CrossCutting.DTOs.ResponseDTO.TerminationRequest;
@@ -61,6 +62,7 @@ namespace StartedIn.API.Configuration.AutoMapper
             TransferRequestMappingProfile();
             UserTaskMappingProfile();
             ProjectApprovalMappingProfile();
+            DocumentMappingProfile();
         }
 
 
@@ -452,9 +454,16 @@ namespace StartedIn.API.Configuration.AutoMapper
                 .ForMember(dest => dest.ProjectName, opt => opt.MapFrom(src => src.Project.ProjectName))
                 .ForMember(dest => dest.SentDate, opt => opt.MapFrom(src => src.CreatedTime))
                 .ForMember(dest => dest.ApprovalDate, opt => opt.MapFrom(src => src.LastUpdatedTime))
+                .ForMember(dest => dest.Documents, opt => opt.MapFrom(src => src.Documents))
                 .ReverseMap();
             CreateMap<ProjectApproval, ApprovalRequestsResponseDTO>()
+                .ForMember(dest => dest.Documents, opt => opt.MapFrom(src => src.Documents))
                 .ReverseMap();
+        }
+
+        private void DocumentMappingProfile()
+        {
+            CreateMap<Document, DocumentResponseDTO>().ReverseMap();
         }
     }
 }
