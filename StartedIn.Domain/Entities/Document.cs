@@ -13,9 +13,9 @@ namespace StartedIn.Domain.Entities
     {
         [ForeignKey(nameof(Project))]
         public string ProjectId { get; set; }
-        [MaxLength(50)]
+        [MaxLength(275)]
         public string DocumentName { get; set; }
-        [MaxLength(500)]
+        [MaxLength(5000)]
         public string? Description { get; set; }
         public string AttachmentLink { get; set; }
         [ForeignKey(nameof(ProjectApproval))]

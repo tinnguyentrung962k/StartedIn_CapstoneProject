@@ -63,6 +63,7 @@ public class ProjectApprovalService : IProjectApprovalService
                 ProjectId = projectId,
                 Reason = createProjectApprovalDto.Reason,
                 CreatedTime = DateTimeOffset.UtcNow,
+                Status = ProjectApprovalStatus.PENDING
             };
             var entity = _projectApprovalRepository.Add(projectApproval);
 
@@ -94,7 +95,7 @@ public class ProjectApprovalService : IProjectApprovalService
 
     public async Task<IEnumerable<ProjectApproval>> GetProjectApprovalRequestByProjectId(string projectId)
     {
-        var approval = await _projectApprovalRepository.QueryHelper().Filter(pa => pa.ProjectId.Equals(projectId)).GetAllAsync();
+        var approval = _projectApprovalRepository.GetProjectApprovalsQuery().Where(a => a.ProjectId.Equals(projectId));
         if (!approval.Any())
         {
             throw new NotFoundException(MessageConstant.NotFoundProjectApprovalRequest);
