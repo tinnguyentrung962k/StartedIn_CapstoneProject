@@ -89,6 +89,16 @@ namespace StartedIn.Repository.Repositories
         }
         public async Task UpdateUserInContract(UserContract userContract)
         {
+            var trackedEntity = _appDbContext.Set<UserContract>().Local
+            .FirstOrDefault(up => up.UserId == userContract.UserId && up.ContractId == userContract.ContractId);
+
+            // Detach the tracked entity if found
+            if (trackedEntity != null)
+            {
+                _appDbContext.Entry(trackedEntity).State = EntityState.Detached;
+            }
+
+            // Update the entity
             _appDbContext.Set<UserContract>().Update(userContract);
             await _appDbContext.SaveChangesAsync();
         }
