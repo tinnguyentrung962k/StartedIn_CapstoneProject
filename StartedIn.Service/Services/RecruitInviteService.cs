@@ -444,7 +444,7 @@ namespace StartedIn.Service.Services
             {
                 foreach (var application in userApplications)
                 {
-                    application.Status = ApplicationStatus.CANCELED;
+                    application.Status = ApplicationStatus.CANCELLED;
                     _applicationRepository.Update(application);
                     await _unitOfWork.SaveChangesAsync();
                 }

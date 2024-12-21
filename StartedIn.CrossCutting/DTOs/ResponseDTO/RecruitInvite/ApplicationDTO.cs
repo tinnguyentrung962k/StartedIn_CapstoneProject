@@ -16,7 +16,8 @@ namespace StartedIn.CrossCutting.DTOs.ResponseDTO.RecruitInvite
         public ApplicationStatus Status { get; set; }
         public ApplicationTypeEnum Type { get; set; }
         public RoleInTeam Role { get; set; }
-        public string? CVUrl { get; set; }
+        public List<ApplicationApplyFileDTO> CVFiles { get; set; } = [];
         public FullProfileDTO Candidate { get; set; }
+        public DateTimeOffset CreatedTime { get; set; }
     }
 }
