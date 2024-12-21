@@ -1,5 +1,6 @@
 using System.Security.Claims;
 using AutoMapper;
+using CrossCutting.Exceptions;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using StartedIn.CrossCutting.Constants;
@@ -108,9 +109,15 @@ public class ProjectApprovalController : ControllerBase
         try
         {
             var userId = User.FindFirst(ClaimTypes.NameIdentifier).Value;
-            var projectApproval = await _projectApprovalService.CreateProjectApprovalRequest(userId, projectId, createProjectApprovalDto);
+            var projectApproval =
+                await _projectApprovalService.CreateProjectApprovalRequest(userId, projectId, createProjectApprovalDto);
             var response = _mapper.Map<ProjectApprovalResponseDTO>(projectApproval);
-            return CreatedAtAction(nameof(GetProjectApprovalByApprovalId), new { projectId, approvalId = projectApproval.Id }, response);
+            return CreatedAtAction(nameof(GetProjectApprovalByApprovalId),
+                new { projectId, approvalId = projectApproval.Id }, response);
+        }
+        catch (ExistedRecordException ex)
+        {
+            return BadRequest(ex.Message);
         }
         catch (Exception ex)
         {
