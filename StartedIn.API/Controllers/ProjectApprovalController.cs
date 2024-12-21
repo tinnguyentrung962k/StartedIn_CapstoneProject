@@ -103,7 +103,7 @@ public class ProjectApprovalController : ControllerBase
     
     [HttpPost("{projectId}/request-approval")]
     [Authorize(Roles = RoleConstants.USER)]
-    public async Task<ActionResult<ProjectApprovalResponseDTO>> CreateProjectApprovalRequest([FromRoute]string projectId, [FromBody] CreateProjectApprovalDTO createProjectApprovalDto)
+    public async Task<ActionResult<ProjectApprovalResponseDTO>> CreateProjectApprovalRequest([FromRoute]string projectId, [FromForm] CreateProjectApprovalDTO createProjectApprovalDto)
     {
         try
         {
