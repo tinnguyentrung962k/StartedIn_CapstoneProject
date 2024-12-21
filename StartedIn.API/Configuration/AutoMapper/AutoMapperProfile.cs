@@ -388,7 +388,10 @@ namespace StartedIn.API.Configuration.AutoMapper
 
         private void ApplicationMappingProfile()
         {
-            CreateMap<Application, ApplicationDTO>().ReverseMap();
+            CreateMap<Application, ApplicationDTO>()
+                .ForMember(dest => dest.CVFiles, opt => opt.MapFrom(src => src.ApplicationFiles))
+                .ReverseMap();
+            CreateMap<ApplicationFile, ApplicationApplyFileDTO>();
         }
 
         private void AppointmentMappingProfile()
