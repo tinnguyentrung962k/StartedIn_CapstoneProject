@@ -1,4 +1,5 @@
 using AutoMapper;
+using CrossCutting.Exceptions;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using StartedIn.CrossCutting.Constants;
@@ -47,13 +48,22 @@ public class ProjectApprovalService : IProjectApprovalService
         {
             throw new UnauthorizedProjectRoleException(MessageConstant.RolePermissionError);
         }
+
+        var existingApproval = await _projectApprovalRepository.QueryHelper()
+            .Filter(a => a.ProjectId.Equals(projectId) && (a.Status == ProjectApprovalStatus.PENDING || a.Status == ProjectApprovalStatus.ACCEPTED)).GetOneAsync();
+        if (existingApproval != null)
+        {
+            throw new ExistedRecordException(MessageConstant.NoMoreThanOnePendingApproval);
+        }
         try
         {
             _unitOfWork.BeginTransaction();
             var projectApproval = new ProjectApproval
             {
                 ProjectId = projectId,
+                Reason = createProjectApprovalDto.Reason,
                 CreatedTime = DateTimeOffset.UtcNow,
+                Status = ProjectApprovalStatus.PENDING
             };
             var entity = _projectApprovalRepository.Add(projectApproval);
 
@@ -83,10 +93,10 @@ public class ProjectApprovalService : IProjectApprovalService
         }
     }
 
-    public async Task<ProjectApproval> GetProjectApprovalRequestByProjectId(string projectId)
+    public async Task<IEnumerable<ProjectApproval>> GetProjectApprovalRequestByProjectId(string projectId)
     {
-        var approval = await _projectApprovalRepository.QueryHelper().Filter(pa => pa.ProjectId.Equals(projectId)).GetOneAsync();
-        if (approval == null)
+        var approval = _projectApprovalRepository.GetProjectApprovalsQuery().Where(a => a.ProjectId.Equals(projectId));
+        if (!approval.Any())
         {
             throw new NotFoundException(MessageConstant.NotFoundProjectApprovalRequest);
         }
@@ -94,19 +104,27 @@ public class ProjectApprovalService : IProjectApprovalService
         return approval;
     }
 
-    public async Task ApproveProjectRequest(string projectId)
+    public async Task ApproveProjectRequest(string projectId, string projectApprovalId)
     {
         var approval = await _projectApprovalRepository.QueryHelper().Filter(pa => pa.ProjectId.Equals(projectId)).GetOneAsync();
+        var project = await _projectRepository.QueryHelper().Filter(p => p.Id.Equals(projectId)).GetOneAsync();
         if (approval == null)
         {
             throw new NotFoundException(MessageConstant.NotFoundProjectApprovalRequest);
         }
 
+        if (project == null)
+        {
+            throw new NotFoundException(MessageConstant.NotFoundProjectError);
+        }
+
         approval.Status = ProjectApprovalStatus.ACCEPTED;
+        project.ProjectStatus = ProjectStatusEnum.ACTIVE;
         _projectApprovalRepository.Update(approval);
+        await _unitOfWork.SaveChangesAsync();
     }
 
-    public async Task RejectProjectRequest(string projectId, string rejectReason)
+    public async Task RejectProjectRequest(string projectId, string projectApprovalId, string rejectReason)
     {
         var approval = await _projectApprovalRepository.QueryHelper().Filter(pa => pa.ProjectId.Equals(projectId)).GetOneAsync();
         if (approval == null)
@@ -118,6 +136,7 @@ public class ProjectApprovalService : IProjectApprovalService
         approval.LastUpdatedTime = DateTimeOffset.UtcNow;
         approval.RejectReason = rejectReason;
         _projectApprovalRepository.Update(approval);
+        await _unitOfWork.SaveChangesAsync();
     }
 
     public async Task<PaginationDTO<ProjectApprovalResponseDTO>> GetAllProjectApprovals(ProjectApprovalFilterDTO filter, int page, int size)
@@ -149,5 +168,17 @@ public class ProjectApprovalService : IProjectApprovalService
         };
 
         return pagination;
+    }
+
+    public async Task<ProjectApproval> GetProjectApprovalRequestByApprovalId(string projectId, string approvalId)
+    {
+        var approval = await _projectApprovalRepository.QueryHelper()
+            .Filter(a => a.ProjectId.Equals(projectId) && a.Id.Equals(approvalId)).GetOneAsync();
+        if (approval == null)
+        {
+            throw new NotFoundException(MessageConstant.NotFoundProjectApprovalRequest);
+        }
+
+        return approval;
     }
 }

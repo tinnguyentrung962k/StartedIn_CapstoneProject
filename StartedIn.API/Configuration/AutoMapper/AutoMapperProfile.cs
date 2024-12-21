@@ -388,7 +388,10 @@ namespace StartedIn.API.Configuration.AutoMapper
 
         private void ApplicationMappingProfile()
         {
-            CreateMap<Application, ApplicationDTO>().ReverseMap();
+            CreateMap<Application, ApplicationDTO>()
+                .ForMember(dest => dest.CVFiles, opt => opt.MapFrom(src => src.ApplicationFiles))
+                .ReverseMap();
+            CreateMap<ApplicationFile, ApplicationApplyFileDTO>();
         }
 
         private void AppointmentMappingProfile()
@@ -449,6 +452,8 @@ namespace StartedIn.API.Configuration.AutoMapper
                 .ForMember(dest => dest.ProjectName, opt => opt.MapFrom(src => src.Project.ProjectName))
                 .ForMember(dest => dest.SentDate, opt => opt.MapFrom(src => src.CreatedTime))
                 .ForMember(dest => dest.ApprovalDate, opt => opt.MapFrom(src => src.LastUpdatedTime))
+                .ReverseMap();
+            CreateMap<ProjectApproval, ApprovalRequestsResponseDTO>()
                 .ReverseMap();
         }
     }

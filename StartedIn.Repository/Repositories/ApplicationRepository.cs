@@ -19,7 +19,7 @@ namespace StartedIn.Repository.Repositories
 
         public async Task<IEnumerable<Application>> GetApplicationsWithCandidate(string projectId)
         {
-            return await _dbSet.Include(x => x.Candidate).ThenInclude(c => c.Applications.Take(0)).Where(x => x.ProjectId.Equals(projectId)
+            return await _dbSet.Include(x => x.Candidate).Include(x => x.ApplicationFiles).Where(x => x.ProjectId.Equals(projectId)
                                             && x.Type == ApplicationTypeEnum.APPLY
                                                                         && x.Status == ApplicationStatus.PENDING).ToListAsync();
         }

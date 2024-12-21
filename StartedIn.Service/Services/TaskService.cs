@@ -548,16 +548,28 @@ namespace StartedIn.Service.Services
         public async Task MarkTaskAsLate()
         {
             var tasks = await _taskRepository.QueryHelper()
-                .Filter(c => c.IsLate == false &&
-                             ((c.Status == TaskEntityStatus.NOT_STARTED && c.StartDate < DateTimeOffset.UtcNow)
-                              || (c.Status == TaskEntityStatus.IN_PROGRESS && c.EndDate < DateTimeOffset.UtcNow)))
+                .Filter(c => c.IsLate == false && c.Status == TaskEntityStatus.IN_PROGRESS && c.EndDate < DateTimeOffset.UtcNow)
                 .GetAllAsync();
             foreach (var task in tasks)
             {
                 task.IsLate = true;
                 _taskRepository.Update(task);
-                await _unitOfWork.SaveChangesAsync();
             }
+            await _unitOfWork.SaveChangesAsync();
+        }
+
+        public async Task StartTask()
+        {
+            var tasks = await _taskRepository.QueryHelper()
+                .Filter(c =>
+                    c.IsLate == false &&
+                    (c.Status == TaskEntityStatus.NOT_STARTED && c.StartDate <= DateTimeOffset.UtcNow)).GetAllAsync();
+            foreach (var task in tasks)
+            {
+                task.Status = TaskEntityStatus.IN_PROGRESS;
+                _taskRepository.Update(task);
+            }
+            await _unitOfWork.SaveChangesAsync();
         }
 
         public async Task UpdateManHourForTask(string projectId, string taskId, string userId, float hour)

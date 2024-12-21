@@ -323,6 +323,12 @@ namespace StartedIn.Domain.Context
             .HasConversion(
             v => v.ToString(),
                 v => (SettingsValue)Enum.Parse(typeof(SettingsValue), v));
+            
+            modelBuilder.Entity<ProjectApproval>()
+                .Property(u => u.Status)
+                .HasConversion(
+                    v => v.ToString(),
+                    v => (ProjectApprovalStatus)Enum.Parse(typeof(ProjectApprovalStatus), v));
 
             foreach (var entityType in modelBuilder.Model.GetEntityTypes())
             {
