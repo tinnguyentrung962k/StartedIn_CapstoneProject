@@ -43,12 +43,13 @@ public class ProjectApprovalController : ControllerBase
     }
     
     [HttpGet("{projectId}/approval")]
-    [Authorize(Roles = RoleConstants.USER + "," + RoleConstants.MENTOR + "," + RoleConstants.ADMIN)]
+    [Authorize(Roles = RoleConstants.USER + "," + RoleConstants.ADMIN)]
     public async Task<ActionResult<List<ProjectApprovalResponseDTO>>> GetProjectApprovalsByProjectId([FromRoute] string projectId)
     {
         try
         {
-            var projectApproval = await _projectApprovalService.GetProjectApprovalRequestByProjectId(projectId);
+            var userId = User.FindFirst(ClaimTypes.NameIdentifier).Value;
+            var projectApproval = await _projectApprovalService.GetProjectApprovalRequestByProjectId(userId, projectId);
             var response = _mapper.Map<List<ProjectApprovalResponseDTO>>(projectApproval);
             return Ok(response);
         }
@@ -63,13 +64,14 @@ public class ProjectApprovalController : ControllerBase
     }
     
     [HttpGet("{projectId}/approval/{approvalId}")]
-    [Authorize(Roles = RoleConstants.USER + "," + RoleConstants.MENTOR + "," + RoleConstants.ADMIN)]
-    public async Task<ActionResult<List<ProjectApprovalResponseDTO>>> GetProjectApprovalByApprovalId([FromRoute] string projectId, [FromRoute] string approvalId)
+    [Authorize(Roles = RoleConstants.USER + "," + RoleConstants.ADMIN)]
+    public async Task<ActionResult<ProjectApprovalResponseDTO>> GetProjectApprovalByApprovalId([FromRoute] string projectId, [FromRoute] string approvalId)
     {
         try
         {
-            var projectApproval = await _projectApprovalService.GetProjectApprovalRequestByApprovalId(projectId, approvalId);
-            var response = _mapper.Map<List<ProjectApprovalResponseDTO>>(projectApproval);
+            var userId = User.FindFirst(ClaimTypes.NameIdentifier).Value;
+            var projectApproval = await _projectApprovalService.GetProjectApprovalRequestByApprovalId(userId, projectId, approvalId);
+            var response = _mapper.Map<ProjectApprovalResponseDTO>(projectApproval);
             return Ok(response);
         }
         catch (NotFoundException ex)
@@ -88,7 +90,8 @@ public class ProjectApprovalController : ControllerBase
     {
         try
         {
-            var projectApproval = await _projectApprovalService.GetProjectApprovalRequestByProjectId(projectId);
+            var userId = User.FindFirst(ClaimTypes.NameIdentifier).Value;
+            var projectApproval = await _projectApprovalService.GetProjectApprovalRequestByProjectId(userId, projectId);
             var response = _mapper.Map<List<ApprovalRequestsResponseDTO>>(projectApproval);
             return Ok(response);
         }
