@@ -135,5 +135,6 @@ namespace StartedIn.CrossCutting.Constants
         public const string NotFoundTransferOrTerminatedRequest = "Không tìm thấy yêu cầu huỷ hợp đồng hay chuyển nhóm trưởng";
         public const string ThisDealNotBelongToYou = "Yêu cầu thương lượng này không phải của bạn";
         public const string CannotDeleteDeal = "Không thể xoá yêu cầu thương lượng này";
+        public const string NoMoreThanOnePendingApproval = "Không thể tồn tại nhiều hơn một yêu cầu duyệt dự án cùng một lúc";
     }
 }

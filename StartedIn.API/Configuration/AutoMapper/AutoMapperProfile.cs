@@ -450,6 +450,8 @@ namespace StartedIn.API.Configuration.AutoMapper
                 .ForMember(dest => dest.SentDate, opt => opt.MapFrom(src => src.CreatedTime))
                 .ForMember(dest => dest.ApprovalDate, opt => opt.MapFrom(src => src.LastUpdatedTime))
                 .ReverseMap();
+            CreateMap<ProjectApproval, ApprovalRequestsResponseDTO>()
+                .ReverseMap();
         }
     }
 }
