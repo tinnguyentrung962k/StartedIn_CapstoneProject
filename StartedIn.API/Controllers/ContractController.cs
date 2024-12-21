@@ -492,6 +492,7 @@ namespace StartedIn.API.Controllers
             }
         }
         [HttpPut("contracts/{contractId}/cancel")]
+        [Authorize(Roles = RoleConstants.USER + "," + RoleConstants.INVESTOR + "," + RoleConstants.MENTOR)]
         public async Task<ActionResult<ContractResponseDTO>> CancelAContract([FromRoute] string projectId, [FromRoute] string contractId)
         {
             try

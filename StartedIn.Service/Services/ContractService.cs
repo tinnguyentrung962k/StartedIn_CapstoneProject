@@ -1140,7 +1140,7 @@ namespace StartedIn.Service.Services
                 throw new UnmatchedException(MessageConstant.ContractNotBelongToProjectError);
             }
             var userInContract = await _userService.CheckIfUserBelongToContract(userId, contractId);
-            if (chosenContract.ContractStatus != ContractStatusEnum.DRAFT && chosenContract.ContractStatus != ContractStatusEnum.SENT)
+            if (chosenContract.ContractStatus != ContractStatusEnum.SENT)
             {
                 throw new UpdateException(MessageConstant.CannotCancelContractError);
             }
@@ -1153,7 +1153,9 @@ namespace StartedIn.Service.Services
                     _contractRepository.Update(parentContract);
                 }
                 chosenContract.ContractStatus = ContractStatusEnum.CANCELLED;
+                userInContract.IsReject = true;
                 _contractRepository.Update(chosenContract);
+                await _contractRepository.UpdateUserInContract(userInContract);
                 if (chosenContract.DealOfferId != null) 
                 {
                     var dealOffer = await _dealOfferRepository.QueryHelper()
