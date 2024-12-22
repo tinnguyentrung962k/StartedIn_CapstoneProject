@@ -27,5 +27,29 @@ namespace StartedIn.Repository.Repositories
                 .Include(r => r.FormerLeader).FirstOrDefaultAsync();
             return request;
         }
+
+        public IQueryable<TransferLeaderRequest> GetHistoryOfLeaderInAProject(string projectId)
+        {
+            var request = _appDbContext.TransferLeaderRequests
+                .Where(r => r.ProjectId == projectId && r.IsAgreed == true)
+                .Include(r => r.Project)
+                .Include(r => r.NewLeader)
+                .Include(r => r.FormerLeader)
+                .Include(r => r.Appointment)
+                .ThenInclude(r => r.MeetingNotes)
+                .OrderByDescending(r => r.TransferDate);
+            return request;
+        }
+
+        public async Task<TransferLeaderRequest> GetLeaderTransferInProjectById(string transferId)
+        {
+            var request = await _appDbContext.TransferLeaderRequests
+                .Where(r => r.Id.Equals(transferId) && r.IsAgreed == true)
+                .Include(r => r.NewLeader)
+                .Include(r => r.FormerLeader)
+                .Include(r => r.Appointment)
+                .ThenInclude(r => r.MeetingNotes).FirstOrDefaultAsync();
+            return request;
+        }
     }
 }

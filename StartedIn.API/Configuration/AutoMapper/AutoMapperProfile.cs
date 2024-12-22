@@ -436,6 +436,12 @@ namespace StartedIn.API.Configuration.AutoMapper
                 .ForMember(dest => dest.AppointmentTitle, opt => opt.MapFrom(src => src.Appointment.Title))
                 .ForMember(dest => dest.FormerLeaderName, opt => opt.MapFrom(src => src.FormerLeader.FullName))
                 .ForMember(dest => dest.Description, opt => opt.MapFrom(src => src.Appointment.Description));
+            CreateMap<TransferLeaderRequest, TransferLeaderHistoryResponseDTO>()
+                .ForMember(dest => dest.NewLeaderName, opt => opt.MapFrom(src => src.NewLeader.FullName))
+                .ForMember(dest => dest.FormerLeaderName, opt => opt.MapFrom(src => src.FormerLeader.FullName))
+                .ForMember(dest => dest.AppointmentName, opt => opt.MapFrom(src => src.Appointment.Title))
+                .ForMember(dest => dest.AppointmentTime, opt => opt.MapFrom(src => src.Appointment.AppointmentTime))
+                .ForMember(dest => dest.MeetingNotes, opt => opt.MapFrom(src => src.Appointment.MeetingNotes));
         }
 
         private void UserTaskMappingProfile()

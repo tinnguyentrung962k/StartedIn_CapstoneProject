@@ -138,5 +138,6 @@ namespace StartedIn.CrossCutting.Constants
         public const string NoMoreThanOnePendingApproval = "Không thể tồn tại nhiều hơn một yêu cầu duyệt dự án cùng một lúc";
         public const string AppointmentEndTimeError =
             "Ngày kết thúc cuộc họp phải trùng với ngày họp, và thời gian kết thúc cuộc họp phải trễ hơn so với giờ bắt đầu.";
+        public const string NotFoundLeaderTransfer = "Cuộc bổ nhiệm nhóm trưởng mới không tồn tại";
     }
 }

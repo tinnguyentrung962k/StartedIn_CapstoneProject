@@ -10,5 +10,7 @@ namespace StartedIn.Repository.Repositories.Interface
     public interface ITransferLeaderRequestRepository : IGenericRepository<TransferLeaderRequest,string>
     {
         Task<TransferLeaderRequest> GetLeaderTransferRequestPending(string projectId);
+        IQueryable<TransferLeaderRequest> GetHistoryOfLeaderInAProject(string projectId);
+        Task<TransferLeaderRequest> GetLeaderTransferInProjectById(string transferId);
     }
 }

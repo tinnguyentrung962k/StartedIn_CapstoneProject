@@ -1,9 +1,13 @@
-﻿using CrossCutting.Exceptions;
+﻿using AutoMapper;
+using CrossCutting.Exceptions;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using StartedIn.CrossCutting.Constants;
 using StartedIn.CrossCutting.DTOs.RequestDTO;
 using StartedIn.CrossCutting.DTOs.RequestDTO.Appointment;
+using StartedIn.CrossCutting.DTOs.ResponseDTO;
+using StartedIn.CrossCutting.DTOs.ResponseDTO.TransferLeaderRequest;
 using StartedIn.CrossCutting.Exceptions;
 using StartedIn.Domain.Entities;
 using StartedIn.Repository.Repositories.Interface;
@@ -28,6 +32,7 @@ namespace StartedIn.Service.Services
         private readonly IProjectRepository _projectRepository;
         private readonly IEmailService _emailService;
         private readonly IContractRepository _contractRepository;
+        private readonly IMapper _mapper;
 
         public TransferLeaderRequestService(
             IUnitOfWork unitOfWork, 
@@ -39,7 +44,8 @@ namespace StartedIn.Service.Services
             IUserRepository userRepository,
             IProjectRepository projectRepository,
             IEmailService emailService,
-            IContractRepository contractRepository
+            IContractRepository contractRepository,
+            IMapper mapper
             )
         {
             _unitOfWork = unitOfWork;
@@ -52,6 +58,7 @@ namespace StartedIn.Service.Services
             _projectRepository = projectRepository;
             _emailService = emailService;
             _contractRepository = contractRepository;
+            _mapper = mapper;
         }
 
         public async Task CreateLeaderTransferRequestInAProject(string userId, string projectId, TerminationMeetingCreateDTO terminationMeetingCreateDTO)
@@ -262,6 +269,40 @@ namespace StartedIn.Service.Services
                 throw;
             }
 
+        }
+
+        public async Task<PaginationDTO<TransferLeaderHistoryResponseDTO>> GetLeaderHistoryInTheProject(string userId, string projectId, int page, int size)
+        {
+            var currentUser = await _userService.CheckIfUserInProject(userId, projectId);
+            var historyQuery = _transferLeaderRequestRepository.GetHistoryOfLeaderInAProject(projectId);
+            var pagedResult = await historyQuery
+                .Skip((page - 1) * size)
+                .Take(size).ToListAsync();
+            var pagedHistory =  _mapper.Map<List<TransferLeaderHistoryResponseDTO>>(pagedResult);
+            var pagedResponse = new PaginationDTO<TransferLeaderHistoryResponseDTO>
+            {
+                Data = pagedHistory,
+                Page = page,
+                Size = size,
+                Total = historyQuery.ToList().Count()
+            };
+            return pagedResponse;
+        }
+
+        public async Task<TransferLeaderHistoryResponseDTO> GetLeaderHistoryInTheProjectById(string userId, string projectId, string transferId)
+        {
+            var currentUser = await _userService.CheckIfUserInProject(userId, projectId);
+            var transfer = await _transferLeaderRequestRepository.GetLeaderTransferInProjectById(transferId);
+            if (transfer == null)
+            {
+                throw new NotFoundException(MessageConstant.NotFoundLeaderTransfer);
+            }
+            if (transfer.ProjectId != projectId)
+            {
+                throw new NotFoundException(MessageConstant.NotFoundLeaderTransfer);
+            }
+            var response = _mapper.Map<TransferLeaderHistoryResponseDTO>(transfer);
+            return response;
         }
     }
 }

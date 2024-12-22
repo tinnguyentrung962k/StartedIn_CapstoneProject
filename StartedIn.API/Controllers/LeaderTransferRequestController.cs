@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.Mvc;
 using StartedIn.CrossCutting.Constants;
 using StartedIn.CrossCutting.DTOs.RequestDTO;
 using StartedIn.CrossCutting.DTOs.RequestDTO.Appointment;
+using StartedIn.CrossCutting.DTOs.ResponseDTO;
 using StartedIn.CrossCutting.DTOs.ResponseDTO.TransferLeaderRequest;
 using StartedIn.CrossCutting.Exceptions;
 using StartedIn.Service.Services.Interface;
@@ -120,9 +121,53 @@ namespace StartedIn.API.Controllers
             }
         }
 
+        [HttpGet("leader-history")]
+        [Authorize(Roles = RoleConstants.USER + "," + RoleConstants.INVESTOR + "," + RoleConstants.MENTOR)]
+        public async Task<ActionResult<PaginationDTO<TransferLeaderHistoryResponseDTO>>> GetTransferLeaderHistoryInAProject([FromRoute] string projectId, [FromQuery] int page, [FromQuery] int size)
+        {
+            try
+            {
+                var userId = User.FindFirst(ClaimTypes.NameIdentifier).Value;
+                var historyResponse = await _transferLeaderRequestService.GetLeaderHistoryInTheProject(userId, projectId, page, size);
+                return Ok(historyResponse);
+            }
+            catch (NotFoundException ex)
+            {
+                return NotFound(ex.Message);
+            }
+            catch (UnauthorizedProjectRoleException ex)
+            {
+                return StatusCode(403, ex.Message);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, MessageConstant.UpdateFailed);
+            }
+        }
 
-
-
+        [HttpGet("leader-transfer-detail/{transferId}")]
+        [Authorize(Roles = RoleConstants.USER + "," + RoleConstants.INVESTOR + "," + RoleConstants.MENTOR)]
+        public async Task<ActionResult<TransferLeaderHistoryResponseDTO>> GetTransferLeaderHistoryInAProjectById([FromRoute] string projectId, [FromRoute] string transferId)
+        {
+            try
+            {
+                var userId = User.FindFirst(ClaimTypes.NameIdentifier).Value;
+                var historyResponse = await _transferLeaderRequestService.GetLeaderHistoryInTheProjectById(userId,projectId,transferId);
+                return Ok(historyResponse);
+            }
+            catch (NotFoundException ex)
+            {
+                return NotFound(ex.Message);
+            }
+            catch (UnauthorizedProjectRoleException ex)
+            {
+                return StatusCode(403, ex.Message);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, MessageConstant.UpdateFailed);
+            }
+        }
 
     }
 }
