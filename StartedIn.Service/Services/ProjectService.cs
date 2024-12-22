@@ -248,47 +248,11 @@ public class ProjectService : IProjectService
 
     }
 
-    public async Task<List<ProjectResponseDTO>> GetListOwnProjects(string userId)
-    {
-        var projects = _projectRepository.QueryHelper()
-            .Include(x => x.UserProjects)
-            .Filter(p => p.UserProjects.Any(up => up.UserId == userId && up.RoleInTeam == RoleInTeam.Leader && up.Status == UserStatusInProject.Active));
-        var records = await projects.GetAllAsync();
-        var totalRecord = records.Count();
-        List<ProjectResponseDTO> listProjects = new List<ProjectResponseDTO>();
-        foreach (var project in records)
-        {
-            foreach (var userProject in project.UserProjects)
-            {
-                var user = await _userManager.FindByIdAsync(userProject.UserId);
-                userProject.User = user;
-            }
-            ProjectResponseDTO responseDto = new ProjectResponseDTO
-            {
-                Description = project.Description,
-                Id = project.Id,
-                LeaderFullName = project.UserProjects.FirstOrDefault(x => x.RoleInTeam == RoleInTeam.Leader).User.FullName,
-                LeaderId = project.UserProjects.FirstOrDefault(x => x.RoleInTeam == RoleInTeam.Leader).User.Id,
-                LogoUrl = project.LogoUrl,
-                ProjectName = project.ProjectName,
-                ProjectStatus = project.ProjectStatus,
-                RemainingPercentOfShares = project.RemainingPercentOfShares,
-                StartDate = project.StartDate,
-                EndDate = project.EndDate,
-                MaxMember = project.MaxMember,
-                CurrentMember = project.UserProjects.Count(),
-                LeaderProfilePicture = project.UserProjects.FirstOrDefault(x => x.RoleInTeam == RoleInTeam.Leader).User.ProfilePicture
-            };
-            listProjects.Add(responseDto);
-        }
-        return listProjects;
-    }
-
     public async Task<List<ProjectResponseDTO>> GetListParticipatedProjects(string userId)
     {
         var projects = _projectRepository.QueryHelper()
             .Include(x => x.UserProjects)
-            .Filter(p => p.UserProjects.Any(up => up.UserId == userId && up.RoleInTeam != RoleInTeam.Leader && up.Status == UserStatusInProject.Active));
+            .Filter(p => p.UserProjects.Any(up => up.UserId == userId));
         var records = await projects.GetAllAsync();
         var totalRecord = records.Count();
         List<ProjectResponseDTO> listProjects = new List<ProjectResponseDTO>();
@@ -313,7 +277,8 @@ public class ProjectService : IProjectService
                 EndDate = project.EndDate,
                 MaxMember = project.MaxMember,
                 CurrentMember = project.UserProjects.Count(),
-                LeaderProfilePicture = project.UserProjects.FirstOrDefault(x => x.RoleInTeam == RoleInTeam.Leader).User.ProfilePicture
+                LeaderProfilePicture = project.UserProjects.FirstOrDefault(x => x.RoleInTeam == RoleInTeam.Leader).User.ProfilePicture,
+                UserStatusInProject = project.UserProjects.FirstOrDefault(x => x.UserId.Equals(userId)).Status 
             };
             listProjects.Add(responseDto);
         }

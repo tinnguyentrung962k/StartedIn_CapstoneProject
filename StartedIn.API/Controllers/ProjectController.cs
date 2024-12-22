@@ -38,19 +38,13 @@ public class ProjectController : ControllerBase
 
     [HttpGet]
     [Authorize(Roles = RoleConstants.USER + "," + RoleConstants.INVESTOR + "," + RoleConstants.MENTOR)]
-    public async Task<ActionResult<ProjectListDTO>> GetListOfProjectsWithRole()
+    public async Task<ActionResult<List<ProjectResponseDTO>>> GetListOfProjectsWithRole()
     {
         var userId = User.FindFirst(ClaimTypes.NameIdentifier).Value;
         try
         {
-            var ownedProjects = _mapper.Map<List<ProjectResponseDTO>>(await _projectService.GetListOwnProjects(userId));
-            var participatedProjects = _mapper.Map<List<ProjectResponseDTO>>(await _projectService.GetListParticipatedProjects(userId));
-            var response = new ProjectListDTO
-            {
-                listOwnProject = ownedProjects,
-                listParticipatedProject = participatedProjects
-            };
-            return Ok(response);
+            var participatedProjects = await _projectService.GetListParticipatedProjects(userId);
+            return Ok(participatedProjects);
         }
         catch (ArgumentException ex)
         {

@@ -365,16 +365,15 @@ namespace StartedIn.Service.Services
                     && x.Type == ApplicationTypeEnum.APPLY
                     && x.Status == ApplicationStatus.PENDING)
                 .GetOneAsync();
+            if (application == null)
+            {
+                throw new NotFoundException(MessageConstant.NotFoundRecruitmentApplication);
+            }
 
             var userInOtherProjects = await _projectRepository.GetAProjectByUserId(application.CandidateId);
             if (userInOtherProjects != null)
             {
                 throw new InviteException(MessageConstant.UserInOtherProjectError);
-            }
-
-            if (application == null)
-            {
-                throw new NotFoundException(MessageConstant.NotFoundRecruitmentApplication);
             }
 
             try
@@ -384,11 +383,26 @@ namespace StartedIn.Service.Services
                 application.LastUpdatedTime = DateTimeOffset.UtcNow;
                 _applicationRepository.Update(application);
 
-                await _userRepository.AddUserToProject(application.CandidateId, projectId, application.Role);
-                await CancelExistingApplicationsOnceUserJoinAProject(userId);
+                
                 
                 await _unitOfWork.CommitAsync();
                 await _unitOfWork.SaveChangesAsync();
+
+                var project = await _projectRepository.GetProjectById(projectId);
+                var appliedUserInProject = project.UserProjects.FirstOrDefault(up => up.UserId.Equals(application.CandidateId)
+                && up.Status != UserStatusInProject.Active);
+                if (appliedUserInProject != null)
+                {
+                    appliedUserInProject.Status = UserStatusInProject.Active;
+                    await _userRepository.UpdateUserInProject(appliedUserInProject);
+                }
+                else
+                {
+                    await _userRepository.AddUserToProject(application.CandidateId, projectId, application.Role); 
+                }
+                await CancelExistingApplicationsOnceUserJoinAProject(userId);
+                await _unitOfWork.SaveChangesAsync();
+                await _unitOfWork.CommitAsync();
             }
             catch (Exception ex)
             {

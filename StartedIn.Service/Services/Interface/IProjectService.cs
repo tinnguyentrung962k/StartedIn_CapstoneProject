@@ -11,7 +11,6 @@ public interface IProjectService
     Task<Project> CreateNewProject(string userId, ProjectCreateDTO projectCreateDTO);
     Task<Project> GetProjectById(string id);
     Task<Project> GetProjectAndMemberById(string id);
-    Task<List<ProjectResponseDTO>> GetListOwnProjects(string userId);
     Task<List<ProjectResponseDTO>> GetListParticipatedProjects(string userId);
     Task<List<User>> GetListUserRelevantToContractsInAProject(string projectId);
     Task<PaginationDTO<ExploreProjectDTO>> GetProjectsForInvestor(string userId, ProjectFilterDTO projectFilterDTO, int size, int page);
