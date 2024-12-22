@@ -464,8 +464,7 @@ namespace StartedIn.Service.Services
                 { "MAIL", leader.Email },
                 { "DCCDU", leader.Address },
                 { "PHANTRAMCOPHAN", shareEquity.Percentage.ToString() },
-                { "GIAMUA", shareEquity.SharePrice.ToString() },
-                { "DIEUKHOANDUAN", contract.ContractPolicy },
+                { "GIAMUA", shareEquity.SharePrice.ToString() }
             };
 
             // Bước 2: Mở file Word để thay thế placeholders
