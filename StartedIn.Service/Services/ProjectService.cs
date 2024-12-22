@@ -123,7 +123,7 @@ public class ProjectService : IProjectService
         {
             throw new InvalidDataException(MessageConstant.NullOrEmptyStartDate);
         }
-        if (projectCreateDTO.MinMember <= 0 || projectCreateDTO.MaxMember <= 0 || projectCreateDTO.MinMember > projectCreateDTO.MaxMember)
+        if (projectCreateDTO.MaxMember <= 0)
         {
             throw new InvalidDataException(MessageConstant.InvalidNumberOfMembersInProject);
         }
@@ -141,8 +141,7 @@ public class ProjectService : IProjectService
                 EndDate = projectCreateDTO.EndDate,
                 StartDate = projectCreateDTO.StartDate,
                 CompanyIdNumber = projectCreateDTO.CompanyIdNumer,
-                MaxMember = projectCreateDTO.MaxMember,
-                MinMember = projectCreateDTO.MinMember
+                MaxMember = projectCreateDTO.MaxMember
             };
             var projectEntity = _projectRepository.Add(newProject);
             await _userRepository.AddUserToProject(userId, projectEntity.Id, RoleInTeam.Leader);
@@ -224,7 +223,6 @@ public class ProjectService : IProjectService
             StartDate = project.StartDate,
             EndDate = project.EndDate,
             MaxMember = project.MaxMember,
-            MinMember = project.MinMember,
             CurrentMember = project.UserProjects.Where(x => (x.RoleInTeam == RoleInTeam.Leader || x.RoleInTeam == RoleInTeam.Member) && x.Status == UserStatusInProject.Active).Count()
         }).ToList();
         var pagination = new PaginationDTO<ProjectResponseDTO>()
@@ -278,7 +276,6 @@ public class ProjectService : IProjectService
                 StartDate = project.StartDate,
                 EndDate = project.EndDate,
                 MaxMember = project.MaxMember,
-                MinMember = project.MinMember,
                 CurrentMember = project.UserProjects.Count(),
                 LeaderProfilePicture = project.UserProjects.FirstOrDefault(x => x.RoleInTeam == RoleInTeam.Leader).User.ProfilePicture
             };
@@ -315,7 +312,6 @@ public class ProjectService : IProjectService
                 StartDate = project.StartDate,
                 EndDate = project.EndDate,
                 MaxMember = project.MaxMember,
-                MinMember = project.MinMember,
                 CurrentMember = project.UserProjects.Count(),
                 LeaderProfilePicture = project.UserProjects.FirstOrDefault(x => x.RoleInTeam == RoleInTeam.Leader).User.ProfilePicture
             };
