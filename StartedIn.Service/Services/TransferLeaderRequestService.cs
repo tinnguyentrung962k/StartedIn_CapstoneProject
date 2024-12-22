@@ -126,33 +126,45 @@ namespace StartedIn.Service.Services
 
         public async Task TransferLeaderAfterMeeting(string userId, string projectId, string requestId, LeaderTransferRequestDTO leaderTransferRequestDTO)
         {
+            // Verify the current user's role in the project
             var userInProject = await _userService.CheckIfUserInProject(userId, projectId);
             if (userInProject.RoleInTeam != CrossCutting.Enum.RoleInTeam.Leader)
             {
                 throw new UnauthorizedProjectRoleException(MessageConstant.RolePermissionError);
             }
 
+            // Check if there is a pending leader transfer request for the project
             var transferRequest = await _transferLeaderRequestRepository.GetLeaderTransferRequestPending(projectId);
-            if (transferRequest == null) 
+            if (transferRequest == null)
             {
                 throw new NotFoundException(MessageConstant.NoTransferRequestWasFound);
             }
+
+            // Ensure the associated meeting is finished
             if (transferRequest.Appointment.Status != CrossCutting.Enum.MeetingStatus.Finished)
             {
                 throw new NotFoundException(MessageConstant.MeetingIsNotFinished);
             }
+
+            // Ensure meeting notes exist for the meeting
             if (transferRequest.Appointment.MeetingNotes == null)
             {
                 throw new NotFoundException(MessageConstant.NotFoundMeetingNote);
             }
+
+            // Verify the new leader's role in the project
             var newAssignedLeaderInProject = await _userService.CheckIfUserInProject(leaderTransferRequestDTO.NewLeaderId, projectId);
             if (newAssignedLeaderInProject.RoleInTeam != CrossCutting.Enum.RoleInTeam.Member)
             {
                 throw new InvalidAssignRoleException(MessageConstant.CannotTransferLeaderRoleForNotMember);
             }
+
             try
             {
+                // Begin database transaction
                 _unitOfWork.BeginTransaction();
+
+                // Update transfer request details
                 transferRequest.NewLeader = newAssignedLeaderInProject.User;
                 transferRequest.NewLeaderId = newAssignedLeaderInProject.UserId;
                 transferRequest.LastUpdatedBy = userInProject.User.FullName;
@@ -162,34 +174,48 @@ namespace StartedIn.Service.Services
 
                 _transferLeaderRequestRepository.Update(transferRequest);
 
-
-
+                // Update roles in the project
                 newAssignedLeaderInProject.RoleInTeam = CrossCutting.Enum.RoleInTeam.Leader;
                 await _userRepository.UpdateUserInProject(newAssignedLeaderInProject);
-                
+
                 userInProject.RoleInTeam = CrossCutting.Enum.RoleInTeam.Member;
                 await _userRepository.UpdateUserInProject(userInProject);
 
+                // Update contracts for the project
                 var contractList = await _contractRepository.GetContractByProjectId(projectId);
                 foreach (var contract in contractList)
                 {
-                    foreach (var userInContract in contract.UserContracts.Where(x => x.Role == CrossCutting.Enum.RoleInContract.CREATOR))
+                    foreach (var userInContract in contract.UserContracts
+                        .Where(x => x.Role == CrossCutting.Enum.RoleInContract.CREATOR))
                     {
-                        userInContract.TransferToId = newAssignedLeaderInProject.UserId;
-                        if (userInContract.TransferToId.Equals(newAssignedLeaderInProject.UserId))
+                        // Handle TransferToId for contract roles
+                        if (userInContract.TransferToId != null)
                         {
-                            userInContract.TransferToId = null;
+                            if (userInContract.UserId.Equals(newAssignedLeaderInProject.UserId))
+                            {
+                                userInContract.TransferToId = null;
+                            }
+                            else
+                            {
+                                userInContract.TransferToId = newAssignedLeaderInProject.UserId;
+                            }
                         }
+                        else
+                        {
+                            userInContract.TransferToId = newAssignedLeaderInProject.UserId;
+                        }
+
                         await _userRepository.UpdateUserInContract(userInContract);
                     }
                 }
-               
 
+                // Commit transaction
                 await _unitOfWork.SaveChangesAsync();
                 await _unitOfWork.CommitAsync();
             }
-            catch (Exception ex) 
+            catch (Exception ex)
             {
+                // Log error and rollback transaction
                 _logger.LogError(ex, MessageConstant.UpdateFailed);
                 await _unitOfWork.RollbackAsync();
                 throw;
