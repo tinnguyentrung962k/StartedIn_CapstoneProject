@@ -307,7 +307,6 @@ namespace StartedIn.Service.Services
                 { "SOHOPDONG", contract.ContractIdNumber },
                 { "CREATEDDATE", DateOnly.FromDateTime(DateTime.Now).ToString("dd-MM-yyyy") },
                 { "PROJECT", project.ProjectName },
-                { "CONTRACTPOLICY", contract.ContractPolicy },
                 { "LEADER", leader.FullName},
             };
 
@@ -381,6 +380,48 @@ namespace StartedIn.Service.Services
                         placeholderShareHoldersSignatureParagraph.AppendChild(new Run(new Text(" ")));
                     }
                     placeholderShareHoldersSignatureParagraph.Remove();
+                }
+
+                var placeholderContractPolicyParagraph = body.Elements<Paragraph>().FirstOrDefault(p => p.InnerText.Contains("CONTRACTPOLICY"));
+                if (placeholderContractPolicyParagraph != null)
+                {
+                    // Contract policy text containing \n for line breaks
+                    string contractPolicyText = contract.ContractPolicy;
+
+                    // Split the contract policy text into individual lines by \n
+                    var policyLines = contractPolicyText.Split(new[] { "\n" }, StringSplitOptions.None);
+                    var contractPolicyParagraph = new Paragraph();
+
+                    // Create a new paragraph for each line of the contract policy
+                    foreach (var line in policyLines)
+                    {
+                        var run = new Run();
+
+                        RunProperties runProperties = new RunProperties
+                        {
+                            RunFonts = new RunFonts { Ascii = "Times New Roman", HighAnsi = "Times New Roman" },
+                            FontSize = new FontSize { Val = "26" }
+                        };
+
+                        run.AppendChild(runProperties);
+
+                        // Append the text to the run
+                        run.AppendChild(new Text(line));
+
+                        // If it's not the first line, add a line break before the text
+                        if (!string.IsNullOrEmpty(line))
+                        {
+                            run.AppendChild(new Break());
+                        }
+
+                        // Append the run to the paragraph
+                        contractPolicyParagraph.AppendChild(run);
+
+                        // Insert the paragraph after the placeholder paragraph
+                    }
+                    body.InsertAfter(contractPolicyParagraph, placeholderContractPolicyParagraph);
+                    // Remove the placeholder paragraph after inserting the content
+                    placeholderContractPolicyParagraph.Remove();
                 }
 
                 doc.MainDocumentPart.Document.Save();
@@ -465,6 +506,47 @@ namespace StartedIn.Service.Services
                     }
 
                     placeholderParagraph.Remove();
+                }
+                var placeholderContractPolicyParagraph = body.Elements<Paragraph>().FirstOrDefault(p => p.InnerText.Contains("DIEUKHOANDUAN"));
+                if (placeholderContractPolicyParagraph != null)
+                {
+                    // Contract policy text containing \n for line breaks
+                    string contractPolicyText = contract.ContractPolicy;
+
+                    // Split the contract policy text into individual lines by \n
+                    var policyLines = contractPolicyText.Split(new[] { "\n" }, StringSplitOptions.None);
+                    var contractPolicyParagraph = new Paragraph();
+
+                    // Create a new paragraph for each line of the contract policy
+                    foreach (var line in policyLines)
+                    {
+                        var run = new Run();
+
+                        RunProperties runProperties = new RunProperties
+                        {
+                            RunFonts = new RunFonts { Ascii = "Times New Roman", HighAnsi = "Times New Roman" },
+                            FontSize = new FontSize { Val = "26" }
+                        };
+
+                        run.AppendChild(runProperties);
+
+                        // Append the text to the run
+                        run.AppendChild(new Text(line));
+
+                        // If it's not the first line, add a line break before the text
+                        if (!string.IsNullOrEmpty(line))
+                        {
+                            run.AppendChild(new Break());
+                        }
+
+                        // Append the run to the paragraph
+                        contractPolicyParagraph.AppendChild(run);
+
+                        // Insert the paragraph after the placeholder paragraph
+                    }
+                    body.InsertAfter(contractPolicyParagraph, placeholderContractPolicyParagraph);
+                    // Remove the placeholder paragraph after inserting the content
+                    placeholderContractPolicyParagraph.Remove();
                 }
 
                 // Lưu thay đổi vào MemoryStream

@@ -1152,6 +1152,23 @@ namespace StartedIn.Service.Services
                     parentContract.LiquidationNoteId = null;
                     _contractRepository.Update(parentContract);
                 }
+                if (chosenContract.ContractType == ContractTypeEnum.INVESTMENT) 
+                {
+                    if (chosenContract.Disbursements != null)
+                    {
+                        decimal totalPendingAmount = 0;
+                        foreach (var disbursement in chosenContract.Disbursements)
+                        {
+                            if (disbursement.DisbursementStatus == DisbursementStatusEnum.PENDING)
+                            {
+                                totalPendingAmount += disbursement.Amount; // Sum pending disbursement amounts
+                                disbursement.IsValidWithContract = false;
+                                disbursement.DisbursementStatus = DisbursementStatusEnum.CANCELLED;
+                                _disbursementRepository.Update(disbursement);
+                            }
+                        }
+                    }
+                }  
                 chosenContract.ContractStatus = ContractStatusEnum.CANCELLED;
                 userInContract.IsReject = true;
                 _contractRepository.Update(chosenContract);
