@@ -13,8 +13,12 @@ namespace StartedIn.CrossCutting.DTOs.ResponseDTO.TransferLeaderRequest
         public string ProjectId { get; set; }
         public string FormerLeaderId { get; set; }
         public string FormerLeaderName { get; set; }
+        public string FormerLeaderEmail { get; set; }
+        public string FormerLeaderProfilePicture { get; set; }
         public string NewLeaderId { get; set; }
         public string NewLeaderName { get; set; }
+        public string NewLeaderEmail { get; set; }
+        public string NewLeaderProfilePicture { get; set; }
         public DateOnly? TransferDate { get; set; }
         public bool? IsAgreed { get; set; }
         public string AppointmentId { get; set; }
