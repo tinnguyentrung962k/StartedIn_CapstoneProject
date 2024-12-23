@@ -1,4 +1,5 @@
-﻿using Azure;
+﻿using System.IO.Compression;
+using Azure;
 using Azure.Storage.Blobs;
 using Azure.Storage.Blobs.Models;
 using Microsoft.AspNetCore.Http;
@@ -278,6 +279,38 @@ namespace StartedIn.Service.Services
         {
             var uri = new Uri(url);
             return uri.Segments[^1]; 
+        }
+
+        public async Task<string> ZipAndUploadAsync(List<IFormFile> files, string zipFileName)
+        {
+            // Create a MemoryStream to hold the zip file
+            using (var memoryStream = new MemoryStream())
+            {
+                // Create the zip archive in memory
+                using (var zipArchive = new ZipArchive(memoryStream, ZipArchiveMode.Create, true))
+                {
+                    foreach (var file in files)
+                    {
+                        var zipEntry = zipArchive.CreateEntry(file.FileName, CompressionLevel.Optimal);
+
+                        using (var entryStream = zipEntry.Open())
+                        using (var fileStream = file.OpenReadStream())
+                        {
+                            await fileStream.CopyToAsync(entryStream);
+                        }
+                    }
+                }
+
+                // Reset the MemoryStream position to the beginning
+                memoryStream.Seek(0, SeekOrigin.Begin);
+
+                // Upload the zip file to Azure Blob Storage
+                var blobClient = _cvFileContainerClient.GetBlobClient(zipFileName);
+                await blobClient.UploadAsync(memoryStream, true);
+
+                // Return the URI of the uploaded blob
+                return blobClient.Uri.ToString();
+            }
         }
     }
 }

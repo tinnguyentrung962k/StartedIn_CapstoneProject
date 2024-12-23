@@ -25,5 +25,6 @@ namespace StartedIn.Service.Services.Interface
         Task DeleteImageFromRecruitmentBlob(string imageUrl);
         Task<string> UploadCVFileApplication(IFormFile file);
         Task<string> UploadMeetingNoteAndProjectDocuments(IFormFile file);
+        Task<string> ZipAndUploadAsync(List<IFormFile> files, string zipFileName);
     }
 }
