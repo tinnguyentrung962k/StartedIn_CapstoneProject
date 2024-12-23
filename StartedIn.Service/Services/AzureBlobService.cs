@@ -281,7 +281,7 @@ namespace StartedIn.Service.Services
             return uri.Segments[^1]; 
         }
 
-        public async Task<string> ZipAndUploadAsync(List<IFormFile> files, string zipFileName)
+        public async Task<string> ZipAndUploadAsyncForCv(List<IFormFile> files, string zipFileName)
         {
             // Create a MemoryStream to hold the zip file
             using (var memoryStream = new MemoryStream())
@@ -311,6 +311,94 @@ namespace StartedIn.Service.Services
                 // Return the URI of the uploaded blob
                 return blobClient.Uri.ToString();
             }
+        }
+
+        public async Task<string> ZipAndUploadAsyncForMeetingNotes(List<IFormFile> files, string zipFileName)
+        {
+            // Create a MemoryStream to hold the zip file
+            using (var memoryStream = new MemoryStream())
+            {
+                // Create the zip archive in memory
+                using (var zipArchive = new ZipArchive(memoryStream, ZipArchiveMode.Create, true))
+                {
+                    foreach (var file in files)
+                    {
+                        var zipEntry = zipArchive.CreateEntry(file.FileName, CompressionLevel.Optimal);
+
+                        using (var entryStream = zipEntry.Open())
+                        using (var fileStream = file.OpenReadStream())
+                        {
+                            await fileStream.CopyToAsync(entryStream);
+                        }
+                    }
+                }
+
+                // Reset the MemoryStream position to the beginning
+                memoryStream.Seek(0, SeekOrigin.Begin);
+
+                // Upload the zip file to Azure Blob Storage
+                var blobClient = _documentContainerClient.GetBlobClient(zipFileName);
+                await blobClient.UploadAsync(memoryStream, true);
+
+                // Return the URI of the uploaded blob
+                return blobClient.Uri.ToString();
+            }
+        }
+
+        public async Task<MemoryStream> ZipMemoryStreamsAsync(List<(string FileName, MemoryStream Stream)> memoryStreamsWithNames)
+        {
+            var zipMemoryStream = new MemoryStream();
+
+            using (var zipArchive = new ZipArchive(zipMemoryStream, ZipArchiveMode.Create, true))
+            {
+                foreach (var (fileName, stream) in memoryStreamsWithNames)
+                {
+                    var zipEntry = zipArchive.CreateEntry(fileName, CompressionLevel.Optimal);
+
+                    using (var entryStream = zipEntry.Open())
+                    {
+                        stream.Seek(0, SeekOrigin.Begin);
+                        await stream.CopyToAsync(entryStream);
+                    }
+                }
+            }
+
+            zipMemoryStream.Seek(0, SeekOrigin.Begin);
+            return zipMemoryStream;
+        }
+        
+        public async Task<MemoryStream> DownloadMeetingNoteToMemoryStreamAsync(string blobName)
+        {
+            // Get the blob client for the specified blob in the "documents" container
+            BlobClient blobClient = _documentContainerClient.GetBlobClient(blobName);
+
+            // Initialize a new memory stream to hold the downloaded blob data
+            var memoryStream = new MemoryStream();
+
+            try
+            {
+                // Download the blob to the memory stream
+                await blobClient.DownloadToAsync(memoryStream);
+
+                // Reset the position of the memory stream to the beginning
+                memoryStream.Position = 0;
+
+                return memoryStream;
+            }
+            catch (RequestFailedException ex)
+            {
+                // Handle the exception as necessary (e.g., log the error, return null, rethrow, etc.)
+                Console.WriteLine($"Error downloading document blob: {ex.Message}");
+                memoryStream.Dispose();
+                throw;
+            }
+        }
+        
+        public async Task<string> UploadZippedFileToBlobAsyncForMeetingNote(MemoryStream zippedStream, string zipFileName)
+        {
+            var blobClient = _documentContainerClient.GetBlobClient(zipFileName);
+            await blobClient.UploadAsync(zippedStream, true);
+            return blobClient.Uri.ToString();
         }
     }
 }

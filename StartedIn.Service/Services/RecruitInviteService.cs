@@ -333,7 +333,7 @@ namespace StartedIn.Service.Services
                 string prefixCv = "CV_";
                 string currentDateTime = DateTimeOffset.UtcNow.AddHours(7).ToString("ddMMyyyyHHmm");
                 string zipFileName = $"{prefixCv}_{userEmail}_{currentDateTime}.zip";
-                var url = await _azureBlobService.ZipAndUploadAsync(files, zipFileName);
+                var url = await _azureBlobService.ZipAndUploadAsyncForCv(files, zipFileName);
                 var applicationFile = new ApplicationFile()
                 {
                     ApplicationId = application.Id,
