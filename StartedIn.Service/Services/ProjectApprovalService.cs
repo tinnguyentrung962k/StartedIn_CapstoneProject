@@ -25,9 +25,11 @@ public class ProjectApprovalService : IProjectApprovalService
     private readonly IDocumentRepository _documentRepository;
     private readonly ILogger<ProjectApprovalService> _logger;
     private readonly IMapper _mapper;
+    private readonly IInvestmentCallRepository _investmentCallRepository;
 
     public ProjectApprovalService(IProjectApprovalRepository projectApprovalRepository, IProjectService projectService, IUserService userService, IUnitOfWork unitOfWork,
-        IAzureBlobService azureBlobService, IDocumentRepository documentRepository, ILogger<ProjectApprovalService> logger, IMapper mapper, IProjectRepository projectRepository)
+        IAzureBlobService azureBlobService, IDocumentRepository documentRepository, ILogger<ProjectApprovalService> logger, IMapper mapper, IProjectRepository projectRepository,
+        IInvestmentCallRepository investmentCallRepository)
     {
         _projectApprovalRepository = projectApprovalRepository;
         _projectService = projectService;
@@ -38,6 +40,7 @@ public class ProjectApprovalService : IProjectApprovalService
         _logger = logger;
         _mapper = mapper;
         _projectRepository = projectRepository;
+        _investmentCallRepository = investmentCallRepository;
     }
 
     public async Task<ProjectApproval> CreateProjectApprovalRequest(string userId, string projectId, CreateProjectApprovalDTO createProjectApprovalDto)
@@ -50,7 +53,7 @@ public class ProjectApprovalService : IProjectApprovalService
         }
 
         var existingApproval = await _projectApprovalRepository.QueryHelper()
-            .Filter(a => a.ProjectId.Equals(projectId) && (a.Status == ProjectApprovalStatus.PENDING || a.Status == ProjectApprovalStatus.ACCEPTED)).GetOneAsync();
+            .Filter(a => a.ProjectId.Equals(projectId) && (a.Status == ProjectApprovalStatus.PENDING)).GetOneAsync();
         if (existingApproval != null)
         {
             throw new ExistedRecordException(MessageConstant.NoMoreThanOnePendingApproval);
@@ -67,6 +70,24 @@ public class ProjectApprovalService : IProjectApprovalService
                 Status = ProjectApprovalStatus.PENDING
             };
             var entity = _projectApprovalRepository.Add(projectApproval);
+
+            var newInvestmentCall = new InvestmentCall
+            {
+                AmountRaised = 0,
+                EndDate = createProjectApprovalDto.EndDate,
+                EquityShareCall = createProjectApprovalDto.EquityShareCall,
+                ProjectApprovalId = entity.Id,
+                RemainAvailableEquityShare = createProjectApprovalDto.EquityShareCall,
+                ProjectId = projectId,
+                Status = InvestmentCallStatus.Pending,
+                TargetCall = createProjectApprovalDto.EquityShareCall * createProjectApprovalDto.ValuePerPercentage,
+                ValuePerPercentage = createProjectApprovalDto.ValuePerPercentage,
+                Project = userProject.Project,
+                CreatedBy = userProject.User.FullName,
+                TotalInvestor = 0
+            };
+            
+            var newInvestmentCallEntity = _investmentCallRepository.Add(newInvestmentCall);
 
             foreach (var document in createProjectApprovalDto.Documents)
             {
