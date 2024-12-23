@@ -1,5 +1,6 @@
 using StartedIn.CrossCutting.DTOs.BaseDTO;
 using StartedIn.CrossCutting.DTOs.ResponseDTO.Document;
+using StartedIn.CrossCutting.DTOs.ResponseDTO.InvestmentCall;
 using StartedIn.CrossCutting.Enum;
 
 namespace StartedIn.CrossCutting.DTOs.ResponseDTO.ProjectApproval;
@@ -13,5 +14,8 @@ public class ProjectApprovalResponseDTO : IdentityResponseDTO
     public ProjectApprovalStatus Status { get; set; }
     public DateTimeOffset SentDate { get; set; }
     public DateTimeOffset? ApprovalDate { get; set; }
+    public string TargetCall { get; set; }
+    public string EquityShareCall { get; set; }
+    public DateOnly? EndDate { get; set; }
     public List<DocumentResponseDTO> Documents { get; set; }
 }

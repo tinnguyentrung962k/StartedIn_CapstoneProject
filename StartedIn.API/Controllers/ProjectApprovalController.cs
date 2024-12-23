@@ -50,8 +50,7 @@ public class ProjectApprovalController : ControllerBase
         {
             var userId = User.FindFirst(ClaimTypes.NameIdentifier).Value;
             var projectApproval = await _projectApprovalService.GetProjectApprovalRequestByApprovalId(userId, projectId, approvalId);
-            var response = _mapper.Map<ProjectApprovalResponseDTO>(projectApproval);
-            return Ok(response);
+            return Ok(projectApproval);
         }
         catch (NotFoundException ex)
         {
@@ -71,8 +70,7 @@ public class ProjectApprovalController : ControllerBase
         {
             var userId = User.FindFirst(ClaimTypes.NameIdentifier).Value;
             var projectApproval = await _projectApprovalService.GetProjectApprovalRequestByProjectId(userId, projectId);
-            var response = _mapper.Map<List<ProjectApprovalResponseDTO>>(projectApproval);
-            return Ok(response);
+            return Ok(projectApproval);
         }
         catch (NotFoundException ex)
         {
@@ -93,9 +91,8 @@ public class ProjectApprovalController : ControllerBase
             var userId = User.FindFirst(ClaimTypes.NameIdentifier).Value;
             var projectApproval =
                 await _projectApprovalService.CreateProjectApprovalRequest(userId, projectId, createProjectApprovalDto);
-            var response = _mapper.Map<ProjectApprovalResponseDTO>(projectApproval);
             return CreatedAtAction(nameof(GetProjectApprovalByApprovalId),
-                new { projectId, approvalId = projectApproval.Id }, response);
+                new { projectId, approvalId = projectApproval.Id }, projectApproval);
         }
         catch (ExistedRecordException ex)
         {

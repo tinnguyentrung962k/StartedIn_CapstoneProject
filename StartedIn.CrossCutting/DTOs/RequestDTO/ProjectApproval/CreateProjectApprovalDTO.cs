@@ -14,7 +14,5 @@ public class CreateProjectApprovalDTO
     [Required]
     [Range(0, float.MaxValue)]
     public decimal ValuePerPercentage { get; set; }
-
-    [Required]
     public DateOnly? EndDate { get; set; }
 }

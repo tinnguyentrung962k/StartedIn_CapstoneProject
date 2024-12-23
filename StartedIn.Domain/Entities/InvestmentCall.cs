@@ -30,7 +30,7 @@ namespace StartedIn.Domain.Entities
         public decimal RemainAvailableEquityShare { get; set; }
         public DateOnly? StartDate { get; set; }
         public DateOnly? EndDate { get; set; }
-        public string ProjectApprovalId { get; set; }
+        public string? ProjectApprovalId { get; set; }
         public InvestmentCallStatus Status { get; set; }
         public int TotalInvestor { get; set; }
         public Project Project { get; set; }

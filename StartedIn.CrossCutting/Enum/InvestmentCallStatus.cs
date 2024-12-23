@@ -10,6 +10,7 @@ namespace StartedIn.CrossCutting.Enum
     {
         Open = 1,
         Closed = 2,
-        Pending = 3
+        Pending = 3,
+        Cancel = 4,
     }
 }
