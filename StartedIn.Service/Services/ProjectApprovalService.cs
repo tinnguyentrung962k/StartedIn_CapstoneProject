@@ -159,7 +159,7 @@ public class ProjectApprovalService : IProjectApprovalService
         await _unitOfWork.SaveChangesAsync();
     }
 
-    public async Task RejectProjectRequest(string approvalId, string rejectReason)
+    public async Task RejectProjectRequest(string approvalId, CancelReasonApprovalDTO cancelReasonDTO)
     {
         var approval = await _projectApprovalRepository.QueryHelper().Filter(pa => pa.ProjectId.Equals(approvalId)).GetOneAsync();
         if (approval == null)
@@ -168,7 +168,7 @@ public class ProjectApprovalService : IProjectApprovalService
         }
         approval.Status = ProjectApprovalStatus.REJECTED;
         approval.LastUpdatedTime = DateTimeOffset.UtcNow;
-        approval.RejectReason = rejectReason;
+        approval.RejectReason = cancelReasonDTO.CancelReason;
         _projectApprovalRepository.Update(approval);
         await _unitOfWork.SaveChangesAsync();
     }

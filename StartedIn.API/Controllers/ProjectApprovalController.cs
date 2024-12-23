@@ -126,11 +126,11 @@ public class ProjectApprovalController : ControllerBase
     
     [HttpPut("approvals/{approvalId}/reject-project-request")]
     [Authorize(Roles = RoleConstants.ADMIN)]
-    public async Task<ActionResult> RejectProjectRequest([FromRoute] string approvalId, [FromBody] string rejectReason)
+    public async Task<ActionResult> RejectProjectRequest([FromRoute] string approvalId, [FromBody] CancelReasonApprovalDTO reasonApprovalDTO)
     {
         try
         {
-            await _projectApprovalService.RejectProjectRequest(approvalId, rejectReason);
+            await _projectApprovalService.RejectProjectRequest(approvalId, reasonApprovalDTO);
             return Ok();
         }
         catch (NotFoundException ex)

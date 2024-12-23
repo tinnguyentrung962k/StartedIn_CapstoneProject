@@ -15,7 +15,7 @@ namespace StartedIn.Service.Services
 {
     public class TokenService : ITokenService
     {
-        private const int FIVE_MINUTES = 300;
+        private const int ONE_HOUR = 3600;
         private readonly IConfiguration _configuration;
         private readonly UserManager<User> _userManager;
         public TokenService(IConfiguration configuration, UserManager<User> userManager)
@@ -49,7 +49,7 @@ namespace StartedIn.Service.Services
                 _configuration.GetValue<string>("SECRET_ISSUER") ?? _configuration["jwt:issuer"],
                 _configuration.GetValue<string>("SECRET_AUDIENCE") ?? _configuration["jwt:audience"],
                 claims,
-                expires: DateTime.UtcNow.AddSeconds(FIVE_MINUTES),
+                expires: DateTime.UtcNow.AddSeconds(ONE_HOUR),
                 signingCredentials: credential);
 
             return tokenHandler.WriteToken(token);
