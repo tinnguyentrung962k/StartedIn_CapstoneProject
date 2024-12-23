@@ -30,6 +30,7 @@ using StartedIn.CrossCutting.DTOs.ResponseDTO.LeavingRequest;
 using StartedIn.CrossCutting.DTOs.ResponseDTO.ProjectApproval;
 using StartedIn.CrossCutting.DTOs.ResponseDTO.TerminationRequest;
 using StartedIn.CrossCutting.DTOs.ResponseDTO.TransferLeaderRequest;
+using StartedIn.CrossCutting.DTOs.ResponseDTO.TaskHistory;
 
 namespace StartedIn.API.Configuration.AutoMapper
 {
@@ -82,6 +83,7 @@ namespace StartedIn.API.Configuration.AutoMapper
                 .ForMember(dest => dest.UserTasks, opt => opt.MapFrom(src => src.UserTasks))
                 .ForMember(dest => dest.ActualManHour, opt => opt.MapFrom(src => src.UserTasks.Sum(x => x.ActualManHour)))
                 .ReverseMap();
+            CreateMap<TaskHistory, TaskHistoryResponseDTO>().ReverseMap();
         }
 
         private void MilestoneMappingProfile()

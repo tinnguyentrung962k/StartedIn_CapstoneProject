@@ -1,4 +1,7 @@
-﻿using StartedIn.Domain.Entities;
+﻿using AutoMapper;
+using StartedIn.CrossCutting.DTOs.ResponseDTO;
+using StartedIn.CrossCutting.DTOs.ResponseDTO.TaskHistory;
+using StartedIn.Domain.Entities;
 using StartedIn.Repository.Repositories.Interface;
 using StartedIn.Service.Services.Interface;
 using System;
@@ -13,11 +16,25 @@ namespace StartedIn.Service.Services
     {
         private readonly ITaskHistoryRepository _taskHistoryRepository;
         private readonly IUserService _userService;
+        private readonly IMapper _mapper;
 
-        public TaskHistoryService(ITaskHistoryRepository taskHistoryRepository, IUserService userService)
+        public TaskHistoryService(ITaskHistoryRepository taskHistoryRepository, IUserService userService, IMapper mapper)
         {
             _taskHistoryRepository = taskHistoryRepository;
             _userService = userService;
+            _mapper = mapper;
+        }
+
+        public async Task<PaginationDTO<TaskHistoryResponseDTO>> GetTaskHistoriesOfProject(string projectId, int page, int size)
+        {
+            var taskHistories = await _taskHistoryRepository.QueryHelper().Filter(t => t.Task.ProjectId.Equals(projectId)).GetPagingAsync(page, size);
+            return new PaginationDTO<TaskHistoryResponseDTO>()
+            {
+                Data = _mapper.Map<IEnumerable<TaskHistoryResponseDTO>>(taskHistories),
+                Page = page,
+                Size = size,
+                Total = await _taskHistoryRepository.QueryHelper().Filter(t => t.Task.ProjectId.Equals(projectId)).GetTotal(),
+            };
         }
 
         public async Task<IEnumerable<TaskHistory>> GetTaskHistoryOfTask(string projectId, string taskId, string userId)
