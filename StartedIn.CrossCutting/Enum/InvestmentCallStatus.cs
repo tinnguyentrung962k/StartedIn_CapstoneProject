@@ -9,6 +9,7 @@ namespace StartedIn.CrossCutting.Enum
     public enum InvestmentCallStatus
     {
         Open = 1,
-        Closed = 2
+        Closed = 2,
+        Pending = 3
     }
 }

@@ -11,5 +11,6 @@ namespace StartedIn.CrossCutting.DTOs.ResponseDTO.Appointment
     {
         public string Title { get; set; }
         public DateTimeOffset AppointmentTime { get; set; }
+        public DateTimeOffset AppointmentEndTime { get; set; }
     }
 }
