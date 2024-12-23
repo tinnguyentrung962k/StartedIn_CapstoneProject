@@ -145,7 +145,7 @@ namespace StartedIn.API.Controllers
             }
         }
 
-        [HttpGet("leader-transfer-detail/{transferId}")]
+        [HttpGet("leader-transfer/{transferId}")]
         [Authorize(Roles = RoleConstants.USER + "," + RoleConstants.INVESTOR + "," + RoleConstants.MENTOR)]
         public async Task<ActionResult<TransferLeaderHistoryResponseDTO>> GetTransferLeaderHistoryInAProjectById([FromRoute] string projectId, [FromRoute] string transferId)
         {
