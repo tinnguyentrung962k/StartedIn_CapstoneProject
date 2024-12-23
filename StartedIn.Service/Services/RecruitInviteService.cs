@@ -316,18 +316,31 @@ namespace StartedIn.Service.Services
                     CreatedTime = DateTimeOffset.UtcNow
                 };
                 _applicationRepository.Add(application);
-                foreach (var file in files)
+                // foreach (var file in files)
+                // {
+                //     // Upload CV to get the URL string
+                //     var url = await _azureBlobService.UploadCVFileApplication(file);
+                //     var applicationFile = new ApplicationFile
+                //     {
+                //         ApplicationId = application.Id,
+                //         FileName = file.FileName,
+                //         FileUrl = url
+                //     };
+                //     _applicationFileRepository.Add(applicationFile);
+                // }
+                var user = await _userService.GetUserWithId(userId);
+                var userEmail = user.Email;
+                string prefixCv = "CV_";
+                string currentDateTime = DateTimeOffset.UtcNow.AddHours(7).ToString("ddMMyyyyHHmm");
+                string zipFileName = $"{prefixCv}_{userEmail}_{currentDateTime}.zip";
+                var url = await _azureBlobService.ZipAndUploadAsync(files, zipFileName);
+                var applicationFile = new ApplicationFile()
                 {
-                    // Upload CV to get the URL string
-                    var url = await _azureBlobService.UploadCVFileApplication(file);
-                    var applicationFile = new ApplicationFile
-                    {
-                        ApplicationId = application.Id,
-                        FileName = file.FileName,
-                        FileUrl = url
-                    };
-                    _applicationFileRepository.Add(applicationFile);
-                }
+                    ApplicationId = application.Id,
+                    FileName = zipFileName,
+                    FileUrl = url
+                };
+                _applicationFileRepository.Add(applicationFile);
                 await _unitOfWork.SaveChangesAsync();
                 return application;
             }
