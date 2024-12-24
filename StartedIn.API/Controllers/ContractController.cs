@@ -323,7 +323,7 @@ namespace StartedIn.API.Controllers
         }
         [HttpGet("liquidation-notes/{contractId}")]
         [Authorize(Roles = RoleConstants.USER + "," + RoleConstants.MENTOR + "," + RoleConstants.INVESTOR)]
-        public async Task<ActionResult<GroupContractDetailResponseDTO>> GetLiquidationNoteDetail([FromRoute] string projectId, [FromRoute] string contractId)
+        public async Task<ActionResult<LiquidationNoteDetailResponseDTO>> GetLiquidationNoteDetail([FromRoute] string projectId, [FromRoute] string contractId)
         {
             try
             {

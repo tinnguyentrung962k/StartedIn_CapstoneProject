@@ -230,6 +230,7 @@ namespace StartedIn.API.Configuration.AutoMapper
                 .ForMember(dest => dest.FullName, opt => opt.MapFrom(src => src.User.FullName))
                 .ForMember(dest => dest.Email, opt => opt.MapFrom(src => src.User.Email));
             CreateMap<Contract, LiquidationNoteDetailResponseDTO>()
+                .ForMember(dest => dest.ParentContractType, opt => opt.MapFrom(src => src.ParentContract.ContractType))
                 .ForMember(dest => dest.ProjectName, opt => opt.MapFrom(
                     src => src.Project.ProjectName))
                 .ForMember(dest => dest.Parties, opt => opt.MapFrom(
