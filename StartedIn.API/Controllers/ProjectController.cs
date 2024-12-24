@@ -311,6 +311,31 @@ public class ProjectController : ControllerBase
             return StatusCode(500, ex.Message);
         }
     }
+
+    [HttpPut("{projectId}/edit-post")]
+    [Authorize(Roles = RoleConstants.USER)]
+    public async Task<IActionResult> EditProjectDetailPost([FromRoute] string projectId, ProjectDetailPostDTO projectDetailPostDTO)
+    {
+        try
+        {
+            var userId = User.FindFirst(ClaimTypes.NameIdentifier).Value;
+            await _projectService.UpdateProjectDetail(userId,projectId,projectDetailPostDTO);
+            return Ok("Cập nhật thành công");
+        }
+        catch (UnauthorizedProjectRoleException ex)
+        {
+            return StatusCode(403, ex.Message);
+        }
+        catch (UpdateException ex)
+        {
+            return BadRequest(ex.Message);
+        }
+        catch (Exception ex)
+        {
+            return StatusCode(500, ex.Message);
+        }
+    }
+
     [HttpGet("{projectId}/check-closable")]
     [Authorize(Roles = RoleConstants.USER)]
     public async Task<ActionResult<ClosingProjectInformationDTO>> GetClosableInformationForProject([FromRoute] string projectId)

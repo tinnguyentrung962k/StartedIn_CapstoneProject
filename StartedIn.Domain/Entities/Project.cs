@@ -9,7 +9,7 @@ public class Project : BaseAuditEntity<string>
 {
     public string ProjectName { get; set; }
 
-    [MaxLength(4000)]
+    [MaxLength(255)]
     public string Description { get; set; }
     public string? LogoUrl { get; set; }
     public ProjectStatusEnum ProjectStatus { get; set; }
@@ -19,6 +19,7 @@ public class Project : BaseAuditEntity<string>
     public int MaxMember { get; set; }
     public DateOnly StartDate { get; set; }
     public DateOnly? EndDate { get; set; }
+    public string? ProjectDetailPost { get; set; }
     public string? ActiveCallId { get; set; }
     public string? CompanyIdNumber { get; set; }
     public string? HarshClientIdPayOsKey { get; set; }

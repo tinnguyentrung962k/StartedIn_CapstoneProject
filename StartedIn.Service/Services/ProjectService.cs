@@ -140,7 +140,6 @@ public class ProjectService : IProjectService
                 ProjectStatus = ProjectStatusEnum.CONSTRUCTING,
                 EndDate = projectCreateDTO.EndDate,
                 StartDate = projectCreateDTO.StartDate,
-                CompanyIdNumber = projectCreateDTO.CompanyIdNumer,
                 MaxMember = projectCreateDTO.MaxMember
             };
             var projectEntity = _projectRepository.Add(newProject);
@@ -158,6 +157,28 @@ public class ProjectService : IProjectService
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error while creating project.");
+            await _unitOfWork.RollbackAsync();
+            throw;
+        }
+    }
+
+    public async Task UpdateProjectDetail(string userId, string projectId, ProjectDetailPostDTO projectDetail) 
+    {
+        var userInProject = await _userService.CheckIfUserInProject(userId, projectId);
+        try
+        {
+            var project = await _projectRepository.GetProjectById(projectId);
+            if (project == null)
+            {
+                throw new NotFoundException(MessageConstant.NotFoundProjectError);
+            }
+            project.ProjectDetailPost = projectDetail.ProjectDetailPost;
+            _projectRepository.Update(project);
+            await _unitOfWork.SaveChangesAsync();
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, MessageConstant.UpdateFailed);
             await _unitOfWork.RollbackAsync();
             throw;
         }
@@ -223,6 +244,7 @@ public class ProjectService : IProjectService
             StartDate = project.StartDate,
             EndDate = project.EndDate,
             MaxMember = project.MaxMember,
+            ProjectDetailPost = project.ProjectDetailPost,
             CurrentMember = project.UserProjects.Where(x => (x.RoleInTeam == RoleInTeam.Leader || x.RoleInTeam == RoleInTeam.Member) && x.Status == UserStatusInProject.Active).Count()
         }).ToList();
         var pagination = new PaginationDTO<ProjectResponseDTO>()
@@ -278,7 +300,8 @@ public class ProjectService : IProjectService
                 MaxMember = project.MaxMember,
                 CurrentMember = project.UserProjects.Count(),
                 LeaderProfilePicture = project.UserProjects.FirstOrDefault(x => x.RoleInTeam == RoleInTeam.Leader).User.ProfilePicture,
-                UserStatusInProject = project.UserProjects.FirstOrDefault(x => x.UserId.Equals(userId)).Status 
+                UserStatusInProject = project.UserProjects.FirstOrDefault(x => x.UserId.Equals(userId)).Status,
+                ProjectDetailPost = project.ProjectDetailPost
             };
             listProjects.Add(responseDto);
         }
@@ -386,7 +409,8 @@ public class ProjectService : IProjectService
                 LogoUrl = project.LogoUrl,
                 ProjectName = project.ProjectName,
                 LeaderProfilePicture = project.UserProjects.FirstOrDefault(x => x.RoleInTeam == RoleInTeam.Leader).User.ProfilePicture,
-                InvestmentCall = newestInvestmentCall
+                InvestmentCall = newestInvestmentCall,
+                ProjectDetailPost = project.ProjectDetailPost
             };
             exploreProjects.Add(exploreProjectDTO);
         }

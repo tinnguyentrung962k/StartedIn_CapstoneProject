@@ -9,6 +9,7 @@ public class ExploreProjectDTO : IdentityResponseDTO
     public string LeaderId { get; set; }
     public string LeaderFullName { get; set; }
     public string? LeaderProfilePicture { get; set; }
+    public string? ProjectDetailPost { get; set; }
     public InvestmentCallResponseDTO? InvestmentCall { get; set; }
 
 }

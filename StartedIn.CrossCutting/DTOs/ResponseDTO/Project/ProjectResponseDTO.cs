@@ -18,6 +18,7 @@ public class ProjectResponseDTO : IdentityResponseDTO
     public DateOnly? EndDate { get; set; }
     public int MaxMember { get; set; }
     public int CurrentMember { get; set; }
+    public string? ProjectDetailPost { get; set; }
     public UserStatusInProject? UserStatusInProject { get; set; }
 
 }
