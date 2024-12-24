@@ -80,7 +80,7 @@ namespace StartedIn.Repository.Repositories
         public IQueryable<Contract> GetContractListQuery(string userId, string projectId)
         {
             var query = _appDbContext.Contracts
-                .Include(x => x.Disbursements)
+                .Include(x => x.Disbursements.OrderBy(d => d.StartDate))
                 .Include(x => x.UserContracts)
                 .Where(x => x.ProjectId.Equals(projectId) 
                 && x.UserContracts.Any(us => us.UserId.Equals(userId) || us.TransferToId.Equals(userId))
