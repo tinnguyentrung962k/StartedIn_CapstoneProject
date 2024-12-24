@@ -166,7 +166,7 @@ namespace StartedIn.Service.Services
         public async Task StartAppointment()
         {
             var appointments = await _appointmentRepository.QueryHelper()
-                .Filter(a => a.AppointmentTime <= DateTimeOffset.UtcNow).GetAllAsync();
+                .Filter(a => a.AppointmentTime <= DateTimeOffset.UtcNow && a.Status == MeetingStatus.Proposed).GetAllAsync();
             foreach (var appointment in appointments)
             {
                 appointment.Status = MeetingStatus.Ongoing;
@@ -178,7 +178,7 @@ namespace StartedIn.Service.Services
         public async Task CompleteAppointment()
         {
             var appointments = await _appointmentRepository.QueryHelper()
-                .Filter(a => a.AppointmentEndTime <= DateTimeOffset.UtcNow).GetAllAsync();
+                .Filter(a => a.AppointmentEndTime <= DateTimeOffset.UtcNow && a.Status == MeetingStatus.Ongoing).GetAllAsync();
             foreach (var appointment in appointments)
             {
                 appointment.Status = MeetingStatus.Finished;
