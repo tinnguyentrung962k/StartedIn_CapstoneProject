@@ -20,6 +20,9 @@ namespace StartedIn.Domain.Entities
 
         [ForeignKey(nameof(TerminationRequest))]
         public string? TerminationRequestId { get; set; }
+        
+        [ForeignKey(nameof(Contract))]
+        public string? ContractId { get; set; }
         [MaxLength(50)]
         public string Title { get; set; }
         public DateTimeOffset AppointmentTime { get; set; }
@@ -31,6 +34,7 @@ namespace StartedIn.Domain.Entities
         public Project Project { get; set; }
         public Milestone? Milestone { get; set; }
         public TerminationRequest? TerminationRequest { get; set; }
+        public Contract? Contract { get; set; }
         public ICollection<MeetingNote>? MeetingNotes { get; set; }
     }
 }

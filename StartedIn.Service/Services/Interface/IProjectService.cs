@@ -26,4 +26,5 @@ public interface IProjectService
     Task<List<ProjectResponseDTO>> GetProjectsThatUserLeft(string userId);
     Task<List<ProjectResponseDTO>> GetClosedProjectsForUser(string userId);
     Task UpdateProjectDetail(string userId, string projectId, ProjectDetailPostDTO projectDetail);
+    Task AddAppointmentUrl(string userId, string projectId, AppointmentUrlDTO appointmentUrlDto);
 }

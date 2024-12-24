@@ -194,6 +194,7 @@ namespace StartedIn.Service.Services
                 .Filter(x => x.ProjectId.Equals(projectId) && x.Id.Equals(appointmentId))
                 .Include(x=>x.Milestone)
                 .Include(x=>x.MeetingNotes)
+                .Include(x => x.Contract)
                 .GetOneAsync();
             if (appointment == null)
             {
@@ -233,7 +234,8 @@ namespace StartedIn.Service.Services
                     ProjectId = projectId,
                     MeetingLink = appointmentCreateDTO.MeetingLink,
                     MilestoneId = appointmentCreateDTO.MilestoneId,
-                    Status = CrossCutting.Enum.MeetingStatus.Proposed
+                    ContractId = appointmentCreateDTO.ContractId,
+                    Status = MeetingStatus.Proposed
                 };
                 var newAppointmentEntity = _appointmentRepository.Add(newAppointment);
                 foreach (var user in project.UserProjects)

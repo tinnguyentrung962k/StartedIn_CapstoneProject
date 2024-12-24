@@ -13,6 +13,8 @@ namespace StartedIn.CrossCutting.DTOs.ResponseDTO.Appointment
         public string ProjectId { get; set; }
         public string? MilestoneId { get; set; }
         public string? MilestoneName { get; set; }
+        public string? ContractName { get; set; }
+        public ContractTypeEnum ContractType { get; set; }
         public string Title { get; set; }
         public DateTimeOffset? AppointmentTime { get; set; }
         public DateTimeOffset? AppointmentEndTime { get; set; }

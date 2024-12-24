@@ -42,6 +42,7 @@ namespace StartedIn.Domain.Entities
         public ICollection<Disbursement>? Disbursements { get; set; }
         public DealOffer? DealOffer { get; set; }
         public ICollection<TerminationRequest>? TerminationRequests { get; set; }
+        public ICollection<Appointment>? Appointments { get; set; }
         public Contract? ParentContract { get; set; }
 
     }

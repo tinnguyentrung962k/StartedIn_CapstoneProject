@@ -374,4 +374,28 @@ public class ProjectController : ControllerBase
             return StatusCode(500, ex.Message);
         }
     }
+    
+    [HttpPost("{projectId}/add-appointment-url")]
+    [Authorize(Roles = RoleConstants.USER)]
+    public async Task<IActionResult> AddAppointmentLink([FromRoute] string projectId, [FromBody] AppointmentUrlDTO appointmentUrlDto)
+    {
+        try
+        {
+            var userId = User.FindFirst(ClaimTypes.NameIdentifier).Value;
+            await _projectService.AddAppointmentUrl(userId, projectId, appointmentUrlDto);
+            return Ok("Đăng ký đường dẫn cuộc họp thành công");
+        }
+        catch (NotFoundException ex)
+        {
+            return BadRequest(ex.Message);
+        }
+        catch (UnauthorizedProjectRoleException ex)
+        {
+            return StatusCode(403, ex.Message);
+        }
+        catch (Exception ex)
+        {
+            return StatusCode(500, ex.Message);
+        }
+    }
 }
