@@ -107,6 +107,14 @@ namespace StartedIn.Service.Services
             await SendEmailAsync(receiveEmail, subject, body);
         }
 
+        public async Task SendDisbursementStartReminder(string receiveEmail, DateOnly disbursementStartDate, string projectName,
+            string disbursementTitle, decimal disbursementAmount)
+        {
+            var subject = "Nhắc nhở về việc giải ngân";
+            var body = $"Đợt giải ngân với dự án {projectName} đã bắt đầu vào ngày {disbursementStartDate}: \n\t Tên đợt giải ngân: {disbursementTitle} \n\t Số tiền giải ngân: {disbursementAmount}";
+            await SendEmailAsync(receiveEmail, subject, body);
+        }
+
         public async Task SendClosingProject(string receiveEmail, string senderName, string receiverName, string projectName)
         {
             var subject = "Thông báo kết thúc dự án";
