@@ -405,6 +405,8 @@ namespace StartedIn.API.Configuration.AutoMapper
             CreateMap<Appointment, AppointmentResponseDTO>()
                 .ForMember(dest => dest.MilestoneName, opt => opt.MapFrom(src => src.Milestone.Title))
                 .ForMember(dest => dest.MeetingNotes, opt => opt.MapFrom(src => src.MeetingNotes))
+                .ForMember(dest => dest.ContractName, opt => opt.MapFrom(src => src.Contract.ContractName))
+                .ForMember(dest => dest.ContractType, opt => opt.MapFrom(src => src.Contract.ContractType))
                 .ReverseMap();
         }
         private void LeavingRequestMappingProfile()

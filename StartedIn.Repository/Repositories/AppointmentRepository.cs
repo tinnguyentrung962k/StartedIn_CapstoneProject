@@ -23,6 +23,7 @@ namespace StartedIn.Repository.Repositories
             var appointments = _appDbContext.Appointments.Where(a => a.ProjectId.Equals(projectId))
                 .Include(a => a.Milestone)
                 .Include(a => a.MeetingNotes)
+                .Include(a => a.Contract)
                 .OrderBy(a => a.AppointmentTime);
             return appointments;
         }

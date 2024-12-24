@@ -9,18 +9,14 @@ using StartedIn.CrossCutting.DTOs.RequestDTO.Project;
 using StartedIn.CrossCutting.DTOs.ResponseDTO;
 using StartedIn.CrossCutting.DTOs.ResponseDTO.Asset;
 using StartedIn.CrossCutting.DTOs.ResponseDTO.Contract;
-using StartedIn.CrossCutting.DTOs.ResponseDTO.DealOffer;
 using StartedIn.CrossCutting.DTOs.ResponseDTO.Disbursement;
 using StartedIn.CrossCutting.DTOs.ResponseDTO.InvestmentCall;
-using StartedIn.CrossCutting.DTOs.ResponseDTO.LeavingRequest;
 using StartedIn.CrossCutting.DTOs.ResponseDTO.Milestone;
 using StartedIn.CrossCutting.DTOs.ResponseDTO.Project;
 using StartedIn.CrossCutting.DTOs.ResponseDTO.Tasks;
 using StartedIn.CrossCutting.Enum;
 using StartedIn.CrossCutting.Exceptions;
 using StartedIn.Domain.Entities;
-using StartedIn.Repository.Repositories;
-using StartedIn.Repository.Repositories.Extensions;
 using StartedIn.Repository.Repositories.Interface;
 using StartedIn.Service.Services.Interface;
 using System.Security.Cryptography;
@@ -179,6 +175,35 @@ public class ProjectService : IProjectService
         catch (Exception ex)
         {
             _logger.LogError(ex, MessageConstant.UpdateFailed);
+            await _unitOfWork.RollbackAsync();
+            throw;
+        }
+    }
+
+    public async Task AddAppointmentUrl(string userId, string projectId, AppointmentUrlDTO appointmentUrlDto)
+    {
+        var userInProject = await _userService.CheckIfUserInProject(userId, projectId);
+        var projectRole = await _projectRepository.GetUserRoleInProject(userId, projectId);
+        if (projectRole != RoleInTeam.Leader)
+        {
+            throw new UnauthorizedProjectRoleException(MessageConstant.RolePermissionError);
+        }
+
+        try
+        {
+            var project = await _projectRepository.QueryHelper().Filter(p => p.Id.Equals(projectId)).GetOneAsync();
+            if (project == null)
+            {
+                throw new NotFoundException(MessageConstant.NotFoundProjectError);
+            }
+
+            project.AppointmentUrl = appointmentUrlDto.AppointmentUrl;
+            _projectRepository.Update(project);
+            await _unitOfWork.SaveChangesAsync();
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error while setting project appointment link.");
             await _unitOfWork.RollbackAsync();
             throw;
         }

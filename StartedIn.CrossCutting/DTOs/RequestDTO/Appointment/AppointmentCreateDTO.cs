@@ -10,6 +10,7 @@ namespace StartedIn.CrossCutting.DTOs.RequestDTO.Appointment
     public class AppointmentCreateDTO
     {
         public string? MilestoneId { get; set; }
+        public string? ContractId { get; set; }
 
         [Required(ErrorMessage = "Vui lòng điền tiêu đề cuộc họp")]
         public string Title { get; set; }
