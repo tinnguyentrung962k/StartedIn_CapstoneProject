@@ -1,4 +1,5 @@
 ﻿using StartedIn.CrossCutting.DTOs.BaseDTO;
+using StartedIn.CrossCutting.DTOs.ResponseDTO.Appointment;
 using StartedIn.CrossCutting.Enum;
 namespace StartedIn.CrossCutting.DTOs.ResponseDTO.Contract
 {
@@ -17,7 +18,7 @@ namespace StartedIn.CrossCutting.DTOs.ResponseDTO.Contract
         public string ParentContractId { get; set; }
         public string? LiquidationNoteId { get; set; }
         public string? CurrentTerminationRequestId { get; set; }
-        public string? TerminationMeetingId { get; set; }
         public MeetingStatus? MeetingStatus { get; set; }
+        public List<AppointmentResponseDTO>? Appointments { get; set; }
     }
 }

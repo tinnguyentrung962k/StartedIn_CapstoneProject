@@ -26,5 +26,15 @@ namespace StartedIn.Repository.Repositories
                 .OrderBy(a => a.AppointmentTime);
             return appointments;
         }
+
+        public async Task<List<Appointment>> GetAppointmentsByContractId(string projectId, string contractId)
+        {
+            var appointments = await _appDbContext.Appointments.Where(x=>x.ProjectId.Equals(projectId) && x.TerminationRequest.Contract.Id.Equals(contractId))
+                .Include(a => a.TerminationRequest)
+                .ThenInclude(t => t.Contract)
+                .Include(a => a.MeetingNotes)
+                .OrderBy(a => a.AppointmentTime).ToListAsync();
+            return appointments;
+        }
     }
 }

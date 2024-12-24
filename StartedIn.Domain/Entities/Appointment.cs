@@ -17,16 +17,20 @@ namespace StartedIn.Domain.Entities
 
         [ForeignKey(nameof(Milestone))]
         public string? MilestoneId { get; set; }
+
+        [ForeignKey(nameof(TerminationRequest))]
+        public string? TerminationRequestId { get; set; }
         [MaxLength(50)]
         public string Title { get; set; }
         public DateTimeOffset AppointmentTime { get; set; }
-        public DateTimeOffset AppointmentEndTime { get; set; }
+        public DateTimeOffset? AppointmentEndTime { get; set; }
         [MaxLength(255)]
         public string? Description { get; set; }
         public string MeetingLink { get; set; }
         public MeetingStatus Status { get; set; }
         public Project Project { get; set; }
         public Milestone? Milestone { get; set; }
+        public TerminationRequest? TerminationRequest { get; set; }
         public ICollection<MeetingNote>? MeetingNotes { get; set; }
     }
 }

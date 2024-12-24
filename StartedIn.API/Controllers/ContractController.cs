@@ -16,6 +16,7 @@ using StartedIn.Domain.Entities;
 using StartedIn.CrossCutting.DTOs.ResponseDTO;
 using StartedIn.CrossCutting.Enum;
 using StartedIn.CrossCutting.DTOs.RequestDTO.Appointment;
+using StartedIn.CrossCutting.DTOs.ResponseDTO.Appointment;
 
 namespace StartedIn.API.Controllers
 {
@@ -26,11 +27,13 @@ namespace StartedIn.API.Controllers
         private readonly IContractService _contractService;
         private readonly IMapper _mapper;
         private readonly ILogger<ContractController> _logger;
-        public ContractController(IContractService contractService, IMapper mapper, ILogger<ContractController> logger)
+        private readonly IAppointmentService _appointmentService;
+        public ContractController(IContractService contractService, IMapper mapper, ILogger<ContractController> logger, IAppointmentService appointmentService)
         {
             _contractService = contractService;
             _mapper = mapper;
             _logger = logger;
+            _appointmentService = appointmentService;
         }
 
         [HttpPost("investment-contracts")]
@@ -302,6 +305,7 @@ namespace StartedIn.API.Controllers
                 var userId = User.FindFirst(ClaimTypes.NameIdentifier).Value;
                 var contract = await _contractService.GetContractByContractId(userId, contractId, projectId);
                 var responseContract = _mapper.Map<InvestmentContractDetailResponseDTO>(contract);
+                responseContract.Appointments = _mapper.Map<List<AppointmentResponseDTO>>(await _appointmentService.GetAppointmentByContractId(userId,projectId,contractId));
                 return Ok(responseContract);
             }
             catch (NotFoundException ex)
@@ -359,6 +363,7 @@ namespace StartedIn.API.Controllers
                 var userId = User.FindFirst(ClaimTypes.NameIdentifier).Value;
                 var contract = await _contractService.GetContractByContractId(userId, contractId, projectId);
                 var responseContract = _mapper.Map<GroupContractDetailResponseDTO>(contract);
+                responseContract.Appointments = _mapper.Map<List<AppointmentResponseDTO>>(await _appointmentService.GetAppointmentByContractId(userId, projectId, contractId));
                 return Ok(responseContract);
             }
             catch (NotFoundException ex)

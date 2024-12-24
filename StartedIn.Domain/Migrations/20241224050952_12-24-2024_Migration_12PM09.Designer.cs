@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using StartedIn.Domain.Context;
@@ -11,9 +12,11 @@ using StartedIn.Domain.Context;
 namespace StartedIn.Domain.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20241224050952_12-24-2024_Migration_12PM09")]
+    partial class _12242024_Migration_12PM09
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -269,9 +272,6 @@ namespace StartedIn.Domain.Migrations
                         .IsRequired()
                         .HasColumnType("text");
 
-                    b.Property<string>("TerminationRequestId")
-                        .HasColumnType("text");
-
                     b.Property<string>("Title")
                         .IsRequired()
                         .HasMaxLength(50)
@@ -282,9 +282,6 @@ namespace StartedIn.Domain.Migrations
                     b.HasIndex("MilestoneId");
 
                     b.HasIndex("ProjectId");
-
-                    b.HasIndex("TerminationRequestId")
-                        .IsUnique();
 
                     b.ToTable("Appointment", (string)null);
                 });
@@ -1630,6 +1627,8 @@ namespace StartedIn.Domain.Migrations
 
                     b.HasKey("Id");
 
+                    b.HasIndex("AppointmentId");
+
                     b.HasIndex("ContractId");
 
                     b.ToTable("TerminationRequest", (string)null);
@@ -2032,15 +2031,9 @@ namespace StartedIn.Domain.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("StartedIn.Domain.Entities.TerminationRequest", "TerminationRequest")
-                        .WithOne("Appointment")
-                        .HasForeignKey("StartedIn.Domain.Entities.Appointment", "TerminationRequestId");
-
                     b.Navigation("Milestone");
 
                     b.Navigation("Project");
-
-                    b.Navigation("TerminationRequest");
                 });
 
             modelBuilder.Entity("StartedIn.Domain.Entities.Asset", b =>
@@ -2407,11 +2400,17 @@ namespace StartedIn.Domain.Migrations
 
             modelBuilder.Entity("StartedIn.Domain.Entities.TerminationRequest", b =>
                 {
+                    b.HasOne("StartedIn.Domain.Entities.Appointment", "Appointment")
+                        .WithMany()
+                        .HasForeignKey("AppointmentId");
+
                     b.HasOne("StartedIn.Domain.Entities.Contract", "Contract")
                         .WithMany("TerminationRequests")
                         .HasForeignKey("ContractId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
+
+                    b.Navigation("Appointment");
 
                     b.Navigation("Contract");
                 });
@@ -2645,11 +2644,6 @@ namespace StartedIn.Domain.Migrations
                     b.Navigation("TaskHistories");
 
                     b.Navigation("UserTasks");
-                });
-
-            modelBuilder.Entity("StartedIn.Domain.Entities.TerminationRequest", b =>
-                {
-                    b.Navigation("Appointment");
                 });
 
             modelBuilder.Entity("StartedIn.Domain.Entities.Transaction", b =>

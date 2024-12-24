@@ -8,12 +8,8 @@ using System.Threading.Tasks;
 
 namespace StartedIn.CrossCutting.DTOs.ResponseDTO.Contract
 {
-    public class GroupContractDetailResponseDTO : IdentityResponseDTO
+    public class GroupContractDetailResponseDTO : ContractResponseDTO
     {
-        public string ContractName { get; set; }
-        public ContractStatusEnum ContractStatus { get; set; }
-        public string ContractPolicy { get; set; }
-        public string ContractIdNumber { get; set; }
         public string ProjectName { get; set; }
         public List<UserShareEquityInContractResponseDTO> UserShareEquityInContract { get; set; }
     }

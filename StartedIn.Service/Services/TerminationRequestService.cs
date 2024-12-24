@@ -155,7 +155,8 @@ namespace StartedIn.Service.Services
                     Title = terminationMeetingCreateDTO.Title,
                     Status = CrossCutting.Enum.MeetingStatus.Proposed,
                     ProjectId = projectId,
-                    Project = userInProject.Project
+                    Project = userInProject.Project,
+                    TerminationRequestId = requestId,
                 };
                 var newMeeting = _appointmentRepository.Add(appointment);
                 request.IsAgreed = true;

@@ -14,8 +14,8 @@ namespace StartedIn.CrossCutting.DTOs.ResponseDTO.Appointment
         public string? MilestoneId { get; set; }
         public string? MilestoneName { get; set; }
         public string Title { get; set; }
-        public DateTimeOffset AppointmentTime { get; set; }
-        public DateTimeOffset AppointmentEndTime { get; set; }
+        public DateTimeOffset? AppointmentTime { get; set; }
+        public DateTimeOffset? AppointmentEndTime { get; set; }
         public string? Description { get; set; }
         public string MeetingLink { get; set; }
         public MeetingStatus Status { get; set; }

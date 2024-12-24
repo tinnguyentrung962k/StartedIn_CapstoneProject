@@ -259,5 +259,12 @@ namespace StartedIn.Service.Services
         {
             return Regex.IsMatch(link, GoogleMeetPattern, RegexOptions.IgnoreCase);
         }
+
+        public async Task<List<Appointment>> GetAppointmentByContractId(string userId, string projectId, string contractId)
+        {
+            var userInProject = await _userService.CheckIfUserInProject(userId, projectId);
+            var appointmentList = await _appointmentRepository.GetAppointmentsByContractId(projectId, contractId);
+            return appointmentList;
+        }
     }
 }
