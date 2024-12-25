@@ -12,6 +12,5 @@ namespace StartedIn.CrossCutting.DTOs.RequestDTO.Project
         public string? CompanyIdNumer { get; set; }
         public DateOnly StartDate { get; set; }
         public DateOnly? EndDate { get; set; }
-        public int MaxMember { get; set; }
     }
 }

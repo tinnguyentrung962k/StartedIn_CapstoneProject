@@ -14,7 +14,7 @@ namespace StartedIn.Service.Services.BackgroundWorkerServices
     {
         private readonly ILogger<DisbursementBackgroundWorker> _logger;
         private readonly IServiceProvider _serviceProvider;
-        private const int ONE_HOUR = 3600000;
+        private const int ONE_DAY = 86400000;
 
         public DisbursementBackgroundWorker(ILogger<DisbursementBackgroundWorker> logger,
         IServiceProvider serviceProvider)
@@ -33,11 +33,13 @@ namespace StartedIn.Service.Services.BackgroundWorkerServices
                     IDisbursementService disbursementService = scope.ServiceProvider.GetRequiredService<IDisbursementService>();
                     await disbursementService.ReminderDisbursementForInvestor();
                     await disbursementService.AutoUpdateOverdueIfDisbursementsExpire();
+                    await disbursementService.SetDisbursementStatusToOngoing();
+
                 }
                 _logger.LogInformation("Disbursement check completed. Waiting for next execution...");
 
                 // Wait for the specified interval before executing again
-                await Task.Delay(ONE_HOUR, stoppingToken);
+                await Task.Delay(ONE_DAY, stoppingToken);
             }
 
             _logger.LogInformation("DisbursementWorker stopping.");

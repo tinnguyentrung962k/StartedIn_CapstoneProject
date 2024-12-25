@@ -16,7 +16,6 @@ public class Project : BaseAuditEntity<string>
 
     [Column(TypeName = "decimal(5,2)")]
     public decimal RemainingPercentOfShares { get; set; } = 100;
-    public int MaxMember { get; set; }
     public DateOnly StartDate { get; set; }
     public DateOnly? EndDate { get; set; }
     public string? ProjectDetailPost { get; set; }

@@ -75,7 +75,7 @@ namespace StartedIn.Service.Services
                 .Where(x => (x.RoleInTeam == RoleInTeam.Leader || x.RoleInTeam == RoleInTeam.Member) && x.Status == UserStatusInProject.Active)
                 .Count();
 
-            if (currentMemberInProject == project.MaxMember)
+            if (currentMemberInProject == ProjectConstant.MaxMember)
             {
                 throw new InviteException(MessageConstant.FullMembersOfTeam);
             }

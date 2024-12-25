@@ -1,11 +1,16 @@
 ﻿using DocumentFormat.OpenXml;
 using DocumentFormat.OpenXml.Packaging;
+using DocumentFormat.OpenXml.Vml;
 using DocumentFormat.OpenXml.Wordprocessing;
+using HtmlAgilityPack;
 using StartedIn.CrossCutting.Constants;
+using StartedIn.CrossCutting.DTOs.RequestDTO.DocumentFormat;
 using StartedIn.CrossCutting.Enum;
 using StartedIn.Domain.Entities;
 using StartedIn.Repository.Repositories.Interface;
 using StartedIn.Service.Services.Interface;
+using System.Text.RegularExpressions;
+using System.Web;
 namespace StartedIn.Service.Services
 {
     public class DocumentFormatService : IDocumentFormatService
@@ -385,44 +390,71 @@ namespace StartedIn.Service.Services
                 var placeholderContractPolicyParagraph = body.Elements<Paragraph>().FirstOrDefault(p => p.InnerText.Contains("CONTRACTPOLICY"));
                 if (placeholderContractPolicyParagraph != null)
                 {
-                    // Contract policy text containing \n for line breaks
-                    string contractPolicyText = contract.ContractPolicy;
+                    // Contract policy text containing HTML content (WYSIWYG)
+                    string contractPolicyText = contract.ContractPolicy;  // This is the HTML WYSIWYG content
+
+                    // Convert the HTML content into plain text (you can apply bold and other formatting later)
+                    string plainText = ConvertHtmlToPlainText(contractPolicyText);
+
+                    // Debugging: Print out the plain text before further processing
+                    Console.WriteLine("Plain Text: " + plainText);
 
                     // Split the contract policy text into individual lines by \n
-                    var policyLines = contractPolicyText.Split(new[] { "\n" }, StringSplitOptions.None);
+                    var policyLines = plainText.Split(new[] { "\n" }, StringSplitOptions.None);
                     var contractPolicyParagraph = new Paragraph();
-
-                    // Create a new paragraph for each line of the contract policy
+                    // Debugging: Print out the policy lines before processing
                     foreach (var line in policyLines)
                     {
-                        var run = new Run();
+                        Console.WriteLine("Policy Line: " + line);
+                    }
 
-                        RunProperties runProperties = new RunProperties
+                    // Create a new paragraph to hold the policy lines
+                    foreach (var line in policyLines)
+                    {
+                        // Split the line into parts for both bold and italic markers
+                        var parts = SplitByBoldAndItalicMarkers(line); // Now we process both bold and italic together
+
+                        // Now process each part and apply the correct formatting
+                        foreach (var part in parts)
                         {
-                            RunFonts = new RunFonts { Ascii = "Times New Roman", HighAnsi = "Times New Roman" },
-                            FontSize = new FontSize { Val = "26" }
-                        };
+                            var run = new Run();
+                            RunProperties runProperties = new RunProperties
+                            {
+                                RunFonts = new RunFonts { Ascii = "Times New Roman", HighAnsi = "Times New Roman" },
+                                FontSize = new FontSize { Val = "26" }
+                            };
 
-                        run.AppendChild(runProperties);
+                            // If the part is bold, apply bold formatting
+                            if (part.IsBold)
+                            {
+                                runProperties.Bold = new Bold(); // Apply bold formatting
+                            }
 
-                        // Append the text to the run
-                        run.AppendChild(new Text(line));
+                            // If the part is italic, apply italic formatting
+                            if (part.IsItalic)
+                            {
+                                runProperties.Italic = new Italic(); // Apply italic formatting
+                            }
 
-                        // If it's not the first line, add a line break before the text
-                        if (!string.IsNullOrEmpty(line))
-                        {
-                            run.AppendChild(new Break());
+                            // Append the run properties to the run
+                            run.AppendChild(runProperties);
+
+                            // Append the text part to the run
+                            run.AppendChild(new Text(part.Text));
+
+                            // Add the run to the paragraph
+                            contractPolicyParagraph.AppendChild(run);
                         }
 
-                        // Append the run to the paragraph
-                        contractPolicyParagraph.AppendChild(run);
-
-                        // Insert the paragraph after the placeholder paragraph
+                        // Add a line break after processing each line
+                        contractPolicyParagraph.AppendChild(new Break());
                     }
+                    // Insert the paragraph after the placeholder paragraph
                     body.InsertAfter(contractPolicyParagraph, placeholderContractPolicyParagraph);
                     // Remove the placeholder paragraph after inserting the content
                     placeholderContractPolicyParagraph.Remove();
                 }
+
 
                 doc.MainDocumentPart.Document.Save();
             }
@@ -506,43 +538,71 @@ namespace StartedIn.Service.Services
 
                     placeholderParagraph.Remove();
                 }
-                var placeholderContractPolicyParagraph = body.Elements<Paragraph>().FirstOrDefault(p => p.InnerText.Contains("DIEUKHOANDUAN"));
+                var placeholderContractPolicyParagraph = body.Elements<Paragraph>()
+     .FirstOrDefault(p => p.InnerText.Contains("DIEUKHOANDUAN"));
+
                 if (placeholderContractPolicyParagraph != null)
                 {
-                    // Contract policy text containing \n for line breaks
-                    string contractPolicyText = contract.ContractPolicy;
+                    // Contract policy text containing HTML content (WYSIWYG)
+                    string contractPolicyText = contract.ContractPolicy;  // This is the HTML WYSIWYG content
+
+                    // Convert the HTML content into plain text (you can apply bold and other formatting later)
+                    string plainText = ConvertHtmlToPlainText(contractPolicyText);
+
+                    // Debugging: Print out the plain text before further processing
+                    Console.WriteLine("Plain Text: " + plainText);
 
                     // Split the contract policy text into individual lines by \n
-                    var policyLines = contractPolicyText.Split(new[] { "\n" }, StringSplitOptions.None);
+                    var policyLines = plainText.Split(new[] { "\n" }, StringSplitOptions.None);
                     var contractPolicyParagraph = new Paragraph();
-
-                    // Create a new paragraph for each line of the contract policy
+                    // Debugging: Print out the policy lines before processing
                     foreach (var line in policyLines)
                     {
-                        var run = new Run();
+                        Console.WriteLine("Policy Line: " + line);
+                    }
 
-                        RunProperties runProperties = new RunProperties
+                    // Create a new paragraph to hold the policy lines
+                    foreach (var line in policyLines)
+                    {
+                        // Split the line into parts for both bold and italic markers
+                        var parts = SplitByBoldAndItalicMarkers(line); // Now we process both bold and italic together
+
+                        // Now process each part and apply the correct formatting
+                        foreach (var part in parts)
                         {
-                            RunFonts = new RunFonts { Ascii = "Times New Roman", HighAnsi = "Times New Roman" },
-                            FontSize = new FontSize { Val = "26" }
-                        };
+                            var run = new Run();
+                            RunProperties runProperties = new RunProperties
+                            {
+                                RunFonts = new RunFonts { Ascii = "Times New Roman", HighAnsi = "Times New Roman" },
+                                FontSize = new FontSize { Val = "26" }
+                            };
 
-                        run.AppendChild(runProperties);
+                            // If the part is bold, apply bold formatting
+                            if (part.IsBold)
+                            {
+                                runProperties.Bold = new Bold(); // Apply bold formatting
+                            }
 
-                        // Append the text to the run
-                        run.AppendChild(new Text(line));
+                            // If the part is italic, apply italic formatting
+                            if (part.IsItalic)
+                            {
+                                runProperties.Italic = new Italic(); // Apply italic formatting
+                            }
 
-                        // If it's not the first line, add a line break before the text
-                        if (!string.IsNullOrEmpty(line))
-                        {
-                            run.AppendChild(new Break());
+                            // Append the run properties to the run
+                            run.AppendChild(runProperties);
+
+                            // Append the text part to the run
+                            run.AppendChild(new Text(part.Text));
+
+                            // Add the run to the paragraph
+                            contractPolicyParagraph.AppendChild(run);
                         }
 
-                        // Append the run to the paragraph
-                        contractPolicyParagraph.AppendChild(run);
-
-                        // Insert the paragraph after the placeholder paragraph
+                        // Add a line break after processing each line
+                        contractPolicyParagraph.AppendChild(new Break());
                     }
+                    // Insert the paragraph after the placeholder paragraph
                     body.InsertAfter(contractPolicyParagraph, placeholderContractPolicyParagraph);
                     // Remove the placeholder paragraph after inserting the content
                     placeholderContractPolicyParagraph.Remove();
@@ -556,6 +616,114 @@ namespace StartedIn.Service.Services
             modifiedMemoryStream.Position = 0;
 
             return modifiedMemoryStream;
+        }
+
+        private List<TextPart> SplitByBoldAndItalicMarkers(string line)
+        {
+            var parts = new List<TextPart>();
+            bool isBold = false;
+            bool isItalic = false;
+            string currentText = "";
+
+            for (int i = 0; i < line.Length; i++)
+            {
+                // Check for double asterisks '**' for bold
+                if (i + 1 < line.Length && line[i] == '*' && line[i + 1] == '*')
+                {
+                    // Add the current text before the marker
+                    if (!string.IsNullOrEmpty(currentText))
+                    {
+                        parts.Add(new TextPart { Text = currentText, IsBold = isBold, IsItalic = isItalic });
+                        currentText = "";
+                    }
+
+                    // Toggle bold state
+                    isBold = !isBold;
+                    i++; // Skip over the second '*' in '**'
+                }
+                // Check for single asterisk '*' for italic
+                else if (line[i] == '*' && (i + 1 >= line.Length || line[i + 1] != '*'))
+                {
+                    // Add the current text before the marker
+                    if (!string.IsNullOrEmpty(currentText))
+                    {
+                        parts.Add(new TextPart { Text = currentText, IsBold = isBold, IsItalic = isItalic });
+                        currentText = "";
+                    }
+
+                    // Toggle italic state
+                    isItalic = !isItalic;
+                }
+                else
+                {
+                    // Add normal character to current text
+                    currentText += line[i];
+                }
+            }
+
+            // Add the last collected text
+            if (!string.IsNullOrEmpty(currentText))
+            {
+                parts.Add(new TextPart { Text = currentText, IsBold = isBold, IsItalic = isItalic });
+            }
+
+            return parts;
+        }
+
+        public string ConvertHtmlToPlainText(string htmlContent)
+        {
+            // Tải HTML vào một HtmlDocument
+            var htmlDoc = new HtmlDocument();
+            htmlDoc.LoadHtml(htmlContent); // Tải HTML vào HtmlDocument
+
+
+            // Replace <strong> tags with ** or * (representing bold in plain text)
+            var strongNodes = htmlDoc.DocumentNode.SelectNodes("//strong");
+            if (strongNodes != null)
+            {
+                foreach (var strongNode in strongNodes)
+                {
+                    strongNode.InnerHtml = "**" + strongNode.InnerHtml + "**";
+                }
+            }
+
+            var emNodes = htmlDoc.DocumentNode.SelectNodes("//em");
+            if (emNodes != null)
+            {
+                foreach (var emNode in emNodes)
+                {
+                    emNode.InnerHtml = "*" + emNode.InnerHtml + "*";
+                }
+            }
+
+            var ulNodes = htmlDoc.DocumentNode.SelectNodes("//ul");
+            if (ulNodes != null)
+            {
+                foreach (var ulNode in ulNodes)
+                {
+                    ulNode.InnerHtml = "\n" + string.Join("\n", ulNode.SelectNodes("li").Select(li => "-" + li.InnerText));
+                }
+            }
+
+            var olNodes = htmlDoc.DocumentNode.SelectNodes("//ol");
+            if (olNodes != null)
+            {
+                foreach (var olNode in olNodes)
+                {
+                    olNode.InnerHtml = "\n" + string.Join("\n", olNode.SelectNodes("li").Select((li, index) => $"{index + 1}. {li.InnerText}"));
+                }
+            }
+
+            // Lấy văn bản thuần từ HTML
+            string plainText = htmlDoc.DocumentNode.InnerText;
+
+            // Giải mã các ký tự HTML đặc biệt như &lt;, &gt;, &ecirc; thành ký tự thật
+            plainText = HttpUtility.HtmlDecode(plainText);
+
+            // Giữ lại các ký tự xuống dòng (\n)
+            plainText = plainText.Replace("\n", "\n").Trim();
+
+            return plainText;
         }
 
     }
