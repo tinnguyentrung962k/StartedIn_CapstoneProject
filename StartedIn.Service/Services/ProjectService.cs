@@ -119,10 +119,6 @@ public class ProjectService : IProjectService
         {
             throw new InvalidDataException(MessageConstant.NullOrEmptyStartDate);
         }
-        if (projectCreateDTO.MaxMember <= 0)
-        {
-            throw new InvalidDataException(MessageConstant.InvalidNumberOfMembersInProject);
-        }
         
         try
         {
@@ -135,8 +131,7 @@ public class ProjectService : IProjectService
                 LogoUrl = imgUrl,
                 ProjectStatus = ProjectStatusEnum.CONSTRUCTING,
                 EndDate = projectCreateDTO.EndDate,
-                StartDate = projectCreateDTO.StartDate,
-                MaxMember = projectCreateDTO.MaxMember
+                StartDate = projectCreateDTO.StartDate
             };
             var projectEntity = _projectRepository.Add(newProject);
             await _userRepository.AddUserToProject(userId, projectEntity.Id, RoleInTeam.Leader);
@@ -268,7 +263,6 @@ public class ProjectService : IProjectService
             RemainingPercentOfShares = project.RemainingPercentOfShares,
             StartDate = project.StartDate,
             EndDate = project.EndDate,
-            MaxMember = project.MaxMember,
             ProjectDetailPost = project.ProjectDetailPost,
             CurrentMember = project.UserProjects.Where(x => (x.RoleInTeam == RoleInTeam.Leader || x.RoleInTeam == RoleInTeam.Member) && x.Status == UserStatusInProject.Active).Count()
         }).ToList();
@@ -322,7 +316,6 @@ public class ProjectService : IProjectService
                 RemainingPercentOfShares = project.RemainingPercentOfShares,
                 StartDate = project.StartDate,
                 EndDate = project.EndDate,
-                MaxMember = project.MaxMember,
                 CurrentMember = project.UserProjects.Count(),
                 LeaderProfilePicture = project.UserProjects.FirstOrDefault(x => x.RoleInTeam == RoleInTeam.Leader).User.ProfilePicture,
                 UserStatusInProject = project.UserProjects.FirstOrDefault(x => x.UserId.Equals(userId)).Status,
