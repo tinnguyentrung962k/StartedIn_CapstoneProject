@@ -25,7 +25,7 @@ namespace StartedIn.Domain.Entities
         public string? SignNowDocumentId { get; set; }
         public ContractStatusEnum ContractStatus { get; set; }
         
-        [MaxLength(4500)]
+        [MaxLength(5000)]
         public string? ContractPolicy { get; set; }
         public string ContractIdNumber { get; set; }
         public DateTimeOffset? SignDeadline { get; set; }
