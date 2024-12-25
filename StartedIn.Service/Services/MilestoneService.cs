@@ -272,5 +272,23 @@ namespace StartedIn.Service.Services
             var completedManHour = milestone.Tasks.Where(t => t.Status == TaskEntityStatus.DONE).Sum(t => t.ManHour);
             return (int)Math.Round((double)completedManHour / totalManHour * 100);
         }
+
+        public async Task<PaginationDTO<MilestoneHistoryResponseDTO>> GetMilestoneHistory(string userId, string projectId, int page, int size)
+        {
+            var userInProject = await _userService.CheckIfUserInProject(userId, projectId);
+            var milestoneHistories = await _milestoneHistoryRepository.QueryHelper()
+                .Filter(x => x.Milestone.ProjectId.Equals(projectId))
+                .OrderBy(x => x.OrderBy(x => x.CreatedTime)).GetPagingAsync(page, size);
+
+            var pagination = new PaginationDTO<MilestoneHistoryResponseDTO>
+            {
+                Data = _mapper.Map<IEnumerable<MilestoneHistoryResponseDTO>>(milestoneHistories),
+                Page = page,
+                Size = size,
+                Total = await _milestoneHistoryRepository.QueryHelper().Filter(x => x.Milestone.ProjectId.Equals(projectId)).GetTotal()
+            };
+
+            return pagination;
+        }
     }
 }

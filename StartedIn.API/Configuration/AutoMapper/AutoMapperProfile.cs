@@ -95,6 +95,8 @@ namespace StartedIn.API.Configuration.AutoMapper
                 .ForMember(rms => rms.AssignedTasks, opt => opt.MapFrom(ms => ms.Tasks));
             CreateMap<Milestone, MilestoneInPhaseResponseDTO>()
                 .ReverseMap();
+            CreateMap<MilestoneHistory, MilestoneHistoryResponseDTO>()
+                .ReverseMap();
         }
 
         private void UserMappingProfile()

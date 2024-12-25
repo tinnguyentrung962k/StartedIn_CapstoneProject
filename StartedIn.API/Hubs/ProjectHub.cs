@@ -29,7 +29,6 @@ namespace StartedIn.API.Hubs
             _hubContext = hubContext;
         }
 
-        [Authorize]
         public override async Task OnConnectedAsync()
         {
             var userId = Context.User.FindFirst(ClaimTypes.NameIdentifier).Value;
