@@ -178,6 +178,9 @@ namespace StartedIn.API.Configuration.AutoMapper
                 .ReverseMap();
 
             CreateMap<Project, ProjectDetailForAdminDTO>()
+                .ForMember(dest => dest.PendingApproval, opt => opt.MapFrom(src => src.ProjectApprovals.FirstOrDefault(x=>x.Status == ProjectApprovalStatus.PENDING)))
+                    .ForPath(dest => dest.PendingApproval.TargetCall, opt => opt.MapFrom(src => src.InvestmentCalls.FirstOrDefault(x => x.Status == InvestmentCallStatus.Pending).TargetCall.ToString()))
+                    .ForPath(dest => dest.PendingApproval.EquityShareCall, opt => opt.MapFrom(src => src.InvestmentCalls.FirstOrDefault(x => x.Status == InvestmentCallStatus.Pending).EquityShareCall.ToString()))
                 .ForMember(p => p.ProjectCharterResponseDto, opt => opt.MapFrom(src => src.ProjectCharter))
                 .ForMember(dest => dest.LeaderId,
                     opt => opt.MapFrom(src =>

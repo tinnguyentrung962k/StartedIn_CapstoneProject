@@ -31,4 +31,5 @@ public class Project : BaseAuditEntity<string>
     public Finance Finance { get; set; }
     public ProjectCharter ProjectCharter { get; set; }
     public ICollection<InvestmentCall> InvestmentCalls { get; set; }
+    public ICollection<ProjectApproval> ProjectApprovals { get; set; }
 }

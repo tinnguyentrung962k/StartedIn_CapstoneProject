@@ -207,7 +207,7 @@ public class ProjectApprovalService : IProjectApprovalService
 
     public async Task RejectProjectRequest(string approvalId, CancelReasonApprovalDTO cancelReasonDTO)
     {
-        var approval = await _projectApprovalRepository.QueryHelper().Filter(pa => pa.ProjectId.Equals(approvalId)).GetOneAsync();
+        var approval = await _projectApprovalRepository.QueryHelper().Filter(pa => pa.Id.Equals(approvalId)).GetOneAsync();
         if (approval == null)
         {
             throw new NotFoundException(MessageConstant.NotFoundProjectApprovalRequest);
