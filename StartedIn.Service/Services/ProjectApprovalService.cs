@@ -194,6 +194,7 @@ public class ProjectApprovalService : IProjectApprovalService
         }
         approval.Status = ProjectApprovalStatus.ACCEPTED;
         project.ProjectStatus = ProjectStatusEnum.ACTIVE;
+        approval.LastUpdatedTime = DateTimeOffset.UtcNow;
         _projectApprovalRepository.Update(approval);
         _projectRepository.Update(project);
 

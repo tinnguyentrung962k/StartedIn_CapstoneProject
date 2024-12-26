@@ -5,4 +5,5 @@ public class UserTaskResponseDTO
     public string UserId { get; set; }
     public string FullName { get; set; }
     public float ActualManHour { get; set; }
+    public DateTimeOffset? LastUpdatedTime { get; set; }
 }
