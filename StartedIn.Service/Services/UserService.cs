@@ -297,7 +297,7 @@ namespace StartedIn.Service.Services
         {
             if (file == null || file.Length == 0)
             {
-                return OperationResult<List<(string Email, string Password)>>.FailureResult(new[] { "File is empty or null." });
+                return OperationResult<List<(string Email, string Password)>>.FailureResult(new[] { "Vui lòng nhập file excel." });
             }
 
             var errorDetails = new List<string>();
@@ -317,7 +317,7 @@ namespace StartedIn.Service.Services
                         var worksheet = package.Workbook.Worksheets.FirstOrDefault();
                         if (worksheet == null)
                         {
-                            return OperationResult<List<(string Email, string Password)>>.FailureResult(new[] { "No worksheet found in the Excel file." });
+                            return OperationResult<List<(string Email, string Password)>>.FailureResult(new[] { "Không tìm thấy worksheet." });
                         }
 
                         var columnNames = GetColumnMappings(worksheet);
@@ -337,7 +337,7 @@ namespace StartedIn.Service.Services
                             var (email, password, userCreationErrors) = await CreateUserAsync(worksheet, columnNames, row);
                             if (!string.IsNullOrEmpty(userCreationErrors))
                             {
-                                errorDetails.Add($"Row {row}: {userCreationErrors}");
+                                errorDetails.Add($"Dòng {row}: {userCreationErrors}");
                                 continue;
                             }
                             if (!string.IsNullOrEmpty(email) && !string.IsNullOrEmpty(password))
@@ -360,9 +360,9 @@ namespace StartedIn.Service.Services
             }
             catch (Exception ex)
             {
-                _logger.LogError($"Error during user import: {ex.Message}");
+                _logger.LogError($"Lỗi khi thêm người dùng: {ex.Message}");
                 await _unitOfWork.RollbackAsync();
-                errorDetails.Add($"Unexpected error: {ex.Message}");
+                errorDetails.Add($"Lỗi khi thêm người dùng: {ex.Message}");
                 return OperationResult<List<(string Email, string Password)>>.FailureResult(errorDetails);
             }
         }
@@ -388,7 +388,7 @@ namespace StartedIn.Service.Services
 
             if (missingColumns.Any())
             {
-                error = $"Missing required columns: {string.Join(", ", missingColumns)}.";
+                error = $"Thiếu trường yêu cầu: {string.Join(", ", missingColumns)}.";
                 return false;
             }
 
@@ -431,7 +431,7 @@ namespace StartedIn.Service.Services
             if (!result.Succeeded)
             {
                 var errors = string.Join(", ", result.Errors.Select(e => e.Description));
-                return (null, null, $"Failed to create user. Errors: {errors}");
+                return (null, null, $"Lỗi thêm người dùng: {errors}");
             }
 
             await _userManager.AddToRoleAsync(newUser, RoleConstants.USER);
@@ -466,14 +466,14 @@ namespace StartedIn.Service.Services
             {
                 if (!columnNames.ContainsKey(field))
                 {
-                    errorMessage = $"Missing required column: {field}.";
+                    errorMessage = $"Thiếu trường yêu cầu: {field}.";
                     return false;
                 }
 
                 var value = worksheet.Cells[row, columnNames[field]].Text;
                 if (string.IsNullOrWhiteSpace(value))
                 {
-                    errorMessage = $"Row {row}: Field '{field}' cannot be empty.";
+                    errorMessage = $"Dòng {row}: trường '{field}' không được trống.";
                     return false;
                 }
             }

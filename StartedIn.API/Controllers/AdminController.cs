@@ -65,15 +65,15 @@ namespace StartedIn.API.Controllers
             {
                 return Ok(new
                 {
-                    message = "Import succeeded.",
-                    users = result.Data.Select(user => new { user.Email, user.Password })
+                    message = "Tải file thành công.",
+                    users = result.Data.Select(user => new {user.Email})
                 });
             }
             else
             {
                 return BadRequest(new
                 {
-                    message = "Import failed.",
+                    message = "Lỗi xảy ra trong file",
                     errors = result.Errors
                 });
             }
