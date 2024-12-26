@@ -140,7 +140,7 @@ public class ProjectController : ControllerBase
     }
     
     [HttpGet("{projectId}/general-information")]
-    [Authorize(Roles = RoleConstants.USER + "," + RoleConstants.INVESTOR + "," + RoleConstants.MENTOR)]
+    [Authorize]
     public async Task<ActionResult<ProjectInformationWithMembersResponseDTO>> GetProjectInformationWithMembers([FromRoute] string projectId)
     {
         try

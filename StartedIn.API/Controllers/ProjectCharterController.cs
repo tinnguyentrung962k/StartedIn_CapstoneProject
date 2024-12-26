@@ -72,7 +72,7 @@ namespace StartedIn.API.Controllers
         }
 
         [HttpGet]
-        [Authorize(Roles = RoleConstants.USER + "," + RoleConstants.INVESTOR + "," + RoleConstants.MENTOR)]
+        [Authorize]
         public async Task<ActionResult<ProjectCharterResponseDTO>> GetProjectCharterByProjectId([FromRoute] string projectId)
         {
             try
