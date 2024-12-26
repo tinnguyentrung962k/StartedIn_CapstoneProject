@@ -137,7 +137,8 @@ public class ProjectService : IProjectService
                 LogoUrl = imgUrl,
                 ProjectStatus = ProjectStatusEnum.CONSTRUCTING,
                 EndDate = projectCreateDTO.EndDate,
-                StartDate = projectCreateDTO.StartDate
+                StartDate = projectCreateDTO.StartDate,
+                CreatedBy = user.FullName
             };
             var projectEntity = _projectRepository.Add(newProject);
             await _userRepository.AddUserToProject(userId, projectEntity.Id, RoleInTeam.Leader);
