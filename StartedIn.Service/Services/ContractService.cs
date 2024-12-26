@@ -942,6 +942,8 @@ namespace StartedIn.Service.Services
                 // Update contract details
                 contract.ContractName = investmentContractUpdateDTO.Contract.ContractName;
                 contract.ContractPolicy = investmentContractUpdateDTO.Contract.ContractPolicy;
+                contract.LastUpdatedTime = DateTimeOffset.UtcNow;
+                contract.LastUpdatedBy = userInProject.User.FullName;
 
                 // Update or add ShareEquity details
                 var investor = await _userManager.FindByIdAsync(investmentContractUpdateDTO.InvestorInfo.UserId);
@@ -1064,6 +1066,8 @@ namespace StartedIn.Service.Services
                 // Update contract details
                 contract.ContractName = groupContractUpdateDTO.Contract.ContractName;
                 contract.ContractPolicy = groupContractUpdateDTO.Contract.ContractPolicy;
+                contract.LastUpdatedTime = DateTimeOffset.UtcNow;
+                contract.LastUpdatedBy = userInProject.User.FullName;
 
                 var existingShareEquitiesOfMembers = contract.ShareEquities;
                 foreach (var existingShareEquity in existingShareEquitiesOfMembers)
