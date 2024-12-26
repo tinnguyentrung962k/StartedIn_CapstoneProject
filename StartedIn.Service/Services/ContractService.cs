@@ -1295,6 +1295,8 @@ namespace StartedIn.Service.Services
                     var liquidationEntity = _contractRepository.Add(liquidationNote);
 
                     chosenContract.LiquidationNoteId = liquidationEntity.Id;
+                    chosenContract.LastUpdatedBy = userInProject.User.FullName;
+                    chosenContract.LastUpdatedTime = DateTimeOffset.UtcNow;
                     _contractRepository.Update(chosenContract);
 
                     var signingMethod = await _appSettingManager.GetSettingAsync("SignatureType");
@@ -1389,6 +1391,8 @@ namespace StartedIn.Service.Services
                     var liquidationEntity = _contractRepository.Add(liquidationNote);
 
                     chosenContract.LiquidationNoteId = liquidationEntity.Id;
+                    chosenContract.LastUpdatedBy = userInProject.User.FullName;
+                    chosenContract.LastUpdatedTime = DateTimeOffset.UtcNow;
                     _contractRepository.Update(chosenContract);
 
                     var signingMethod = await _appSettingManager.GetSettingAsync("SignatureType");
@@ -1558,6 +1562,8 @@ namespace StartedIn.Service.Services
 
                 chosenContract.CurrentTerminationRequestId = leaderRequest.Id;
                 chosenContract.ContractStatus = ContractStatusEnum.WAITINGFORLIQUIDATION;
+                chosenContract.LastUpdatedBy = userInProject.User.FullName;
+                chosenContract.LastUpdatedTime = DateTimeOffset.UtcNow;
                 _contractRepository.Update(chosenContract);
 
                 foreach (var userParty in chosenContract.UserContracts.Where(uc => uc.UserId != userId))
@@ -1669,6 +1675,8 @@ namespace StartedIn.Service.Services
                     {
                         var parentContract = await _contractRepository.GetContractById(contract.ParentContractId);
                         parentContract.LiquidationNoteId = null;
+                        parentContract.LastUpdatedBy = userInProject.User.FullName;
+                        parentContract.LastUpdatedTime = DateTimeOffset.UtcNow;
                         _contractRepository.Update(parentContract);
                     }
                     await _contractRepository.SoftDeleteById(contractId);
@@ -1694,6 +1702,7 @@ namespace StartedIn.Service.Services
                 {
                     var parentContract = await _contractRepository.GetContractById(contract.ParentContractId);
                     parentContract.LiquidationNoteId = null;
+                    parentContract.LastUpdatedTime = DateTimeOffset.UtcNow;
                     _contractRepository.Update(parentContract);
                 }
                 contract.ContractStatus = ContractStatusEnum.CANCELLED; 
@@ -1704,6 +1713,7 @@ namespace StartedIn.Service.Services
                         .Filter(x => x.Id.Equals(contract.DealOfferId))
                         .GetOneAsync();
                     dealOffer.DealStatus = DealStatusEnum.Rejected;
+                    dealOffer.LastUpdatedTime = DateTimeOffset.UtcNow;
                     _dealOfferRepository.Update(dealOffer);
                 }
                 await _unitOfWork.SaveChangesAsync();
