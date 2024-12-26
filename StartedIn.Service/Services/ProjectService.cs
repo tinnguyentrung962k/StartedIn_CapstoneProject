@@ -1,4 +1,4 @@
-using AutoMapper;
+﻿using AutoMapper;
 using CrossCutting.Exceptions;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
@@ -171,6 +171,8 @@ public class ProjectService : IProjectService
                 throw new NotFoundException(MessageConstant.NotFoundProjectError);
             }
             project.ProjectDetailPost = projectDetail.ProjectDetailPost;
+            project.LastUpdatedTime = DateTimeOffset.UtcNow;
+            project.LastUpdatedBy = userInProject.User.FullName;
             _projectRepository.Update(project);
             await _unitOfWork.SaveChangesAsync();
         }
@@ -200,6 +202,8 @@ public class ProjectService : IProjectService
             }
 
             project.AppointmentUrl = appointmentUrlDto.AppointmentUrl;
+            project.LastUpdatedTime = DateTimeOffset.UtcNow;
+            project.LastUpdatedBy = userInProject.User.FullName;
             _projectRepository.Update(project);
             await _unitOfWork.SaveChangesAsync();
         }
@@ -463,12 +467,14 @@ public class ProjectService : IProjectService
             project.HarshChecksumPayOsKey = EncryptString(payOsPaymentGatewayRegisterDTO.ChecksumKey);
             project.HarshClientIdPayOsKey = EncryptString(payOsPaymentGatewayRegisterDTO.ClientKey);
             project.HarshPayOsApiKey = EncryptString(payOsPaymentGatewayRegisterDTO.ApiKey);
+            project.LastUpdatedTime = DateTimeOffset.UtcNow;
+            project.LastUpdatedBy = userInProject.User.FullName;
             var projectEntity = _projectRepository.Update(project);
             await _unitOfWork.SaveChangesAsync();
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error while register payment gateway.");
+            _logger.LogError(ex, "Lỗi đăng ký cổng thanh toán.");
             await _unitOfWork.RollbackAsync();
             throw;
         }
@@ -511,7 +517,7 @@ public class ProjectService : IProjectService
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error while activating project.");
+            _logger.LogError(ex, "Lỗi kích hoạt dự án.");
             await _unitOfWork.RollbackAsync();
             throw;
         }
@@ -661,6 +667,7 @@ public class ProjectService : IProjectService
                 await _emailService.SendClosingProject(user.Email, userInProject.User.FullName, user.FullName, project.ProjectName);
             }
             project.ProjectStatus = ProjectStatusEnum.CLOSED;
+            project.EndDate = DateOnly.FromDateTime(DateTimeOffset.UtcNow.AddHours(7).Date);
             project.LastUpdatedTime = DateTime.UtcNow;
             project.LastUpdatedBy = userInProject.User.FullName;
             foreach (var userProject in project.UserProjects.Where(x=>x.Status != UserStatusInProject.Left))

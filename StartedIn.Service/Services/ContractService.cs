@@ -211,7 +211,7 @@ namespace StartedIn.Service.Services
             }
             catch (Exception ex)
             {
-                _logger.LogError($"An error occurred while creating the contract: {ex.Message}");
+                _logger.LogError($"Lỗi tạo hợp đồng: {ex.Message}");
                 await _unitOfWork.RollbackAsync();
                 throw;
             }
@@ -333,7 +333,7 @@ namespace StartedIn.Service.Services
             }
             catch (Exception ex)
             {
-                _logger.LogError($"An error occurred while creating the contract: {ex.Message}");
+                _logger.LogError($"Lỗi tạo hợp đồng: {ex.Message}");
                 await _unitOfWork.RollbackAsync();
                 throw;
             }
@@ -484,7 +484,7 @@ namespace StartedIn.Service.Services
             }
             catch (Exception ex)
             {
-                _logger.LogError($"An error occurred while creating the contract: {ex.Message}");
+                _logger.LogError($"Lỗi tạo hợp đồng: {ex.Message}");
                 await _unitOfWork.RollbackAsync();
                 throw;
             }
@@ -601,7 +601,7 @@ namespace StartedIn.Service.Services
 
             catch (Exception ex)
             {
-                _logger.LogError($"An error occurred while upload the contract file: {ex.Message}");
+                _logger.LogError($"Lỗi gửi ký: {ex.Message}");
                 await _unitOfWork.RollbackAsync();
                 throw;
             }
@@ -646,7 +646,7 @@ namespace StartedIn.Service.Services
             // Check if the contractInvite has data
             if (contractInvite?.Data == null || !contractInvite.Data.Any())
             {
-                throw new InvalidOperationException("No signing data available from SignNow.");
+                throw new InvalidOperationException("Không tìm thấy lời mời ký.");
             }
 
             // Loop through the signing data to find fulfilled users
@@ -660,7 +660,7 @@ namespace StartedIn.Service.Services
 
                     if (existingUserContract == null)
                     {
-                        throw new InvalidOperationException($"UserContract not found for the user with email: {signedData.Email}");
+                        throw new InvalidOperationException($"Không tìm thấy người dùng ký: {signedData.Email}");
                     }
 
                     if (!existingUserContract.SignedDate.HasValue)
@@ -739,7 +739,7 @@ namespace StartedIn.Service.Services
             }
             catch (Exception ex)
             {
-                _logger.LogError($"An error occurred while update the contract: {ex.Message}");
+                _logger.LogError($"Lỗi cập nhật hợp đồng: {ex.Message}");
                 await _unitOfWork.RollbackAsync();
                 throw;
             }
@@ -1024,7 +1024,7 @@ namespace StartedIn.Service.Services
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "An error occurred while updating the contract.");
+                _logger.LogError(ex, "Lỗi cập nhật");
                 await _unitOfWork.RollbackAsync();
                 throw;
             }
@@ -1121,7 +1121,7 @@ namespace StartedIn.Service.Services
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "An error occurred while updating the contract.");
+                _logger.LogError(ex, "Lỗi cập nhật.");
                 await _unitOfWork.RollbackAsync();
                 throw;
             }
@@ -1187,7 +1187,7 @@ namespace StartedIn.Service.Services
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "An error occurred while updating the contract.");
+                _logger.LogError(ex, "Lỗi cập nhật");
                 await _unitOfWork.RollbackAsync();
                 throw;
             }
@@ -1409,7 +1409,7 @@ namespace StartedIn.Service.Services
             }
             catch (Exception ex)
             {
-                _logger.LogError($"An error occurred while creating the contract: {ex.Message}");
+                _logger.LogError($"Lỗi tạo hợp đồng: {ex.Message}");
                 await _unitOfWork.RollbackAsync();
                 throw;
             }
