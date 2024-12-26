@@ -60,14 +60,22 @@ namespace StartedIn.API.Controllers
         [Authorize(Roles = RoleConstants.ADMIN)]
         public async Task<IActionResult> ImportStudentExcelList(IFormFile formFile)
         {
-            try
+            var result = await _userService.ImportUsersFromExcel(formFile);
+            if (result.Success)
             {
-                await _userService.ImportUsersFromExcel(formFile);
-                return Ok("Hoàn thành tải file");
+                return Ok(new
+                {
+                    message = "Import succeeded.",
+                    users = result.Data.Select(user => new { user.Email, user.Password })
+                });
             }
-            catch (Exception ex)
+            else
             {
-                return StatusCode(500, MessageConstant.InternalServerError);
+                return BadRequest(new
+                {
+                    message = "Import failed.",
+                    errors = result.Errors
+                });
             }
         }
 

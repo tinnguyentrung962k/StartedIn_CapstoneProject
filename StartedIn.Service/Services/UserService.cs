@@ -272,94 +272,56 @@ namespace StartedIn.Service.Services
             return pagination;
         }
 
-        public async Task ImportUsersFromExcel(IFormFile file)
+        public async Task<OperationResult<List<(string Email, string Password)>>> ImportUsersFromExcel(IFormFile file)
         {
-            // Check if file is valid
             if (file == null || file.Length == 0)
             {
-                throw new ArgumentException("File is empty or null.");
+                return OperationResult<List<(string Email, string Password)>>.FailureResult(new[] { "File is empty or null." });
             }
+
+            var errorDetails = new List<string>();
+            var newUsers = new List<(string Email, string Password)>();
+
             try
             {
                 _unitOfWork.BeginTransaction();
-                var newUsers = new List<(User user, string password)>(); // Tuple to store user and password
 
                 using (var stream = new MemoryStream())
                 {
                     await file.CopyToAsync(stream);
-                    ExcelPackage.LicenseContext = LicenseContext.NonCommercial; // Set the license context
+
                     using (var package = new ExcelPackage(stream))
                     {
-                        var worksheet = package.Workbook.Worksheets[0]; // Assume first sheet
-
-                        // Get the column names from the first row
-                        var columnNames = new Dictionary<string, int>();
-                        var columnCount = worksheet.Dimension.Columns;
-
-                        for (int col = 1; col <= columnCount; col++)
+                        ExcelPackage.LicenseContext = LicenseContext.NonCommercial;
+                        var worksheet = package.Workbook.Worksheets.FirstOrDefault();
+                        if (worksheet == null)
                         {
-                            var columnName = worksheet.Cells[1, col].Text; // Reading the first row for column names
-                            if (!string.IsNullOrEmpty(columnName))
-                            {
-                                columnNames[columnName] = col; // Map column name to index
-                            }
+                            return OperationResult<List<(string Email, string Password)>>.FailureResult(new[] { "No worksheet found in the Excel file." });
                         }
 
-                        // Ensure required columns exist
-                        if (!columnNames.ContainsKey("Email") || !columnNames.ContainsKey("FullName"))
+                        var columnNames = GetColumnMappings(worksheet);
+                        if (!ValidateRequiredColumns(columnNames, out var missingColumnsError))
                         {
-                            throw new ArgumentException("The Excel file must contain 'Email' and 'FullName' columns.");
+                            return OperationResult<List<(string Email, string Password)>>.FailureResult(new[] { missingColumnsError });
                         }
 
-                        var rowCount = worksheet.Dimension.Rows;
-
-                        for (int row = 2; row <= rowCount; row++) // Skip header row
+                        for (int row = 2; row <= worksheet.Dimension.Rows; row++)
                         {
-                            // Get data by column names
-                            var email = worksheet.Cells[row, columnNames["Email"]].Text;
-                            var fullName = worksheet.Cells[row, columnNames["FullName"]].Text;
-                            var password = GenerateRandomPassword(8); // Generate random password
-                            var studentCode = worksheet.Cells[row, columnNames["StudentID"]].Text;
-                            var phoneNumber = worksheet.Cells[row, columnNames["PhoneNumber"]].Text;
-                            // Skip rows with missing data
-                            if (string.IsNullOrEmpty(email) || string.IsNullOrEmpty(password))
+                            if (!ValidateRowFields(worksheet, columnNames, row, out string errorMessage))
                             {
+                                errorDetails.Add(errorMessage);
                                 continue;
                             }
 
-                            // Check if user already exists
-                            var existingUser = await _userManager.FindByEmailAsync(email);
-                            if (existingUser != null)
+                            var (email, password, userCreationErrors) = await CreateUserAsync(worksheet, columnNames, row);
+                            if (!string.IsNullOrEmpty(userCreationErrors))
                             {
-                                // Log or continue to skip this user
-                                _logger.LogInformation($"User with email {email} already exists. Skipping.");
-                                continue; // Skip this user and move to the next row
+                                errorDetails.Add($"Row {row}: {userCreationErrors}");
+                                continue;
                             }
-
-                            // Create new user
-                            var newUser = new User
+                            if (!string.IsNullOrEmpty(email) && !string.IsNullOrEmpty(password))
                             {
-                                Email = email,
-                                UserName = email,
-                                FullName = fullName,
-                                EmailConfirmed = true, // Set default, adjust as needed
-                                ProfilePicture = ProfileConstant.defaultAvatarUrl, // Default avatar
-                                PhoneNumber = phoneNumber,
-                                StudentCode = studentCode,
-                                IsActive = true
-                            };
-
-                            var result = await _userManager.CreateAsync(newUser, password);
-                            if (result.Succeeded)
-                            {
-                                // Assign default role after successful creation
-                                await _userManager.AddToRoleAsync(newUser, RoleConstants.USER);
-                                newUsers.Add((newUser, password)); // Store new user and password in the list
-                            }
-                            else
-                            {
-                                // Handle failure case
-                                throw new Exception($"Failed to create user {email}: {string.Join(", ", result.Errors.Select(e => e.Description))}");
+                                newUsers.Add((email, password));
                             }
                         }
                     }
@@ -367,20 +329,136 @@ namespace StartedIn.Service.Services
 
                 await _unitOfWork.SaveChangesAsync();
 
-                foreach (var (user, password) in newUsers) // Loop through the newly created users
-                {
-                    // Send account info email including the email and generated password
-                    _emailService.SendAccountInfoMailAsync(user.Email, password);
-                }
+                //await SendAccountCreationEmailsAsync(newUsers);
 
-                await _unitOfWork.CommitAsync(); // Commit the transaction after sending the emails
+                await _unitOfWork.CommitAsync();
+
+                return errorDetails.Any()
+                    ? OperationResult<List<(string Email, string Password)>>.FailureResult(errorDetails)
+                    : OperationResult<List<(string Email, string Password)>>.SuccessResult(newUsers);
             }
             catch (Exception ex)
             {
                 _logger.LogError($"Error during user import: {ex.Message}");
-                _unitOfWork.RollbackAsync();
-                throw;
+                await _unitOfWork.RollbackAsync();
+                errorDetails.Add($"Unexpected error: {ex.Message}");
+                return OperationResult<List<(string Email, string Password)>>.FailureResult(errorDetails);
             }
+        }
+
+        private Dictionary<string, int> GetColumnMappings(ExcelWorksheet worksheet)
+        {
+            var columnNames = new Dictionary<string, int>();
+            for (int col = 1; col <= worksheet.Dimension.Columns; col++)
+            {
+                var columnName = worksheet.Cells[1, col].Text;
+                if (!string.IsNullOrEmpty(columnName))
+                {
+                    columnNames[columnName] = col;
+                }
+            }
+            return columnNames;
+        }
+
+        private bool ValidateRequiredColumns(Dictionary<string, int> columnNames, out string error)
+        {
+            var requiredColumns = new[] { ExcelSheetConstant.Email, ExcelSheetConstant.FullName };
+            var missingColumns = requiredColumns.Where(column => !columnNames.ContainsKey(column)).ToList();
+
+            if (missingColumns.Any())
+            {
+                error = $"Missing required columns: {string.Join(", ", missingColumns)}.";
+                return false;
+            }
+
+            error = null;
+            return true;
+        }
+
+        private async Task<(string Email, string Password, string Error)> CreateUserAsync(ExcelWorksheet worksheet, Dictionary<string, int> columnNames, int row)
+        {
+            var email = worksheet.Cells[row, columnNames[ExcelSheetConstant.Email]].Text;
+            var fullName = worksheet.Cells[row, columnNames[ExcelSheetConstant.FullName]].Text;
+            var password = GenerateRandomPassword(8);
+            var studentCode = worksheet.Cells[row, columnNames[ExcelSheetConstant.StudentCode]].Text;
+            var phoneNumber = worksheet.Cells[row, columnNames[ExcelSheetConstant.PhoneNumber]].Text;
+            var idCardNumber = worksheet.Cells[row, columnNames[ExcelSheetConstant.IdCardNumber]].Text;
+            var address = worksheet.Cells[row, columnNames[ExcelSheetConstant.Address]].Text;
+            var academicYear = worksheet.Cells[row, columnNames[ExcelSheetConstant.AcademicYear]].Text;
+
+            if (await _userManager.FindByEmailAsync(email) != null)
+            {
+                return (null, null, null);
+            }
+
+            var newUser = new User
+            {
+                Email = email,
+                UserName = email,
+                FullName = fullName,
+                EmailConfirmed = true, // Set default, adjust as needed
+                ProfilePicture = ProfileConstant.defaultAvatarUrl, // Default avatar
+                PhoneNumber = phoneNumber,
+                StudentCode = studentCode,
+                AcademicYear = academicYear,
+                Address = address,
+                IdCardNumber = idCardNumber,
+                IsActive = true
+            };
+
+            var result = await _userManager.CreateAsync(newUser, password);
+            if (!result.Succeeded)
+            {
+                var errors = string.Join(", ", result.Errors.Select(e => e.Description));
+                return (null, null, $"Failed to create user. Errors: {errors}");
+            }
+
+            await _userManager.AddToRoleAsync(newUser, RoleConstants.USER);
+            return (email, password, null);
+        }
+
+        private async Task SendAccountCreationEmailsAsync(List<(string Email, string Password)> users)
+        {
+            foreach (var (email, password) in users)
+            {
+                await _emailService.SendAccountInfoMailAsync(email, password);
+            }
+        }
+
+
+
+
+        private bool ValidateRowFields(ExcelWorksheet worksheet,Dictionary<string, int> columnNames,int row,out string errorMessage)
+        {
+            var requiredFields = new[]
+            {
+                ExcelSheetConstant.Email,
+                ExcelSheetConstant.FullName,
+                ExcelSheetConstant.StudentCode,
+                ExcelSheetConstant.PhoneNumber,
+                ExcelSheetConstant.IdCardNumber,
+                ExcelSheetConstant.Address,
+                ExcelSheetConstant.AcademicYear
+            };
+
+            foreach (var field in requiredFields)
+            {
+                if (!columnNames.ContainsKey(field))
+                {
+                    errorMessage = $"Missing required column: {field}.";
+                    return false;
+                }
+
+                var value = worksheet.Cells[row, columnNames[field]].Text;
+                if (string.IsNullOrWhiteSpace(value))
+                {
+                    errorMessage = $"Row {row}: Field '{field}' cannot be empty.";
+                    return false;
+                }
+            }
+
+            errorMessage = null;
+            return true;
         }
 
         private string GenerateRandomPassword(int length)

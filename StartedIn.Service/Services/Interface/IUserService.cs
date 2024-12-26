@@ -30,7 +30,7 @@ namespace StartedIn.Service.Services.Interface
 
         Task<User> GetUserWithId(string id);
         Task<PaginationDTO<FullProfileDTO>> GetUsersListForAdmin(UserAdminFilterDTO userAdminFilterDTO,int page, int size);
-        Task ImportUsersFromExcel(IFormFile file);
+        Task<OperationResult<List<(string Email, string Password)>>> ImportUsersFromExcel(IFormFile file);
         Task RequestResetPassword(string email);
         Task ResetPassword(ResetPasswordDTO resetPasswordDTO);
         Task<UserProject> CheckIfUserInProject(string userId, string projectId);
