@@ -98,6 +98,12 @@ public class ProjectService : IProjectService
              .Include(x => x.UserProjects)
              .Filter(p => p.UserProjects.Any(up => up.UserId == userId && up.RoleInTeam == RoleInTeam.Leader))
              .GetOneAsync();
+        var existingProject = await _projectRepository.QueryHelper()
+            .Filter(p => p.ProjectName.ToLower().Contains(projectCreateDTO.ProjectName.ToLower())).GetOneAsync();
+        if (existingProject != null)
+        {
+            throw new InvalidDataException(MessageConstant.ExistProjectName);
+        }
         var userInProject = await _projectRepository.GetAProjectByUserId(user.Id);
         if (createdProject != null || userInProject != null)
         {
