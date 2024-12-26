@@ -158,5 +158,24 @@ namespace StartedIn.API.Controllers
                 return BadRequest(MessageConstant.DeleteFailed);
             }
         }
+
+        [HttpGet("history")]
+        [Authorize(Roles = RoleConstants.USER + "," + RoleConstants.INVESTOR + "," + RoleConstants.MENTOR)]
+        public async Task<ActionResult<PaginationDTO<MilestoneHistoryResponseDTO>>> GetMilestoneHistory(
+            [FromRoute] string projectId,
+            [FromQuery] int page,
+            [FromQuery] int size)
+        {
+            try
+            {
+                var userId = User.FindFirst(ClaimTypes.NameIdentifier).Value;
+                var responseMilestone = await _milestoneService.GetMilestoneHistory(userId, projectId, page, size);
+                return Ok(responseMilestone);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, MessageConstant.InternalServerError);
+            }
+        }
     }
 }

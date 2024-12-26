@@ -10,7 +10,7 @@ using StartedIn.Repository.Repositories.Interface;
 using StartedIn.Service.Services.Interface;
 using StartedIn.Repository.Repositories.Extensions;
 using OfficeOpenXml;
-using System;
+using System.Text.RegularExpressions;
 using StartedIn.Repository.Repositories;
 using StartedIn.CrossCutting.DTOs.ResponseDTO.Authentication;
 using StartedIn.CrossCutting.DTOs.RequestDTO.Auth;
@@ -111,11 +111,32 @@ namespace StartedIn.Service.Services
                 throw new ExistedEmailException("Email này đã tồn tại.");
             }
 
-            if (role == RoleConstants.USER && !registerUser.Email.EndsWith("@fpt.edu.vn"))
+            if (role == RoleConstants.USER)
             {
-                throw new InvalidRegisterException("Email của sinh viên phải có đuôi @fpt.edu.vn.");
-            }
+                if (!registerUser.Email.EndsWith("@fpt.edu.vn"))
+                {
+                    throw new InvalidRegisterException("Email của sinh viên phải có đuôi @fpt.edu.vn.");
+                }
 
+                if (registerUser.StudentCode == null)
+                {
+                    throw new InvalidRegisterException("Vui lòng nhập mã sinh viên");
+                }
+                
+                if (registerUser.StudentCode.Length != 8)
+                {
+                    throw new InvalidRegisterException("Mã sinh viên phải có độ dài 8");
+                }
+                var prefix = registerUser.StudentCode.Substring(0, 2);
+                var numbers = registerUser.StudentCode.Substring(2);
+
+                if (!(prefix == "SA" || prefix == "SS" || prefix == "SE" || prefix == "IA") ||
+                    !Regex.IsMatch(numbers, @"^\d{6}$"))
+                {
+                    throw new InvalidRegisterException("Mã sinh viên phải có SA, SS, SE hoặc IA, và 6 chữ số");
+                }
+            }
+            
             try
             {
                 _unitOfWork.BeginTransaction();

@@ -13,7 +13,6 @@ using System.Security.Claims;
 
 namespace StartedIn.API.Hubs
 {
-    [Authorize]
     public class ProjectHub : Hub
     {
         private static readonly ConcurrentDictionary<string, List<string>> projectList = new ConcurrentDictionary<string, List<string>>();

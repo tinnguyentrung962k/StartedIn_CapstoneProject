@@ -31,6 +31,8 @@ namespace StartedIn.CrossCutting.DTOs.RequestDTO.Auth
         public string? Address { get; set; }
 
         [Required(ErrorMessage = "Vui lòng nhập CMND/CCCD")]
+        [MinLength(12, ErrorMessage = "CCCD phải đủ 12 số")]
+        [MaxLength(12, ErrorMessage = "CCCD phải đủ 12 số")]
         public string? IdCardNumber { get; set; }
         public string? AcademicYear { get; set; }
 

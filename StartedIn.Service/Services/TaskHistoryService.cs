@@ -27,7 +27,8 @@ namespace StartedIn.Service.Services
 
         public async Task<PaginationDTO<TaskHistoryResponseDTO>> GetTaskHistoriesOfProject(string projectId, int page, int size)
         {
-            var taskHistories = await _taskHistoryRepository.QueryHelper().Filter(t => t.Task.ProjectId.Equals(projectId)).GetPagingAsync(page, size);
+            var taskHistories = await _taskHistoryRepository.QueryHelper().Filter(t => t.Task.ProjectId.Equals(projectId))
+                .OrderBy(t => t.OrderBy(t => t.CreatedTime)).GetPagingAsync(page, size);
             return new PaginationDTO<TaskHistoryResponseDTO>()
             {
                 Data = _mapper.Map<IEnumerable<TaskHistoryResponseDTO>>(taskHistories),
