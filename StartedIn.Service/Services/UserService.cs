@@ -350,7 +350,7 @@ namespace StartedIn.Service.Services
 
                 await _unitOfWork.SaveChangesAsync();
 
-                //await SendAccountCreationEmailsAsync(newUsers);
+                await SendAccountCreationEmailsAsync(newUsers);
 
                 await _unitOfWork.CommitAsync();
 
