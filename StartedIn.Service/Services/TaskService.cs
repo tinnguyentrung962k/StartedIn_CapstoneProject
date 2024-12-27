@@ -255,6 +255,13 @@ namespace StartedIn.Service.Services
                 {
                     throw new UnauthorizedProjectRoleException(MessageConstant.RolePermissionError);
                 }
+                if (updateTaskStatusDTO.Status == TaskEntityStatus.OPEN)
+                {
+                    if (chosenTask.Status != TaskEntityStatus.DONE)
+                    {
+                        throw new UpdateException(MessageConstant.CannotOpenTask);
+                    }
+                }
             }
 
             try

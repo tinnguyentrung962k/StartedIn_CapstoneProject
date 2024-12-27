@@ -11,8 +11,7 @@ namespace StartedIn.CrossCutting.Enum
         NOT_STARTED = 1,
         IN_PROGRESS = 2,
         PENDING = 3,
-        REVIEW = 4,
-        OPEN = 5,
-        DONE = 6
+        OPEN = 4,
+        DONE = 5
     }
 }

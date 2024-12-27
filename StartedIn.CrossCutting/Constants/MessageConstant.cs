@@ -141,5 +141,6 @@ namespace StartedIn.CrossCutting.Constants
             "Ngày kết thúc cuộc họp phải trùng với ngày họp, và thời gian kết thúc cuộc họp phải trễ hơn so với giờ bắt đầu.";
         public const string NotFoundLeaderTransfer = "Cuộc bổ nhiệm nhóm trưởng mới không tồn tại";
         public const string ExistProjectName = "Tên dự án đã tồn tại.";
+        public const string CannotOpenTask = "Bạn không thể mở lại task khi chưa hoàn thành.";
     }
 }
