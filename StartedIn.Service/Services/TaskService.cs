@@ -143,6 +143,11 @@ namespace StartedIn.Service.Services
                 throw new NotFoundException(MessageConstant.NotFoundTaskError);
             }
 
+            if (chosenTask.Status != TaskEntityStatus.NOT_STARTED && chosenTask.Status != TaskEntityStatus.OPEN)
+            {
+                throw new UpdateException(MessageConstant.CannotUpdateTaskInfoWhenStarted);
+            }
+
             try
             {
                 _unitOfWork.BeginTransaction();
@@ -270,14 +275,21 @@ namespace StartedIn.Service.Services
                 chosenTask.Status = updateTaskStatusDTO.Status;
                 chosenTask.LastUpdatedBy = userInProject.User.FullName;
                 chosenTask.LastUpdatedTime = DateTimeOffset.UtcNow;
+                // logic when task is done
                 if (updateTaskStatusDTO.Status == TaskEntityStatus.DONE)
                 {
                     chosenTask.ActualFinishAt = DateTimeOffset.UtcNow;
-                }
-                else 
+                    chosenTask.IsLate = false;
+                }   
+                // logic when task is reopen
+                if (updateTaskStatusDTO.Status == TaskEntityStatus.OPEN)
                 {
                     chosenTask.ActualFinishAt = null;
+                    chosenTask.IsLate = false;
+                    chosenTask.StartDate = null;
+                    chosenTask.EndDate = null;
                 }
+
                 TaskHistory history = new TaskHistory
                 {
                     Content = userInProject.User.FullName + "đã cập nhật trạng thái task " + chosenTask.Id,
