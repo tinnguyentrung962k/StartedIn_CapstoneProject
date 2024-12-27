@@ -67,6 +67,17 @@ public class ProjectApprovalService : IProjectApprovalService
                 throw new ExistedRecordException(MessageConstant.AcceptedApprovalExisted);
             }
         }
+
+        if (createProjectApprovalDto.CompanyIdNumber != null)
+        {
+            var project = await _projectRepository.QueryHelper()
+                .Filter(x => x.CompanyIdNumber.Equals(createProjectApprovalDto.CompanyIdNumber) && x.ProjectStatus != ProjectStatusEnum.CLOSED)
+                .GetOneAsync();
+            if (project != null) {
+                throw new ExistedRecordException(MessageConstant.CompanyIdNumberExisted);
+            }
+        }
+
         try
         {
             _unitOfWork.BeginTransaction();
