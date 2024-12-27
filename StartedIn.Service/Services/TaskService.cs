@@ -249,6 +249,13 @@ namespace StartedIn.Service.Services
             {
                 throw new NotFoundException(MessageConstant.NotFoundTaskError);
             }
+            if (updateTaskStatusDTO.Status == TaskEntityStatus.DONE || updateTaskStatusDTO.Status == TaskEntityStatus.OPEN)
+            {
+                if (userInProject.RoleInTeam != RoleInTeam.Leader)
+                {
+                    throw new UnauthorizedProjectRoleException(MessageConstant.RolePermissionError);
+                }
+            }
 
             try
             {
@@ -256,6 +263,14 @@ namespace StartedIn.Service.Services
                 chosenTask.Status = updateTaskStatusDTO.Status;
                 chosenTask.LastUpdatedBy = userInProject.User.FullName;
                 chosenTask.LastUpdatedTime = DateTimeOffset.UtcNow;
+                if (updateTaskStatusDTO.Status == TaskEntityStatus.DONE)
+                {
+                    chosenTask.ActualFinishAt = DateTimeOffset.UtcNow;
+                }
+                else 
+                {
+                    chosenTask.ActualFinishAt = null;
+                }
                 TaskHistory history = new TaskHistory
                 {
                     Content = userInProject.User.FullName + "đã cập nhật trạng thái task " + chosenTask.Id,
