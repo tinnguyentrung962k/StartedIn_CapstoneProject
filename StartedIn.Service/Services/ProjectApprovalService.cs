@@ -244,6 +244,11 @@ public class ProjectApprovalService : IProjectApprovalService
     public async Task<PaginationDTO<ProjectApprovalResponseDTO>> GetAllProjectApprovals(ProjectApprovalFilterDTO filter, int page, int size)
     {
         var projectApprovals = _projectApprovalRepository.GetProjectApprovalsQuery();
+        if (filter.ApprovalId != null)
+        {
+            projectApprovals = projectApprovals.Where(pa => pa.Id == filter.ApprovalId);
+        }
+
         if (filter.Status != null)
         {
             projectApprovals = projectApprovals.Where(pa => pa.Status == filter.Status);
