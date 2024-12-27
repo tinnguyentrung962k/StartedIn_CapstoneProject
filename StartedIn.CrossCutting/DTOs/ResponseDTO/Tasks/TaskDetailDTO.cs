@@ -20,6 +20,7 @@ namespace StartedIn.CrossCutting.DTOs.ResponseDTO.Tasks
         public TaskEntityStatus Status { get; set; }
         public DateTimeOffset? StartDate { get; set; }
         public DateTimeOffset? EndDate { get; set; }
+        public DateTimeOffset? ActualFinishAt { get; set; }
         public int ExpectedManHour { get; set; }
         public float ActualManHour { get; set; }
         public TaskResponseDTO ParentTask { get; set; }
