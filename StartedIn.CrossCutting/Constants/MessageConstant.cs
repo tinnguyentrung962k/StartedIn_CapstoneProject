@@ -19,6 +19,7 @@ namespace StartedIn.CrossCutting.Constants
         public const string UserNotBelongContractError = "Người dùng không thuộc hợp đồng.";
         public const string NotFoundMilestoneError = "Không tìm thấy cột mốc.";
         public const string NotFoundTaskError = "Không tìm thấy công việc.";
+        public const string CannotUpdateTaskInfoWhenStarted = "Không thể cập nhật thông tin công việc khi công việc đã bắt đầu.";
         public const string NotFoundParentTaskError = "Không tìm thấy công việc mẹ.";
         public const string AssignParentTaskToSubTaskError = "Không thể gán công việc mẹ cho công việc con.";
         public const string AssignParentTaskToSelfError = "Không thể gán công việc mẹ cho chính nó.";

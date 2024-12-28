@@ -11,6 +11,7 @@ namespace StartedIn.CrossCutting.DTOs.RequestDTO.Tasks
         public DateTimeOffset? EndDate { get; set; }
         public string[] Assignees { get; set; }
         public int? ManHour { get; set; }
+        public int? Priority { get; set; }
         public string? Milestone { get; set; }
         public string? ParentTask { get; set; }
     }

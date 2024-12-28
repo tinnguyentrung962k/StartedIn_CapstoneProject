@@ -9,4 +9,7 @@ public class TaskFilterDTO
     public bool? IsLate { get; set; }
     public string? AssigneeId { get; set; }
     public string? MilestoneId { get; set; }
+    public DateTimeOffset? StartDate { get; set; }
+    public DateTimeOffset? EndDate { get; set; }
+    public bool? Priority { get; set; }
 }
