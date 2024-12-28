@@ -136,6 +136,14 @@ namespace StartedIn.Service.Services
             {
                 throw new NotFoundException(MessageConstant.NotFoundAppointment);
             }
+            if (status == MeetingStatus.Ongoing)
+            {
+                appointment.AppointmentTime = DateTimeOffset.UtcNow;
+            }
+            if (status == MeetingStatus.Finished)
+            {
+                appointment.AppointmentEndTime = DateTimeOffset.UtcNow;
+            }
             if (status == MeetingStatus.Cancelled)
             {
                 var transferRequest = await _transfersLeaderRequestRepository.GetLeaderTransferRequestPending(projectId);
@@ -210,7 +218,7 @@ namespace StartedIn.Service.Services
                 throw new UnauthorizedProjectRoleException(MessageConstant.RolePermissionError);
             }
             
-            var project = await _projectRepository.QueryHelper().Filter(p => p.Id.Equals(projectId)).GetOneAsync();
+            var project = await _projectRepository.GetProjectById(projectId);
             if (!IsValidAppointmentLink(appointmentCreateDTO.MeetingLink))
             {
                 throw new InvalidLinkException(MessageConstant.InvalidLink);
