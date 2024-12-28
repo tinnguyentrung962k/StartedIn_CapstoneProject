@@ -136,6 +136,14 @@ namespace StartedIn.Service.Services
             {
                 throw new NotFoundException(MessageConstant.NotFoundAppointment);
             }
+            if (status == MeetingStatus.Ongoing)
+            {
+                appointment.AppointmentTime = DateTimeOffset.UtcNow;
+            }
+            if (status == MeetingStatus.Finished)
+            {
+                appointment.AppointmentEndTime = DateTimeOffset.UtcNow;
+            }
             if (status == MeetingStatus.Cancelled)
             {
                 var transferRequest = await _transfersLeaderRequestRepository.GetLeaderTransferRequestPending(projectId);
