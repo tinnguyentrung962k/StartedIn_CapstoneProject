@@ -217,7 +217,7 @@ namespace StartedIn.Service.Services
             }
         }
         
-        public async Task<Contract> CreateStartupShareAllMemberContract(string userId, string projectId,GroupContractCreateDTO groupContractCreateDTO)
+        public async Task<Contract> CreateStartupShareAllMemberContract(string userId, string projectId, GroupContractCreateDTO groupContractCreateDTO)
         {
             var userInProject = await _userService.CheckIfUserInProject(userId, projectId);
             var projectRole = await _projectRepository.GetUserRoleInProject(userId, projectId);
@@ -237,6 +237,10 @@ namespace StartedIn.Service.Services
             if (groupContractCreateDTO.ShareEquitiesOfMembers == null)
             {
                 throw new InvalidDataException(MessageConstant.ShareDistributionListEmptyInContract);
+            }
+            if (groupContractCreateDTO.ShareEquitiesOfMembers.Count() < 2)
+            {
+                throw new InvalidDataException(MessageConstant.ShareDistributionMustBeFrom2Member);
             }
             var project = await _projectRepository.GetProjectById(projectId);
             var totalShareOfDistribution = groupContractCreateDTO.ShareEquitiesOfMembers.Sum(d => d.Percentage);
