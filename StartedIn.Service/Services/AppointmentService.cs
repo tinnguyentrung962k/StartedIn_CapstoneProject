@@ -210,7 +210,7 @@ namespace StartedIn.Service.Services
                 throw new UnauthorizedProjectRoleException(MessageConstant.RolePermissionError);
             }
             
-            var project = await _projectRepository.QueryHelper().Filter(p => p.Id.Equals(projectId)).GetOneAsync();
+            var project = await _projectRepository.GetProjectById(projectId);
             if (!IsValidAppointmentLink(appointmentCreateDTO.MeetingLink))
             {
                 throw new InvalidLinkException(MessageConstant.InvalidLink);
