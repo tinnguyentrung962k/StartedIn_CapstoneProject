@@ -73,6 +73,7 @@ namespace StartedIn.Service.Services
                 EndDate = taskCreateDto.EndDate,
                 Status = TaskEntityStatus.NOT_STARTED,
                 ManHour = taskCreateDto.ManHour ?? 0,
+                Priority = taskCreateDto.Priority ?? 0,
                 IsLate = false,
                 ProjectId = projectId,
                 CreatedBy = userInProject.User.FullName,
@@ -143,6 +144,11 @@ namespace StartedIn.Service.Services
                 throw new NotFoundException(MessageConstant.NotFoundTaskError);
             }
 
+            if (chosenTask.Status != TaskEntityStatus.NOT_STARTED && chosenTask.Status != TaskEntityStatus.OPEN)
+            {
+                throw new UpdateException(MessageConstant.CannotUpdateTaskInfoWhenStarted);
+            }
+
             try
             {
                 _unitOfWork.BeginTransaction();
@@ -153,6 +159,7 @@ namespace StartedIn.Service.Services
                 chosenTask.ManHour = updateTaskInfoDTO.ManHour ?? 0;
                 chosenTask.LastUpdatedTime = DateTimeOffset.UtcNow;
                 chosenTask.LastUpdatedBy = userInProject.User.FullName;
+                chosenTask.Priority = updateTaskInfoDTO.Priority;
                 TaskHistory history = new TaskHistory
                 {
                     Content = $"{userInProject.User.FullName} đã cập nhật thông tin task {chosenTask.Id}",
@@ -202,6 +209,34 @@ namespace StartedIn.Service.Services
             if (!string.IsNullOrWhiteSpace(taskFilterDto.MilestoneId))
             {
                 filterTasks = filterTasks.Where(t => t.MilestoneId == taskFilterDto.MilestoneId);
+            }
+
+            // filter tasks by create tim between start date and end date
+            // if start date is null, filter tasks by create time before end date and vice versa
+            if (taskFilterDto.StartDate != null && taskFilterDto.EndDate != null) 
+            {
+                filterTasks = filterTasks.Where(t => t.CreatedTime >= taskFilterDto.StartDate && t.CreatedTime <= taskFilterDto.EndDate);
+            }
+            if (taskFilterDto.StartDate != null)
+            {
+                filterTasks = filterTasks.Where(t => t.CreatedTime >= taskFilterDto.StartDate);
+            }
+            if (taskFilterDto.EndDate != null)
+            {
+                filterTasks = filterTasks.Where(t => t.CreatedTime <= taskFilterDto.EndDate);
+            }
+
+            // order tasks by priority descending
+            if (taskFilterDto.Priority != null)
+            {
+                if ((bool)taskFilterDto.Priority)
+                {
+                    filterTasks = filterTasks.OrderByDescending(t => t.Priority);
+                }
+                else
+                {
+                    filterTasks = filterTasks.OrderBy(t => t.Priority);
+                }
             }
 
             int totalCount = await filterTasks.CountAsync();
@@ -270,14 +305,21 @@ namespace StartedIn.Service.Services
                 chosenTask.Status = updateTaskStatusDTO.Status;
                 chosenTask.LastUpdatedBy = userInProject.User.FullName;
                 chosenTask.LastUpdatedTime = DateTimeOffset.UtcNow;
+                // logic when task is done
                 if (updateTaskStatusDTO.Status == TaskEntityStatus.DONE)
                 {
                     chosenTask.ActualFinishAt = DateTimeOffset.UtcNow;
-                }
-                else 
+                    chosenTask.IsLate = false;
+                }   
+                // logic when task is reopen
+                if (updateTaskStatusDTO.Status == TaskEntityStatus.OPEN)
                 {
                     chosenTask.ActualFinishAt = null;
+                    chosenTask.IsLate = false;
+                    chosenTask.StartDate = null;
+                    chosenTask.EndDate = null;
                 }
+
                 TaskHistory history = new TaskHistory
                 {
                     Content = userInProject.User.FullName + "đã cập nhật trạng thái task " + chosenTask.Id,

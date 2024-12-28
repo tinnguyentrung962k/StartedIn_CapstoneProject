@@ -21,7 +21,8 @@ namespace StartedIn.CrossCutting.DTOs.ResponseDTO.Tasks
         public DateTimeOffset? StartDate { get; set; }
         public DateTimeOffset? EndDate { get; set; }
         public DateTimeOffset? ActualFinishAt { get; set; }
-        public int ExpectedManHour { get; set; }
+        public int? ExpectedManHour { get; set; }
+        public int? Priority { get; set; }
         public float ActualManHour { get; set; }
         public TaskResponseDTO ParentTask { get; set; }
         public MilestoneResponseDTO Milestone { get; set; }

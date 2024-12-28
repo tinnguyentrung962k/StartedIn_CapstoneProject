@@ -20,6 +20,7 @@ public class TaskEntity : BaseAuditEntity<string>
     public TaskEntityStatus Status { get; set; }
     public bool IsLate { get; set; }
     public int ManHour { get; set; } = 0;
+    public int? Priority { get; set; }
     public DateTimeOffset? ActualFinishAt { get; set; }
     public DateTimeOffset? StartDate { get; set; }
     public DateTimeOffset? EndDate { get; set; }
