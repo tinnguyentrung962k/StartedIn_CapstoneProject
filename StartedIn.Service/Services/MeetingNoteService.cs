@@ -68,17 +68,17 @@ public class MeetingNoteService : IMeetingNoteService
                 listResponse.Add(meetingNoteEntity);
             }
 
-            string prefix = "BBCH";
-            string currentDateTime = DateTimeOffset.UtcNow.AddHours(7).ToString("ddMMyyyyHHmm");
-            string zipFileName = $"{prefix}_{project.ProjectName}_{currentDateTime}.zip";
-            
-            var zipUrl = await _azureBlobService.ZipAndUploadAsyncForMeetingNotes(uploadMeetingNoteDto.Notes, zipFileName); var meetingNoteZip = new MeetingNote
-            { 
-                AppointmentId = appointmentId, 
-                MeetingNoteLink = zipUrl,
-                FileName = zipFileName
-            };
-            var zipEntity = _meetingNoteRepository.Add(meetingNoteZip);
+            // string prefix = "BBCH";
+            // string currentDateTime = DateTimeOffset.UtcNow.AddHours(7).ToString("ddMMyyyyHHmm");
+            // string zipFileName = $"{prefix}_{project.ProjectName}_{currentDateTime}.zip";
+            //
+            // var zipUrl = await _azureBlobService.ZipAndUploadAsyncForMeetingNotes(uploadMeetingNoteDto.Notes, zipFileName); var meetingNoteZip = new MeetingNote
+            // { 
+            //     AppointmentId = appointmentId, 
+            //     MeetingNoteLink = zipUrl,
+            //     FileName = zipFileName
+            // };
+            // var zipEntity = _meetingNoteRepository.Add(meetingNoteZip);
             await _unitOfWork.SaveChangesAsync();
             await _unitOfWork.CommitAsync();
             return listResponse;
@@ -116,7 +116,6 @@ public class MeetingNoteService : IMeetingNoteService
         }
         var meetingNotes = await _meetingNoteRepository.QueryHelper()
             .Filter(mn => mn.AppointmentId.Equals(appointmentId))
-            .Filter(mn => !mn.FileName.Contains("zip"))
             .GetAllAsync();
         if (meetingNotes == null)
         {
