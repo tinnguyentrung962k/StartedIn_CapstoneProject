@@ -13,6 +13,8 @@ namespace StartedIn.CrossCutting.DTOs.ResponseDTO.Project
         public string? CurrentBudget { get; set; }
         public string? InAmount { get; set; }
         public string? OutAmount { get; set; }
+        public string? TotalProfit { get; set; }
+        public string? MonthProfit { get; set; }
         public string? RemainingDisbursement { get; set; }
         public string? DisbursedAmount { get; set; }
         public string? ShareEquityPercentage { get; set; }
