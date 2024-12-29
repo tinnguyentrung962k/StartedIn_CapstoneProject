@@ -68,16 +68,6 @@ public class ProjectApprovalService : IProjectApprovalService
             }
         }
 
-        if (createProjectApprovalDto.CompanyIdNumber != null)
-        {
-            var project = await _projectRepository.QueryHelper()
-                .Filter(x => x.CompanyIdNumber.Equals(createProjectApprovalDto.CompanyIdNumber) && x.ProjectStatus != ProjectStatusEnum.CLOSED)
-                .GetOneAsync();
-            if (project != null) {
-                throw new ExistedRecordException(MessageConstant.CompanyIdNumberExisted);
-            }
-        }
-
         try
         {
             _unitOfWork.BeginTransaction();
@@ -90,11 +80,7 @@ public class ProjectApprovalService : IProjectApprovalService
                 Status = ProjectApprovalStatus.PENDING
             };
             var entity = _projectApprovalRepository.Add(projectApproval);
-            if (!string.IsNullOrWhiteSpace(createProjectApprovalDto.CompanyIdNumber))
-            {
-                userProject.Project.CompanyIdNumber = createProjectApprovalDto.CompanyIdNumber;
-                _projectRepository.Update(userProject.Project);
-            }
+
             var newInvestmentCall = new InvestmentCall
             {
                 AmountRaised = 0,
@@ -131,7 +117,6 @@ public class ProjectApprovalService : IProjectApprovalService
             response.EndDate = newInvestmentCallEntity.EndDate;
             response.EquityShareCall = newInvestmentCallEntity.EquityShareCall.ToString();
             response.TargetCall = newInvestmentCallEntity.TargetCall.ToString();
-            response.CompanyIdNumber = userProject.Project.CompanyIdNumber;
             await _unitOfWork.CommitAsync();
             await _unitOfWork.SaveChangesAsync();
             return response;
@@ -167,7 +152,6 @@ public class ProjectApprovalService : IProjectApprovalService
             approvalItem.TargetCall = investmentCall.TargetCall.ToString();
             approvalItem.EquityShareCall = investmentCall.EquityShareCall.ToString();
             approvalItem.EndDate = investmentCall.EndDate;
-            approvalItem.CompanyIdNumber = userProject.Project.CompanyIdNumber;
         }
 
         return response;
@@ -274,7 +258,6 @@ public class ProjectApprovalService : IProjectApprovalService
             pagedResult.TargetCall = investmentCall.TargetCall.ToString();
             pagedResult.EndDate = investmentCall.EndDate;
             var project = await _projectRepository.GetOneAsync(pagedResult.ProjectId);
-            pagedResult.CompanyIdNumber = project.CompanyIdNumber;
         }
 
         var pagination = new PaginationDTO<ProjectApprovalResponseDTO>()
@@ -307,7 +290,6 @@ public class ProjectApprovalService : IProjectApprovalService
         response.EquityShareCall = investmentCall.EquityShareCall.ToString();
         response.TargetCall = investmentCall.TargetCall.ToString();
         response.EndDate = investmentCall.EndDate;
-        response.CompanyIdNumber = userProject.Project.CompanyIdNumber;
         return response;
     }
 
@@ -324,7 +306,6 @@ public class ProjectApprovalService : IProjectApprovalService
         response.EquityShareCall = investmentCall.EquityShareCall.ToString();
         response.TargetCall = investmentCall.TargetCall.ToString();
         response.EndDate = investmentCall.EndDate;
-        response.CompanyIdNumber = approval.Project.CompanyIdNumber;
         return response;
     }
 }

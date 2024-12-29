@@ -489,7 +489,6 @@ namespace StartedIn.Service.Services
                 { "CMNDNDT", investor.IdCardNumber },
                 { "DCNDT", investor.Address },
                 { "TENDUAN", project.ProjectName },
-                { "MASOTHUE", project.CompanyIdNumber },
                 { "SDTCDA", leader.PhoneNumber },
                 { "CHUDUAN", leader.FullName },
                 { "CMNDCDA", leader.IdCardNumber },

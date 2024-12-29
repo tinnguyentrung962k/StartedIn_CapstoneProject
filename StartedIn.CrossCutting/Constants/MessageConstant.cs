@@ -143,7 +143,6 @@ namespace StartedIn.CrossCutting.Constants
         public const string NotFoundLeaderTransfer = "Cuộc bổ nhiệm nhóm trưởng mới không tồn tại";
         public const string ExistProjectName = "Tên dự án đã tồn tại.";
         public const string CannotOpenTask = "Bạn không thể mở lại task khi chưa hoàn thành.";
-        public const string CompanyIdNumberExisted = "Mã số doanh nghiệp đã tồn tại trong hệ thống";
         public const string ShareDistributionMustBeFrom2Member = "Hợp đồng phải có từ 2 bên tham gia trở lên";
     }
 }

@@ -477,7 +477,6 @@ namespace StartedIn.API.Configuration.AutoMapper
                 .ForMember(dest => dest.LeaderName,
                     opt => opt.MapFrom(src =>src.CreatedBy))
                 .ForMember(dest => dest.ProjectName, opt => opt.MapFrom(src => src.Project.ProjectName))
-                .ForMember(dest => dest.CompanyIdNumber, opt => opt.MapFrom(src => src.Project.CompanyIdNumber))
                 .ForMember(dest => dest.SentDate, opt => opt.MapFrom(src => src.CreatedTime))
                 .ForMember(dest => dest.ApprovalDate, opt => opt.MapFrom(src => src.LastUpdatedTime))
                 .ForMember(dest => dest.Documents, opt => opt.MapFrom(src => src.Documents))

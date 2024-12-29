@@ -7,7 +7,6 @@ namespace StartedIn.CrossCutting.DTOs.ResponseDTO.ProjectApproval;
 
 public class ProjectApprovalResponseDTO : IdentityResponseDTO
 {
-    public string? CompanyIdNumber { get; set; }
     public string LeaderName { get; set; }
     public string ProjectId { get; set; }
     public string ProjectName { get; set; }

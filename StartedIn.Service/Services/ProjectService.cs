@@ -96,7 +96,7 @@ public class ProjectService : IProjectService
         var createdProject = await _projectRepository
              .QueryHelper()
              .Include(x => x.UserProjects)
-             .Filter(p => p.UserProjects.Any(up => up.UserId == userId && up.RoleInTeam == RoleInTeam.Leader))
+             .Filter(p => p.UserProjects.Any(up => up.UserId == userId && up.RoleInTeam == RoleInTeam.Leader && up.Status == UserStatusInProject.Active))
              .GetOneAsync();
         var existingProject = await _projectRepository.QueryHelper()
             .Filter(p => p.ProjectName.ToLower().Contains(projectCreateDTO.ProjectName.ToLower())).GetOneAsync();

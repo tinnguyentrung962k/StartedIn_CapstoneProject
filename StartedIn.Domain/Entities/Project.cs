@@ -20,7 +20,6 @@ public class Project : BaseAuditEntity<string>
     public DateOnly? EndDate { get; set; }
     public string? ProjectDetailPost { get; set; }
     public string? ActiveCallId { get; set; }
-    public string? CompanyIdNumber { get; set; }
     public string? HarshClientIdPayOsKey { get; set; }
     public string? HarshPayOsApiKey { get; set; }
     public string? HarshChecksumPayOsKey { get; set; }  
