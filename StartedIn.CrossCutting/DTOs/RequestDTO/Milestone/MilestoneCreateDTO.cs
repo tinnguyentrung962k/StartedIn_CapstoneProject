@@ -8,9 +8,8 @@ namespace StartedIn.CrossCutting.DTOs.RequestDTO.Milestone
     {
         [Required(ErrorMessage = "Vui lòng nhập tên cột mốc")]
         public string Title { get; set; }
-
-        public string? Description { get; set; }
-
+        [Required(ErrorMessage = "Vui lòng nhập mô tả")]
+        public string Description { get; set; }
         [Required]
         public DateTime StartDate { get; set; }
         [Required]

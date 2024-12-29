@@ -333,7 +333,7 @@ namespace StartedIn.API.Controllers
                 await _taskService.DeleteTask(userId, taskId, projectId);
                 var payload = new PayloadDTO<TaskResponseDTO>
                 {
-                    Data = new TaskResponseDTO { Id = taskId },
+                    Data = new TaskResponseDTO { Id = taskId, ExpectedManHour = 0, IsLate = false, Priority = 0 },
                     Action = PayloadActionConstant.Delete
                 };
                 await _projectHub.SendTaskDataToUsersInProject(projectId, payload);

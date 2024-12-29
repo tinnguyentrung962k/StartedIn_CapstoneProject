@@ -108,7 +108,7 @@ namespace StartedIn.API.Hubs
             }
         }
 
-        public async Task SendMilestoneDataToUsersInProject(string projectId, PayloadDTO<MilestoneDetailsResponseDTO> payload)
+        public async Task SendMilestoneDataToUsersInProject(string projectId, PayloadDTO<MilestoneResponseDTO> payload)
         {
             if (projectList.ContainsKey(projectId))
             {
