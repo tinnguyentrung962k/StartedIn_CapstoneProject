@@ -9,6 +9,7 @@ using StartedIn.CrossCutting.DTOs.RequestDTO.Asset;
 using StartedIn.CrossCutting.DTOs.RequestDTO.Transaction;
 using StartedIn.CrossCutting.DTOs.ResponseDTO;
 using StartedIn.CrossCutting.DTOs.ResponseDTO.Asset;
+using StartedIn.CrossCutting.DTOs.ResponseDTO.Transaction;
 using StartedIn.CrossCutting.Enum;
 using StartedIn.CrossCutting.Exceptions;
 using StartedIn.Domain.Entities;
@@ -95,7 +96,7 @@ namespace StartedIn.Service.Services
             }
         }
 
-        public async Task<Asset> GetAssetDetailById(string userId, string projectId, string assetId)
+        public async Task<AssetResponseDTO> GetAssetDetailById(string userId, string projectId, string assetId)
         {
             var userInProject = await _userService.CheckIfUserInProject(userId, projectId); 
             var asset = await _assetRepository.GetAssetDetailById(assetId);
@@ -107,7 +108,19 @@ namespace StartedIn.Service.Services
             {
                 throw new UnmatchedException(MessageConstant.AssetNotBelongToProject);
             }
-            return asset;
+            var transactionsOfAsset = await _transactionRepository.QueryHelper().Filter(x=>x.AssetId.Equals(assetId)).GetAllAsync();
+            var assetResponse = _mapper.Map<AssetResponseDTO>(asset);
+            var transactionListOfAsset = new List<Transaction>();
+            if (asset.Transaction != null)
+            {
+                transactionListOfAsset.Add(asset.Transaction);
+            }
+            foreach (var transaction in transactionsOfAsset) 
+            {
+                transactionListOfAsset.Add(transaction);
+            }
+            assetResponse.Transactions = _mapper.Map<List<TransactionDetailInAssetDTO>>(transactionListOfAsset);
+            return assetResponse;
         }
         public async Task<PaginationDTO<AssetResponseDTO>> FilterAssetInAProject(string userId, string projectId, int page, int size, AssetFilterDTO assetFilterDTO)
         {
@@ -282,7 +295,8 @@ namespace StartedIn.Service.Services
                     FromID = userInProject.User.Id,
                     FromName = userInProject.User.FullName,
                     Type = TransactionType.AssetLiquidation,
-                    FinanceId = project.Finance.Id
+                    FinanceId = project.Finance.Id,
+                    AssetId = chosenAsset.Id
                 };
                 if (assetLiquidatingDTO.ToId != null)
                 {

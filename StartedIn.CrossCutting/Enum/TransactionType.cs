@@ -10,7 +10,7 @@ namespace StartedIn.CrossCutting.Enum
     {
         Disbursement = 1,
         AssetExpense = 2,
-        Other = 3,
-        AssetLiquidation = 4
+        AssetLiquidation = 3,
+        Other = 4
     }
 }

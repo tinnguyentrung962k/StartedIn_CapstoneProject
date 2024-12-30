@@ -12,7 +12,7 @@ namespace StartedIn.Service.Services.Interface
 {
     public interface IAssetService
     {
-        Task<Asset> GetAssetDetailById(string userId, string projectId, string assetId);
+        Task<AssetResponseDTO> GetAssetDetailById(string userId, string projectId, string assetId);
         Task<Asset> AddNewAssetToProject(string userId, string projectId, AssetCreateDTO assetCreateDTO);
         Task<PaginationDTO<AssetResponseDTO>> FilterAssetInAProject(string userId, string projectId, int page, int size, AssetFilterDTO assetFilterDTO);
         Task DeleteAsset(string userId, string projectId, string assetId);

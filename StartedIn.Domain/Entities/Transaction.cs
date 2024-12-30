@@ -25,6 +25,7 @@ namespace StartedIn.Domain.Entities
         public string? FromName { get; set; }
         public string? ToName { get; set; }
         public TransactionType Type { get; set; }
+        public string? AssetId { get; set; } 
         public bool IsInFlow { get; set; }
         [MaxLength(500)]
         public string Content { get; set; }

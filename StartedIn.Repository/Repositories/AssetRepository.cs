@@ -19,6 +19,7 @@ namespace StartedIn.Repository.Repositories
         public async Task<Asset> GetAssetDetailById(string assetId)
         {
             var asset = await _dbSet.Where(x => x.Id.Equals(assetId))
+                .Include(x=>x.Transaction)
                 .FirstOrDefaultAsync();
             return asset;
         }

@@ -86,8 +86,7 @@ namespace StartedIn.API.Controllers
             {
                 var userId = User.FindFirst(ClaimTypes.NameIdentifier).Value;
                 var asset = await _assetService.GetAssetDetailById(userId, projectId, assetId);
-                var response = _mapper.Map<AssetResponseDTO>(asset);
-                return Ok(response);
+                return Ok(asset);
             }
             catch (UnauthorizedProjectRoleException ex)
             {

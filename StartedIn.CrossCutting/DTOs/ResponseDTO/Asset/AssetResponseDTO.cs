@@ -1,4 +1,5 @@
 ﻿using StartedIn.CrossCutting.DTOs.BaseDTO;
+using StartedIn.CrossCutting.DTOs.ResponseDTO.Transaction;
 using StartedIn.CrossCutting.Enum;
 using System;
 using System.Collections.Generic;
@@ -19,5 +20,6 @@ namespace StartedIn.CrossCutting.DTOs.ResponseDTO.Asset
         public string SerialNumber { get; set; }
         public int? RemainQuantity { get; set; }
         public string? TransactionId { get; set; }
+        public List<TransactionDetailInAssetDTO>? Transactions { get; set; }
     }
 }
