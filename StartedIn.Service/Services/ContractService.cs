@@ -1263,7 +1263,7 @@ namespace StartedIn.Service.Services
             try
             {
                 _unitOfWork.BeginTransaction();
-                if (request.FromId != userId || chosenContract.ContractType == ContractTypeEnum.INVESTMENT) 
+                if (request.FromId != userId) 
                 {
                     string prefix = "GTL";
                     string currentDateTime = DateTimeOffset.UtcNow.AddHours(7).ToString("ddMMyyyyHHmm"); ;
@@ -1298,6 +1298,64 @@ namespace StartedIn.Service.Services
                     };
 
                     List<UserContract> usersInContract = new List<UserContract> { leaderInLiquidationNote, requestParty };
+
+                    liquidationNote.UserContracts = usersInContract;
+                    var liquidationEntity = _contractRepository.Add(liquidationNote);
+
+                    chosenContract.LiquidationNoteId = liquidationEntity.Id;
+                    chosenContract.LastUpdatedBy = userInProject.User.FullName;
+                    chosenContract.LastUpdatedTime = DateTimeOffset.UtcNow;
+                    _contractRepository.Update(chosenContract);
+
+                    var signingMethod = await _appSettingManager.GetSettingAsync("SignatureType");
+                    if (signingMethod == SettingsValue.InternalApp)
+                    {
+                        liquidationNote.AzureLink = await _azureBlobService.UploadLiquidationNote(uploadFile);
+                    }
+                    if (signingMethod == SettingsValue.SignNow)
+                    {
+                        await _signNowService.AuthenticateAsync();
+                        liquidationNote.SignNowDocumentId = await _signNowService.UploadDocumentAsync(uploadFile);
+                    }
+                    await _unitOfWork.SaveChangesAsync();
+                    await _unitOfWork.CommitAsync();
+                    return liquidationEntity;
+                }
+
+                if (chosenContract.ContractType == ContractTypeEnum.INVESTMENT)
+                {
+                    string prefix = "GTL";
+                    string currentDateTime = DateTimeOffset.UtcNow.AddHours(7).ToString("ddMMyyyyHHmm"); ;
+                    string contractIdNumberGen = $"{prefix}-{currentDateTime}";
+                    Contract liquidationNote = new Contract
+                    {
+                        ContractName = $"Biên bản thanh lý cho hợp đồng {chosenContract.ContractIdNumber}",
+                        ContractPolicy = $"Thanh lý cho hợp đồng {chosenContract.ContractIdNumber}",
+                        ContractType = ContractTypeEnum.LIQUIDATIONNOTE,
+                        CreatedBy = userInProject.User.FullName,
+                        ProjectId = projectId,
+                        ContractStatus = ContractStatusEnum.DRAFT,
+                        ContractIdNumber = contractIdNumberGen,
+                        ParentContractId = chosenContract.Id,
+                        ParentContract = chosenContract.ParentContract,
+                    };
+
+                    List<UserContract> usersInContract = new List<UserContract>();
+
+                    foreach (var userParty in chosenContract.UserContracts)
+                    {
+                        UserContract userInLiquidation = new UserContract
+                        {
+                            Contract = liquidationNote,
+                            ContractId = liquidationNote.Id,
+                            UserId = userParty.UserId,
+                            User = userParty.User,
+                            Role = userParty.UserId == userInProject.UserId ? RoleInContract.CREATOR : RoleInContract.SIGNER
+                        };
+                        usersInContract.Add(userInLiquidation);
+                    }
+
+                   
 
                     liquidationNote.UserContracts = usersInContract;
                     var liquidationEntity = _contractRepository.Add(liquidationNote);
@@ -1550,7 +1608,8 @@ namespace StartedIn.Service.Services
                     Title = terminationMeetingCreateDTO.Title,
                     Status = CrossCutting.Enum.MeetingStatus.Proposed,
                     ProjectId = projectId,
-                    Project = userInProject.Project
+                    Project = userInProject.Project,
+                    ContractId = contractId
                 };
 
                 var newMeeting = _appointmentRepository.Add(appointment);
