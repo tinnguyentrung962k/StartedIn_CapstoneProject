@@ -9,5 +9,6 @@ namespace StartedIn.CrossCutting.DTOs.RequestDTO.Contract
 
         //[Required(ErrorMessage = "Vui lòng điền các điều khoản khác")]
         public string ContractPolicy { get; set; } = string.Empty;
+        public DateOnly? ExpiredDate { get; set; }
     }
 }

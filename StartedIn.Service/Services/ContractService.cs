@@ -143,7 +143,8 @@ namespace StartedIn.Service.Services
                     CreatedBy = userInProject.User.FullName,
                     ProjectId = projectId,
                     ContractStatus = ContractStatusEnum.DRAFT,
-                    ContractIdNumber = contractIdNumberGen
+                    ContractIdNumber = contractIdNumberGen,
+                    ExpiredDate = investmentContractCreateDTO.Contract.ExpiredDate
                 };
                 List<UserContract> usersInContract = new List<UserContract>();
                 List<User> chosenUsersList = new List<User> { investor, leader };
@@ -284,7 +285,8 @@ namespace StartedIn.Service.Services
                     CreatedBy = userInProject.User.FullName,
                     ProjectId = projectId,
                     ContractStatus = ContractStatusEnum.DRAFT,
-                    ContractIdNumber = contractIdNumberGen
+                    ContractIdNumber = contractIdNumberGen,
+                    ExpiredDate = groupContractCreateDTO.Contract.ExpiredDate
                 };
 
                 List<UserContract> usersInContract = new List<UserContract>();
@@ -417,7 +419,8 @@ namespace StartedIn.Service.Services
                     ContractStatus = ContractStatusEnum.DRAFT,
                     ContractIdNumber = contractIdNumberGen,
                     DealOffer = chosenDeal,
-                    DealOfferId = chosenDeal.Id
+                    DealOfferId = chosenDeal.Id,
+                    ExpiredDate = investmentContractFromDealCreateDTO.Contract.ExpiredDate
                 };
                 List<UserContract> usersInContract = new List<UserContract>();
                 List<User> chosenUsersList = new List<User> { investor, leader };
@@ -948,6 +951,7 @@ namespace StartedIn.Service.Services
                 contract.ContractPolicy = investmentContractUpdateDTO.Contract.ContractPolicy;
                 contract.LastUpdatedTime = DateTimeOffset.UtcNow;
                 contract.LastUpdatedBy = userInProject.User.FullName;
+                contract.ExpiredDate = investmentContractUpdateDTO.Contract.ExpiredDate;
 
                 // Update or add ShareEquity details
                 var investor = await _userManager.FindByIdAsync(investmentContractUpdateDTO.InvestorInfo.UserId);
@@ -1072,6 +1076,7 @@ namespace StartedIn.Service.Services
                 contract.ContractPolicy = groupContractUpdateDTO.Contract.ContractPolicy;
                 contract.LastUpdatedTime = DateTimeOffset.UtcNow;
                 contract.LastUpdatedBy = userInProject.User.FullName;
+                contract.ExpiredDate = groupContractUpdateDTO.Contract.ExpiredDate;
 
                 var existingShareEquitiesOfMembers = contract.ShareEquities;
                 foreach (var existingShareEquity in existingShareEquitiesOfMembers)
