@@ -1263,7 +1263,7 @@ namespace StartedIn.Service.Services
             try
             {
                 _unitOfWork.BeginTransaction();
-                if (request.FromId != userId) 
+                if (request.FromId != userId || chosenContract.ContractType == ContractTypeEnum.INVESTMENT) 
                 {
                     string prefix = "GTL";
                     string currentDateTime = DateTimeOffset.UtcNow.AddHours(7).ToString("ddMMyyyyHHmm"); ;
