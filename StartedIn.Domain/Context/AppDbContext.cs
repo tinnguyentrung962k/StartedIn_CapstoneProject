@@ -45,7 +45,6 @@ namespace StartedIn.Domain.Context
         public DbSet<UserTask> UserTasks { get; set; }
         public DbSet<Appointment> Appointments { get; set; }
         public DbSet<Document> Documents { get; set; }
-        public DbSet<DocumentComment> DocumentComments { get; set; }
         public DbSet<MeetingNote> MeetingNotes { get; set; }
         public DbSet<Finance> Finances { get; set; }
         public DbSet<Transaction> Transactions { get; set; }
@@ -181,8 +180,6 @@ namespace StartedIn.Domain.Context
                 v => (LeavingRequestStatus)Enum.Parse(typeof(LeavingRequestStatus), v));
             modelBuilder.Entity<Document>()
                 .ToTable("Document");
-            modelBuilder.Entity<DocumentComment>()
-                .ToTable("DocumentComment");
             modelBuilder.Entity<MeetingNote>()
                 .ToTable("MeetingNote");
             modelBuilder.Entity<DealOffer>()

@@ -157,6 +157,7 @@ namespace StartedIn.Service.Services
                     ProjectId = projectId,
                     Project = userInProject.Project,
                     TerminationRequestId = requestId,
+                    ContractId = request.Contract.Id,
                 };
                 var newMeeting = _appointmentRepository.Add(appointment);
                 request.IsAgreed = true;
