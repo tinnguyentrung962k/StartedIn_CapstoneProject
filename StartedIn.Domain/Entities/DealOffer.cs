@@ -24,7 +24,7 @@ namespace StartedIn.Domain.Entities
         [Column(TypeName = "decimal(5,2)")]
         public decimal EquityShareOffer { get; set; }
 
-        [MaxLength(500)]
+        [MaxLength(4000)]
         public string? TermCondition { get; set; }
         public DealStatusEnum DealStatus { get; set; }
         [ForeignKey(nameof(InvestmentCall))]
