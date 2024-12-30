@@ -1158,6 +1158,7 @@ namespace StartedIn.Service.Services
                 {
                     var parentContract = await _contractRepository.GetContractById(chosenContract.ParentContractId);
                     parentContract.LiquidationNoteId = null;
+                    parentContract.ContractStatus = ContractStatusEnum.COMPLETED;
                     _contractRepository.Update(parentContract);
                 }
                 if (chosenContract.ContractType == ContractTypeEnum.INVESTMENT) 
