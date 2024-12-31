@@ -19,8 +19,11 @@ namespace StartedIn.Domain.Entities
         public string? Description { get; set; }
         public string AttachmentLink { get; set; }
         [ForeignKey(nameof(ProjectApproval))]
-        public string ProjectApprovalId { get; set; }
+        public string? ProjectApprovalId { get; set; }
+        [ForeignKey(nameof(Appointment))]
+        public string? AppointmentId { get; set; }
         public Project Project { get; set; }
-        public ProjectApproval ProjectApproval { get; set; }
+        public ProjectApproval? ProjectApproval { get; set; }
+        public Appointment? Appointment { get; set; }
     }
 }

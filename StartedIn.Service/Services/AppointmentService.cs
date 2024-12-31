@@ -34,12 +34,13 @@ namespace StartedIn.Service.Services
         private static readonly string GoogleMeetPattern = @"^(https:\/\/meet\.google\.com\/[a-zA-Z0-9-]+)$";
         private readonly ITerminationRequestRepository _terminationRequestRepository;
         private readonly IContractRepository _contractRepository;
+        private readonly IDocumentRepository _documentRepository;
 
         public AppointmentService(IAppointmentRepository appointmentRepository, IUserService userService,
             IUnitOfWork unitOfWork, ILogger<AppointmentService> logger,
             IEmailService emailService, IProjectRepository projectRepository, IAzureBlobService azureBlobService,
             IMapper mapper, ITransferLeaderRequestRepository transferLeaderRequestRepository, ITerminationRequestRepository terminationRequestRepository,
-            IContractRepository contractRepository) 
+            IContractRepository contractRepository, IDocumentRepository documentRepository) 
         {
             _appointmentRepository = appointmentRepository;
             _userService = userService;
@@ -52,6 +53,7 @@ namespace StartedIn.Service.Services
             _transfersLeaderRequestRepository = transferLeaderRequestRepository;
             _terminationRequestRepository = terminationRequestRepository;
             _contractRepository = contractRepository;
+            _documentRepository = documentRepository;
 
         }
         public async Task<IEnumerable<Appointment>> GetAppointmentsInProject(string userId, string projectId, int year)
@@ -245,14 +247,37 @@ namespace StartedIn.Service.Services
                     ContractId = appointmentCreateDTO.ContractId,
                     Status = MeetingStatus.Proposed
                 };
-                var newAppointmentEntity = _appointmentRepository.Add(newAppointment);
-                foreach (var user in project.UserProjects)
+                
+                foreach (var partyId in appointmentCreateDTO.Parties)
                 {
-                    var receiverName = user.User.FullName;
-                    var receiveEmail = user.User.Email;
+                    var party = await _userService.GetUserWithId(partyId);
+                    var receiverName = party.FullName;
+                    var receiveEmail = party.Email;
                     await _emailService.SendAppointmentInvite(receiveEmail, project.ProjectName, receiverName,
-                        newAppointmentEntity.MeetingLink, newAppointmentEntity.AppointmentTime.AddHours(7));
+                        newAppointment.MeetingLink, newAppointment.AppointmentTime.AddHours(7));
+
+                    newAppointment.UserAppointments.Add(new UserAppointment
+                    {
+                        AppointmentId = newAppointment.Id,
+                        UserId = partyId
+                    });
                 }
+                
+                var newAppointmentEntity = _appointmentRepository.Add(newAppointment);
+                
+                foreach (var document in appointmentCreateDTO.Documents)
+                {
+                    var linkUrl = await _azureBlobService.UploadMeetingNoteAndProjectDocuments(document);
+                    var newDocument = new Document
+                    {
+                        AppointmentId = newAppointmentEntity.Id,
+                        AttachmentLink = linkUrl,
+                        DocumentName = document.FileName,
+                        CreatedBy = userInProject.User.FullName
+                    };
+                    _documentRepository.Add(newDocument);
+                }
+                
                 await _unitOfWork.SaveChangesAsync();
                 await _unitOfWork.CommitAsync();
                 return newAppointmentEntity;

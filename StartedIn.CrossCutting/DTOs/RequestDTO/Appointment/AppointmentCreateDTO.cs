@@ -4,6 +4,7 @@ using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Http;
 
 namespace StartedIn.CrossCutting.DTOs.RequestDTO.Appointment
 {
@@ -23,5 +24,7 @@ namespace StartedIn.CrossCutting.DTOs.RequestDTO.Appointment
         public string? Description { get; set; }
         [Required(ErrorMessage = "Vui lòng điền link của cuộc họp")]
         public string MeetingLink { get; set; }
+        public List<string> Parties { get; set; }
+        public List<IFormFile>? Documents { get; set; } 
     }
 }

@@ -326,7 +326,20 @@ namespace StartedIn.Domain.Context
                 .HasConversion(
                     v => v.ToString(),
                     v => (ProjectApprovalStatus)Enum.Parse(typeof(ProjectApprovalStatus), v));
+            
+            modelBuilder.Entity<UserAppointment>()
+                .HasKey(up => new { up.UserId, up.AppointmentId });
 
+            modelBuilder.Entity<UserAppointment>()
+                .HasOne(ua => ua.Appointment)
+                .WithMany(p => p.UserAppointments)
+                .HasForeignKey(up => up.AppointmentId);
+
+            modelBuilder.Entity<UserAppointment>()
+                .HasOne(ua => ua.User)
+                .WithMany(u => u.UserAppointments)
+                .HasForeignKey(ua => ua.UserId);
+            
             foreach (var entityType in modelBuilder.Model.GetEntityTypes())
             {
                 var tableName = entityType.GetTableName();
