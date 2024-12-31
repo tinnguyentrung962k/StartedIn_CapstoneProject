@@ -1,4 +1,5 @@
 ﻿using StartedIn.CrossCutting.DTOs.BaseDTO;
+using StartedIn.CrossCutting.Enum;
 namespace StartedIn.CrossCutting.DTOs.ResponseDTO.Disbursement
 {
     public class DisbursementInContractResponseDTO : IdentityResponseDTO
@@ -8,5 +9,6 @@ namespace StartedIn.CrossCutting.DTOs.ResponseDTO.Disbursement
         public DateOnly EndDate { get; set; }
         public decimal Amount { get; set; }
         public string Condition { get; set; }
+        public DisbursementStatusEnum DisbursementStatus { get; set; }
     }
 }
