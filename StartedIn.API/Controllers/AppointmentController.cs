@@ -112,7 +112,7 @@ namespace StartedIn.API.Controllers
         [HttpPost("appointments")]
         [Authorize(Roles = RoleConstants.USER)]
         public async Task<ActionResult<AppointmentResponseDTO>> CreateAnAppointment([FromRoute] string projectId,
-            [FromBody] AppointmentCreateDTO appointmentCreateDTO)
+            [FromForm] AppointmentCreateDTO appointmentCreateDTO)
         {
             try
             {

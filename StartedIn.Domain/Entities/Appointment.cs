@@ -36,5 +36,7 @@ namespace StartedIn.Domain.Entities
         public TerminationRequest? TerminationRequest { get; set; }
         public Contract? Contract { get; set; }
         public ICollection<MeetingNote>? MeetingNotes { get; set; }
+        public ICollection<Document>? Documents { get; set; }
+        public ICollection<UserAppointment> UserAppointments { get; set; }
     }
 }

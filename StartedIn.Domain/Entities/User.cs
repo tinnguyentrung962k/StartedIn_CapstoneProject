@@ -34,6 +34,6 @@ namespace StartedIn.Domain.Entities
         public ICollection<DealOffer>? DealOffers { get; set; }
         public ICollection<Application>? Applications { get; set; }
         public ICollection<Disbursement>? Disbursements { get; set; }
-
+        public ICollection<UserAppointment>? UserAppointments { get; set; }
     }
 }
