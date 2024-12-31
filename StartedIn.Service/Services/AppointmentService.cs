@@ -248,6 +248,12 @@ namespace StartedIn.Service.Services
                     Status = MeetingStatus.Proposed
                 };
                 
+                newAppointment.UserAppointments.Add(new UserAppointment
+                {
+                    AppointmentId = newAppointment.Id,
+                    UserId = userId
+                });
+                
                 foreach (var partyId in appointmentCreateDTO.Parties)
                 {
                     var party = await _userService.GetUserWithId(partyId);
