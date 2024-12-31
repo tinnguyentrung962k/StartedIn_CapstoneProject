@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using StartedIn.CrossCutting.DTOs.ResponseDTO.Document;
 
 namespace StartedIn.CrossCutting.DTOs.ResponseDTO.Appointment
 {
@@ -23,5 +24,6 @@ namespace StartedIn.CrossCutting.DTOs.ResponseDTO.Appointment
         public string MeetingLink { get; set; }
         public MeetingStatus Status { get; set; }
         public List<MeetingNoteResponseDTO> MeetingNotes { get; set; }
+        public List<DocumentResponseDTO> Documents { get; set; }
     }
 }

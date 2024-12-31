@@ -426,6 +426,7 @@ namespace StartedIn.API.Configuration.AutoMapper
                 .ForMember(dest => dest.MeetingNotes, opt => opt.MapFrom(src => src.MeetingNotes))
                 .ForMember(dest => dest.ContractName, opt => opt.MapFrom(src => src.Contract.ContractName))
                 .ForMember(dest => dest.ContractType, opt => opt.MapFrom(src => src.Contract.ContractType))
+                .ForMember(dest => dest.Documents, opt => opt.MapFrom(src => src.Documents))
                 .ReverseMap();
         }
         private void LeavingRequestMappingProfile()
