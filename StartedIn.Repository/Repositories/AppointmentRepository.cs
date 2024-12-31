@@ -37,5 +37,15 @@ namespace StartedIn.Repository.Repositories
                 .OrderBy(a => a.AppointmentTime).ToListAsync();
             return appointments;
         }
+        
+        public async Task AddUserToAppointment(string userId, string appointmentId)
+        {
+            var userAppointment = new UserAppointment
+            {
+                UserId = userId,
+                AppointmentId = appointmentId,
+            };
+            await _appDbContext.Set<UserAppointment>().AddAsync(userAppointment);
+        }
     }
 }

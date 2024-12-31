@@ -231,9 +231,12 @@ namespace StartedIn.Service.Services
             {
                 throw new InvalidInputException(MessageConstant.AppointmentEndTimeError);
             }
+
+            
             try
             {
                 _unitOfWork.BeginTransaction();
+                appointmentCreateDTO.Parties.Add(userId);
                 var newAppointment = new Appointment
                 {
                     Title = appointmentCreateDTO.Title,
@@ -248,11 +251,7 @@ namespace StartedIn.Service.Services
                     Status = MeetingStatus.Proposed
                 };
                 
-                newAppointment.UserAppointments.Add(new UserAppointment
-                {
-                    AppointmentId = newAppointment.Id,
-                    UserId = userId
-                });
+                var newAppointmentEntity = _appointmentRepository.Add(newAppointment);
                 
                 foreach (var partyId in appointmentCreateDTO.Parties)
                 {
@@ -261,22 +260,15 @@ namespace StartedIn.Service.Services
                     var receiveEmail = party.Email;
                     await _emailService.SendAppointmentInvite(receiveEmail, project.ProjectName, receiverName,
                         newAppointment.MeetingLink, newAppointment.AppointmentTime.AddHours(7));
-
-                    newAppointment.UserAppointments.Add(new UserAppointment
-                    {
-                        AppointmentId = newAppointment.Id,
-                        UserId = partyId
-                    });
+                    await _appointmentRepository.AddUserToAppointment(partyId, newAppointmentEntity.Id);
                 }
-                
-                var newAppointmentEntity = _appointmentRepository.Add(newAppointment);
-                
                 foreach (var document in appointmentCreateDTO.Documents)
                 {
                     var linkUrl = await _azureBlobService.UploadMeetingNoteAndProjectDocuments(document);
                     var newDocument = new Document
                     {
                         AppointmentId = newAppointmentEntity.Id,
+                        ProjectId = projectId,
                         AttachmentLink = linkUrl,
                         DocumentName = document.FileName,
                         CreatedBy = userInProject.User.FullName

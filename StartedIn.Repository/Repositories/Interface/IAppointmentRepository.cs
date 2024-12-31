@@ -11,5 +11,6 @@ namespace StartedIn.Repository.Repositories.Interface
     {
         IQueryable<Appointment> GetAppointmentsByProjectId(string projectId);
         Task<List<Appointment>> GetAppointmentsByContractId(string projectId, string contractId);
+        Task AddUserToAppointment(string userId, string appointmentId);
     }
 }
