@@ -61,7 +61,8 @@ namespace StartedIn.Service.Services
             var userInProject = await _userService.CheckIfUserInProject(userId, projectId);
             var appointments = await _appointmentRepository.QueryHelper()
                 .Filter(x=>x.ProjectId.Equals(projectId) && x.AppointmentTime.Year == year)
-                .OrderBy(x=>x.OrderByDescending(x=>x.AppointmentTime)).Include(a => a.MeetingNotes)
+                .Filter(a => a.UserAppointments.Any(ua => ua.UserId.Equals(userId)))
+                .OrderBy(x=>x.OrderByDescending(x=>x.AppointmentTime)).Include(a => a.MeetingNotes).Include(a => a.UserAppointments)
                 .GetAllAsync();
             return appointments;
         }
@@ -111,6 +112,7 @@ namespace StartedIn.Service.Services
                 appointments = appointments.OrderBy(a => a.AppointmentTime.UtcDateTime);
             }
 
+            appointments = appointments.Where(a => a.UserAppointments.Any(ua => ua.UserId.Equals(userId)));
             int totalCount = await appointments.CountAsync();
 
             var appointmentPaging = await appointments.Skip((page - 1) * size)
@@ -231,9 +233,12 @@ namespace StartedIn.Service.Services
             {
                 throw new InvalidInputException(MessageConstant.AppointmentEndTimeError);
             }
+
+            
             try
             {
                 _unitOfWork.BeginTransaction();
+                appointmentCreateDTO.Parties.Add(userId);
                 var newAppointment = new Appointment
                 {
                     Title = appointmentCreateDTO.Title,
@@ -248,11 +253,7 @@ namespace StartedIn.Service.Services
                     Status = MeetingStatus.Proposed
                 };
                 
-                newAppointment.UserAppointments.Add(new UserAppointment
-                {
-                    AppointmentId = newAppointment.Id,
-                    UserId = userId
-                });
+                var newAppointmentEntity = _appointmentRepository.Add(newAppointment);
                 
                 foreach (var partyId in appointmentCreateDTO.Parties)
                 {
@@ -261,22 +262,15 @@ namespace StartedIn.Service.Services
                     var receiveEmail = party.Email;
                     await _emailService.SendAppointmentInvite(receiveEmail, project.ProjectName, receiverName,
                         newAppointment.MeetingLink, newAppointment.AppointmentTime.AddHours(7));
-
-                    newAppointment.UserAppointments.Add(new UserAppointment
-                    {
-                        AppointmentId = newAppointment.Id,
-                        UserId = partyId
-                    });
+                    await _appointmentRepository.AddUserToAppointment(partyId, newAppointmentEntity.Id);
                 }
-                
-                var newAppointmentEntity = _appointmentRepository.Add(newAppointment);
-                
                 foreach (var document in appointmentCreateDTO.Documents)
                 {
                     var linkUrl = await _azureBlobService.UploadMeetingNoteAndProjectDocuments(document);
                     var newDocument = new Document
                     {
                         AppointmentId = newAppointmentEntity.Id,
+                        ProjectId = projectId,
                         AttachmentLink = linkUrl,
                         DocumentName = document.FileName,
                         CreatedBy = userInProject.User.FullName
