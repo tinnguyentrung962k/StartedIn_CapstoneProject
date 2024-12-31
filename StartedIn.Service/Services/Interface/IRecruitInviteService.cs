@@ -25,5 +25,7 @@ namespace StartedIn.Service.Services.Interface
 
         Task AcceptApplication(string userId, string projectId, string applicationId);
         Task RejectApplication(string userId, string projectId, string applicationId);
+        Task<IEnumerable<Application>> GetPendingInvitationOfProject(string userId, string projectId);
+
     }
 }

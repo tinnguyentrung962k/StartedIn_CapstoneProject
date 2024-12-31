@@ -9,6 +9,7 @@ using StartedIn.CrossCutting.Enum;
 using StartedIn.CrossCutting.Exceptions;
 using StartedIn.Domain.Entities;
 using StartedIn.Service.Services.Interface;
+using System;
 using System.Security.Claims;
 
 namespace StartedIn.API.Controllers
@@ -234,6 +235,31 @@ namespace StartedIn.API.Controllers
             catch (InviteException ex)
             {
                 return BadRequest(ex.Message);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, MessageConstant.InternalServerError);
+            }
+        }
+
+        [HttpGet("pending-invitation")]
+        [Authorize(Roles = RoleConstants.USER + "," + RoleConstants.MENTOR)]
+        public async Task<ActionResult<List<UserInvitationInProjectDTO>>> GetPendingInvitationInProject([FromRoute] string projectId)
+        {
+            try
+            {
+                var userId = User.FindFirst(ClaimTypes.NameIdentifier).Value;
+                var invitations = await _recruitInviteService.GetPendingInvitationOfProject(userId,projectId);
+                var response = _mapper.Map<List<UserInvitationInProjectDTO>>(invitations);
+                return Ok(response);
+            }
+            catch (NotFoundException ex)
+            {
+                return BadRequest(ex.Message);
+            }
+            catch (UnauthorizedProjectRoleException ex)
+            {
+                return StatusCode(403,ex.Message);
             }
             catch (Exception ex)
             {

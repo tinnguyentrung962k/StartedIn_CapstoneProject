@@ -239,6 +239,17 @@ namespace StartedIn.Service.Services
             return projectInviteOverview;
         }
 
+        public async Task<IEnumerable<Application>> GetPendingInvitationOfProject(string userId, string projectId)
+        {
+            var userInProject = await _userService.CheckIfUserInProject(userId, projectId);
+            var invitationList = await _applicationRepository.QueryHelper().Include(x=>x.Candidate)
+                .Filter(x => x.ProjectId.Equals(projectId) 
+                && x.Status == ApplicationStatus.PENDING 
+                && x.Type == ApplicationTypeEnum.INVITE)
+                .GetAllAsync();
+            return invitationList.ToList();
+        }
+
         public async Task AcceptProjectInvitation(string userId, string projectId, AcceptInviteDTO acceptInviteDTO)
         {
             var invite = await _applicationRepository.QueryHelper()
@@ -413,7 +424,7 @@ namespace StartedIn.Service.Services
                 {
                     await _userRepository.AddUserToProject(application.CandidateId, projectId, application.Role); 
                 }
-                await CancelExistingApplicationsOnceUserJoinAProject(userId);
+                await CancelExistingApplicationsOnceUserJoinAProject(application.CandidateId);
                 await _unitOfWork.SaveChangesAsync();
                 await _unitOfWork.CommitAsync();
             }
@@ -465,7 +476,7 @@ namespace StartedIn.Service.Services
         private async Task CancelExistingApplicationsOnceUserJoinAProject(string userId)
         {
             var query = _applicationRepository.QueryHelper();
-            var userApplications = await query.Filter(a => a.CandidateId.Equals(userId)).GetAllAsync();
+            var userApplications = await query.Filter(a => a.CandidateId.Equals(userId) && a.Status == ApplicationStatus.PENDING).GetAllAsync();
             var acceptedApplication = await query.Filter(a => a.CandidateId.Equals(userId) && a.Status == ApplicationStatus.ACCEPTED).GetOneAsync();
             if (acceptedApplication != null)
             {

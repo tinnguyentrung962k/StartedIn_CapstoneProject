@@ -412,6 +412,10 @@ namespace StartedIn.API.Configuration.AutoMapper
                 .ForMember(dest => dest.CVFiles, opt => opt.MapFrom(src => src.ApplicationFiles))
                 .ReverseMap();
             CreateMap<ApplicationFile, ApplicationApplyFileDTO>();
+            CreateMap<Application, UserInvitationInProjectDTO>()
+                .ForMember(dest => dest.CandidatePhoneNumber, opt => opt.MapFrom(src => src.Candidate.PhoneNumber))
+                .ForMember(dest => dest.CandidateName, opt => opt.MapFrom(src => src.Candidate.FullName))
+                .ForMember(dest => dest.CandidateEmail, opt => opt.MapFrom(src => src.Candidate.Email));
         }
 
         private void AppointmentMappingProfile()
