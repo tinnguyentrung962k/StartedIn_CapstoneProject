@@ -449,7 +449,7 @@ namespace StartedIn.Service.Services
                 var signingMethod = await _appSettingManager.GetSettingAsync("SignatureType");
                 if (signingMethod == SettingsValue.InternalApp)
                 {
-                    var modifiedMemoryStream = await _documentFormatService.ReplacePlaceHolderForInvestmentDocumentAsync(contract, investor, leader, project, shareEquity, disbursementList);
+                    var modifiedMemoryStream = await _documentFormatService.ReplacePlaceHolderForInvestmentDocumentAsync(contract, investor, leader, project, shareEquity, disbursementList.ToList());
                     modifiedMemoryStream.Position = 0;
                     string fileName = $"{Guid.NewGuid()}.docx";
                     contract.AzureLink = await _azureBlobService.UploadDocumentFromMemoryStreamAsync(modifiedMemoryStream, fileName);
@@ -457,7 +457,7 @@ namespace StartedIn.Service.Services
                 if (signingMethod == SettingsValue.SignNow)
                 {
                     await _signNowService.AuthenticateAsync();
-                    contract.SignNowDocumentId = await _signNowService.UploadInvestmentContractToSignNowAsync(contract, investor, leader, userInProject.Project, shareEquity, disbursementList);
+                    contract.SignNowDocumentId = await _signNowService.UploadInvestmentContractToSignNowAsync(contract, investor, leader, userInProject.Project, shareEquity, disbursementList.ToList());
                 }
                 chosenDeal.DealStatus = DealStatusEnum.ContractCreated;
                 _dealOfferRepository.Update(chosenDeal);
