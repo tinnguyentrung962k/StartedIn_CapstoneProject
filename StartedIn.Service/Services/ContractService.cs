@@ -378,15 +378,6 @@ namespace StartedIn.Service.Services
             {
                 throw new ContractConfirmException(MessageConstant.DealNotAccepted);
             }
-            if (investmentContractFromDealCreateDTO.Disbursements == null)
-            {
-                throw new InvalidDataException(MessageConstant.DisbursementListEmptyInContract);
-            }
-            decimal totalDisbursementAmount = investmentContractFromDealCreateDTO.Disbursements.Sum(d => d.Amount);
-            if (totalDisbursementAmount > chosenDeal.Amount)
-            {
-                throw new InvalidOperationException(MessageConstant.DisbursementGreaterThanBuyPriceError);
-            }
             var investor = await _userManager.FindByIdAsync(chosenDeal.InvestorId);
             if (investor == null)
             {
@@ -449,26 +440,11 @@ namespace StartedIn.Service.Services
                 };
                 var contractEntity = _contractRepository.Add(contract);
                 var shareEquityEntity = _shareEquityRepository.Add(shareEquity);
-                var disbursementList = new List<Disbursement>();
-                foreach (var disbursementTime in investmentContractFromDealCreateDTO.Disbursements)
+                var disbursementList = await _disbursementRepository.QueryHelper().Filter(x => x.DealOfferId.Equals(investmentContractFromDealCreateDTO.DealId)).GetAllAsync();
+                foreach (var disbursementTime in disbursementList)
                 {
-                    Disbursement disbursement = new Disbursement
-                    {
-                        Amount = disbursementTime.Amount,
-                        Condition = disbursementTime.Condition,
-                        Contract = contract,
-                        ContractId = contract.Id,
-                        CreatedBy = userInProject.User.FullName,
-                        DisbursementStatus = DisbursementStatusEnum.PENDING,
-                        StartDate = disbursementTime.StartDate,
-                        EndDate = disbursementTime.EndDate,
-                        Title = disbursementTime.Title,
-                        Investor = investor,
-                        InvestorId = investor.Id,
-                        IsValidWithContract = false
-                    };
-                    disbursementList.Add(disbursement);
-                    var disbursementEntity = _disbursementRepository.Add(disbursement);
+                    disbursementTime.ContractId = contractEntity.Id;
+                    _disbursementRepository.Update(disbursementTime);
                 }
                 var signingMethod = await _appSettingManager.GetSettingAsync("SignatureType");
                 if (signingMethod == SettingsValue.InternalApp)

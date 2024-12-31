@@ -8,6 +8,5 @@ namespace StartedIn.CrossCutting.DTOs.RequestDTO.Contract
         [Required]
         public string DealId { get; set; }
         public ContractCreateDTO Contract { get; set; }
-        public List<DisbursementCreateDTO>? Disbursements { get; set; }
     }
 }

@@ -168,6 +168,10 @@ namespace StartedIn.Service.Services
             {
                 throw new InvalidInputException(MessageConstant.InvestmentCallEquitySoldOut);
             }
+            if (dealOfferCreateDTO.Disbursements == null || !dealOfferCreateDTO.Disbursements.Any())
+            {
+                throw new InvalidDataException(MessageConstant.DisbursementListEmptyInContract);
+            }
             try
             {
                 _unitOfWork.BeginTransaction();
