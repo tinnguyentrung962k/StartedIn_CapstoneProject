@@ -61,7 +61,8 @@ namespace StartedIn.Service.Services
             var userInProject = await _userService.CheckIfUserInProject(userId, projectId);
             var appointments = await _appointmentRepository.QueryHelper()
                 .Filter(x=>x.ProjectId.Equals(projectId) && x.AppointmentTime.Year == year)
-                .OrderBy(x=>x.OrderByDescending(x=>x.AppointmentTime)).Include(a => a.MeetingNotes)
+                .Filter(a => a.UserAppointments.Any(ua => ua.UserId.Equals(userId)))
+                .OrderBy(x=>x.OrderByDescending(x=>x.AppointmentTime)).Include(a => a.MeetingNotes).Include(a => a.UserAppointments)
                 .GetAllAsync();
             return appointments;
         }
@@ -111,6 +112,7 @@ namespace StartedIn.Service.Services
                 appointments = appointments.OrderBy(a => a.AppointmentTime.UtcDateTime);
             }
 
+            appointments = appointments.Where(a => a.UserAppointments.Any(ua => ua.UserId.Equals(userId)));
             int totalCount = await appointments.CountAsync();
 
             var appointmentPaging = await appointments.Skip((page - 1) * size)
