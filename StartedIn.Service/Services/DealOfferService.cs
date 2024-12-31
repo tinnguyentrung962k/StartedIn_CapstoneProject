@@ -183,7 +183,7 @@ namespace StartedIn.Service.Services
                     TermCondition = dealOfferCreateDTO.TermCondition,
                     InvestmentCallId = project.ActiveCallId
                 };
-
+                var dealOfferEntity = _dealOfferRepository.Add(dealOffer);
                 List<Disbursement> disbursements = new List<Disbursement>();
 
                 foreach (var disbursementCreateDto in dealOfferCreateDTO.Disbursements)
@@ -193,7 +193,7 @@ namespace StartedIn.Service.Services
                         Amount = disbursementCreateDto.Amount,
                         Condition = disbursementCreateDto.Condition,
                         CreatedBy = user.FullName,
-                        DealOfferId = dealOffer.Id,
+                        DealOfferId = dealOfferEntity.Id,
                         DisbursementStatus = DisbursementStatusEnum.PENDING,
                         StartDate = disbursementCreateDto.StartDate,
                         EndDate = disbursementCreateDto.EndDate,
@@ -206,7 +206,7 @@ namespace StartedIn.Service.Services
 
                 await _disbursementRepository.AddRangeAsync(disbursements);
 
-                var dealOfferEntity = _dealOfferRepository.Add(dealOffer);
+                
                 string notification = "Nhà đầu tư " + user.FullName + "đã gửi cho bạn lời mời đầu tư mới";
                 DealOfferHistory dealOfferHistory = new DealOfferHistory
                 {
@@ -341,7 +341,7 @@ namespace StartedIn.Service.Services
             }
             var response = _mapper.Map<DealOfferForProjectResponseDTO>(chosenDeal);
             var disbursements = await _disbursementRepository.QueryHelper().Filter(x => x.DealOfferId == chosenDeal.Id).GetAllAsync();
-            var disbursementResponse = _mapper.Map<List<DisbursementInDealOfferDTO>>(disbursements);
+            var disbursementResponse = _mapper.Map<List<DisbursementInDealOfferDTO>>(disbursements.OrderBy(x => x.StartDate));
             response.Disbursements = disbursementResponse;
             return response;
         }
@@ -362,8 +362,8 @@ namespace StartedIn.Service.Services
                 throw new Exception(MessageConstant.NotFoundDealError);
             }
             var response = _mapper.Map<DealOfferForInvestorResponseDTO>(deal);
-            var disbursement = await _disbursementRepository.QueryHelper().Filter(x => x.DealOfferId == deal.Id).GetAllAsync();
-            var disbursementResponse = _mapper.Map<List<DisbursementInDealOfferDTO>>(disbursement);
+            var disbursements = await _disbursementRepository.QueryHelper().Filter(x => x.DealOfferId == deal.Id).GetAllAsync();
+            var disbursementResponse = _mapper.Map<List<DisbursementInDealOfferDTO>>(disbursements.OrderBy(x => x.StartDate));
             response.Disbursements = disbursementResponse;
             return response;
         }
