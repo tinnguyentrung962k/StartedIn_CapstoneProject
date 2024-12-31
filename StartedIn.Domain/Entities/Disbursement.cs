@@ -13,7 +13,7 @@ namespace StartedIn.Domain.Entities
     public class Disbursement : BaseAuditEntity<string>
     {
         [ForeignKey(nameof(Contract))]
-        public string ContractId { get; set; }
+        public string? ContractId { get; set; }
 
         [ForeignKey(nameof(Investor))]
         public string InvestorId { get; set; }
@@ -28,17 +28,14 @@ namespace StartedIn.Domain.Entities
         public DisbursementStatusEnum DisbursementStatus { get; set; }
         
         [MaxLength(500)]
-        public string? DeclineReason { get; set; }
-        public DateTimeOffset? ExecutedTime { get; set; }    
+        public string? DeclineReason { get; set; }   
+        public string? DealOfferId { get; set; }
         public long? OrderCode { get; set; }
 
         public bool IsValidWithContract { get; set; }
-        
-        [MaxLength(50)]
-        public string? DisbursementMethod { get; set; }
-        public Contract Contract { get; set; }
+        public Contract? Contract { get; set; }
         public User Investor { get; set; }
-        public ICollection<DisbursementAttachment> DisbursementAttachments { get; set; }
+        public ICollection<DisbursementAttachment>? DisbursementAttachments { get; set; }
         public Transaction Transaction { get; set; }
     }
 }

@@ -124,7 +124,8 @@ namespace StartedIn.API.Controllers
         {
             try
             {
-                return Ok(_mapper.Map<DealOfferForProjectResponseDTO>(await _dealOfferService.GetById(dealId)));
+                var response = await _dealOfferService.GetById(dealId);
+                return Ok(response);
             }
             catch (NotFoundException ex)
             {
@@ -212,8 +213,7 @@ namespace StartedIn.API.Controllers
             {
                 var userId = User.FindFirst(ClaimTypes.NameIdentifier).Value;
                 var deal = await _dealOfferService.GetDealOfferForInvestorById(userId,dealId);
-                var response = _mapper.Map<DealOfferForInvestorResponseDTO>(deal);
-                return Ok(response);
+                return Ok(deal);
             }
             catch (NotFoundException ex)
             {

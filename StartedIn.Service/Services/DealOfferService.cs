@@ -1,10 +1,12 @@
-﻿using Microsoft.AspNetCore.Identity;
+﻿using AutoMapper;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Logging;
 using StartedIn.CrossCutting.Constants;
 using StartedIn.CrossCutting.DTOs.BaseDTO;
 using StartedIn.CrossCutting.DTOs.RequestDTO.DealOffer;
 using StartedIn.CrossCutting.DTOs.ResponseDTO;
 using StartedIn.CrossCutting.DTOs.ResponseDTO.DealOffer;
+using StartedIn.CrossCutting.DTOs.ResponseDTO.Disbursement;
 using StartedIn.CrossCutting.Enum;
 using StartedIn.CrossCutting.Exceptions;
 using StartedIn.Domain.Entities;
@@ -29,6 +31,8 @@ namespace StartedIn.Service.Services
         private readonly IUserService _userService;
         private readonly IInvestmentCallService _investmentCallService;
         private readonly IInvestmentCallRepository _investmentCallRepository;
+        private readonly IDisbursementRepository _disbursementRepository;
+        private readonly IMapper _mapper;
 
         public DealOfferService(IDealOfferRepository dealOfferRepository,
             IDealOfferHistoryRepository dealOfferHistoryRepository,
@@ -38,7 +42,9 @@ namespace StartedIn.Service.Services
             IProjectRepository projectRepository,
             IUserService userService,
             IInvestmentCallService investmentCallService,
-            IInvestmentCallRepository investmentCallRepository)
+            IInvestmentCallRepository investmentCallRepository,
+            IDisbursementRepository disbursementRepository,
+            IMapper mapper)
         {
             _dealOfferRepository = dealOfferRepository;
             _dealOfferHistoryRepository = dealOfferHistoryRepository;
@@ -49,6 +55,8 @@ namespace StartedIn.Service.Services
             _userService = userService;
             _investmentCallService = investmentCallService;
             _investmentCallRepository = investmentCallRepository;
+            _disbursementRepository = disbursementRepository;
+            _mapper = mapper;
         }
 
         public async Task<PaginationDTO<DealOfferForProjectResponseDTO>> GetDealOfferForAProject(string userId, string projectId, int page, int size)
@@ -176,6 +184,28 @@ namespace StartedIn.Service.Services
                     InvestmentCallId = project.ActiveCallId
                 };
 
+                List<Disbursement> disbursements = new List<Disbursement>();
+
+                foreach (var disbursementCreateDto in dealOfferCreateDTO.Disbursements)
+                {
+                    Disbursement disbursement = new Disbursement
+                    {
+                        Amount = disbursementCreateDto.Amount,
+                        Condition = disbursementCreateDto.Condition,
+                        CreatedBy = user.FullName,
+                        DealOfferId = dealOffer.Id,
+                        DisbursementStatus = DisbursementStatusEnum.PENDING,
+                        StartDate = disbursementCreateDto.StartDate,
+                        EndDate = disbursementCreateDto.EndDate,
+                        Investor = user,
+                        InvestorId = user.Id,
+                        Title = disbursementCreateDto.Title
+                    };
+                    disbursements.Add(disbursement);
+                }
+
+                await _disbursementRepository.AddRangeAsync(disbursements);
+
                 var dealOfferEntity = _dealOfferRepository.Add(dealOffer);
                 string notification = "Nhà đầu tư " + user.FullName + "đã gửi cho bạn lời mời đầu tư mới";
                 DealOfferHistory dealOfferHistory = new DealOfferHistory
@@ -284,6 +314,12 @@ namespace StartedIn.Service.Services
             {
                 chosenDeal.DealStatus = DealStatusEnum.Rejected;
                 _dealOfferRepository.Update(chosenDeal);
+                var disbursements = await _disbursementRepository.QueryHelper().Filter(x => x.DealOfferId == chosenDeal.Id).GetAllAsync();
+                foreach (var disbursement in disbursements)
+                {
+                    disbursement.DisbursementStatus = DisbursementStatusEnum.CANCELLED;
+                    _disbursementRepository.Update(disbursement);
+                }
                 await _unitOfWork.SaveChangesAsync();
                 return chosenDeal;
             }
@@ -295,12 +331,21 @@ namespace StartedIn.Service.Services
             }
         }
 
-        public async Task<DealOffer> GetById(string id)
+        public async Task<DealOfferForProjectResponseDTO> GetById(string id)
         {
             var list = await _dealOfferRepository.Get(deal => deal.Id == id, null, "Investor");
-            return list.FirstOrDefault() ?? throw new NotFoundException(MessageConstant.NotFoundDealError);
+            var chosenDeal = list.FirstOrDefault();
+            if (chosenDeal == null)
+            {
+                throw new NotFoundException(MessageConstant.NotFoundDealError);
+            }
+            var response = _mapper.Map<DealOfferForProjectResponseDTO>(chosenDeal);
+            var disbursements = await _disbursementRepository.QueryHelper().Filter(x => x.DealOfferId == chosenDeal.Id).GetAllAsync();
+            var disbursementResponse = _mapper.Map<List<DisbursementInDealOfferDTO>>(disbursements);
+            response.Disbursements = disbursementResponse;
+            return response;
         }
-        public async Task<DealOffer> GetDealOfferForInvestorById(string userId, string id)
+        public async Task<DealOfferForInvestorResponseDTO> GetDealOfferForInvestorById(string userId, string id)
         {
             var user = await _userManager.FindByIdAsync(userId);
             if (user == null)
@@ -316,7 +361,11 @@ namespace StartedIn.Service.Services
             {
                 throw new Exception(MessageConstant.NotFoundDealError);
             }
-            return deal;
+            var response = _mapper.Map<DealOfferForInvestorResponseDTO>(deal);
+            var disbursement = await _disbursementRepository.QueryHelper().Filter(x => x.DealOfferId == deal.Id).GetAllAsync();
+            var disbursementResponse = _mapper.Map<List<DisbursementInDealOfferDTO>>(disbursement);
+            response.Disbursements = disbursementResponse;
+            return response;
         }
 
         public async Task DeleteADealOffer(string userId, string offerId)

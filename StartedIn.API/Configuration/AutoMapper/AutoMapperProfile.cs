@@ -325,6 +325,7 @@ namespace StartedIn.API.Configuration.AutoMapper
             CreateMap<Disbursement, DisbursementInClosingProjectDTO>()
                 .ForMember(dr => dr.Amount, opt => opt.MapFrom(de => de.Amount.ToString()))
                 .ForMember(dr => dr.ContractIdNumber, opt => opt.MapFrom(de => de.Contract.ContractIdNumber));
+            CreateMap<Disbursement, DisbursementInDealOfferDTO>().ReverseMap();
         }
 
         private void InvestmentCallMappingProfile()

@@ -1,4 +1,5 @@
 ﻿using StartedIn.CrossCutting.DTOs.BaseDTO;
+using StartedIn.CrossCutting.DTOs.ResponseDTO.Disbursement;
 using StartedIn.CrossCutting.Enum;
 namespace StartedIn.CrossCutting.DTOs.ResponseDTO.DealOffer
 {
@@ -10,5 +11,6 @@ namespace StartedIn.CrossCutting.DTOs.ResponseDTO.DealOffer
         public string EquityShareOffer { get; set; }
         public string TermCondition { get; set; }
         public DealStatusEnum DealStatus { get; set; }
+        public List<DisbursementInDealOfferDTO>? Disbursements { get; set; }
     }
 }
