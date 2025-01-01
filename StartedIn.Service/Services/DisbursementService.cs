@@ -293,9 +293,9 @@ namespace StartedIn.Service.Services
 
             return new DisbursementOverviewItem
             {
-                TotalDisbursement = totalDisbursementAmount.ToString("N3"),
-                DisbursedAmount = disbursedAmount.ToString("N3"),
-                NotDisbursedAmount = notDisbursedAmount.ToString("N3")
+                TotalDisbursement = totalDisbursementAmount.ToString(),
+                DisbursedAmount = disbursedAmount.ToString(),
+                NotDisbursedAmount = notDisbursedAmount.ToString()
             };
         }
 
