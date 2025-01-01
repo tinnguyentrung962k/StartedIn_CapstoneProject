@@ -24,6 +24,7 @@ namespace StartedIn.Repository.Repositories
                 .Include(a => a.Milestone)
                 .Include(a => a.MeetingNotes)
                 .Include(a => a.Contract)
+                .Include(x => x.Documents)
                 .OrderBy(a => a.AppointmentTime);
             return appointments;
         }
