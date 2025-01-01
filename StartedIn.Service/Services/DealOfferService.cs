@@ -187,6 +187,7 @@ namespace StartedIn.Service.Services
                     TermCondition = dealOfferCreateDTO.TermCondition,
                     InvestmentCallId = project.ActiveCallId
                 };
+
                 var dealOfferEntity = _dealOfferRepository.Add(dealOffer);
                 List<Disbursement> disbursements = new List<Disbursement>();
 
