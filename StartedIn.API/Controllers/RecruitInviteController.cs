@@ -242,7 +242,7 @@ namespace StartedIn.API.Controllers
             }
         }
 
-        [HttpGet("pending-invitation")]
+        [HttpGet("pending-invitations")]
         [Authorize(Roles = RoleConstants.USER + "," + RoleConstants.MENTOR)]
         public async Task<ActionResult<List<UserInvitationInProjectDTO>>> GetPendingInvitationInProject([FromRoute] string projectId)
         {
