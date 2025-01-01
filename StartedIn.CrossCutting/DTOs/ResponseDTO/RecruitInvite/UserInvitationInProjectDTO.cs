@@ -14,6 +14,7 @@ namespace StartedIn.CrossCutting.DTOs.ResponseDTO.RecruitInvite
         public string CandidateEmail { get; set; }
         public string CandidateName { get; set; }
         public string CandidatePhoneNumber { get; set; }
+        public string CandidateProfilePicture { get; set; }
         public ApplicationStatus Status { get; set; }
         public ApplicationTypeEnum Type { get; set; }
         public RoleInTeam Role { get; set; }

@@ -415,7 +415,8 @@ namespace StartedIn.API.Configuration.AutoMapper
             CreateMap<Application, UserInvitationInProjectDTO>()
                 .ForMember(dest => dest.CandidatePhoneNumber, opt => opt.MapFrom(src => src.Candidate.PhoneNumber))
                 .ForMember(dest => dest.CandidateName, opt => opt.MapFrom(src => src.Candidate.FullName))
-                .ForMember(dest => dest.CandidateEmail, opt => opt.MapFrom(src => src.Candidate.Email));
+                .ForMember(dest => dest.CandidateEmail, opt => opt.MapFrom(src => src.Candidate.Email))
+                .ForMember(dest => dest.CandidateProfilePicture, opt => opt.MapFrom(src => src.Candidate.ProfilePicture));
         }
 
         private void AppointmentMappingProfile()
