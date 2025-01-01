@@ -31,5 +31,6 @@ namespace StartedIn.Service.Services.Interface
         Task<PaginationDTO<DisbursementOverviewOfProjectForInvestor>> GetADisbursementOverviewForInvestor(string userId, int page, int size);
         Task SetAllDisbursementToOngoing();
         Task SetDisbursementStatusToOngoing();
+        Task<InvestorDisbursementOverviewDTO> GetDisbursementOverviewOfAnInvestor(string userId);
     }
 }

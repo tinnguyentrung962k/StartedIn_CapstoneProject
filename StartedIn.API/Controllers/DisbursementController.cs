@@ -349,5 +349,21 @@ namespace StartedIn.API.Controllers
                 return StatusCode(500, ex.Message);
             }
         }
+
+        [HttpGet("disbursements/investor-overview")]
+        [Authorize(Roles = RoleConstants.INVESTOR)]
+        public async Task<ActionResult<InvestorDisbursementOverviewDTO>> GetInvestorDisbursementOverview()
+        {
+            try 
+            {
+                var userId = User.FindFirst(ClaimTypes.NameIdentifier).Value;
+                var result = await _disbursementService.GetDisbursementOverviewOfAnInvestor(userId);
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, ex.Message);
+            }
+        }
     }
 }

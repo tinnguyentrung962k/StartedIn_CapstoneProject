@@ -201,6 +201,73 @@ namespace StartedIn.Service.Services
                 }
             }
         }
+
+        public async Task<InvestorDisbursementOverviewDTO> GetDisbursementOverviewOfAnInvestor(string userId)
+        {
+            // Tổng giải ngân
+            var totalDisbursement = await _disbursementRepository.QueryHelper()
+                .Filter(x => x.InvestorId.Equals(userId)
+                && x.IsValidWithContract == true).GetAllAsync();
+            var sumOfDisbursement = totalDisbursement.Sum(x => x.Amount);
+
+            // Tổng số tiền đã giải ngân
+            var totalDisbursed = await _disbursementRepository.QueryHelper()
+                .Filter(x => x.InvestorId.Equals(userId)
+                && x.IsValidWithContract == true
+                && x.DisbursementStatus == DisbursementStatusEnum.FINISHED).GetAllAsync();
+            var sumOfDisbursedAmount = totalDisbursed.Sum(x => x.Amount);
+
+            // Tổng số tiền chưa giải ngân
+            var totalNotDisbursed = await _disbursementRepository.QueryHelper()
+                .Filter(x => x.InvestorId.Equals(userId)
+                && x.IsValidWithContract == true
+                && x.DisbursementStatus != DisbursementStatusEnum.FINISHED).GetAllAsync();
+            var sumOfNotDisbursedAmount = totalNotDisbursed.Sum(x => x.Amount);
+
+            // Tính toán cho tháng trước
+            var startOfLastMonth = new DateOnly(DateTime.Now.Year, DateTime.Now.Month, 1).AddMonths(-1);
+            var endOfLastMonth = new DateOnly(DateTime.Now.Year, DateTime.Now.Month, 1).AddDays(-1);
+            var disbursedLastMonth = await _disbursementRepository.QueryHelper()
+                .Filter(x => x.InvestorId.Equals(userId)
+                && x.EndDate >= startOfLastMonth
+                && x.EndDate <= endOfLastMonth
+                && x.DisbursementStatus == DisbursementStatusEnum.FINISHED).GetAllAsync();
+            var sumOfDisbursedLastMonth = disbursedLastMonth.Sum(x => x.Amount);
+
+            // Tính toán cho tháng hiện tại
+            var startOfCurrentMonth = new DateOnly(DateTime.Now.Year, DateTime.Now.Month, 1);
+            var endOfCurrentMonth = startOfCurrentMonth.AddMonths(1).AddDays(-1);
+            var disbursedCurrentMonth = await _disbursementRepository.QueryHelper()
+                .Filter(x => x.InvestorId.Equals(userId)
+                && x.EndDate >= startOfCurrentMonth
+                && x.EndDate <= endOfCurrentMonth
+                && x.DisbursementStatus == DisbursementStatusEnum.FINISHED).GetAllAsync();
+            var sumOfDisbursedCurrentMonth = disbursedCurrentMonth.Sum(x => x.Amount);
+
+            // Tính toán cho tháng tới
+            var startOfNextMonth = startOfCurrentMonth.AddMonths(1);
+            var endOfNextMonth = startOfNextMonth.AddMonths(1).AddDays(-1);
+            var disbursementsNextMonth = await _disbursementRepository.QueryHelper()
+                .Filter(x => x.InvestorId.Equals(userId)
+                && x.EndDate >= startOfNextMonth
+                && x.EndDate <= endOfNextMonth
+                && x.IsValidWithContract == true
+                && x.DisbursementStatus != DisbursementStatusEnum.FINISHED
+                && x.DisbursementStatus != DisbursementStatusEnum.REJECTED).GetAllAsync();
+            var sumOfDisbursementsNextMonth = disbursementsNextMonth.Sum(x => x.Amount);
+
+            // Tạo và trả về DTO
+            return new InvestorDisbursementOverviewDTO
+            {
+                TotalDisbursement = sumOfDisbursement.ToString("N2"),
+                TotalDisbursedAmount = sumOfDisbursedAmount.ToString("N2"),
+                NotDisbursedAmount = sumOfNotDisbursedAmount.ToString("N2"),
+                DisbursedLastMonth = sumOfDisbursedLastMonth.ToString("N2"),
+                DisbursedCurrentMonth = sumOfDisbursedCurrentMonth.ToString("N2"),
+                DisburseNextMonth = sumOfDisbursementsNextMonth.ToString("N2")
+            };
+        }
+
         public async Task AutoUpdateOverdueIfDisbursementsExpire()
         {
             DateOnly today = DateOnly.FromDateTime(DateTime.Now);
