@@ -45,6 +45,7 @@ namespace StartedIn.Service.Services
         private readonly ITerminationRequestRepository _terminationRequestRepository;
         private readonly IAppointmentRepository _appointmentRepository;
         private readonly IEmailService _emailService;
+        private readonly ITransactionService _transactionService;
 
         public ContractService(IContractRepository contractRepository,
             IUnitOfWork unitOfWork,
@@ -65,7 +66,8 @@ namespace StartedIn.Service.Services
             IAppSettingManager appSettingManager,
             ITerminationRequestRepository terminationRequestRepository,
             IAppointmentRepository appointmentRepository,
-            IEmailService emailService
+            IEmailService emailService,
+            ITransactionService transactionService
         )
         {
             _contractRepository = contractRepository;
@@ -89,6 +91,7 @@ namespace StartedIn.Service.Services
             _terminationRequestRepository = terminationRequestRepository;
             _appointmentRepository = appointmentRepository;
             _emailService = emailService;
+            _transactionService = transactionService;
         }
 
         public async Task<Contract> CreateInvestmentContract(string userId, string projectId, InvestmentContractCreateDTO investmentContractCreateDTO)
@@ -1780,6 +1783,66 @@ namespace StartedIn.Service.Services
             var contract = await _contractRepository.GetContractById(contractId);
             var usersInContract = contract.UserContracts.ToList();
             return usersInContract;
+        }
+
+        public async Task<ContractExpiredDistributionDetailDTO> GetContractExpiredDistributionDetail(string userId, string projectId, string contractId)
+        {
+            var userInProject = await _userService.CheckIfUserInProject(userId, projectId);
+            var loginUserInContract = await _userService.CheckIfUserBelongToContract(userId, contractId);
+            if (userInProject.ProjectId != loginUserInContract.Contract.ProjectId)
+            {
+                throw new UnmatchedException(MessageConstant.ContractNotBelongToProjectError);
+            }
+            try
+            {
+                var project = await _projectRepository.GetOneAsync(projectId);
+                var contract = await _contractRepository.GetContractById(contractId);
+                var currentProfitOfProject = await _transactionService.CalculateProfitOfProject(projectId);
+                List<ShareHolderDetailInExpiredContractDTO> shareHolderList = new List<ShareHolderDetailInExpiredContractDTO>();
+                foreach (var shareEquity in contract.ShareEquities)
+                {
+                    var holder = await _userManager.FindByIdAsync(shareEquity.UserId);
+                    var holderDetail = new ShareHolderDetailInExpiredContractDTO
+                    {
+                        HolderId = shareEquity.UserId,
+                        HolderName = holder.FullName,
+                        Equity = (decimal)shareEquity.Percentage
+                    };
+                    if (shareEquity.StakeHolderType == RoleInTeam.Investor)
+                    {
+                        var disbursed = await _disbursementRepository.QueryHelper()
+                            .Filter(x => x.ContractId.Equals(contractId)
+                            && x.DisbursementStatus == DisbursementStatusEnum.FINISHED
+                            && x.InvestorId.Equals(holder.Id)).GetAllAsync();
+
+                        var totalDisbursedAmount = disbursed.Sum(x => x.Amount);
+                        var receivedMoney = (decimal)currentProfitOfProject * (shareEquity.Percentage / 100) + totalDisbursedAmount;
+                        holderDetail.ReceivedMoney = (decimal)receivedMoney;
+                        holderDetail.DisbursedAmount = totalDisbursedAmount;
+                    }
+                    else
+                    {
+                        var numberOfHoldersInContract = contract.ShareEquities.Count();
+                        var divisionOfRemainingPercent = project.RemainingPercentOfShares / numberOfHoldersInContract;
+                        holderDetail.ReceivedMoney = (decimal)((divisionOfRemainingPercent + shareEquity.Percentage)/100) * (decimal)currentProfitOfProject;
+                    }
+                    shareHolderList.Add(holderDetail);
+                }
+                var contractExpiredDetail = new ContractExpiredDistributionDetailDTO
+                {
+                    Id = contractId,
+                    TotalProfitOfProject = (decimal)currentProfitOfProject,
+                    ShareHolderDetails = shareHolderList
+                };
+
+                return contractExpiredDetail;
+            }
+            catch (Exception ex) 
+            {
+                _logger.LogError(ex, "Truy xuất thất bại");
+                throw;
+            }
+            
         }
 
     }
