@@ -357,7 +357,7 @@ namespace StartedIn.API.Controllers
             try 
             {
                 var userId = User.FindFirst(ClaimTypes.NameIdentifier).Value;
-                var result = await _disbursementService.GetDisbursementOverviewOfAnInvestor(userId);
+                var result = await _disbursementService.GetInvestorDisbursementOverviewAsync(userId);
                 return Ok(result);
             }
             catch (Exception ex)
