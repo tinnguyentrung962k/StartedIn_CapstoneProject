@@ -207,6 +207,7 @@ namespace StartedIn.Service.Services
                 .Include(x=>x.Milestone)
                 .Include(x=>x.MeetingNotes)
                 .Include(x => x.Contract)
+                .Include(x => x.Documents)
                 .GetOneAsync();
             if (appointment == null)
             {

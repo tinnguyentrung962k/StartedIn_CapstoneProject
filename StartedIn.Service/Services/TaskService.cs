@@ -25,6 +25,7 @@ namespace StartedIn.Service.Services
         private readonly IMilestoneRepository _milestoneRepository;
         private readonly IUserService _userService;
         private readonly IMapper _mapper;
+        private readonly IProjectRepository _projectRepository;
 
         public TaskService(
             IUnitOfWork unitOfWork,
@@ -44,6 +45,7 @@ namespace StartedIn.Service.Services
             _milestoneRepository = milestoneRepository;
             _userService = userService;
             _mapper = mapper;
+            _projectRepository = projectRepository;
         }
         public async Task<TaskEntity> GetTaskDetail(string userId, string taskId, string projectId)
         {
@@ -64,6 +66,14 @@ namespace StartedIn.Service.Services
             {
                 throw new NotFoundException(MessageConstant.UserNotInProjectError);
             }
+
+            var projectRole = await _projectRepository.GetUserRoleInProject(userId, projectId);
+            if (taskCreateDto.ParentTask == null && projectRole != RoleInTeam.Leader)
+            {
+                throw new UnauthorizedProjectRoleException(MessageConstant.CannotCreateParentTask);
+            }
+
+            var existingChildrenTasks = _taskRepository.GetTaskListInAProjectQuery(projectId).Where(t => t.ParentTaskId != null);
 
             TaskEntity task = new TaskEntity
             {
@@ -92,6 +102,14 @@ namespace StartedIn.Service.Services
                 if (parentTask.MilestoneId != null && !string.IsNullOrEmpty(taskCreateDto.Milestone))
                 {
                     throw new AssignParentTaskException(MessageConstant.MilestoneFromParentAndFromChildrenError);
+                }
+                
+                foreach (var childrenTask in existingChildrenTasks)
+                {
+                    if (taskCreateDto.ParentTask.Equals(childrenTask.Id))
+                    {
+                        throw new AssignParentTaskException(MessageConstant.CannotAssignChildrenTaskAsParent);
+                    }
                 }
 
                 task.ParentTaskId = taskCreateDto.ParentTask;
@@ -239,6 +257,15 @@ namespace StartedIn.Service.Services
                 }
             }
 
+            if (taskFilterDto.isParentTask != null)
+            {
+                if ((bool)taskFilterDto.isParentTask)
+                {
+                    filterTasks = filterTasks.Where(t => t.ParentTaskId != null);
+                }
+                
+            }
+
             int totalCount = await filterTasks.CountAsync();
 
             var pagedResult = await filterTasks
@@ -278,7 +305,6 @@ namespace StartedIn.Service.Services
         public async Task<TaskEntity> UpdateTaskStatus(string userId, string taskId, string projectId, UpdateTaskStatusDTO updateTaskStatusDTO)
         {
             var userInProject = await _userService.CheckIfUserInProject(userId, projectId);
-
             var chosenTask = await _taskRepository.GetOneAsync(taskId);
             if (chosenTask == null)
             {
@@ -297,6 +323,11 @@ namespace StartedIn.Service.Services
                         throw new UpdateException(MessageConstant.CannotOpenTask);
                     }
                 }
+            }
+
+            if (chosenTask.ParentTaskId != null && userInProject.RoleInTeam != RoleInTeam.Leader)
+            {
+                throw new UnauthorizedProjectRoleException(MessageConstant.RolePermissionError);
             }
 
             try
