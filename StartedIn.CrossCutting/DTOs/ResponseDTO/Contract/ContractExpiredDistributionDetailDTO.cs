@@ -17,8 +17,10 @@ namespace StartedIn.CrossCutting.DTOs.ResponseDTO.Contract
     {
         public string HolderId { get; set; }
         public string HolderName { get; set; }
-        public decimal Equity { get; set; }
-        public decimal ReceivedMoney { get; set; }
+        public decimal EquityDeposit { get; set; }
+        public decimal EquityActual { get; set; }
+        public decimal ReceivedMoneyDeposit { get; set; }
+        public decimal ReceivedMoneyActual { get; set; }
         public decimal? DisbursedAmount { get; set; }
     }
 }

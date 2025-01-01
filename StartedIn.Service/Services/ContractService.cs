@@ -1806,7 +1806,7 @@ namespace StartedIn.Service.Services
                     {
                         HolderId = shareEquity.UserId,
                         HolderName = holder.FullName,
-                        Equity = (decimal)shareEquity.Percentage
+                        EquityDeposit = (decimal)shareEquity.Percentage
                     };
                     if (shareEquity.StakeHolderType == RoleInTeam.Investor)
                     {
@@ -1814,17 +1814,26 @@ namespace StartedIn.Service.Services
                             .Filter(x => x.ContractId.Equals(contractId)
                             && x.DisbursementStatus == DisbursementStatusEnum.FINISHED
                             && x.InvestorId.Equals(holder.Id)).GetAllAsync();
+                        
+                        var totalDisbursement = contract.Disbursements;
+                        var sumOfTotalDisbursementAmount = totalDisbursement.Sum(x => x.Amount);
 
                         var totalDisbursedAmount = disbursed.Sum(x => x.Amount);
-                        var receivedMoney = (decimal)currentProfitOfProject * (shareEquity.Percentage / 100) + totalDisbursedAmount;
-                        holderDetail.ReceivedMoney = (decimal)receivedMoney;
+                        var actualEquity = (totalDisbursedAmount / sumOfTotalDisbursementAmount) * shareEquity.Percentage;
+                        var receivedMoneyDeposit = (decimal)currentProfitOfProject * (shareEquity.Percentage / 100) + sumOfTotalDisbursementAmount;
+                        holderDetail.ReceivedMoneyDeposit = (decimal)receivedMoneyDeposit;
+                        holderDetail.ReceivedMoneyActual = (decimal)currentProfitOfProject * ((decimal)actualEquity / 100) + totalDisbursedAmount;
                         holderDetail.DisbursedAmount = totalDisbursedAmount;
+                        holderDetail.EquityActual = (decimal)actualEquity;
                     }
                     else
                     {
                         var numberOfHoldersInContract = contract.ShareEquities.Count();
                         var divisionOfRemainingPercent = project.RemainingPercentOfShares / numberOfHoldersInContract;
-                        holderDetail.ReceivedMoney = (decimal)((divisionOfRemainingPercent + shareEquity.Percentage)/100) * (decimal)currentProfitOfProject;
+                        holderDetail.ReceivedMoneyDeposit = (decimal)((divisionOfRemainingPercent + shareEquity.Percentage)/100) * (decimal)currentProfitOfProject;
+                        holderDetail.ReceivedMoneyActual = (decimal)((divisionOfRemainingPercent + shareEquity.Percentage) /100) * (decimal)currentProfitOfProject;
+                        holderDetail.EquityActual = (decimal)shareEquity.Percentage;
+
                     }
                     shareHolderList.Add(holderDetail);
                 }
