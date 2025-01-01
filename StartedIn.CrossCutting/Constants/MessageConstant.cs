@@ -144,5 +144,7 @@ namespace StartedIn.CrossCutting.Constants
         public const string ExistProjectName = "Tên dự án đã tồn tại.";
         public const string CannotOpenTask = "Bạn không thể mở lại task khi chưa hoàn thành.";
         public const string ShareDistributionMustBeFrom2Member = "Hợp đồng phải có từ 2 bên tham gia trở lên";
+        public const string CannotCreateParentTask = "Bạn không thể tạo tác vụ lớn khi không phải là nhóm trưởng";
+        public const string CannotAssignChildrenTaskAsParent = "Bạn không thể gán một tác vụ con vào một tác vụ con khác";
     }
 }

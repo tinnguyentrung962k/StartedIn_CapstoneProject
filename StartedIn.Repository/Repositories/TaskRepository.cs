@@ -90,5 +90,6 @@ namespace StartedIn.Repository.Repositories
                 t.ProjectId.Equals(projectId) && t.UserTasks.Any(ut => ut.UserId.Equals(userId))).ToListAsync();
             return tasks;
         }
+        
     }
 }

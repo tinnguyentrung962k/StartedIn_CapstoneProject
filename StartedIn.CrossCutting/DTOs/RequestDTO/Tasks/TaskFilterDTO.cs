@@ -12,4 +12,5 @@ public class TaskFilterDTO
     public DateTimeOffset? StartDate { get; set; }
     public DateTimeOffset? EndDate { get; set; }
     public bool? Priority { get; set; }
+    public bool? isParentTask { get; set; }
 }
