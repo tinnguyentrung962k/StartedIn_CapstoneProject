@@ -249,8 +249,8 @@ namespace StartedIn.Service.Services
                     CreatedBy = userInProject.User.FullName,
                     ProjectId = projectId,
                     MeetingLink = appointmentCreateDTO.MeetingLink,
-                    MilestoneId = appointmentCreateDTO.MilestoneId,
-                    ContractId = appointmentCreateDTO.ContractId,
+                    MilestoneId = string.IsNullOrEmpty(appointmentCreateDTO.MilestoneId) ? null : appointmentCreateDTO.MilestoneId,
+                    ContractId = string.IsNullOrEmpty(appointmentCreateDTO.ContractId) ? null : appointmentCreateDTO.ContractId,
                     Status = MeetingStatus.Proposed
                 };
                 
