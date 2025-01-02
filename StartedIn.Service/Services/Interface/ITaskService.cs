@@ -33,7 +33,7 @@ namespace StartedIn.Service.Services.Interface
         Task<TaskEntity> UpdateParentTask(string userId, string taskId, string projectId,
             UpdateParentTaskDTO updateParentTaskDTO);
 
-        Task<TaskEntity> GetTaskDetail(string userId, string taskId, string projectId);
+        Task<TaskDetailDTO> GetTaskDetail(string userId, string taskId, string projectId);
 
         Task<PaginationDTO<TaskResponseDTO>> FilterTask(string userId, string projectId, TaskFilterDTO taskFilterDto,
             int size, int page);

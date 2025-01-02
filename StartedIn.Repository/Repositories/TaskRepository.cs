@@ -91,5 +91,17 @@ namespace StartedIn.Repository.Repositories
             return tasks;
         }
         
+        public async Task AddUserToTask(string userId, string taskId)
+        {
+            var userTask = new UserTask
+            {
+                UserId = userId,
+                TaskId = taskId,
+                ActualManHour = 0,
+                LastUpdatedTime = DateTimeOffset.UtcNow
+            };
+            await _appDbContext.Set<UserTask>().AddAsync(userTask);
+        }
+        
     }
 }

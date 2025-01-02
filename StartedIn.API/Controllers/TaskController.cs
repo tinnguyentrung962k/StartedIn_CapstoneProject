@@ -96,7 +96,7 @@ namespace StartedIn.API.Controllers
             try
             {
                 var userId = User.FindFirst(ClaimTypes.NameIdentifier).Value;
-                var responseTask = _mapper.Map<TaskDetailDTO>(await _taskService.GetTaskDetail(userId, taskId, projectId));
+                var responseTask = await _taskService.GetTaskDetail(userId, taskId, projectId);
                 return Ok(responseTask);
             }
             catch (UnauthorizedProjectRoleException ex)
@@ -176,7 +176,9 @@ namespace StartedIn.API.Controllers
             try
             {
                 var userId = User.FindFirst(ClaimTypes.NameIdentifier).Value;
-                var responseTask = _mapper.Map<TaskResponseDTO>(await _taskService.UpdateTaskStatus(userId, taskId, projectId, updateTaskStatusDTO));
+                var responseTask =
+                    _mapper.Map<TaskResponseDTO>(
+                        await _taskService.UpdateTaskStatus(userId, taskId, projectId, updateTaskStatusDTO));
                 var payload = new PayloadDTO<TaskResponseDTO>
                 {
                     Data = responseTask,
@@ -190,6 +192,10 @@ namespace StartedIn.API.Controllers
                 return StatusCode(403, ex.Message);
             }
             catch (NotFoundException ex)
+            {
+                return BadRequest(ex.Message);
+            }
+            catch (UpdateException ex)
             {
                 return BadRequest(ex.Message);
             }
