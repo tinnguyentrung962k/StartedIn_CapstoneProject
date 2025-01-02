@@ -10,5 +10,6 @@ namespace StartedIn.Repository.Repositories.Interface
         Task<float> GetManHoursForTask(string taskId);
         Task<List<UserTask>> GetAllUserTasksInOneProject(string userId, string projectId);
         Task<List<TaskEntity>> GetAllTaskEntitiesOfUserInOneProject(string projectId, string userId);
+        Task AddUserToTask(string userId, string taskId);
     }
 }

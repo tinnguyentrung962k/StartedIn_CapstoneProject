@@ -146,5 +146,7 @@ namespace StartedIn.CrossCutting.Constants
         public const string ShareDistributionMustBeFrom2Member = "Hợp đồng phải có từ 2 bên tham gia trở lên";
         public const string CannotCreateParentTask = "Bạn không thể tạo tác vụ lớn khi không phải là nhóm trưởng";
         public const string CannotAssignChildrenTaskAsParent = "Bạn không thể gán một tác vụ con vào một tác vụ con khác";
+        public const string CannotCompleteTaskWithoutManHour = "Bạn không thể hoàn thành tác vụ khi chưa cập nhật giờ làm";
+        public const string CannotChangeStatusTaskWrongAssignee = "Bạn không phải là người thực hiện tác vụ nên không thể thay đổi trạng thái tác vụ";
     }
 }
