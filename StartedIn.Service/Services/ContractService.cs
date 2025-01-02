@@ -964,32 +964,39 @@ namespace StartedIn.Service.Services
                     };
                     _shareEquityRepository.Add(shareEquity);
                 }
-                var existingDisbursements = contract.Disbursements;
-                foreach (var existingDisbursement in existingDisbursements)
-                {
-                   await _disbursementRepository.DeleteAsync(existingDisbursement);
-                }
                 var disbursementList = new List<Disbursement>();
-
-                foreach (var updatedDisbursement in investmentContractUpdateDTO.Disbursements)
+                if (contract.DealOfferId != null)
                 {
-                    var newDisbursement = new Disbursement
-                    {
-                       ContractId = contract.Id,
-                       Amount = updatedDisbursement.Amount,
-                       Condition = updatedDisbursement.Condition,
-                       StartDate = updatedDisbursement.StartDate,
-                       EndDate = updatedDisbursement.EndDate,
-                       Title = updatedDisbursement.Title,
-                       CreatedBy = userId,
-                       DisbursementStatus = DisbursementStatusEnum.PENDING,
-                       InvestorId = investor.Id,
-                       IsValidWithContract = false
-                    };
-                    _disbursementRepository.Add(newDisbursement);
-                    disbursementList.Add(newDisbursement);
+                    var existingDisbursements = contract.Disbursements;
+                    disbursementList.AddRange(existingDisbursements);
                 }
 
+                if (contract.DealOfferId == null)
+                {
+                    var existingDisbursements = contract.Disbursements;
+                    foreach (var existingDisbursement in existingDisbursements)
+                    {
+                        await _disbursementRepository.DeleteAsync(existingDisbursement);
+                    }
+                    foreach (var updatedDisbursement in investmentContractUpdateDTO.Disbursements)
+                    {
+                        var newDisbursement = new Disbursement
+                        {
+                            ContractId = contract.Id,
+                            Amount = updatedDisbursement.Amount,
+                            Condition = updatedDisbursement.Condition,
+                            StartDate = updatedDisbursement.StartDate,
+                            EndDate = updatedDisbursement.EndDate,
+                            Title = updatedDisbursement.Title,
+                            CreatedBy = userId,
+                            DisbursementStatus = DisbursementStatusEnum.PENDING,
+                            InvestorId = investor.Id,
+                            IsValidWithContract = false
+                        };
+                        _disbursementRepository.Add(newDisbursement);
+                        disbursementList.Add(newDisbursement);
+                    }
+                }
 
                 // Upload updated contract to SignNow
                 var signingMethod = await _appSettingManager.GetSettingAsync("SignatureType");
