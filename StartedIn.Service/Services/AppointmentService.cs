@@ -255,7 +255,7 @@ namespace StartedIn.Service.Services
                 };
                 
                 var newAppointmentEntity = _appointmentRepository.Add(newAppointment);
-                
+                await _appointmentRepository.AddUserToAppointment(userId, newAppointmentEntity.Id);
                 foreach (var partyId in appointmentCreateDTO.Parties)
                 {
                     var party = await _userService.GetUserWithId(partyId);

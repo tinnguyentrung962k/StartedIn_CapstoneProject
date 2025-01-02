@@ -1617,6 +1617,8 @@ namespace StartedIn.Service.Services
                     AppointmentId = appointment.Id
                 };
 
+                await _appointmentRepository.AddUserToAppointment(userId, newMeeting.Id);
+
                 var leaderRequest = _terminationRequestRepository.Add(terminationRequest);
 
                 chosenContract.CurrentTerminationRequestId = leaderRequest.Id;
@@ -1630,6 +1632,7 @@ namespace StartedIn.Service.Services
                     await _emailService.SendAppointmentInvite(userParty.User.Email, userInProject.Project.ProjectName, userParty.User.FullName, newMeeting.MeetingLink, newMeeting.AppointmentTime.AddHours(7));
                     await _appointmentRepository.AddUserToAppointment(userParty.UserId, newMeeting.Id);
                 }
+
 
                 await _unitOfWork.SaveChangesAsync();
                 await _unitOfWork.CommitAsync();

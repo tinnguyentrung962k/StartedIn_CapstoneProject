@@ -171,6 +171,7 @@ namespace StartedIn.Service.Services
                         await _appointmentRepository.AddUserToAppointment(userParty.UserId, newMeeting.Id);
                     }
                 }
+                await _appointmentRepository.AddUserToAppointment(userId, newMeeting.Id);
                 _terminationRequestRepository.Update(request);
                 await _unitOfWork.SaveChangesAsync();
                 await _unitOfWork.CommitAsync();

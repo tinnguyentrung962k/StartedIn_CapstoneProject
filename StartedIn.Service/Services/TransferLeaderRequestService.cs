@@ -111,6 +111,7 @@ namespace StartedIn.Service.Services
                     await _emailService.SendAppointmentInvite(user.Email, project.ProjectName, user.FullName, transferAppointment.MeetingLink, transferAppointment.AppointmentTime.AddHours(7));
                     await _appointmentRepository.AddUserToAppointment(activeUserInProject.UserId, transferAppointment.Id);
                 }
+                await _appointmentRepository.AddUserToAppointment(userId, transferAppointment.Id);
                 await _unitOfWork.SaveChangesAsync();
                 await _unitOfWork.CommitAsync();
             }
