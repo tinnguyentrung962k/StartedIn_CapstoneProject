@@ -109,6 +109,7 @@ namespace StartedIn.Service.Services
                 {
                     var user = await _userManager.FindByIdAsync(activeUserInProject.UserId);
                     await _emailService.SendAppointmentInvite(user.Email, project.ProjectName, user.FullName, transferAppointment.MeetingLink, transferAppointment.AppointmentTime.AddHours(7));
+                    await _appointmentRepository.AddUserToAppointment(activeUserInProject.UserId, transferAppointment.Id);
                 }
                 await _unitOfWork.SaveChangesAsync();
                 await _unitOfWork.CommitAsync();
