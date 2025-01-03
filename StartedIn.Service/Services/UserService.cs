@@ -34,6 +34,7 @@ namespace StartedIn.Service.Services
         private readonly IContractRepository _contractRepository;
         private readonly IUserRepository _userRepository;
         private readonly IMapper _mapper;
+        private readonly IAzureBlobService _azureBlobService;
         public UserService(ITokenService tokenService,
             UserManager<User> userManager, IUnitOfWork unitOfWork,
             IConfiguration configuration, IEmailService emailService,
@@ -41,7 +42,8 @@ namespace StartedIn.Service.Services
             RoleManager<Role> roleManager,
             IProjectRepository projectRepository, IContractRepository contractRepository,
             IUserRepository userRepository,
-            IMapper mapper
+            IMapper mapper,
+            IAzureBlobService azureBlobService
         )
         {
             _tokenService = tokenService;
@@ -55,6 +57,7 @@ namespace StartedIn.Service.Services
             _contractRepository = contractRepository;
             _userRepository = userRepository;
             _mapper = mapper;
+            _azureBlobService = azureBlobService;
         }
 
         public async Task<LoginResponseDTO> Login(string email, string password)
@@ -218,14 +221,14 @@ namespace StartedIn.Service.Services
                 .SingleOrDefaultAsync(it => it.Id == userId);
         }
 
-        //public virtual async Task<User> UpdateAvatar(IFormFile avatar, string userId)
-        //{
-        //    var url = await _azureBlobService.UploadAvatarOrCover(avatar);
-        //    var user = await GetUserWithId(userId);
-        //    user.ProfilePicture = url;
-        //    await _userManager.UpdateAsync(user);
-        //    return user;
-        //}
+        public virtual async Task<User> UpdateAvatar(IFormFile avatar, string userId)
+        {
+            var url = await _azureBlobService.UploadAvatarOrCover(avatar);
+            var user = await GetUserWithId(userId);
+            user.ProfilePicture = url;
+            await _userManager.UpdateAsync(user);
+            return user;
+        }
 
         public virtual async Task<User> UpdateProfile(User userToUpdate, string userId)
         {
@@ -236,14 +239,14 @@ namespace StartedIn.Service.Services
             return user;
         }
 
-        //public virtual async Task<User> UpdateCoverPhoto(IFormFile coverPhoto, string userId)
-        //{
-        //    var url = await _azureBlobService.UploadAvatarOrCover(coverPhoto);
-        //    var user = await GetUserWithId(userId);
-        //    user.CoverPhoto = url;
-        //    await _userManager.UpdateAsync(user);
-        //    return user;
-        //}
+        public virtual async Task<User> UpdateCoverPhoto(IFormFile coverPhoto, string userId)
+        {
+            var url = await _azureBlobService.UploadAvatarOrCover(coverPhoto);
+            var user = await GetUserWithId(userId);
+            user.CoverPhoto = url;
+            await _userManager.UpdateAsync(user);
+            return user;
+        }
 
         public async Task<User> GetUserWithId(string id)
         {

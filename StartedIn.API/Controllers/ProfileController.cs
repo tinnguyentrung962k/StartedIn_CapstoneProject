@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using StartedIn.CrossCutting.Constants;
+using StartedIn.CrossCutting.DTOs.RequestDTO.User;
 using StartedIn.CrossCutting.DTOs.ResponseDTO;
 using StartedIn.CrossCutting.Exceptions;
 using StartedIn.Domain.Entities;
@@ -54,6 +55,70 @@ namespace StartedIn.API.Controllers
 
             var fullProfileDto = _mapper.Map<FullProfileDTO>(queryUser);
             return Ok(fullProfileDto);
+        }
+
+        [Authorize]
+        [HttpPost("profile-picture")]
+        public async Task<ActionResult<FullProfileDTO>> UploadAvatar(IFormFile avatar)
+        {
+            var userId = User.FindFirst(ClaimTypes.NameIdentifier).Value;
+            if (userId == null)
+            {
+                return BadRequest("Không tìm thấy người dùng");
+            }
+            try
+            {
+                var user = await _userService.UpdateAvatar(avatar, userId);
+                var responseUserProfile = _mapper.Map<FullProfileDTO>(user);
+                return Ok(responseUserProfile);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest("Cập nhật ảnh đại diện thất bại");
+            }
+        }
+
+        [Authorize]
+        [HttpPost("cover-photo")]
+        public async Task<ActionResult<FullProfileDTO>> UploadCoverPhoto(IFormFile coverPhoto)
+        {
+            var userId = User.FindFirst(ClaimTypes.NameIdentifier).Value;
+            if (userId == null)
+            {
+                return BadRequest("Không tìm thấy người dùng");
+            }
+            try
+            {
+                var user = await _userService.UpdateCoverPhoto(coverPhoto, userId);
+                var responseUserProfile = _mapper.Map<FullProfileDTO>(user);
+                return Ok(responseUserProfile);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest("Cập nhật ảnh bìa thất bại");
+            }
+        }
+
+        [Authorize]
+        [HttpPut("profile")]
+        public async Task<ActionResult<FullProfileDTO>> EditProfile([FromBody] UpdateProfileDTO updateProfileDto)
+        {
+            var userId = User.FindFirst(ClaimTypes.NameIdentifier).Value;
+            if (userId == null)
+            {
+                return BadRequest("Không tìm thấy người dùng");
+            }
+
+            try
+            {
+                var user = await _userService.UpdateProfile(_mapper.Map<User>(updateProfileDto), userId);
+                var updatedUser = _mapper.Map<FullProfileDTO>(user);
+                return Ok(updatedUser);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest("Cập nhật người dùng không thành công");
+            }
         }
     }
 }

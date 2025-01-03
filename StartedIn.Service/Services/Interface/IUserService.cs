@@ -22,11 +22,11 @@ namespace StartedIn.Service.Services.Interface
 
         Task<User> GetUserWithUserRolesById(string userId);
 
-        //Task<User> UpdateAvatar(IFormFile avatar, string userId);
+        Task<User> UpdateAvatar(IFormFile avatar, string userId);
 
         Task<User> UpdateProfile(User userToUpdate, string userId);
 
-        //Task<User> UpdateCoverPhoto(IFormFile coverPhoto, string userId);
+        Task<User> UpdateCoverPhoto(IFormFile coverPhoto, string userId);
 
         Task<User> GetUserWithId(string id);
         Task<PaginationDTO<FullProfileDTO>> GetUsersListForAdmin(UserAdminFilterDTO userAdminFilterDTO,int page, int size);
