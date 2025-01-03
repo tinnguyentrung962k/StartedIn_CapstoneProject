@@ -19,7 +19,6 @@ namespace StartedIn.API.Configuration
             services.AddScoped<IContractRepository, ContractRepository>();
             services.AddScoped<IProjectCharterRepository, ProjectCharterRepository>();
             services.AddScoped<IDealOfferRepository, DealOfferRepository>();
-            services.AddScoped<IDealOfferHistoryRepository, DealOfferHistoryRepository>();
             services.AddScoped<IShareEquityRepository,ShareEquityRepository>();
             services.AddScoped<IDisbursementRepository, DisbursementRepository>();
             services.AddScoped<ITransactionRepository, TransactionRepository>();

@@ -39,7 +39,6 @@ namespace StartedIn.Domain.Context
         public DbSet<UserContract> UserContracts { get; set; }
         public DbSet<ShareEquity> ShareEquities { get; set; }
         public DbSet<DealOffer> DealOffers { get; set; }
-        public DbSet<DealOfferHistory> DealOfferHistories { get; set; }
         public DbSet<Disbursement> Disbursements { get; set; }
         public DbSet<DisbursementAttachment> DisbursementAttachments { get; set; }
         public DbSet<UserTask> UserTasks { get; set; }
@@ -211,9 +210,6 @@ namespace StartedIn.Domain.Context
 
             modelBuilder.Entity<DisbursementAttachment>()
                 .ToTable("DisbursementAttachment");
-
-            modelBuilder.Entity<DealOfferHistory>()
-                .ToTable("DealOfferHistory");
 
             modelBuilder.Entity<ShareEquity>()
                 .ToTable("ShareEquity");

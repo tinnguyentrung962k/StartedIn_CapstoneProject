@@ -23,7 +23,6 @@ namespace StartedIn.Service.Services
     public class DealOfferService : IDealOfferService
     {
         private readonly IDealOfferRepository _dealOfferRepository;
-        private readonly IDealOfferHistoryRepository _dealOfferHistoryRepository;
         private readonly UserManager<User> _userManager;
         private readonly ILogger<DealOffer> _logger;
         private readonly IUnitOfWork _unitOfWork;
@@ -35,7 +34,6 @@ namespace StartedIn.Service.Services
         private readonly IMapper _mapper;
 
         public DealOfferService(IDealOfferRepository dealOfferRepository,
-            IDealOfferHistoryRepository dealOfferHistoryRepository,
             UserManager<User> userManager,
             ILogger<DealOffer> logger,
             IUnitOfWork unitOfWork,
@@ -47,7 +45,6 @@ namespace StartedIn.Service.Services
             IMapper mapper)
         {
             _dealOfferRepository = dealOfferRepository;
-            _dealOfferHistoryRepository = dealOfferHistoryRepository;
             _userManager = userManager;
             _logger = logger;
             _unitOfWork = unitOfWork;
@@ -210,17 +207,6 @@ namespace StartedIn.Service.Services
                 }
 
                 await _disbursementRepository.AddRangeAsync(disbursements);
-
-                
-                string notification = "Nhà đầu tư " + user.FullName + "đã gửi cho bạn lời mời đầu tư mới";
-                DealOfferHistory dealOfferHistory = new DealOfferHistory
-                {
-                    Content = notification,
-                    CreatedBy = user.FullName,
-                    DealOffer = dealOffer,
-                    DealOfferId = dealOffer.Id
-                };
-                var dealOfferHistoryEntity = _dealOfferHistoryRepository.Add(dealOfferHistory);
                 await _unitOfWork.SaveChangesAsync();
                 await _unitOfWork.CommitAsync();
                 return dealOfferEntity;
