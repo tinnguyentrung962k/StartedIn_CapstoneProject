@@ -53,7 +53,7 @@ namespace StartedIn.Service.Services
             var userInProject = await _userService.CheckIfUserInProject(userId, projectId);
 
             var chosenTask = await _taskRepository.GetTaskDetails(taskId) ?? throw new NotFoundException(MessageConstant.NotFoundTaskError);
-            var subTasks = await _taskRepository.QueryHelper().Filter(t => t.ParentTaskId == taskId).GetAllAsync();
+            var subTasks = await _taskRepository.QueryHelper().Filter(t => t.ParentTaskId == taskId).Include(t => t.UserTasks).GetAllAsync();
             chosenTask.SubTasks = (ICollection<TaskEntity>)subTasks;
            
             // return this if the task is not a parent task
@@ -62,15 +62,20 @@ namespace StartedIn.Service.Services
             var userTaskResponses = new List<UserTaskResponseDTO>();
             foreach (var subTask in subTasks)
             {
-                var userTask = subTask.UserTasks.FirstOrDefault(ut => ut.TaskId.Equals(subTask.Id));
-                var userTaskResponse = new UserTaskResponseDTO
+                var userTasks = subTask.UserTasks.Where(ut => ut.TaskId.Equals(subTask.Id)).ToList();
+                foreach (var userTask in userTasks)
                 {
-                    UserId = userTask.UserId,
-                    FullName = userTask.User.FullName,
-                    ActualManHour = userTask.ActualManHour,
-                    LastUpdatedTime = userTask.LastUpdatedTime
-                };
-                userTaskResponses.Add(userTaskResponse);
+                    var userTaskResponse = new UserTaskResponseDTO
+                    {
+                        UserId = userTask.UserId,
+                        TaskId = userTask.TaskId,
+                        FullName = userTask.User.FullName,
+                        TaskName = userTask.Task.Title,
+                        ActualManHour = userTask.ActualManHour,
+                        LastUpdatedTime = userTask.LastUpdatedTime
+                    };
+                    userTaskResponses.Add(userTaskResponse);
+                }
             }
             if (chosenTask.ParentTaskId == null)
             {
@@ -111,6 +116,10 @@ namespace StartedIn.Service.Services
                 CreatedTime = DateTimeOffset.UtcNow
             };
 
+            if (taskCreateDto.Assignees.Length > 1)
+            {
+                throw new InvalidInputException(MessageConstant.NoMoreThanOneAssignee);
+            }
             if (!string.IsNullOrEmpty(taskCreateDto.Milestone))
             {
                 task.MilestoneId = taskCreateDto.Milestone;
@@ -118,7 +127,7 @@ namespace StartedIn.Service.Services
 
             if (!string.IsNullOrEmpty(taskCreateDto.ParentTask))
             {
-                var parentTask = await _taskRepository.GetOneAsync(taskCreateDto.ParentTask);
+                var parentTask = await _taskRepository.GetTaskDetails(taskCreateDto.ParentTask);
                 //if parent task is already in a milestone then do not assign task to another milestone
                 if (parentTask.MilestoneId != null && !string.IsNullOrEmpty(taskCreateDto.Milestone))
                 {
@@ -135,10 +144,15 @@ namespace StartedIn.Service.Services
 
                 task.ParentTaskId = taskCreateDto.ParentTask;
                 task.MilestoneId = parentTask.MilestoneId;
-
+                
                 foreach (var assignee in taskCreateDto.Assignees)
                 {
-                    await _taskRepository.AddUserToTask(assignee, taskCreateDto.ParentTask);
+                    var assigneeParentQueryTask = parentTask.UserTasks
+                        .Where(ut => ut.TaskId.Equals(taskCreateDto.ParentTask) && ut.UserId.Equals(assignee)).ToList();
+                    if (assigneeParentQueryTask.Count == 0)
+                    {
+                        await _taskRepository.AddUserToTask(assignee, taskCreateDto.ParentTask);
+                    }
                 }
             }
 
@@ -287,7 +301,11 @@ namespace StartedIn.Service.Services
             {
                 if ((bool)taskFilterDto.isParentTask)
                 {
-                    filterTasks = filterTasks.Where(t => t.ParentTaskId != null);
+                    filterTasks = filterTasks.Where(t => t.ParentTaskId == null);
+                }
+                else
+                {
+                    filterTasks = filterTasks.Where(t => t.ParentTask != null);
                 }
                 
             }
@@ -331,7 +349,7 @@ namespace StartedIn.Service.Services
         public async Task<TaskEntity> UpdateTaskStatus(string userId, string taskId, string projectId, UpdateTaskStatusDTO updateTaskStatusDTO)
         {
             var userInProject = await _userService.CheckIfUserInProject(userId, projectId);
-            var chosenTask = await _taskRepository.GetOneAsync(taskId);
+            var chosenTask = await _taskRepository.GetTaskDetails(taskId);
             if (chosenTask == null)
             {
                 throw new NotFoundException(MessageConstant.NotFoundTaskError);
@@ -361,7 +379,7 @@ namespace StartedIn.Service.Services
                 
                 if (chosenTask.Status != TaskEntityStatus.DONE)
                 {
-                        throw new UpdateException(MessageConstant.CannotOpenTask);
+                    throw new UpdateException(MessageConstant.CannotOpenTask);
                 }
             }
 
@@ -430,6 +448,12 @@ namespace StartedIn.Service.Services
             if (chosenTask.Status != TaskEntityStatus.NOT_STARTED && chosenTask.Status != TaskEntityStatus.OPEN)
             {
                 throw new UpdateException(MessageConstant.CannotUpdateTaskInfoWhenStarted);
+            }
+
+            var queryUserTask = chosenTask.UserTasks.FirstOrDefault(ct => ct.TaskId.Equals(taskId));
+            if (queryUserTask != null)
+            {
+                throw new UpdateException(MessageConstant.NoMoreThanOneAssignee);
             }
             
             try

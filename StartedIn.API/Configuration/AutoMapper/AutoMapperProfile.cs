@@ -480,6 +480,7 @@ namespace StartedIn.API.Configuration.AutoMapper
         {
             CreateMap<UserTask, UserTaskResponseDTO>()
                 .ForMember(dest => dest.FullName, opt => opt.MapFrom(src => src.User.FullName))
+                .ForMember(dest => dest.TaskName, opt => opt.MapFrom(src => src.Task.Title))
                 .ReverseMap();
         }
 

@@ -148,5 +148,6 @@ namespace StartedIn.CrossCutting.Constants
         public const string CannotAssignChildrenTaskAsParent = "Bạn không thể gán một tác vụ con vào một tác vụ con khác";
         public const string CannotCompleteTaskWithoutManHour = "Bạn không thể hoàn thành tác vụ khi chưa cập nhật giờ làm";
         public const string CannotChangeStatusTaskWrongAssignee = "Bạn không phải là người thực hiện tác vụ nên không thể thay đổi trạng thái tác vụ";
+        public const string NoMoreThanOneAssignee = "Không thể có nhiều hơn một người thực hiện tác vụ";
     }
 }

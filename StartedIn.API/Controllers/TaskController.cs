@@ -62,6 +62,10 @@ namespace StartedIn.API.Controllers
             {
                 return BadRequest(ex.Message);
             }
+            catch (InvalidInputException ex)
+            {
+                return BadRequest(ex.Message);
+            }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error while creating new task.");
@@ -216,7 +220,8 @@ namespace StartedIn.API.Controllers
             try
             {
                 var userId = User.FindFirst(ClaimTypes.NameIdentifier).Value;
-                var responseTask = _mapper.Map<TaskResponseDTO>(await _taskService.UpdateTaskAssignment(userId, taskId, projectId, updateTaskAssignmentDTO));
+                var responseTask = _mapper.Map<TaskResponseDTO>(
+                    await _taskService.UpdateTaskAssignment(userId, taskId, projectId, updateTaskAssignmentDTO));
                 return Ok(responseTask);
             }
             catch (UnauthorizedProjectRoleException ex)
@@ -224,6 +229,10 @@ namespace StartedIn.API.Controllers
                 return StatusCode(403, ex.Message);
             }
             catch (NotFoundException ex)
+            {
+                return BadRequest(ex.Message);
+            }
+            catch (UpdateException ex)
             {
                 return BadRequest(ex.Message);
             }
