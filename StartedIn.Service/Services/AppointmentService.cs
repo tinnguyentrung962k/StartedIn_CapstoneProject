@@ -255,7 +255,6 @@ namespace StartedIn.Service.Services
                 };
                 
                 var newAppointmentEntity = _appointmentRepository.Add(newAppointment);
-                await _appointmentRepository.AddUserToAppointment(userId, newAppointmentEntity.Id);
                 foreach (var partyId in appointmentCreateDTO.Parties)
                 {
                     var party = await _userService.GetUserWithId(partyId);
@@ -265,19 +264,24 @@ namespace StartedIn.Service.Services
                         newAppointment.MeetingLink, newAppointment.AppointmentTime.AddHours(7));
                     await _appointmentRepository.AddUserToAppointment(partyId, newAppointmentEntity.Id);
                 }
-                foreach (var document in appointmentCreateDTO.Documents)
+
+                if (appointmentCreateDTO.Documents != null)
                 {
-                    var linkUrl = await _azureBlobService.UploadMeetingNoteAndProjectDocuments(document);
-                    var newDocument = new Document
+                    foreach (var document in appointmentCreateDTO.Documents)
                     {
-                        AppointmentId = newAppointmentEntity.Id,
-                        ProjectId = projectId,
-                        AttachmentLink = linkUrl,
-                        DocumentName = document.FileName,
-                        CreatedBy = userInProject.User.FullName
-                    };
-                    _documentRepository.Add(newDocument);
+                        var linkUrl = await _azureBlobService.UploadMeetingNoteAndProjectDocuments(document);
+                        var newDocument = new Document
+                        {
+                            AppointmentId = newAppointmentEntity.Id,
+                            ProjectId = projectId,
+                            AttachmentLink = linkUrl,
+                            DocumentName = document.FileName,
+                            CreatedBy = userInProject.User.FullName
+                        };
+                        _documentRepository.Add(newDocument);
+                    }
                 }
+                
                 
                 await _unitOfWork.SaveChangesAsync();
                 await _unitOfWork.CommitAsync();
