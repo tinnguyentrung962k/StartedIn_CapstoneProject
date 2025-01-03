@@ -10,6 +10,7 @@ public static class BackgroundWorkerConfiguration
         services.AddHostedService<DisbursementBackgroundWorker>();
         services.AddHostedService<TaskBackgroundWorker>();
         services.AddHostedService<AppointmentBackgroundWorker>();
+        services.AddHostedService<InvestmentCallBackgroundWorker>();
         return services;
     }
 }

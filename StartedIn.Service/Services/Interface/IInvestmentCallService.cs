@@ -9,7 +9,7 @@ namespace StartedIn.Service.Services.Interface;
 public interface IInvestmentCallService 
 {
     Task<InvestmentCall> CreateNewInvestmentCall(string userId, string projectId, InvestmentCallCreateDTO investmentCallCreateDto);
-
+    Task CloseOverdueInvestmentCalls();
     Task<InvestmentCall> GetInvestmentCallById(string projectId, string investmentCallId);
     Task<PaginationDTO<InvestmentCallResponseDTO>> GetInvestmentCallByProjectId(string userId, string projectId, InvestmentCallSearchDTO investmentCallSearchDTO, int page, int size);
 }

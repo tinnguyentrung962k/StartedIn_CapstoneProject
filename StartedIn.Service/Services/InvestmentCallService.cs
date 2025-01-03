@@ -9,6 +9,7 @@ using StartedIn.CrossCutting.DTOs.ResponseDTO.InvestmentCall;
 using StartedIn.CrossCutting.Enum;
 using StartedIn.CrossCutting.Exceptions;
 using StartedIn.Domain.Entities;
+using StartedIn.Repository.Repositories;
 using StartedIn.Repository.Repositories.Interface;
 using StartedIn.Service.Services.Interface;
 
@@ -102,6 +103,21 @@ public class InvestmentCallService : IInvestmentCallService
             throw;
         }
         
+    }
+
+    public async Task CloseOverdueInvestmentCalls()
+    {
+        var tomorrowDate = DateOnly.FromDateTime(DateTimeOffset.UtcNow.AddDays(1).UtcDateTime);
+        var investmentCalls = await _investmentCallRepository.QueryHelper()
+            .Filter(c => c.Status == InvestmentCallStatus.Open && (c.EndDate != null && c.EndDate < tomorrowDate))
+            .GetAllAsync();
+        foreach (var call in investmentCalls)
+        {
+            call.Status = InvestmentCallStatus.Closed;
+            _investmentCallRepository.Update(call);
+            
+        }
+        await _unitOfWork.SaveChangesAsync();
     }
 
     public async Task<InvestmentCall> GetInvestmentCallById(string projectId, string callId)
