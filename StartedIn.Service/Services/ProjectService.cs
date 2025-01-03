@@ -587,8 +587,8 @@ public class ProjectService : IProjectService
         var transactionStatisticOfCurrentMonth = await _transactionService.GetInAndOutMoneyTransactionOfCurrentMonth(projectId);
         var userShareInProject = await _shareEquityService.GetShareEquityOfAUserInAProject(userId, projectId);
 
-        var lateTask = await _taskRepository.GetTaskListInAProjectQuery(projectId).Where(x => x.IsLate == true && x.DeletedTime == null).ToListAsync();
-        var completedTask = await _taskRepository.GetTaskListInAProjectQuery(projectId).Where(x => x.Status == TaskEntityStatus.DONE && x.DeletedTime == null).ToListAsync();
+        var lateTask = await _taskRepository.GetTaskListInAProjectQuery(projectId).Where(x => x.IsLate == true).ToListAsync();
+        var completedTask = await _taskRepository.GetTaskListInAProjectQuery(projectId).Where(x => x.Status == TaskEntityStatus.DONE).ToListAsync();
         var alltasks = await _taskRepository.GetTaskListInAProjectQuery(projectId).ToListAsync();
         int totalTask = alltasks.Count();
         float profit = await _transactionService.CalculateProfitOfProject(projectId);

@@ -278,7 +278,7 @@ namespace StartedIn.Service.Services
             var userInProject = await _userService.CheckIfUserInProject(userId, projectId);
             var milestoneHistories = await _milestoneHistoryRepository.QueryHelper()
                 .Filter(x => x.Milestone.ProjectId.Equals(projectId))
-                .OrderBy(x => x.OrderBy(x => x.CreatedTime)).GetPagingAsync(page, size);
+                .OrderBy(x => x.OrderByDescending(x => x.CreatedTime)).GetPagingAsync(page, size);
 
             var pagination = new PaginationDTO<MilestoneHistoryResponseDTO>
             {

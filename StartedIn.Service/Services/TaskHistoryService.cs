@@ -28,7 +28,7 @@ namespace StartedIn.Service.Services
         public async Task<PaginationDTO<TaskHistoryResponseDTO>> GetTaskHistoriesOfProject(string projectId, int page, int size)
         {
             var taskHistories = await _taskHistoryRepository.QueryHelper().Filter(t => t.Task.ProjectId.Equals(projectId))
-                .OrderBy(t => t.OrderBy(t => t.CreatedTime)).GetPagingAsync(page, size);
+                .OrderBy(t => t.OrderByDescending(t => t.CreatedTime)).GetPagingAsync(page, size);
             return new PaginationDTO<TaskHistoryResponseDTO>()
             {
                 Data = _mapper.Map<IEnumerable<TaskHistoryResponseDTO>>(taskHistories),
@@ -41,7 +41,7 @@ namespace StartedIn.Service.Services
         public async Task<IEnumerable<TaskHistory>> GetTaskHistoryOfTask(string projectId, string taskId, string userId)
         {
             var userInProject = await _userService.CheckIfUserInProject(userId, projectId);
-            var taskHistory = await _taskHistoryRepository.QueryHelper().Filter(th => th.TaskId.Equals(taskId)).OrderBy(x => x.OrderBy(x => x.CreatedTime)).GetAllAsync();
+            var taskHistory = await _taskHistoryRepository.QueryHelper().Filter(th => th.TaskId.Equals(taskId)).OrderBy(x => x.OrderByDescending(x => x.CreatedTime)).GetAllAsync();
 
             return taskHistory;
         }
