@@ -127,7 +127,7 @@ namespace StartedIn.Service.Services
 
             if (!string.IsNullOrEmpty(taskCreateDto.ParentTask))
             {
-                var parentTask = await _taskRepository.GetOneAsync(taskCreateDto.ParentTask);
+                var parentTask = await _taskRepository.GetTaskDetails(taskCreateDto.ParentTask);
                 //if parent task is already in a milestone then do not assign task to another milestone
                 if (parentTask.MilestoneId != null && !string.IsNullOrEmpty(taskCreateDto.Milestone))
                 {
@@ -144,10 +144,15 @@ namespace StartedIn.Service.Services
 
                 task.ParentTaskId = taskCreateDto.ParentTask;
                 task.MilestoneId = parentTask.MilestoneId;
-
+                
                 foreach (var assignee in taskCreateDto.Assignees)
                 {
-                    await _taskRepository.AddUserToTask(assignee, taskCreateDto.ParentTask);
+                    var assigneeParentQueryTask = parentTask.UserTasks
+                        .Where(ut => ut.TaskId.Equals(taskCreateDto.ParentTask) && ut.UserId.Equals(assignee)).ToList();
+                    if (assigneeParentQueryTask.Count == 0)
+                    {
+                        await _taskRepository.AddUserToTask(assignee, taskCreateDto.ParentTask);
+                    }
                 }
             }
 
