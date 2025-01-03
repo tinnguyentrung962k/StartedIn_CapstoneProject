@@ -218,7 +218,7 @@ namespace StartedIn.Service.Services
         public async Task<Appointment> CreateAnAppointment(string userId, string projectId, AppointmentCreateDTO appointmentCreateDTO)
         {
             var userInProject = await _userService.CheckIfUserInProject(userId, projectId);
-            if (userInProject.RoleInTeam != RoleInTeam.Leader || userInProject.RoleInTeam != RoleInTeam.Mentor)
+            if (userInProject.RoleInTeam != RoleInTeam.Leader && userInProject.RoleInTeam != RoleInTeam.Mentor)
             {
                 throw new UnauthorizedProjectRoleException(MessageConstant.RolePermissionError);
             }
