@@ -59,7 +59,7 @@ namespace StartedIn.API.Controllers
 
         [Authorize]
         [HttpPost("profile-picture")]
-        public async Task<ActionResult<FullProfileDTO>> UploadAvatar(IFormFile avatar)
+        public async Task<ActionResult<FullProfileDTO>> UploadAvatar(IFormFile file)
         {
             var userId = User.FindFirst(ClaimTypes.NameIdentifier).Value;
             if (userId == null)
@@ -68,7 +68,7 @@ namespace StartedIn.API.Controllers
             }
             try
             {
-                var user = await _userService.UpdateAvatar(avatar, userId);
+                var user = await _userService.UpdateAvatar(file, userId);
                 var responseUserProfile = _mapper.Map<FullProfileDTO>(user);
                 return Ok(responseUserProfile);
             }
@@ -80,7 +80,7 @@ namespace StartedIn.API.Controllers
 
         [Authorize]
         [HttpPost("cover-photo")]
-        public async Task<ActionResult<FullProfileDTO>> UploadCoverPhoto(IFormFile coverPhoto)
+        public async Task<ActionResult<FullProfileDTO>> UploadCoverPhoto(IFormFile file)
         {
             var userId = User.FindFirst(ClaimTypes.NameIdentifier).Value;
             if (userId == null)
@@ -89,7 +89,7 @@ namespace StartedIn.API.Controllers
             }
             try
             {
-                var user = await _userService.UpdateCoverPhoto(coverPhoto, userId);
+                var user = await _userService.UpdateCoverPhoto(file, userId);
                 var responseUserProfile = _mapper.Map<FullProfileDTO>(user);
                 return Ok(responseUserProfile);
             }

@@ -31,6 +31,7 @@ using StartedIn.CrossCutting.DTOs.ResponseDTO.ProjectApproval;
 using StartedIn.CrossCutting.DTOs.ResponseDTO.TerminationRequest;
 using StartedIn.CrossCutting.DTOs.ResponseDTO.TransferLeaderRequest;
 using StartedIn.CrossCutting.DTOs.ResponseDTO.TaskHistory;
+using StartedIn.CrossCutting.DTOs.RequestDTO.User;
 
 namespace StartedIn.API.Configuration.AutoMapper
 {
@@ -117,6 +118,7 @@ namespace StartedIn.API.Configuration.AutoMapper
                 .ReverseMap()
                 .ForPath(user => user.UserRoles, opt
                     => opt.MapFrom(userDto => userDto.UserRoles.Select(role => new UserRole { Role = new Role { Name = role } }).ToHashSet()));
+            CreateMap<User, UpdateProfileDTO>().ReverseMap();
             CreateMap<UserProject, MemberWithRoleInProjectResponseDTO>()
                 .ForMember(x => x.Id, opt => opt.MapFrom(src => src.User.Id))
                 .ForMember(x => x.FullName, opt => opt.MapFrom(src => src.User.FullName))
