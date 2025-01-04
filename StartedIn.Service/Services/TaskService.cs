@@ -62,7 +62,7 @@ namespace StartedIn.Service.Services
             }
             
             var subTasks = await _taskRepository.GetSubTaskDetails(chosenTask.Id);
-            chosenTask.SubTasks = (ICollection<TaskEntity>)subTasks;
+            chosenTask.SubTasks = subTasks;
             var userTaskResponses = new List<UserTaskResponseDTO>();
             foreach (var subTask in subTasks)
             {
