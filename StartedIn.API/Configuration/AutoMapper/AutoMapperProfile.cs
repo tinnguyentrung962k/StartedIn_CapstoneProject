@@ -470,7 +470,7 @@ namespace StartedIn.API.Configuration.AutoMapper
                 .ForMember(dest => dest.NewLeaderProfilePicture, opt => opt.MapFrom(src => src.NewLeader.ProfilePicture))
                 .ForMember(dest => dest.FormerLeaderName, opt => opt.MapFrom(src => src.FormerLeader.FullName))
                 .ForMember(dest => dest.FormerLeaderEmail, opt => opt.MapFrom(src => src.FormerLeader.Email))
-                .ForMember(dest => dest.FormerLeaderProfilePicture, opt => opt.MapFrom(src => src.NewLeader.ProfilePicture))
+                .ForMember(dest => dest.FormerLeaderProfilePicture, opt => opt.MapFrom(src => src.FormerLeader.ProfilePicture))
                 .ForMember(dest => dest.AppointmentName, opt => opt.MapFrom(src => src.Appointment.Title))
                 .ForMember(dest => dest.AppointmentTime, opt => opt.MapFrom(src => src.Appointment.AppointmentTime))
                 .ForMember(dest => dest.MeetingNotes, opt => opt.MapFrom(src => src.Appointment.MeetingNotes));
