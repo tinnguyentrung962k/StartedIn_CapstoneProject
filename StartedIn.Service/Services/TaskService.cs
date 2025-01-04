@@ -86,7 +86,8 @@ namespace StartedIn.Service.Services
             {
                 response.UserTasks = userTaskResponses;
             }
-    
+            response.SubTasks = _mapper.Map<ICollection<TaskResponseDTO>>(subTasks);
+
             return response;
         }
 
@@ -766,6 +767,12 @@ namespace StartedIn.Service.Services
         public async Task UpdateManHourForTask(string projectId, string taskId, string userId, float hour)
         {
             var userProject = await _userService.CheckIfUserInProject(userId, projectId);
+            // check if task is parent task, if so then throw error cannot update man hour of parent task
+            var task = await _taskRepository.GetOneAsync(taskId);
+            if (task.ParentTaskId == null)
+            {
+                throw new UpdateException(MessageConstant.CannotUpdateManHourOfParentTask);
+            }
             await _taskRepository.UpdateManHourForTask(taskId, userId, hour);
         }
 

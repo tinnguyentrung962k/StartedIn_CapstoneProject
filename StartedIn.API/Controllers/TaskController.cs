@@ -378,9 +378,21 @@ namespace StartedIn.API.Controllers
                 await _taskService.UpdateManHourForTask(projectId, taskId, userId, hour);
                 return Ok();
             }
+            catch (UnauthorizedProjectRoleException ex)
+            {
+                return StatusCode(403, ex.Message);
+            }
             catch (NotFoundException ex)
             {
                 return BadRequest(ex.Message);
+            }
+            catch (UpdateException ex)
+            {
+                return BadRequest(ex.Message);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, MessageConstant.InternalServerError);
             }
         }
         
