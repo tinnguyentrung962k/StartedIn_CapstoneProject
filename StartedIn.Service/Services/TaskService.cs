@@ -79,6 +79,7 @@ namespace StartedIn.Service.Services
                         LastUpdatedTime = userTask.LastUpdatedTime
                     };
                     userTaskResponses.Add(userTaskResponse);
+                    response.ActualManHour += userTaskResponse.ActualManHour;
                 }
             }
             if (chosenTask.ParentTaskId == null)
