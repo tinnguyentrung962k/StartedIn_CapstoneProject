@@ -53,12 +53,16 @@ namespace StartedIn.Service.Services
             var userInProject = await _userService.CheckIfUserInProject(userId, projectId);
 
             var chosenTask = await _taskRepository.GetTaskDetails(taskId) ?? throw new NotFoundException(MessageConstant.NotFoundTaskError);
-            var subTasks = await _taskRepository.QueryHelper().Filter(t => t.ParentTaskId == taskId).Include(t => t.UserTasks).GetAllAsync();
-            chosenTask.SubTasks = (ICollection<TaskEntity>)subTasks;
-           
             // return this if the task is not a parent task
             var response = _mapper.Map<TaskDetailDTO>(chosenTask);
 
+            if (chosenTask.ParentTaskId != null)
+            {
+                return response;
+            }
+            
+            var subTasks = await _taskRepository.GetSubTaskDetails(chosenTask.Id);
+            chosenTask.SubTasks = (ICollection<TaskEntity>)subTasks;
             var userTaskResponses = new List<UserTaskResponseDTO>();
             foreach (var subTask in subTasks)
             {

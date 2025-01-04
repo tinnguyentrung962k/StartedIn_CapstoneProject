@@ -26,6 +26,13 @@ namespace StartedIn.Repository.Repositories
                 .Where(x => x.DeletedTime == null)
                 .FirstOrDefaultAsync(x => x.Id == taskId);
         }
+
+        public Task<List<TaskEntity>> GetSubTaskDetails(string parentTaskId)
+        {
+            return _dbSet.Where(t => t.ParentTaskId.Equals(parentTaskId)).Include(t => t.UserTasks)
+                .ThenInclude(ut => ut.User).ToListAsync();
+        }
+
         public IQueryable<TaskEntity> GetTaskListInAProjectQuery(string projectId)
         {
             var query = _dbSet.Include(t => t.UserTasks)
