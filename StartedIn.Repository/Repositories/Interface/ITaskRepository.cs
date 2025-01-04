@@ -5,6 +5,7 @@ namespace StartedIn.Repository.Repositories.Interface
     public interface ITaskRepository : IGenericRepository<TaskEntity, string>
     {
         Task<TaskEntity> GetTaskDetails(string taskId);
+        Task<List<TaskEntity>> GetSubTaskDetails(string parentTaskId);
         IQueryable<TaskEntity> GetTaskListInAProjectQuery(string projectId);
         Task UpdateManHourForTask(string taskId, string userId, float hour);
         Task<float> GetManHoursForTask(string taskId);

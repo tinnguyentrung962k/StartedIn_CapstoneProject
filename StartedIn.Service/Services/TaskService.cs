@@ -53,12 +53,16 @@ namespace StartedIn.Service.Services
             var userInProject = await _userService.CheckIfUserInProject(userId, projectId);
 
             var chosenTask = await _taskRepository.GetTaskDetails(taskId) ?? throw new NotFoundException(MessageConstant.NotFoundTaskError);
-            var subTasks = await _taskRepository.QueryHelper().Filter(t => t.ParentTaskId == taskId).Include(t => t.UserTasks).GetAllAsync();
-            chosenTask.SubTasks = (ICollection<TaskEntity>)subTasks;
-           
             // return this if the task is not a parent task
             var response = _mapper.Map<TaskDetailDTO>(chosenTask);
 
+            if (chosenTask.ParentTaskId != null)
+            {
+                return response;
+            }
+            
+            var subTasks = await _taskRepository.GetSubTaskDetails(chosenTask.Id);
+            chosenTask.SubTasks = subTasks;
             var userTaskResponses = new List<UserTaskResponseDTO>();
             foreach (var subTask in subTasks)
             {
@@ -370,6 +374,7 @@ namespace StartedIn.Service.Services
                 throw new UpdateException(MessageConstant.CannotChangeStatusTaskWrongAssignee);
             }
             
+            // this scenario is to check permission to re-open task
             if (updateTaskStatusDTO.Status == TaskEntityStatus.OPEN)
             {
                 if (userInProject.RoleInTeam != RoleInTeam.Leader)
@@ -383,7 +388,8 @@ namespace StartedIn.Service.Services
                 }
             }
 
-            if (chosenTask.ParentTaskId != null && userInProject.RoleInTeam != RoleInTeam.Leader)
+            
+            if (chosenTask.ParentTaskId == null && userInProject.RoleInTeam != RoleInTeam.Leader)
             {
                 throw new UnauthorizedProjectRoleException(MessageConstant.RolePermissionError);
             }
