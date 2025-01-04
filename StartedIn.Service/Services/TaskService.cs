@@ -210,6 +210,11 @@ namespace StartedIn.Service.Services
             {
                 throw new UpdateException(MessageConstant.CannotUpdateTaskInfoWhenStarted);
             }
+            
+            if (chosenTask.ParentTaskId == null && userInProject.RoleInTeam != RoleInTeam.Leader)
+            {
+                throw new UnauthorizedProjectRoleException(MessageConstant.RolePermissionError);
+            }
 
             try
             {
@@ -387,7 +392,6 @@ namespace StartedIn.Service.Services
                     throw new UpdateException(MessageConstant.CannotOpenTask);
                 }
             }
-
             
             if (chosenTask.ParentTaskId == null && userInProject.RoleInTeam != RoleInTeam.Leader)
             {
