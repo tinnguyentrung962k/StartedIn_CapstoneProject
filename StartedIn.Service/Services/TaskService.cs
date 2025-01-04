@@ -79,6 +79,7 @@ namespace StartedIn.Service.Services
                         LastUpdatedTime = userTask.LastUpdatedTime
                     };
                     userTaskResponses.Add(userTaskResponse);
+                    response.ActualManHour += userTaskResponse.ActualManHour;
                 }
             }
             if (chosenTask.ParentTaskId == null)
@@ -209,6 +210,11 @@ namespace StartedIn.Service.Services
             if (chosenTask.Status != TaskEntityStatus.NOT_STARTED && chosenTask.Status != TaskEntityStatus.OPEN)
             {
                 throw new UpdateException(MessageConstant.CannotUpdateTaskInfoWhenStarted);
+            }
+            
+            if (chosenTask.ParentTaskId == null && userInProject.RoleInTeam != RoleInTeam.Leader)
+            {
+                throw new UnauthorizedProjectRoleException(MessageConstant.RolePermissionError);
             }
 
             try
@@ -387,7 +393,6 @@ namespace StartedIn.Service.Services
                     throw new UpdateException(MessageConstant.CannotOpenTask);
                 }
             }
-
             
             if (chosenTask.ParentTaskId == null && userInProject.RoleInTeam != RoleInTeam.Leader)
             {
