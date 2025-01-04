@@ -465,6 +465,17 @@ namespace StartedIn.Service.Services
                     TaskId = taskId,
                     ActualManHour = 0
                 });
+                
+                if (chosenTask.ParentTaskId != null)
+                {
+                    var parentTask = await _taskRepository.GetTaskDetails(chosenTask.ParentTaskId);
+                    var userParentTask = parentTask.UserTasks.Where(ut => ut.TaskId.Equals(parentTask.Id) && ut.UserId.Equals(updateTaskAssignmentDTO.AssigneeId));
+                    if (!userParentTask.Any())
+                    {
+                        await _taskRepository.AddUserToTask(updateTaskAssignmentDTO.AssigneeId, chosenTask.ParentTaskId);
+                    }
+                    
+                } 
                 chosenTask.LastUpdatedBy = userInProject.User.FullName;
                 chosenTask.LastUpdatedTime = DateTimeOffset.UtcNow;
                 TaskHistory history = new TaskHistory
