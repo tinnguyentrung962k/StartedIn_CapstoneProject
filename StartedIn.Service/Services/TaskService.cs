@@ -374,6 +374,7 @@ namespace StartedIn.Service.Services
                 throw new UpdateException(MessageConstant.CannotChangeStatusTaskWrongAssignee);
             }
             
+            // this scenario is to check permission to re-open task
             if (updateTaskStatusDTO.Status == TaskEntityStatus.OPEN)
             {
                 if (userInProject.RoleInTeam != RoleInTeam.Leader)
@@ -387,7 +388,8 @@ namespace StartedIn.Service.Services
                 }
             }
 
-            if (chosenTask.ParentTaskId != null && userInProject.RoleInTeam != RoleInTeam.Leader)
+            
+            if (chosenTask.ParentTaskId == null && userInProject.RoleInTeam != RoleInTeam.Leader)
             {
                 throw new UnauthorizedProjectRoleException(MessageConstant.RolePermissionError);
             }
