@@ -46,6 +46,7 @@ public class ProjectService : IProjectService
     private readonly IAssetRepository _assetRepository;
     private readonly ILeavingRequestRepository _leavingRequestRepository;
     private readonly ITaskRepository _taskRepository;
+    private readonly IRecruitmentRepository _recruitmentRepository;
 
     public ProjectService(
         IProjectRepository projectRepository,
@@ -67,6 +68,7 @@ public class ProjectService : IProjectService
         IAssetRepository assetRepository,
         ILeavingRequestRepository leavingRequestRepository,
         ITaskRepository taskRepository,
+        IRecruitmentRepository recruitmentRepository,
         IMapper mapper)
     {
         _projectRepository = projectRepository;
@@ -89,6 +91,7 @@ public class ProjectService : IProjectService
         _assetRepository = assetRepository;
         _leavingRequestRepository = leavingRequestRepository;
         _taskRepository = taskRepository;
+        _recruitmentRepository = recruitmentRepository;
     }
     public async Task<Project> CreateNewProject(string userId, ProjectCreateDTO projectCreateDTO)
     {
@@ -679,9 +682,17 @@ public class ProjectService : IProjectService
                 userProject.Status = UserStatusInProject.Left;
                 await _userRepository.UpdateUserInProject(userProject);
             }
+            var recruitment = await _recruitmentRepository.QueryHelper().Filter(x => x.ProjectId.Equals(projectId) && x.IsOpen == true).GetOneAsync();
+            if (recruitment != null)
+            {
+                recruitment.IsOpen = false;
+                _recruitmentRepository.Update(recruitment);
+            }
             _projectRepository.Update(project);
             await _unitOfWork.SaveChangesAsync();
             await _unitOfWork.CommitAsync();
+            
+
         }
         catch (Exception ex)
         {

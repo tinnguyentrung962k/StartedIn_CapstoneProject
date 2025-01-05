@@ -789,7 +789,6 @@ namespace StartedIn.Service.Services
             {
                 throw new UpdateException(MessageConstant.CannotUpdateManHourWhenNotInProgress);
             }
-
             await _taskRepository.UpdateManHourForTask(taskId, userId, hour);
         }
 
