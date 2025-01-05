@@ -749,8 +749,6 @@ namespace StartedIn.Service.Services
                 throw new UpdateException(MessageConstant.CannotDeleteTaskWhenStarted);
             }
 
-
-
             try
             {
                 _unitOfWork.BeginTransaction();
