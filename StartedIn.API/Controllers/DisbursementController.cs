@@ -50,21 +50,6 @@ namespace StartedIn.API.Controllers
             }
         }
         
-        [HttpPost("disbursements/batch-job-set-ongoing")]
-        [Authorize(Roles = RoleConstants.ADMIN)]
-        public async Task<IActionResult> BatchJobForDisbursement()
-        {
-            try
-            {
-                await _disbursementService.SetAllDisbursementToOngoing();
-                return Ok("Batch job executed.");
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(500, ex.Message);
-            }
-        }
-        
         [HttpGet("projects/{projectId}/disbursements/{disbursementId}/payment-info")]
         [Authorize(Roles = RoleConstants.INVESTOR + "," + RoleConstants.USER)]
         public async Task<IActionResult> GetPaymentStatus([FromRoute] string disbursementId, [FromRoute] string projectId)

@@ -29,8 +29,6 @@ namespace StartedIn.Service.Services.Interface
         Task<SelfDisbursmentOfInvestorDTO> GetSelfDisbursementForInvestor(string userId, string projectId);
         Task<DisbursementOverviewOfProject> GetADisbursementTotalInAMonth(string projectId, DateTime dateTime);
         Task<PaginationDTO<DisbursementOverviewOfProjectForInvestor>> GetADisbursementOverviewForInvestor(string userId, int page, int size);
-        Task SetAllDisbursementToOngoing();
-        Task SetDisbursementStatusToOngoing();
         Task<InvestorDisbursementOverviewDTO> GetInvestorDisbursementOverviewAsync(string userId);
     }
 }

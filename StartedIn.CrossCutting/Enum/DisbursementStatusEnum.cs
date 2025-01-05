@@ -14,7 +14,6 @@ namespace StartedIn.CrossCutting.Enum
         FINISHED = 4,
         OVERDUE = 5,
         ERROR = 6,
-        CANCELLED = 7,
-        ONGOING = 8
+        CANCELLED = 7
     }
 }

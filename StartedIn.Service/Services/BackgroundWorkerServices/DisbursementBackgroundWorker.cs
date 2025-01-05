@@ -33,7 +33,6 @@ namespace StartedIn.Service.Services.BackgroundWorkerServices
                     IDisbursementService disbursementService = scope.ServiceProvider.GetRequiredService<IDisbursementService>();
                     await disbursementService.ReminderDisbursementForInvestor();
                     await disbursementService.AutoUpdateOverdueIfDisbursementsExpire();
-                    await disbursementService.SetDisbursementStatusToOngoing();
 
                 }
                 _logger.LogInformation("Disbursement check completed. Waiting for next execution...");
