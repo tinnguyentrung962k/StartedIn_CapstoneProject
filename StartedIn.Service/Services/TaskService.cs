@@ -60,7 +60,7 @@ namespace StartedIn.Service.Services
             {
                 return response;
             }
-            
+
             var subTasks = await _taskRepository.GetSubTaskDetails(chosenTask.Id);
             chosenTask.SubTasks = subTasks;
             var userTaskResponses = new List<UserTaskResponseDTO>();
@@ -139,7 +139,7 @@ namespace StartedIn.Service.Services
                 {
                     throw new AssignParentTaskException(MessageConstant.MilestoneFromParentAndFromChildrenError);
                 }
-                
+
                 foreach (var childrenTask in existingChildrenTasks)
                 {
                     if (taskCreateDto.ParentTask.Equals(childrenTask.Id))
@@ -150,7 +150,7 @@ namespace StartedIn.Service.Services
 
                 task.ParentTaskId = taskCreateDto.ParentTask;
                 task.MilestoneId = parentTask.MilestoneId;
-                
+
                 foreach (var assignee in taskCreateDto.Assignees)
                 {
                     var assigneeParentQueryTask = parentTask.UserTasks
@@ -212,7 +212,7 @@ namespace StartedIn.Service.Services
             {
                 throw new UpdateException(MessageConstant.CannotUpdateTaskInfoWhenStarted);
             }
-            
+
             if (chosenTask.ParentTaskId == null && userInProject.RoleInTeam != RoleInTeam.Leader)
             {
                 throw new UnauthorizedProjectRoleException(MessageConstant.RolePermissionError);
@@ -282,7 +282,7 @@ namespace StartedIn.Service.Services
 
             // filter tasks by create tim between start date and end date
             // if start date is null, filter tasks by create time before end date and vice versa
-            if (taskFilterDto.StartDate != null && taskFilterDto.EndDate != null) 
+            if (taskFilterDto.StartDate != null && taskFilterDto.EndDate != null)
             {
                 filterTasks = filterTasks.Where(t => t.CreatedTime >= taskFilterDto.StartDate && t.CreatedTime <= taskFilterDto.EndDate);
             }
@@ -318,7 +318,7 @@ namespace StartedIn.Service.Services
                 {
                     filterTasks = filterTasks.Where(t => t.ParentTask != null);
                 }
-                
+
             }
 
             int totalCount = await filterTasks.CountAsync();
@@ -371,6 +371,12 @@ namespace StartedIn.Service.Services
                 throw new UnauthorizedProjectRoleException(MessageConstant.RolePermissionError);
             }
 
+            // cannot return to not started status in other task status
+            if (updateTaskStatusDTO.Status == TaskEntityStatus.NOT_STARTED && chosenTask.Status != TaskEntityStatus.NOT_STARTED)
+            {
+                throw new UpdateException(MessageConstant.TaskAlreadyStartedError);
+            }
+
             // this scenario is to check permission to re-open task
             if (updateTaskStatusDTO.Status == TaskEntityStatus.OPEN)
             {
@@ -378,7 +384,7 @@ namespace StartedIn.Service.Services
                 {
                     throw new UnauthorizedProjectRoleException(MessageConstant.RolePermissionError);
                 }
-                
+
                 if (chosenTask.Status != TaskEntityStatus.DONE)
                 {
                     throw new UpdateException(MessageConstant.CannotOpenTask);
@@ -391,7 +397,8 @@ namespace StartedIn.Service.Services
             {
                 var userTask = chosenTask.UserTasks.FirstOrDefault(ut => ut.TaskId == taskId);
 
-                if (userTask == null) {
+                if (userTask == null)
+                {
                     throw new NotFoundException(MessageConstant.NotFoundAssigneeError);
                 }
 
@@ -421,7 +428,7 @@ namespace StartedIn.Service.Services
                 {
                     chosenTask.ActualFinishAt = DateTimeOffset.UtcNow;
                     chosenTask.IsLate = false;
-                }   
+                }
                 // logic when task is reopen
                 if (updateTaskStatusDTO.Status == TaskEntityStatus.OPEN)
                 {
@@ -466,7 +473,7 @@ namespace StartedIn.Service.Services
             {
                 throw new NotFoundException(MessageConstant.NotFoundTaskError);
             }
-            
+
             if (chosenTask.Status != TaskEntityStatus.NOT_STARTED && chosenTask.Status != TaskEntityStatus.OPEN)
             {
                 throw new UpdateException(MessageConstant.CannotUpdateTaskInfoWhenStarted);
@@ -477,7 +484,7 @@ namespace StartedIn.Service.Services
             {
                 throw new UpdateException(MessageConstant.NoMoreThanOneAssignee);
             }
-            
+
             try
             {
                 _unitOfWork.BeginTransaction();
@@ -487,7 +494,7 @@ namespace StartedIn.Service.Services
                     TaskId = taskId,
                     ActualManHour = 0
                 });
-                
+
                 if (chosenTask.ParentTaskId != null)
                 {
                     var parentTask = await _taskRepository.GetTaskDetails(chosenTask.ParentTaskId);
@@ -496,8 +503,8 @@ namespace StartedIn.Service.Services
                     {
                         await _taskRepository.AddUserToTask(updateTaskAssignmentDTO.AssigneeId, chosenTask.ParentTaskId);
                     }
-                    
-                } 
+
+                }
                 chosenTask.LastUpdatedBy = userInProject.User.FullName;
                 chosenTask.LastUpdatedTime = DateTimeOffset.UtcNow;
                 TaskHistory history = new TaskHistory
@@ -536,7 +543,7 @@ namespace StartedIn.Service.Services
             {
                 throw new NotFoundException(MessageConstant.NotFoundTaskError);
             }
-            
+
             if (chosenTask.Status != TaskEntityStatus.NOT_STARTED && chosenTask.Status != TaskEntityStatus.OPEN)
             {
                 throw new UpdateException(MessageConstant.CannotUpdateTaskInfoWhenStarted);
@@ -730,15 +737,48 @@ namespace StartedIn.Service.Services
             var userInProject = await _userService.CheckIfUserInProject(userId, projectId);
 
             var chosenTask = await _taskRepository.GetOneAsync(taskId);
+
             if (chosenTask == null)
             {
                 throw new NotFoundException(MessageConstant.NotFoundTaskError);
             }
 
+            // if task is not done or not started then throw error
+            if (chosenTask.Status != TaskEntityStatus.NOT_STARTED && chosenTask.Status != TaskEntityStatus.OPEN)
+            {
+                throw new UpdateException(MessageConstant.CannotDeleteTaskWhenStarted);
+            }
+
             try
             {
+                _unitOfWork.BeginTransaction();
+                TaskHistory history = new TaskHistory
+                {
+                    Content = "",
+                    CreatedBy = userInProject.User.FullName,
+                    TaskId = chosenTask.Id
+                };
                 await _taskRepository.SoftDeleteById(taskId);
+                // if task is parent task then also delete all sub tasks, while also add task history
+                if (chosenTask.ParentTaskId == null)
+                {
+                    var subTasks = await _taskRepository.QueryHelper().Filter(t => t.ParentTaskId == taskId).GetAllAsync();
+                    history.Content = userInProject.User.FullName + " đã xóa tác vụ mẹ "
+                        + chosenTask.Id + " cùng với " + subTasks.Count() + " tác vụ con";
+                    foreach (var subTask in subTasks)
+                    {
+                        await _taskRepository.SoftDeleteById(subTask.Id);
+                    }
+                }
+
+                if (chosenTask.ParentTaskId != null)
+                {
+                    history.Content = userInProject.User.FullName + " đã xóa tác vụ con " + chosenTask.Id;
+                }
+                _taskHistoryRepository.Add(history);
+
                 await _unitOfWork.SaveChangesAsync();
+                await _unitOfWork.CommitAsync();
             }
             catch (Exception ex)
             {
@@ -839,7 +879,7 @@ namespace StartedIn.Service.Services
                 eachProjectResponse.UserStatusInProject = userProject.Status;
                 eachProjectResponse.UserTasks = userTaskHistory;
             }
-            
+
             response.Add(eachProjectResponse);
             return response;
         }
