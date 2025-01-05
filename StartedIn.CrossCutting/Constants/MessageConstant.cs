@@ -25,6 +25,7 @@ namespace StartedIn.CrossCutting.Constants
         public const string AssignParentTaskToSelfError = "Không thể gán công việc mẹ cho chính nó.";
         public const string MilestoneFromParentAndFromChildrenError = "Không thể gán cột mốc từ công việc mẹ và từ công việc con.";
         public const string NotFoundAssigneeError = "Không tìm thấy người được giao việc.";
+        public const string CannotUpdateManHourWhenNotInProgress = "Không thể cập nhật giờ làm khi công việc chưa bắt đầu.";
         public const string AssignChildTaskToMilestoneError = "Không thể gán công việc con cho cột mốc. Trước hết phải gỡ gán tác vụ mẹ";
         public const string AssigneeRoleError = "Người được giao việc không hợp lệ.";
         public const string CannotEditContractError = "Không thể sửa hợp đồng này.";
