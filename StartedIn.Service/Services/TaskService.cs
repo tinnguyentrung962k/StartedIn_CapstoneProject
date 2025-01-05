@@ -371,6 +371,12 @@ namespace StartedIn.Service.Services
                 throw new UnauthorizedProjectRoleException(MessageConstant.RolePermissionError);
             }
 
+            // cannot return to not started status in other task status
+            if (updateTaskStatusDTO.Status == TaskEntityStatus.NOT_STARTED && chosenTask.Status != TaskEntityStatus.NOT_STARTED)
+            {
+                throw new UpdateException(MessageConstant.TaskAlreadyStartedError);
+            }
+
             // this scenario is to check permission to re-open task
             if (updateTaskStatusDTO.Status == TaskEntityStatus.OPEN)
             {
