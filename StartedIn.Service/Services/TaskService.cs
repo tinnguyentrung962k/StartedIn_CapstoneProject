@@ -365,22 +365,12 @@ namespace StartedIn.Service.Services
             {
                 throw new NotFoundException(MessageConstant.NotFoundTaskError);
             }
-            
-            var userTask = chosenTask.UserTasks.FirstOrDefault(ut => ut.TaskId == taskId);
-            
-            if (updateTaskStatusDTO.Status == TaskEntityStatus.DONE && userTask.ActualManHour == 0)
+
+            if (chosenTask.ParentTaskId == null && userInProject.RoleInTeam != RoleInTeam.Leader)
             {
-                throw new UpdateException(MessageConstant.CannotCompleteTaskWithoutManHour);
+                throw new UnauthorizedProjectRoleException(MessageConstant.RolePermissionError);
             }
 
-            if ((updateTaskStatusDTO.Status == TaskEntityStatus.DONE || 
-                 updateTaskStatusDTO.Status == TaskEntityStatus.IN_PROGRESS ||
-                 updateTaskStatusDTO.Status == TaskEntityStatus.PENDING)  
-                && !userTask.UserId.Equals(userId))
-            {
-                throw new UpdateException(MessageConstant.CannotChangeStatusTaskWrongAssignee);
-            }
-            
             // this scenario is to check permission to re-open task
             if (updateTaskStatusDTO.Status == TaskEntityStatus.OPEN)
             {
@@ -394,11 +384,31 @@ namespace StartedIn.Service.Services
                     throw new UpdateException(MessageConstant.CannotOpenTask);
                 }
             }
-            
-            if (chosenTask.ParentTaskId == null && userInProject.RoleInTeam != RoleInTeam.Leader)
+
+            // check if status is to done and log time is not filled
+            // this is only for children task since you cannot assign or log time into parent task
+            if (chosenTask.ParentTaskId != null)
             {
-                throw new UnauthorizedProjectRoleException(MessageConstant.RolePermissionError);
+                var userTask = chosenTask.UserTasks.FirstOrDefault(ut => ut.TaskId == taskId);
+
+                if (userTask == null) {
+                    throw new NotFoundException(MessageConstant.NotFoundAssigneeError);
+                }
+
+                if (updateTaskStatusDTO.Status == TaskEntityStatus.DONE && userTask.ActualManHour == 0)
+                {
+                    throw new UpdateException(MessageConstant.CannotCompleteTaskWithoutManHour);
+                }
+
+                if ((updateTaskStatusDTO.Status == TaskEntityStatus.DONE ||
+                     updateTaskStatusDTO.Status == TaskEntityStatus.IN_PROGRESS ||
+                     updateTaskStatusDTO.Status == TaskEntityStatus.PENDING)
+                    && !userTask.UserId.Equals(userId))
+                {
+                    throw new UpdateException(MessageConstant.CannotChangeStatusTaskWrongAssignee);
+                }
             }
+
 
             try
             {
@@ -772,6 +782,12 @@ namespace StartedIn.Service.Services
             if (task.ParentTaskId == null)
             {
                 throw new UpdateException(MessageConstant.CannotUpdateManHourOfParentTask);
+            }
+
+            // check if status is not in progress then throw error cannot update
+            if (task.Status != TaskEntityStatus.IN_PROGRESS && task.Status != TaskEntityStatus.PENDING)
+            {
+                throw new UpdateException(MessageConstant.CannotUpdateManHourWhenNotInProgress);
             }
             await _taskRepository.UpdateManHourForTask(taskId, userId, hour);
         }
