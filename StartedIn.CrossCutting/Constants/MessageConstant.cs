@@ -28,6 +28,7 @@ namespace StartedIn.CrossCutting.Constants
         public const string CannotUpdateManHourWhenNotInProgress = "Không thể cập nhật giờ làm khi công việc chưa bắt đầu.";
         public const string AssignChildTaskToMilestoneError = "Không thể gán công việc con cho cột mốc. Trước hết phải gỡ gán tác vụ mẹ";
         public const string AssigneeRoleError = "Người được giao việc không hợp lệ.";
+        public const string CannotDeleteTaskWhenStarted = "Không thể xoá công việc khi công việc đã bắt đầu.";
         public const string CannotEditContractError = "Không thể sửa hợp đồng này.";
         public const string JoinGroupWithLeaderRoleError = "Bạn không thể tham gia với vai trò nhóm trưởng.";
         public const string ContractNotBelongToProjectError = "Hợp đồng này không thuộc dự án được chọn.";
