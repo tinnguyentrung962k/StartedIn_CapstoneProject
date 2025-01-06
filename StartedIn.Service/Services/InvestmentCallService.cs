@@ -85,8 +85,11 @@ public class InvestmentCallService : IInvestmentCallService
             {
                 var activeCall = await _investmentCallRepository.QueryHelper()
                     .Filter(c => c.Id.Equals(project.ActiveCallId)).GetOneAsync();
-                activeCall.Status = InvestmentCallStatus.Closed;
-                _investmentCallRepository.Update(activeCall);
+                if (activeCall != null)
+                {
+                    activeCall.Status = InvestmentCallStatus.Closed;
+                    _investmentCallRepository.Update(activeCall);
+                }
             }
             
             project.ActiveCallId = call.Id;
