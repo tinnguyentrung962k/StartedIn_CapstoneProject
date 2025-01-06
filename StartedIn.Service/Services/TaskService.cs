@@ -178,7 +178,7 @@ namespace StartedIn.Service.Services
                 }
 
                 var taskEntity = _taskRepository.Add(task);
-                string notification = userInProject.User.FullName + " đã tạo ra công việc: " + task.Title;
+                string notification = userInProject.User.FullName + " đã tạo ra tác vụ: " + task.Title;
                 TaskHistory history = new TaskHistory
                 {
                     Content = notification,
@@ -231,7 +231,7 @@ namespace StartedIn.Service.Services
                 chosenTask.Priority = updateTaskInfoDTO.Priority;
                 TaskHistory history = new TaskHistory
                 {
-                    Content = $"{userInProject.User.FullName} đã cập nhật thông tin task {chosenTask.Id}",
+                    Content = $"{userInProject.User.FullName} đã cập nhật thông tin tác vụ {updateTaskInfoDTO.Title}",
                     CreatedBy = userInProject.User.FullName,
                     TaskId = chosenTask.Id
                 };
@@ -440,7 +440,7 @@ namespace StartedIn.Service.Services
 
                 TaskHistory history = new TaskHistory
                 {
-                    Content = userInProject.User.FullName + "đã cập nhật trạng thái task " + chosenTask.Id,
+                    Content = userInProject.User.FullName + "đã cập nhật trạng thái tác vụ " + chosenTask.Title,
                     CreatedBy = userInProject.User.FullName,
                     TaskId = chosenTask.Id
                 };
@@ -509,7 +509,7 @@ namespace StartedIn.Service.Services
                 chosenTask.LastUpdatedTime = DateTimeOffset.UtcNow;
                 TaskHistory history = new TaskHistory
                 {
-                    Content = $"{userInProject.User.FullName} đã phân công {assigneeInProject.User.FullName} vào task {chosenTask.Id}",
+                    Content = $"{userInProject.User.FullName} đã phân công {assigneeInProject.User.FullName} vào tác vụ {chosenTask.Title}",
                     CreatedBy = userInProject.User.FullName,
                     TaskId = chosenTask.Id
                 };
@@ -562,7 +562,7 @@ namespace StartedIn.Service.Services
                 chosenTask.LastUpdatedTime = DateTimeOffset.UtcNow;
                 TaskHistory history = new TaskHistory
                 {
-                    Content = $"{userInProject.User.FullName} đã hủy phân công {assigneeInProject.User.FullName} khỏi task {chosenTask.Id}",
+                    Content = $"{userInProject.User.FullName} đã hủy phân công {assigneeInProject.User.FullName} khỏi tác vụ {chosenTask.Title}",
                     CreatedBy = userInProject.User.FullName,
                     TaskId = chosenTask.Id
                 };
@@ -625,7 +625,7 @@ namespace StartedIn.Service.Services
                 {
                     TaskHistory history = new TaskHistory
                     {
-                        Content = $"{userInProject.User.FullName} đã gán task {chosenTask.Id} vào cột mốc {chosenMilestone.Id}",
+                        Content = $"{userInProject.User.FullName} đã gán tác vụ {chosenTask.Title} vào cột mốc {chosenMilestone.Title}",
                         CreatedBy = userInProject.User.FullName,
                         TaskId = chosenTask.Id
                     };
@@ -635,7 +635,7 @@ namespace StartedIn.Service.Services
                 {
                     TaskHistory history = new TaskHistory
                     {
-                        Content = $"{userInProject.User.FullName} đã hủy gán task {chosenTask.Id} vào cột mốc",
+                        Content = $"{userInProject.User.FullName} đã hủy gán tác vụ {chosenTask.Title} vào cột mốc",
                         CreatedBy = userInProject.User.FullName,
                         TaskId = chosenTask.Id
                     };
@@ -678,7 +678,7 @@ namespace StartedIn.Service.Services
                 chosenTask.LastUpdatedTime = DateTimeOffset.UtcNow;
                 TaskHistory history = new TaskHistory
                 {
-                    Content = $"{userInProject.User.FullName} đã hủy gán task {chosenTask.Id} vào task cha",
+                    Content = $"{userInProject.User.FullName} đã hủy gán tác vụ {chosenTask.Title} vào tác vụ cha",
                     CreatedBy = userInProject.User.FullName,
                     TaskId = chosenTask.Id
                 };
@@ -715,7 +715,7 @@ namespace StartedIn.Service.Services
                 chosenTask.MilestoneId = parentTask.MilestoneId;
                 TaskHistory history = new TaskHistory
                 {
-                    Content = $"{userInProject.User.FullName} đã gán task {chosenTask.Id} vào task cha {parentTask.Id}",
+                    Content = $"{userInProject.User.FullName} đã gán tác vụ {chosenTask.Title} vào tác vụ cha {parentTask.Title}",
                     CreatedBy = userInProject.User.FullName,
                     TaskId = chosenTask.Id
                 };
@@ -764,7 +764,7 @@ namespace StartedIn.Service.Services
                 {
                     var subTasks = await _taskRepository.QueryHelper().Filter(t => t.ParentTaskId == taskId).GetAllAsync();
                     history.Content = userInProject.User.FullName + " đã xóa tác vụ mẹ "
-                        + chosenTask.Id + " cùng với " + subTasks.Count() + " tác vụ con";
+                        + chosenTask.Title + " cùng với " + subTasks.Count() + " tác vụ con";
                     foreach (var subTask in subTasks)
                     {
                         await _taskRepository.SoftDeleteById(subTask.Id);
@@ -773,7 +773,7 @@ namespace StartedIn.Service.Services
 
                 if (chosenTask.ParentTaskId != null)
                 {
-                    history.Content = userInProject.User.FullName + " đã xóa tác vụ con " + chosenTask.Id;
+                    history.Content = userInProject.User.FullName + " đã xóa tác vụ con " + chosenTask.Title;
                 }
                 _taskHistoryRepository.Add(history);
 
