@@ -1,0 +1,1 @@
+web: dotnet StartedIn.API.dll --configuration Release --launch-profile "Production"
