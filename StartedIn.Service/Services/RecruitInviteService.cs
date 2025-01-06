@@ -256,6 +256,7 @@ namespace StartedIn.Service.Services
                 .Filter(x => x.CandidateId.Equals(userId)
                 && x.Type == acceptInviteDTO.Type
                 && x.Status == ApplicationStatus.PENDING
+                && x.ProjectId.Equals(projectId)
                 && x.Role == acceptInviteDTO.Role)
                 .GetOneAsync();
 
@@ -277,6 +278,17 @@ namespace StartedIn.Service.Services
                 else 
                 {
                     await _userRepository.AddUserToProject(userId, projectId, invite.Role);
+                }
+                var otherInvites = await _applicationRepository.QueryHelper()
+                .Filter(x => x.CandidateId.Equals(userId)
+                && x.Type == acceptInviteDTO.Type
+                && x.Status == ApplicationStatus.PENDING
+                && !x.ProjectId.Equals(projectId)
+                && x.Role == acceptInviteDTO.Role)
+                .GetAllAsync();
+                foreach (var other in otherInvites)
+                {
+                    _applicationRepository.Update(other);
                 }
                 await _unitOfWork.SaveChangesAsync();
                 await _unitOfWork.CommitAsync();
