@@ -317,7 +317,7 @@ namespace StartedIn.Service.Services
             var userInOtherProjects = await _projectRepository.GetAProjectByUserId(userId);
             if (userInOtherProjects != null)
             {
-                throw new InviteException(MessageConstant.UserInOtherProjectError);
+                throw new InviteException(MessageConstant.ApplicantAlreadyInProject);
             }
 
             try
