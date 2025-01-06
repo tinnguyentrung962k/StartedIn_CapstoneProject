@@ -314,12 +314,6 @@ namespace StartedIn.Service.Services
                 throw new InviteException(MessageConstant.YouHaveAppliedForRecruitment);
             }
 
-            var userInProject = await _userRepository.GetAUserInProject(projectId, userId);
-            if (userInProject != null)
-            {
-                throw new InviteException(MessageConstant.ApplicantAlreadyInProject);
-            }
-
             var userInOtherProjects = await _projectRepository.GetAProjectByUserId(userId);
             if (userInOtherProjects != null)
             {
