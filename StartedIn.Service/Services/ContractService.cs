@@ -709,6 +709,8 @@ namespace StartedIn.Service.Services
                         if (investmentCall.RemainAvailableEquityShare == 0)
                         {
                             investmentCall.Status = InvestmentCallStatus.Closed;
+                            project.ActiveCallId = null;
+                            _projectRepository.Update(project);
                         }
                         _investmentCallRepository.Update(investmentCall);
                     }

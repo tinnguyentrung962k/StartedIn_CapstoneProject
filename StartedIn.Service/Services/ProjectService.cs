@@ -673,6 +673,14 @@ public class ProjectService : IProjectService
             project.EndDate = DateOnly.FromDateTime(DateTimeOffset.UtcNow.AddHours(7).Date);
             project.LastUpdatedTime = DateTime.UtcNow;
             project.LastUpdatedBy = userInProject.User.FullName;
+            if (project.ActiveCallId != null)
+            {
+                var activeCall = await _investmentCallRepository.GetOneAsync(project.ActiveCallId);
+                activeCall.Status = InvestmentCallStatus.Closed;
+                _investmentCallRepository.Update(activeCall);
+                project.ActiveCallId = null;
+            }
+            
             foreach (var userProject in project.UserProjects.Where(x=>x.Status != UserStatusInProject.Left))
             {
                 userProject.Status = UserStatusInProject.Left;
