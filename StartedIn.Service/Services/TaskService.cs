@@ -440,7 +440,7 @@ namespace StartedIn.Service.Services
 
                 TaskHistory history = new TaskHistory
                 {
-                    Content = userInProject.User.FullName + "đã cập nhật trạng thái tác vụ " + chosenTask.Title,
+                    Content = userInProject.User.FullName + " đã cập nhật trạng thái tác vụ " + chosenTask.Title,
                     CreatedBy = userInProject.User.FullName,
                     TaskId = chosenTask.Id
                 };
