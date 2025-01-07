@@ -594,8 +594,6 @@ public class ProjectService : IProjectService
         var completedTask = await _taskRepository.GetTaskListInAProjectQuery(projectId).Where(x => x.Status == TaskEntityStatus.DONE).ToListAsync();
         var alltasks = await _taskRepository.GetTaskListInAProjectQuery(projectId).ToListAsync();
         int totalTask = alltasks.Count();
-        float profit = await _transactionService.CalculateProfitOfProject(projectId);
-        float monthProfit = await _transactionService.CaluclateMonthProfitOfProject(projectId);
         ProjectDashboardDTO projectDashboardDTO = new ProjectDashboardDTO
         {
             CurrentBudget = project.Finance.CurrentBudget.ToString(),
@@ -605,8 +603,6 @@ public class ProjectService : IProjectService
             ShareEquityPercentage = userShareInProject.ToString(),
             InAmount = transactionStatisticOfCurrentMonth.InMoney.ToString(),
             OutAmount = transactionStatisticOfCurrentMonth.OutMoney.ToString(),
-            TotalProfit = profit.ToString(),
-            MonthProfit = monthProfit.ToString(),
             CompletedTasks = _mapper.Map<List<TaskResponseDTO>>(completedTask),
             OverdueTasks = _mapper.Map<List<TaskResponseDTO>>(lateTask),
             TotalTask = totalTask

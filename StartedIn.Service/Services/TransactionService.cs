@@ -459,51 +459,5 @@ namespace StartedIn.Service.Services
             }
             return transactionResponse;
         }
-
-        public async Task<float> CalculateProfitOfProject(string projectId)
-        {
-            var transactionsList = await _transactionRepository
-                .GetTransactionsListQuery(projectId)
-                .ToListAsync();
-
-            // Tính tổng doanh thu (Doanh thu từ kinh doanh và thanh lý tài sản)
-            float totalRevenue = (float)transactionsList
-                .Where(t => t.IsInFlow == true && t.Type != TransactionType.Disbursement)
-                .Sum(t => t.Amount);
-
-            // Tính tổng chi phí (Chi phí hoạt động, chi phí mua tài sản, khấu hao tài sản)
-            float totalCost = (float)transactionsList
-                .Where(t => t.IsInFlow == false)
-                .Sum(t => t.Amount);
-
-            // Tính lợi nhuận ròng = Tổng doanh thu - Tổng chi phí
-            float profit = totalRevenue - totalCost;
-
-            return profit;
-        }
-
-        public async Task<float> CaluclateMonthProfitOfProject(string projectId)
-        {
-            var now = DateTimeOffset.UtcNow; // Current time in UTC
-            var startOfCurrentMonth = new DateTimeOffset(now.Year, now.Month, 1, 0, 0, 0, TimeSpan.Zero); // Start of the current month
-            var startOfNextMonth = startOfCurrentMonth.AddMonths(1); // Start of the next month
-
-            var transactionsList = await _transactionRepository
-                .GetTransactionsListQuery(projectId)
-                .ToListAsync();
-
-            // Tính tổng doanh thu (Doanh thu từ kinh doanh và thanh lý tài sản)
-            float totalRevenue = (float)transactionsList
-                .Where(t => t.IsInFlow == true && t.Type != TransactionType.Disbursement && t.CreatedTime >= startOfCurrentMonth && t.CreatedTime < startOfNextMonth)
-                .Sum(t => t.Amount);
-
-            // Tính tổng chi phí (Chi phí hoạt động, chi phí mua tài sản, khấu hao tài sản)
-            float totalCost = (float)transactionsList
-                .Where(t => t.IsInFlow == false && t.CreatedTime >= startOfCurrentMonth && t.CreatedTime < startOfNextMonth)
-                .Sum(t => t.Amount);
-            
-            float profit = totalRevenue - totalCost;
-            return profit;
-        }
     }
 }

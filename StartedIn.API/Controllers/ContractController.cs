@@ -632,34 +632,6 @@ namespace StartedIn.API.Controllers
                 return StatusCode(500, ex.Message);
             }
         }
-
-        [HttpGet("contracts/{contractId}/expired-detail")]
-        [Authorize(Roles = RoleConstants.USER + "," + RoleConstants.INVESTOR + "," + RoleConstants.MENTOR)]
-        public async Task<ActionResult<ContractExpiredDistributionDetailDTO>> GetExpiredDistributionDetail([FromRoute] string projectId, [FromRoute] string contractId)
-        {
-            try
-            {
-                var userId = User.FindFirst(ClaimTypes.NameIdentifier).Value;
-                var contractExpiredDetail = await _contractService.GetContractExpiredDistributionDetail(userId, projectId, contractId);
-                return Ok(contractExpiredDetail);
-            }
-            catch (UnauthorizedProjectRoleException ex)
-            {
-                return StatusCode(403, ex.Message);
-            }
-            catch (NotFoundException ex)
-            {
-                return BadRequest(ex.Message);
-            }
-            catch (UnmatchedException ex)
-            {
-                return BadRequest(ex.Message);
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(500, ex.Message);
-            }
-        }
     }
 
 }
