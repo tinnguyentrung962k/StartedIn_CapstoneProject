@@ -116,6 +116,14 @@ public class InvestmentCallService : IInvestmentCallService
             .GetAllAsync();
         foreach (var call in investmentCalls)
         {
+            var project = await _projectRepository.QueryHelper()
+                .Filter(x => x.ActiveCallId != null && x.ActiveCallId.Equals(call.Id))
+                .GetOneAsync();
+            if (project != null)
+            {
+                project.ActiveCallId = null;
+                _projectRepository.Update(project);
+            }
             call.Status = InvestmentCallStatus.Closed;
             _investmentCallRepository.Update(call);
             
