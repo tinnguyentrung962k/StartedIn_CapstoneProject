@@ -116,7 +116,7 @@ namespace StartedIn.Service.Services
             TableRow headerRow = new TableRow();
             headerRow.Append(
                 CreateTableHeaderCell("Tên cột mốc giải ngân", true),
-                CreateTableHeaderCell("Số tiền", true),
+                CreateTableHeaderCell("Số tiền (đồng)", true),
                 CreateTableHeaderCell("Ngày bắt đầu", true),
                 CreateTableHeaderCell("Ngày hạn chót", true),
                 CreateTableHeaderCell("Điều kiện", true)
