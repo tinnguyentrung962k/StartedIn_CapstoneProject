@@ -413,11 +413,6 @@ namespace StartedIn.Service.Services
                 application.LastUpdatedTime = DateTimeOffset.UtcNow;
                 _applicationRepository.Update(application);
 
-                
-                
-                await _unitOfWork.CommitAsync();
-                await _unitOfWork.SaveChangesAsync();
-
                 var project = await _projectRepository.GetProjectById(projectId);
                 var appliedUserInProject = project.UserProjects.FirstOrDefault(up => up.UserId.Equals(application.CandidateId)
                 && up.Status != UserStatusInProject.Active);
