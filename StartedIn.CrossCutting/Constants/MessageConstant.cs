@@ -47,8 +47,8 @@ namespace StartedIn.CrossCutting.Constants
         public const string CreateMoreProjectError = "Bạn không thể tạo thêm nhóm.";
         public const string DisbursementGreaterThanBuyPriceError = "Số tiền giải ngân không thể vượt quá số tiền mua cổ phần";
         public const string DealPercentageGreaterThanRemainingPercentage = "Tỉ lệ cổ phần thương lượng lớn hơn tỉ lệ cổ phần còn lại của Startup.";
-        public const string CharterNotBelongToProjectError = "Điều lệ này không thuộc vào dự án.";
-        public const string CharterExistedError = "Điều lệ đã tồn tại cho dự án.";
+        public const string CharterNotBelongToProjectError = "Tuyên ngôn này không thuộc vào dự án.";
+        public const string CharterExistedError = "Tuyên ngôn đã tồn tại cho dự án.";
         public const string DealNotAccepted = "Thỏa thuận chưa được chấp nhận.";
         public const string TotalDistributePercentageGreaterThanRemainingPercentage = "Tỉ lệ cổ phần chia cho các thành viên không thể vượt quá tỉ lệ cổ phần còn lại.";
         public const string ValidShareDistributionContractExisted = "Hợp đồng chia cổ phần hợp lệ của dự án đã tồn tại.";
