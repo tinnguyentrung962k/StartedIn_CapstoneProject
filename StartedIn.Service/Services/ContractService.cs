@@ -443,7 +443,10 @@ namespace StartedIn.Service.Services
                 };
                 var contractEntity = _contractRepository.Add(contract);
                 var shareEquityEntity = _shareEquityRepository.Add(shareEquity);
-                var disbursementList = await _disbursementRepository.QueryHelper().Filter(x => x.DealOfferId.Equals(investmentContractFromDealCreateDTO.DealId)).GetAllAsync();
+                var disbursementList = await _disbursementRepository.QueryHelper()
+                    .Filter(x => x.DealOfferId.Equals(investmentContractFromDealCreateDTO.DealId))
+                    .OrderBy(x=>x.OrderBy(x=>x.StartDate))
+                    .GetAllAsync();
                 foreach (var disbursementTime in disbursementList)
                 {
                     disbursementTime.ContractId = contractEntity.Id;
