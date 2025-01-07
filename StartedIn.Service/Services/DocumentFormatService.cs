@@ -129,7 +129,7 @@ namespace StartedIn.Service.Services
                 TableRow row = new TableRow();
                 row.Append(
                     CreateTableHeaderCell(d.Title),
-                    CreateTableHeaderCell(Convert.ToInt32(d.Amount).ToString()),
+                    CreateTableHeaderCell(d.Amount.ToString("N0", new System.Globalization.CultureInfo("vi-VN"))),
                     CreateTableHeaderCell(d.StartDate.ToString("dd-MM-yyyy")),
                     CreateTableHeaderCell(d.EndDate.ToString("dd-MM-yyyy")),
                     CreateTableHeaderCell(d.Condition)
@@ -495,7 +495,7 @@ namespace StartedIn.Service.Services
                 { "MAIL", leader.Email },
                 { "DCCDU", leader.Address },
                 { "PHANTRAMCOPHAN", shareEquity.Percentage.ToString() },
-                { "GIAMUA", shareEquity.SharePrice.ToString() }
+                { "GIAMUA", shareEquity.SharePrice.ToString("N0", new System.Globalization.CultureInfo("vi-VN")) }
             };
 
             // Bước 2: Mở file Word để thay thế placeholders
