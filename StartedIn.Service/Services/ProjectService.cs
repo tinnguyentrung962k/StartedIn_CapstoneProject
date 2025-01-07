@@ -720,7 +720,7 @@ public class ProjectService : IProjectService
             && (x.DisbursementStatus == DisbursementStatusEnum.OVERDUE 
             || x.DisbursementStatus == DisbursementStatusEnum.ERROR 
             || x.DisbursementStatus == DisbursementStatusEnum.ACCEPTED 
-            || x.DisbursementStatus == DisbursementStatusEnum.PENDING))
+            || (x.DisbursementStatus == DisbursementStatusEnum.PENDING && x.IsValidWithContract == true)))
             .GetAllAsync();
 
         var assetInProject = await _assetRepository.QueryHelper()
