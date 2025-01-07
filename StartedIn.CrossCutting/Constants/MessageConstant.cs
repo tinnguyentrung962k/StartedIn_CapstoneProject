@@ -113,7 +113,7 @@ namespace StartedIn.CrossCutting.Constants
         public const string RecruitmentPostExist = "Bài đăng tuyển dụng đã tồn tại";
         public const string YouHaveAppliedForRecruitment = "Bạn đã ứng tuyển cho bài đăng tuyển dụng này";
         public const string NotFoundRecruitmentApplication = "Không tìm thấy ứng tuyển cho bài đăng tuyển dụng";
-        public const string ApplicantAlreadyInProject = "Bạn đã tham gia dự án";
+        public const string ApplicantAlreadyInProject = "Bạn đã tham gia một dự án khác";
         public const string InvalidEquityChosenDate = "Không thể chọn ngày trong tương lai.";
         public const string YouCannotRequestToTerminateThisContract = "Bạn không thể yêu cầu huỷ hợp đồng này.";
         public const string NotFoundTerminateRequest = "Không tìm thấy yêu cầu chấm dứt hợp đồng.";
