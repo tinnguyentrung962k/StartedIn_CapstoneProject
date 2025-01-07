@@ -478,15 +478,14 @@ namespace StartedIn.Service.Services
         {
             var query = _applicationRepository.QueryHelper();
             var userApplications = await query.Filter(a => a.CandidateId.Equals(userId) && a.Status == ApplicationStatus.PENDING).GetAllAsync();
-            var acceptedApplication = await query.Filter(a => a.CandidateId.Equals(userId) && a.Status == ApplicationStatus.ACCEPTED).GetOneAsync();
-            if (acceptedApplication != null)
+            if (userApplications != null)
             {
                 foreach (var application in userApplications)
                 {
                     application.Status = ApplicationStatus.CANCELLED;
                     _applicationRepository.Update(application);
-                    await _unitOfWork.SaveChangesAsync();
                 }
+                await _unitOfWork.SaveChangesAsync();
             }
         }
     }
