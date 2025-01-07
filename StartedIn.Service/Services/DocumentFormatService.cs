@@ -129,7 +129,7 @@ namespace StartedIn.Service.Services
                 TableRow row = new TableRow();
                 row.Append(
                     CreateTableHeaderCell(d.Title),
-                    CreateTableHeaderCell(Convert.ToInt32(d.Amount).ToString("N3")),
+                    CreateTableHeaderCell(Convert.ToInt32(d.Amount).ToString()),
                     CreateTableHeaderCell(d.StartDate.ToString("dd-MM-yyyy")),
                     CreateTableHeaderCell(d.EndDate.ToString("dd-MM-yyyy")),
                     CreateTableHeaderCell(d.Condition)
