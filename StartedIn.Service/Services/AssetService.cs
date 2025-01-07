@@ -268,6 +268,10 @@ namespace StartedIn.Service.Services
             {
                 throw new UnmatchedException(MessageConstant.AssetNotBelongToProject);
             }
+            if (chosenAsset.Status != AssetStatus.Available)
+            {
+                throw new InvalidDataException(MessageConstant.AssetCanBeLiquidatedWhenAvailable);
+            }
             if (assetLiquidatingDTO.SellQuantity > chosenAsset.RemainQuantity)
             {
                 throw new InvalidDataException(MessageConstant.SellGreaterThanRemainError);
