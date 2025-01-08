@@ -15,7 +15,7 @@ namespace StartedIn.Domain.Entities
         public string ProjectId { get; set; }
         [MaxLength(255)]
         public string Title { get; set; }
-        [MaxLength(4000)]
+        [MaxLength(5000)]
         public string Content { get; set; }
         public bool IsOpen { get; set; }
         public Project Project { get; set; }
