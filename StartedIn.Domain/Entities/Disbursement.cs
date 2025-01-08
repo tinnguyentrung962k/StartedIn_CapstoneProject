@@ -23,7 +23,7 @@ namespace StartedIn.Domain.Entities
         
         [Column(TypeName = "decimal(14,3)")]
         public decimal Amount { get; set; }
-        [MaxLength(500)]
+        [MaxLength(4000)]
         public string Condition { get; set; }
         public DisbursementStatusEnum DisbursementStatus { get; set; }
         
