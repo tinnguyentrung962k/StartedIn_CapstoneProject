@@ -99,7 +99,7 @@ namespace StartedIn.Service.Services
         {
             var dealList = _dealOfferRepository.QueryHelper()
                 .Include(x => x.Project)
-                .Filter(x => x.InvestorId.Equals(userId));
+                .Filter(x => x.InvestorId.Equals(userId) && x.DeletedTime == null);
             var deallistPaging = await dealList.GetPagingAsync(page, size);
             List<DealOfferForInvestorResponseDTO> dealofInvestorResponse = new List<DealOfferForInvestorResponseDTO>();
             foreach (var deal in deallistPaging)

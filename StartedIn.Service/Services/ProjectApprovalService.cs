@@ -138,22 +138,19 @@ public class ProjectApprovalService : IProjectApprovalService
             throw new UnauthorizedProjectRoleException(MessageConstant.RolePermissionError);
         }
         var approval = await _projectApprovalRepository.GetProjectApprovalsQuery().Where(a => a.ProjectId.Equals(projectId)).ToListAsync();
-        if (!approval.Any())
-        {
-            throw new NotFoundException(MessageConstant.NotFoundProjectApprovalRequest);
-        }
-
         var response = _mapper.Map<List<ProjectApprovalResponseDTO>>(approval);
-        foreach (var approvalItem in response)
+        if (response.Any())
         {
-            var investmentCall = await _investmentCallRepository.QueryHelper()
-            .Filter(x => x.ProjectApprovalId.Equals(approvalItem.Id))
-            .GetOneAsync();
-            approvalItem.TargetCall = investmentCall.TargetCall.ToString();
-            approvalItem.EquityShareCall = investmentCall.EquityShareCall.ToString();
-            approvalItem.EndDate = investmentCall.EndDate;
+            foreach (var approvalItem in response)
+            {
+                var investmentCall = await _investmentCallRepository.QueryHelper()
+                .Filter(x => x.ProjectApprovalId.Equals(approvalItem.Id))
+                .GetOneAsync();
+                approvalItem.TargetCall = investmentCall.TargetCall.ToString();
+                approvalItem.EquityShareCall = investmentCall.EquityShareCall.ToString();
+                approvalItem.EndDate = investmentCall.EndDate;
+            }
         }
-
         return response;
     }
 
