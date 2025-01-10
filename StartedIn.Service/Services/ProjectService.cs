@@ -651,8 +651,7 @@ public class ProjectService : IProjectService
         var assetInProject = await _assetRepository.QueryHelper()
             .Filter(x => x.ProjectId.Equals(projectId)
             && x.DeletedTime == null
-            && (x.Status != AssetStatus.Sold
-            || (x.Status == AssetStatus.Unavailable && x.RemainQuantity > 0)))
+            && (x.Status != AssetStatus.Sold && x.Status != AssetStatus.Unavailable))
             .GetAllAsync();
         if (assetInProject.Any())
         {
@@ -734,7 +733,7 @@ public class ProjectService : IProjectService
         var assetInProject = await _assetRepository.QueryHelper()
             .Filter(x => x.ProjectId.Equals(projectId) && x.DeletedTime == null 
             && (x.Status != AssetStatus.Sold 
-            && (x.Status == AssetStatus.Unavailable && x.RemainQuantity != 0)))
+            && x.Status != AssetStatus.Unavailable))
             .GetAllAsync();
 
         var closingProject = new ClosingProjectInformationDTO
