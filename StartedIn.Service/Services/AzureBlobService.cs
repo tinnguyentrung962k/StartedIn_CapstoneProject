@@ -283,13 +283,20 @@ namespace StartedIn.Service.Services
 
         public async Task<string> ZipAndUploadAsyncForCv(List<IFormFile> files, string zipFileName)
         {
-            // Create a MemoryStream to hold the zip file
-            using (var memoryStream = new MemoryStream())
+            if (files == null || !files.Any())
             {
-                // Create the zip archive in memory
-                using (var zipArchive = new ZipArchive(memoryStream, ZipArchiveMode.Create, true))
+                throw new ArgumentException("No files provided for zipping.", nameof(files));
+            }
+
+            // Create a MemoryStream to hold the zip file
+            using var memoryStream = new MemoryStream();
+
+            // Create the zip archive in memory
+            using (var zipArchive = new ZipArchive(memoryStream, ZipArchiveMode.Create, true))
+            {
+                foreach (var file in files)
                 {
-                    foreach (var file in files)
+                    if (file.Length > 0) // Ensure the file is not empty
                     {
                         var zipEntry = zipArchive.CreateEntry(file.FileName, CompressionLevel.Optimal);
 
@@ -299,18 +306,30 @@ namespace StartedIn.Service.Services
                             await fileStream.CopyToAsync(entryStream);
                         }
                     }
+                    else
+                    {
+                        throw new InvalidOperationException($"File {file.FileName} is empty.");
+                    }
                 }
-
-                // Reset the MemoryStream position to the beginning
-                memoryStream.Seek(0, SeekOrigin.Begin);
-
-                // Upload the zip file to Azure Blob Storage
-                var blobClient = _cvFileContainerClient.GetBlobClient(zipFileName);
-                await blobClient.UploadAsync(memoryStream, true);
-
-                // Return the URI of the uploaded blob
-                return blobClient.Uri.ToString();
             }
+
+            // Reset the MemoryStream position to the beginning
+            memoryStream.Seek(0, SeekOrigin.Begin);
+
+            // Upload the zip file to Azure Blob Storage
+            var blobClient = _cvFileContainerClient.GetBlobClient(zipFileName);
+
+            try
+            {
+                await blobClient.UploadAsync(memoryStream, new BlobHttpHeaders { ContentType = "application/zip" });
+            }
+            catch (Exception ex)
+            {
+                throw new InvalidOperationException("Failed to upload the ZIP file to Azure Blob Storage.", ex);
+            }
+
+            // Return the URI of the uploaded blob
+            return blobClient.Uri.ToString();
         }
 
         public async Task<string> ZipAndUploadAsyncForMeetingNotes(List<IFormFile> files, string zipFileName)
