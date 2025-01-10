@@ -28,10 +28,23 @@ namespace StartedIn.Repository.Repositories
                 .Include(d=>d.Contract)
                 .ThenInclude(c=>c.Project)
                 .Include(d=>d.Investor)
-                .Include(d=>d.DisbursementAttachments)
+                .Include(d=>d.DisbursementAttachments.Where(x=>x.DeletedTime == null))
                 .Include(d=>d.Transaction)
                 .Where(x => x.DeletedTime == null && x.IsValidWithContract == true)
                 .FirstOrDefaultAsync();
+        }
+
+        public async Task RemoveDisbursementAttachments(string disbursementId)
+        {
+            var disbursementFiles = await _appDbContext.DisbursementAttachments.Where(f => f.DisbursementId.Equals(disbursementId) && f.DeletedTime == null).ToListAsync();
+            if (disbursementFiles.Any())
+            {
+                foreach (var file in disbursementFiles)
+                {
+                    file.DeletedTime = DateTimeOffset.UtcNow;
+                }
+                _appDbContext.Set<DisbursementAttachment>().UpdateRange(disbursementFiles);
+            }
         }
 
         public IQueryable<Disbursement> GetDisbursementListOfInvestorQuery(string userId) 

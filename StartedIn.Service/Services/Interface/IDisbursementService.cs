@@ -30,5 +30,7 @@ namespace StartedIn.Service.Services.Interface
         Task<DisbursementOverviewOfProject> GetADisbursementTotalInAMonth(string projectId, DateTime dateTime);
         Task<PaginationDTO<DisbursementOverviewOfProjectForInvestor>> GetADisbursementOverviewForInvestor(string userId, int page, int size);
         Task<InvestorDisbursementOverviewDTO> GetInvestorDisbursementOverviewAsync(string userId);
+        Task UpdateFinanceAndTransactionOfProjectOfRejectDisbursement(User user, string projectId, Disbursement disbursement);
+        Task DisbursementRejectionForLeader(string userId, string projectId, string disbursementId);
     }
 }
