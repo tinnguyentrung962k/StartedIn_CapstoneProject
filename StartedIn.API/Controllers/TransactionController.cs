@@ -103,6 +103,26 @@ namespace StartedIn.API.Controllers
 
         }
 
+        [HttpGet("transactions/{transactionId}")]
+        [Authorize(Roles = RoleConstants.USER + "," + RoleConstants.INVESTOR + "," + RoleConstants.MENTOR)]
+        public async Task<ActionResult<TransactionResponseDTO>> GetTransactionByIdForSelfUser([FromRoute] string transactionId)
+        {
+            try
+            {
+                var userId = User.FindFirst(ClaimTypes.NameIdentifier).Value;
+                var transaction = await _transactionService.GetTransactionDetailByIdForSelfUser(transactionId);
+                return Ok(transaction);
+            }
+            catch (NotFoundException ex)
+            {
+                return BadRequest(ex.Message);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, ex.Message);
+            }
+        }
+
         [HttpGet("projects/{projectId}/transactions/{transactionId}")]
         [Authorize(Roles = RoleConstants.USER + "," + RoleConstants.INVESTOR + "," + RoleConstants.MENTOR)]
         public async Task<ActionResult<TransactionResponseDTO>> GetTransactionById([FromRoute] string projectId, [FromRoute] string transactionId)

@@ -459,5 +459,26 @@ namespace StartedIn.Service.Services
             }
             return transactionResponse;
         }
+
+        public async Task<TransactionResponseDTO> GetTransactionDetailByIdForSelfUser(string transactionId)
+        {
+            var transaction = await _transactionRepository.GetTransactionById(transactionId);
+            if (transaction == null)
+            {
+                throw new NotFoundException(MessageConstant.TransactionNotFound);
+            }
+            var transactionResponse = _mapper.Map<TransactionResponseDTO>(transaction);
+            var fromUser = await _userManager.FindByIdAsync(transaction.FromID);
+            if (fromUser != null)
+            {
+                transactionResponse.FromUserProfilePicture = fromUser.ProfilePicture;
+            }
+            var toUser = await _userManager.FindByIdAsync(transaction.ToID);
+            if (toUser != null)
+            {
+                transactionResponse.FromUserProfilePicture = toUser.ProfilePicture;
+            }
+            return transactionResponse;
+        }
     }
 }
