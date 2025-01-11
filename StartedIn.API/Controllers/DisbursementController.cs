@@ -211,6 +211,39 @@ namespace StartedIn.API.Controllers
                 return StatusCode(500, MessageConstant.InternalServerError + ex.Message);
             }
         }
+
+        [HttpPut("projects/{projectId}/disbursements/{disbursementId}/reject-for-leader")]
+        [Authorize(Roles = RoleConstants.USER)]
+        public async Task<IActionResult> RejectADisbursement([FromRoute] string projectId, [FromRoute] string disbursementId)
+        {
+            try
+            {
+                var userId = User.FindFirst(ClaimTypes.NameIdentifier).Value;
+                await _disbursementService.DisbursementRejectionForLeader(userId, projectId, disbursementId);
+                return Ok("Từ chối mốc giải ngân thành công.");
+            }
+            catch (UnauthorizedProjectRoleException ex)
+            {
+                return StatusCode(403, ex.Message);
+            }
+            catch (UnmatchedException ex)
+            {
+                return BadRequest(ex.Message);
+            }
+            catch (NotFoundException ex)
+            {
+                return BadRequest(ex.Message);
+            }
+            catch (UpdateException ex)
+            {
+                return BadRequest(ex.Message);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, MessageConstant.InternalServerError + ex.Message);
+            }
+        }
+
         [HttpPost("disbursements/{disbursementId}/accept")]
         [Authorize(Roles = RoleConstants.INVESTOR)]
         public async Task<IActionResult> AcceptAndUploadEvidenceForADisbursement([FromRoute] string disbursementId, [FromForm] List<IFormFile> evidenceFiles)

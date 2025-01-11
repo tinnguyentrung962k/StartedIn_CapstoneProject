@@ -336,7 +336,7 @@ namespace StartedIn.Service.Services
             try
             {
                 _unitOfWork.BeginTransaction();
-
+                await _disbursementRepository.RemoveDisbursementAttachments(disbursementId);
                 // Upload files and store URLs with original filenames
                 var fileUrls = await _azureBlobService.UploadEvidencesOfDisbursement(files);
                 disbursement.DisbursementAttachments = files.Select((file, index) => new DisbursementAttachment
@@ -346,6 +346,7 @@ namespace StartedIn.Service.Services
                 }).ToList();
 
                 disbursement.DisbursementStatus = CrossCutting.Enum.DisbursementStatusEnum.ACCEPTED;
+
 
                 _disbursementRepository.Update(disbursement);
                 await _unitOfWork.SaveChangesAsync();
@@ -618,6 +619,51 @@ namespace StartedIn.Service.Services
             }
 
         }
+
+        public async Task DisbursementRejectionForLeader(string userId, string projectId, string disbursementId)
+        {
+            var userInProject = await _userService.CheckIfUserInProject(userId, projectId);
+            var projectRole = await _projectRepository.GetUserRoleInProject(userId, projectId);
+            if (projectRole != CrossCutting.Enum.RoleInTeam.Leader)
+            {
+                throw new UnauthorizedProjectRoleException(MessageConstant.RolePermissionError);
+            }
+            var disbursement = await _disbursementRepository.GetDisbursementById(disbursementId);
+            if (disbursement == null)
+            {
+                throw new NotFoundException(MessageConstant.DisbursementNotFound);
+            }
+            if (disbursement.DisbursementStatus != CrossCutting.Enum.DisbursementStatusEnum.ACCEPTED)
+            {
+                throw new UpdateException(MessageConstant.UpdateFailed);
+            }
+            if (userInProject.ProjectId != disbursement.Contract.ProjectId)
+            {
+                throw new UnmatchedException(MessageConstant.DisbursementNotBelongToProject);
+            }
+            try
+            {
+                await UpdateFinanceAndTransactionOfProjectOfRejectDisbursement(userInProject.User, projectId, disbursement);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError($"An error occurred while updating a disbursement: {ex.Message}");
+                await _unitOfWork.RollbackAsync(); // Rollback transaction
+                throw;
+            }
+
+        }
+
+        public async Task UpdateFinanceAndTransactionOfProjectOfRejectDisbursement(User user, string projectId, Disbursement disbursement)
+        {
+            _unitOfWork.BeginTransaction();
+            disbursement.DisbursementStatus = CrossCutting.Enum.DisbursementStatusEnum.NOTVALID;
+            disbursement.LastUpdatedBy = user.FullName;
+            _disbursementRepository.Update(disbursement);
+            await _unitOfWork.SaveChangesAsync();
+            await _unitOfWork.CommitAsync();
+        }
+
         public async Task UpdateFinanceAndTransactionOfProjectOfFinishedDisbursement(User user, string projectId, Disbursement disbursement)
         {
             _unitOfWork.BeginTransaction();

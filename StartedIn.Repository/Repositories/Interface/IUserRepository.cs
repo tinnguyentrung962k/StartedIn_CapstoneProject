@@ -16,5 +16,6 @@ namespace StartedIn.Repository.Repositories.Interface
         Task DeleteUserFromAProject(string userId, string projectId);
         Task UpdateUserInProject(UserProject userProject);
         Task UpdateUserInContract(UserContract userContract);
+        Task DeleteUserFromTasksInAProject(string userId, string projectId);
     }
 }

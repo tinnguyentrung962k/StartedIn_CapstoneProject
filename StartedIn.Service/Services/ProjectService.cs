@@ -128,7 +128,7 @@ public class ProjectService : IProjectService
         {
             throw new InvalidDataException(MessageConstant.NullOrEmptyStartDate);
         }
-        
+
         try
         {
             _unitOfWork.BeginTransaction();
@@ -163,7 +163,7 @@ public class ProjectService : IProjectService
         }
     }
 
-    public async Task UpdateProjectDetail(string userId, string projectId, ProjectDetailPostDTO projectDetail) 
+    public async Task UpdateProjectDetail(string userId, string projectId, ProjectDetailPostDTO projectDetail)
     {
         var userInProject = await _userService.CheckIfUserInProject(userId, projectId);
         try
@@ -229,7 +229,7 @@ public class ProjectService : IProjectService
         return project;
     }
 
-    public async Task<PaginationDTO<ProjectResponseDTO>> GetAllProjectsForAdmin(ProjectAdminFilterDTO projectAdminFilterDTO,int page, int size)
+    public async Task<PaginationDTO<ProjectResponseDTO>> GetAllProjectsForAdmin(ProjectAdminFilterDTO projectAdminFilterDTO, int page, int size)
     {
         var projects = _projectRepository.GetProjectListQuery();
         if (!string.IsNullOrWhiteSpace(projectAdminFilterDTO.ProjectName))
@@ -363,9 +363,9 @@ public class ProjectService : IProjectService
         return listUser;
     }
 
-    public async Task<PaginationDTO<ExploreProjectDTO>> GetProjectsForInvestor(string userId, ProjectFilterDTO projectFilterDTO,int size, int page)
+    public async Task<PaginationDTO<ExploreProjectDTO>> GetProjectsForInvestor(string userId, ProjectFilterDTO projectFilterDTO, int size, int page)
     {
-        var projects = _projectRepository.GetProjectListQueryForInvestor(userId).Where(x=>x.ActiveCallId != null);
+        var projects = _projectRepository.GetProjectListQueryForInvestor(userId).Where(x => x.ActiveCallId != null);
 
         // Filter by project name
         if (!string.IsNullOrWhiteSpace(projectFilterDTO.ProjectName))
@@ -431,7 +431,7 @@ public class ProjectService : IProjectService
             var newestInvestmentCall = _mapper.Map<InvestmentCallResponseDTO>(await _investmentCallRepository.QueryHelper()
                 .Filter(x => x.Id.Equals(project.ActiveCallId))
                 .Include(x => x.DealOffers).GetOneAsync());
-           
+
             ExploreProjectDTO exploreProjectDTO = new ExploreProjectDTO
             {
                 Description = project.Description,
@@ -581,11 +581,11 @@ public class ProjectService : IProjectService
         {
             milestoneProgressList = project.Milestones.Where(m => m.DeletedTime == null)
                 .Select(m => new MilestoneProgressResponseDTO
-            {
-                Id = m.Id,
-                Title = m.Title,
-                Progress = _milestoneService.CalculateProgress(m)
-            }).ToList();
+                {
+                    Id = m.Id,
+                    Title = m.Title,
+                    Progress = _milestoneService.CalculateProgress(m)
+                }).ToList();
         }
         var transactionStatisticOfCurrentMonth = await _transactionService.GetInAndOutMoneyTransactionOfCurrentMonth(projectId);
         var userShareInProject = await _shareEquityService.GetShareEquityOfAUserInAProject(userId, projectId);
@@ -614,7 +614,7 @@ public class ProjectService : IProjectService
             projectDashboardDTO.SelfRemainingDisbursement = selfDisbursementsStatistic.SelfRemainingDisbursement;
             projectDashboardDTO.SelfDisbursedAmount = selfDisbursementsStatistic.SelfDisbursedAmount;
         }
-        
+
         return projectDashboardDTO;
     }
 
@@ -626,10 +626,10 @@ public class ProjectService : IProjectService
             throw new UnauthorizedProjectRoleException(MessageConstant.RolePermissionError);
         }
         var contractList = await _contractRepository.QueryHelper()
-            .Filter(x=>x.ProjectId == projectId)
-            .Include(x=>x.Disbursements)
+            .Filter(x => x.ProjectId == projectId)
+            .Include(x => x.Disbursements)
             .GetAllAsync();
-        if (contractList.Any(x => (x.ContractStatus == ContractStatusEnum.SENT || x.ContractStatus == ContractStatusEnum.COMPLETED) 
+        if (contractList.Any(x => (x.ContractStatus == ContractStatusEnum.SENT || x.ContractStatus == ContractStatusEnum.COMPLETED)
         && x.ContractType != ContractTypeEnum.LIQUIDATIONNOTE))
         {
             throw new UpdateException(MessageConstant.ValidContractsStillExisted);
@@ -638,10 +638,11 @@ public class ProjectService : IProjectService
         {
             if (contract.ContractType == ContractTypeEnum.INVESTMENT)
             {
-                if (contract.Disbursements.Any(x => x.DisbursementStatus == DisbursementStatusEnum.OVERDUE 
-                || x.DisbursementStatus == DisbursementStatusEnum.ERROR 
+                if (contract.Disbursements.Any(x => x.DisbursementStatus == DisbursementStatusEnum.OVERDUE
+                || x.DisbursementStatus == DisbursementStatusEnum.ERROR
                 || x.DisbursementStatus == DisbursementStatusEnum.ACCEPTED
-                || x.DisbursementStatus == DisbursementStatusEnum.PENDING))
+                || x.DisbursementStatus == DisbursementStatusEnum.PENDING
+                || x.DisbursementStatus == DisbursementStatusEnum.NOTVALID))
                 {
                     throw new UpdateException(MessageConstant.DisbursementIssueExisted);
                     break;
@@ -679,8 +680,8 @@ public class ProjectService : IProjectService
                 _investmentCallRepository.Update(activeCall);
                 project.ActiveCallId = null;
             }
-            
-            foreach (var userProject in project.UserProjects.Where(x=>x.Status != UserStatusInProject.Left))
+
+            foreach (var userProject in project.UserProjects.Where(x => x.Status != UserStatusInProject.Left))
             {
                 userProject.Status = UserStatusInProject.Left;
                 await _userRepository.UpdateUserInProject(userProject);
@@ -694,7 +695,7 @@ public class ProjectService : IProjectService
             _projectRepository.Update(project);
             await _unitOfWork.SaveChangesAsync();
             await _unitOfWork.CommitAsync();
-            
+
 
         }
         catch (Exception ex)
@@ -703,7 +704,7 @@ public class ProjectService : IProjectService
             await _unitOfWork.RollbackAsync();
             throw;
         }
-        
+
     }
 
     public async Task<ClosingProjectInformationDTO> GetProjectClosingInformation(string userId, string projectId)
@@ -715,18 +716,19 @@ public class ProjectService : IProjectService
         }
         var project = await _projectRepository.GetProjectById(projectId);
         var validContracts = await _contractRepository.QueryHelper()
-            .Filter(x=>x.ProjectId.Equals(projectId) 
+            .Filter(x => x.ProjectId.Equals(projectId)
             && (x.ContractStatus == ContractStatusEnum.COMPLETED || x.ContractStatus == ContractStatusEnum.SENT || x.ContractStatus == ContractStatusEnum.WAITINGFORLIQUIDATION)
             && x.ContractType != ContractTypeEnum.LIQUIDATIONNOTE)
-            .Include(x=>x.Disbursements)
+            .Include(x => x.Disbursements)
             .GetAllAsync();
 
         var processingDisbursements = await _disbursementRepository.QueryHelper()
             .Include(x => x.Contract)
-            .Filter(x => x.Contract.ProjectId.Equals(projectId) 
-            && (x.DisbursementStatus == DisbursementStatusEnum.OVERDUE 
-            || x.DisbursementStatus == DisbursementStatusEnum.ERROR 
-            || x.DisbursementStatus == DisbursementStatusEnum.ACCEPTED 
+            .Filter(x => x.Contract.ProjectId.Equals(projectId)
+            && (x.DisbursementStatus == DisbursementStatusEnum.OVERDUE
+            || x.DisbursementStatus == DisbursementStatusEnum.ERROR
+            || x.DisbursementStatus == DisbursementStatusEnum.ACCEPTED
+            || x.DisbursementStatus == DisbursementStatusEnum.NOTVALID
             || (x.DisbursementStatus == DisbursementStatusEnum.PENDING && x.IsValidWithContract == true)))
             .GetAllAsync();
 
@@ -779,7 +781,8 @@ public class ProjectService : IProjectService
             .Where(d => d.DisbursementStatus == DisbursementStatusEnum.OVERDUE
             || d.DisbursementStatus == DisbursementStatusEnum.ACCEPTED
             || d.DisbursementStatus == DisbursementStatusEnum.ERROR
-            || d.DisbursementStatus == DisbursementStatusEnum.PENDING)
+            || d.DisbursementStatus == DisbursementStatusEnum.PENDING
+            || d.DisbursementStatus == DisbursementStatusEnum.NOTVALID)
         .ToList();
         var leavingProject = new LeavingProjectInfomationDTO
         {

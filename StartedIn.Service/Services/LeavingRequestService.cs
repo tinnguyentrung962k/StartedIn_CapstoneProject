@@ -189,6 +189,7 @@ namespace StartedIn.Service.Services
                 chosenRequest.LastUpdatedBy = userInProject.User.FullName;
                 chosenRequest.LastUpdatedTime = DateTimeOffset.UtcNow;
                 var chosenRequestEntity = _leavingRequestRepository.Update(chosenRequest);
+                await _userRepository.DeleteUserFromTasksInAProject(chosenRequest.UserId, chosenRequest.ProjectId);
                 await _userRepository.DeleteUserFromAProject(chosenRequest.UserId, chosenRequest.ProjectId);
                 await _unitOfWork.SaveChangesAsync();
                 await _unitOfWork.CommitAsync();
