@@ -14,7 +14,7 @@ public class TaskEntity : BaseAuditEntity<string>
     public string? ParentTaskId { get; set; }
     [MaxLength(50)]
     public string Title { get; set; }
-    [MaxLength(255)]
+    [MaxLength(1023)]
     public string? Description { get; set; }
     [MaxLength(18)]
     public TaskEntityStatus Status { get; set; }
