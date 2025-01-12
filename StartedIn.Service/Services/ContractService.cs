@@ -686,6 +686,7 @@ namespace StartedIn.Service.Services
                 _unitOfWork.BeginTransaction();
                 chosenContract.ValidDate = DateOnly.FromDateTime(DateTimeOffset.UtcNow.AddHours(7).Date);
                 chosenContract.ContractStatus = ContractStatusEnum.COMPLETED;
+                chosenContract.LastUpdatedTime = DateTimeOffset.UtcNow;
                 foreach (var equityShare in chosenContract.ShareEquities)
                 {
                     equityShare.DateAssigned = DateOnly.FromDateTime(DateTimeOffset.UtcNow.AddHours(7).Date);
