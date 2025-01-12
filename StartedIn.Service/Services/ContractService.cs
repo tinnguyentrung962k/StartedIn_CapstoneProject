@@ -201,7 +201,7 @@ namespace StartedIn.Service.Services
                 {
                     var modifiedMemoryStream = await _documentFormatService.ReplacePlaceHolderForInvestmentDocumentAsync(contract, investor, leader, project, shareEquity, disbursementList);
                     modifiedMemoryStream.Position = 0;
-                    string fileName = $"{contract.ContractIdNumber}.docx";
+                    string fileName = $"{Guid.NewGuid()}.docx";
                     contract.AzureLink = await _azureBlobService.UploadDocumentFromMemoryStreamAsync(modifiedMemoryStream, fileName);
                 }
                 if (signingMethod == SettingsValue.SignNow)
@@ -327,7 +327,7 @@ namespace StartedIn.Service.Services
                 {
                     var modifiedMemoryStream = await _documentFormatService.ReplacePlaceHolderForStartUpShareDistributionDocumentAsync(contract,leader, userInProject.Project, shareEquitiesOfMembers,usersInContract);
                     modifiedMemoryStream.Position = 0;
-                    string fileName = $"{contract.ContractIdNumber}.docx";
+                    string fileName = $"{Guid.NewGuid()}.docx";
                     contract.AzureLink = await _azureBlobService.UploadDocumentFromMemoryStreamAsync(modifiedMemoryStream, fileName);
                 }
                 if (signingMethod == SettingsValue.SignNow)
@@ -457,7 +457,7 @@ namespace StartedIn.Service.Services
                 {
                     var modifiedMemoryStream = await _documentFormatService.ReplacePlaceHolderForInvestmentDocumentAsync(contract, investor, leader, project, shareEquity, disbursementList.ToList());
                     modifiedMemoryStream.Position = 0;
-                    string fileName = $"{contract.ContractIdNumber}.docx";
+                    string fileName = $"{Guid.NewGuid()}.docx";
                     contract.AzureLink = await _azureBlobService.UploadDocumentFromMemoryStreamAsync(modifiedMemoryStream, fileName);
                 }
                 if (signingMethod == SettingsValue.SignNow)
@@ -1010,7 +1010,7 @@ namespace StartedIn.Service.Services
                 {
                     var modifiedMemoryStream = await _documentFormatService.ReplacePlaceHolderForInvestmentDocumentAsync(contract, investor, leader, project, shareEquity, disbursementList);
                     modifiedMemoryStream.Position = 0;
-                    string fileName = $"{contract.ContractIdNumber}.docx";
+                    string fileName = $"{Guid.NewGuid()}.docx";
                     contract.AzureLink = await _azureBlobService.UploadDocumentFromMemoryStreamAsync(modifiedMemoryStream, fileName);
                 }
                 if (signingMethod == SettingsValue.SignNow)
@@ -1112,7 +1112,7 @@ namespace StartedIn.Service.Services
                 {
                     var modifiedMemoryStream = await _documentFormatService.ReplacePlaceHolderForStartUpShareDistributionDocumentAsync(contract, leader, userInProject.Project, shareEquitiesOfMembers, usersInContract);
                     modifiedMemoryStream.Position = 0;
-                    string fileName = $"{contract.ContractIdNumber}.docx";
+                    string fileName = $"{Guid.NewGuid()}.docx";
                     contract.AzureLink = await _azureBlobService.UploadDocumentFromMemoryStreamAsync(modifiedMemoryStream, fileName);
                 }
                 if (signingMethod == SettingsValue.SignNow)

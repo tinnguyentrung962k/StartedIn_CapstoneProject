@@ -120,7 +120,7 @@ namespace StartedIn.Service.Services
 
             // Bước 2: Chuẩn bị MultipartFormDataContent cho việc upload
             var content = new MultipartFormDataContent();
-            content.Add(new StreamContent(modifiedMemoryStream), "file", $"{contract.ContractIdNumber}.docx");
+            content.Add(new StreamContent(modifiedMemoryStream), "file", $"{Guid.NewGuid()}.docx");
 
             // Đường dẫn để upload lên SignNow
             var uploadUrl = $"{_signNowSettings.ApiBaseUrl}/document";
@@ -154,7 +154,7 @@ namespace StartedIn.Service.Services
 
             // Bước 2: Chuẩn bị MultipartFormDataContent cho việc upload
             var content = new MultipartFormDataContent();
-            content.Add(new StreamContent(modifiedMemoryStream), "file", $"{contract.ContractIdNumber}.docx");
+            content.Add(new StreamContent(modifiedMemoryStream), "file", $"{Guid.NewGuid()}.docx");
 
             // Đường dẫn để upload lên SignNow
             var uploadUrl = $"{_signNowSettings.ApiBaseUrl}/document";
