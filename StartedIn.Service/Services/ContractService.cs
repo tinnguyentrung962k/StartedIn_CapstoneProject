@@ -201,7 +201,7 @@ namespace StartedIn.Service.Services
                 {
                     var modifiedMemoryStream = await _documentFormatService.ReplacePlaceHolderForInvestmentDocumentAsync(contract, investor, leader, project, shareEquity, disbursementList);
                     modifiedMemoryStream.Position = 0;
-                    string fileName = $"{Guid.NewGuid()}.docx";
+                    string fileName = $"{contract.ContractIdNumber}.docx";
                     contract.AzureLink = await _azureBlobService.UploadDocumentFromMemoryStreamAsync(modifiedMemoryStream, fileName);
                 }
                 if (signingMethod == SettingsValue.SignNow)
@@ -327,7 +327,7 @@ namespace StartedIn.Service.Services
                 {
                     var modifiedMemoryStream = await _documentFormatService.ReplacePlaceHolderForStartUpShareDistributionDocumentAsync(contract,leader, userInProject.Project, shareEquitiesOfMembers,usersInContract);
                     modifiedMemoryStream.Position = 0;
-                    string fileName = $"{Guid.NewGuid()}.docx";
+                    string fileName = $"{contract.ContractIdNumber}.docx";
                     contract.AzureLink = await _azureBlobService.UploadDocumentFromMemoryStreamAsync(modifiedMemoryStream, fileName);
                 }
                 if (signingMethod == SettingsValue.SignNow)
@@ -457,7 +457,7 @@ namespace StartedIn.Service.Services
                 {
                     var modifiedMemoryStream = await _documentFormatService.ReplacePlaceHolderForInvestmentDocumentAsync(contract, investor, leader, project, shareEquity, disbursementList.ToList());
                     modifiedMemoryStream.Position = 0;
-                    string fileName = $"{Guid.NewGuid()}.docx";
+                    string fileName = $"{contract.ContractIdNumber}.docx";
                     contract.AzureLink = await _azureBlobService.UploadDocumentFromMemoryStreamAsync(modifiedMemoryStream, fileName);
                 }
                 if (signingMethod == SettingsValue.SignNow)
@@ -1009,7 +1009,7 @@ namespace StartedIn.Service.Services
                 {
                     var modifiedMemoryStream = await _documentFormatService.ReplacePlaceHolderForInvestmentDocumentAsync(contract, investor, leader, project, shareEquity, disbursementList);
                     modifiedMemoryStream.Position = 0;
-                    string fileName = $"{Guid.NewGuid()}.docx";
+                    string fileName = $"{contract.ContractIdNumber}.docx";
                     contract.AzureLink = await _azureBlobService.UploadDocumentFromMemoryStreamAsync(modifiedMemoryStream, fileName);
                 }
                 if (signingMethod == SettingsValue.SignNow)
@@ -1111,7 +1111,7 @@ namespace StartedIn.Service.Services
                 {
                     var modifiedMemoryStream = await _documentFormatService.ReplacePlaceHolderForStartUpShareDistributionDocumentAsync(contract, leader, userInProject.Project, shareEquitiesOfMembers, usersInContract);
                     modifiedMemoryStream.Position = 0;
-                    string fileName = $"{Guid.NewGuid()}.docx";
+                    string fileName = $"{contract.ContractIdNumber}.docx";
                     contract.AzureLink = await _azureBlobService.UploadDocumentFromMemoryStreamAsync(modifiedMemoryStream, fileName);
                 }
                 if (signingMethod == SettingsValue.SignNow)
@@ -1711,6 +1711,15 @@ namespace StartedIn.Service.Services
                 terminatedContract.LastUpdatedTime = DateTimeOffset.UtcNow;
                 terminatedContract.LastUpdatedBy = userInProject.User.FullName;
                 terminatedContract.CurrentTerminationRequestId = null;
+                if (terminatedContract.LiquidationNoteId != null) 
+                {
+                    var liquidationNote = await _contractRepository.GetOneAsync(terminatedContract.LiquidationNoteId);
+                    if (liquidationNote != null)
+                    {
+                        liquidationNote.ContractStatus = ContractStatusEnum.CANCELLED;
+                        _contractRepository.Update(liquidationNote);
+                    }
+                }
                 _contractRepository.Update(terminatedContract);
                 await _unitOfWork.SaveChangesAsync();
                 await _unitOfWork.CommitAsync();
