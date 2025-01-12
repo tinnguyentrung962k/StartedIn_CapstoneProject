@@ -17,7 +17,7 @@ public class Milestone : BaseAuditEntity<string>
     [MaxLength(50)]
     public string Title { get; set; }
 
-    [MaxLength(255)]
+    [MaxLength(1023)]
     public string? Description { get; set; }
     public DateOnly StartDate { get; set; }
     public DateOnly EndDate { get; set; }
