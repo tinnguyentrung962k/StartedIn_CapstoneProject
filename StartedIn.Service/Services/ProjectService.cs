@@ -580,7 +580,7 @@ public class ProjectService : IProjectService
         var project = await _projectRepository.GetProjectById(projectId);
         var milestoneProgressList = new List<MilestoneProgressResponseDTO>();
         var milestoneList = await _milestoneRepository.GetMilestoneListQuery(projectId).ToListAsync();
-        if (milestoneList != null)
+        if (milestoneList != null || milestoneList.Any())
         {
             milestoneProgressList = milestoneList.Where(m => m.DeletedTime == null)
                 .Select(m => new MilestoneProgressResponseDTO
