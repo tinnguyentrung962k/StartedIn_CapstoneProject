@@ -496,9 +496,9 @@ public class ProjectService : IProjectService
         PayOsPaymentGatewayResponseDTO payOsPaymentGatewayResponseDTO = new PayOsPaymentGatewayResponseDTO
         {
             ProjectId = project.Id,
-            ApiKey = DecryptString(project.HarshPayOsApiKey),
-            ChecksumKey = DecryptString(project.HarshChecksumPayOsKey),
-            ClientKey = DecryptString(project.HarshClientIdPayOsKey)
+            ApiKey = string.IsNullOrEmpty(project.HarshPayOsApiKey) ? null : DecryptString(project.HarshPayOsApiKey),
+            ChecksumKey = string.IsNullOrEmpty(project.HarshChecksumPayOsKey) ? null : DecryptString(project.HarshChecksumPayOsKey),
+            ClientKey = string.IsNullOrEmpty(project.HarshClientIdPayOsKey) ? null : DecryptString(project.HarshClientIdPayOsKey)
         };
         return payOsPaymentGatewayResponseDTO;
     }
