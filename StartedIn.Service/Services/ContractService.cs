@@ -19,6 +19,7 @@ using StartedIn.CrossCutting.DTOs.ResponseDTO.Disbursement;
 using Microsoft.AspNetCore.Http;
 using StartedIn.CrossCutting.DTOs.RequestDTO.Appointment;
 using CrossCutting.Exceptions;
+using System.Text;
 
 namespace StartedIn.Service.Services
 {
@@ -1199,6 +1200,43 @@ namespace StartedIn.Service.Services
             }
         }
 
+        private void ValidateUploadFile(IFormFile uploadFile)
+        {
+            // Kiểm tra nếu file không tồn tại hoặc tên file rỗng
+            if (uploadFile == null || uploadFile.Length == 0 || string.IsNullOrWhiteSpace(uploadFile.FileName))
+            {
+                throw new InvalidDataException(MessageConstant.InvalidFileType);
+            }
+
+            // Kiểm tra định dạng file (chỉ chấp nhận docx hoặc pdf)
+            var allowedExtensions = new[] { ".docx", ".pdf" };
+            var fileExtension = Path.GetExtension(uploadFile.FileName).ToLowerInvariant();
+            if (!allowedExtensions.Contains(fileExtension))
+            {
+                throw new InvalidDataException(MessageConstant.InvalidFileType);
+            }
+
+            // Kiểm tra kích thước file (giới hạn 5 MB)
+            const long MaxFileSize = 5 * 1024 * 1024; // 5 MB
+            if (uploadFile.Length > MaxFileSize)
+            {
+                throw new InvalidDataException(MessageConstant.FileTooLarge);
+            }
+
+            // Kiểm tra tên file (chỉ chấp nhận ASCII)
+            var fileName = uploadFile.FileName.Trim();
+            if (!IsAscii(fileName))
+            {
+                throw new InvalidDataException(MessageConstant.InvalidFileType);
+            }
+        }
+
+        private bool IsAscii(string input)
+        {
+            // Kiểm tra tất cả các ký tự trong chuỗi có phải là ASCII và hợp lệ không
+            return input.All(c => c <= 127 && !Path.GetInvalidFileNameChars().Contains(c));
+        }
+
         public async Task<Contract> CreateLiquidationNote(string userId, string projectId, string contractId, IFormFile uploadFile)
         {
             var userInProject = await _userService.CheckIfUserInProject(userId, projectId);
@@ -1207,6 +1245,8 @@ namespace StartedIn.Service.Services
             {
                 throw new UnauthorizedProjectRoleException(MessageConstant.RolePermissionError);
             }
+
+            ValidateUploadFile(uploadFile);
 
             var chosenContract = await _contractRepository.GetContractById(contractId);
 
