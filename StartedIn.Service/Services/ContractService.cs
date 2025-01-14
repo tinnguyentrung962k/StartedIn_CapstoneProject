@@ -1301,65 +1301,6 @@ namespace StartedIn.Service.Services
             try
             {
                 _unitOfWork.BeginTransaction();
-                //if (request.FromId != userId) 
-                //{
-                //    string prefix = "GTL";
-                //    string currentDateTime = DateTimeOffset.UtcNow.AddHours(7).ToString("ddMMyyyyHHmm"); ;
-                //    string contractIdNumberGen = $"{prefix}-{currentDateTime}";
-                //    Contract liquidationNote = new Contract
-                //    {
-                //        ContractName = $"Biên bản thanh lý cho hợp đồng {chosenContract.ContractIdNumber}",
-                //        ContractPolicy = $"Thanh lý cho hợp đồng {chosenContract.ContractIdNumber}",
-                //        ContractType = ContractTypeEnum.LIQUIDATIONNOTE,
-                //        CreatedBy = userInProject.User.FullName,
-                //        ProjectId = projectId,
-                //        ContractStatus = ContractStatusEnum.DRAFT,
-                //        ContractIdNumber = contractIdNumberGen,
-                //        ParentContractId = chosenContract.Id,
-                //        ParentContract = chosenContract.ParentContract,
-                //    };
-
-                //    var leader = userInProject.User;
-                //    var leaderInLiquidationNote = new UserContract
-                //    {
-                //        UserId = leader.Id,
-                //        ContractId = liquidationNote.Id,
-                //        Role = RoleInContract.CREATOR
-                //    };
-
-
-                //    var requestParty = new UserContract
-                //    {
-                //        UserId = request.FromId,
-                //        ContractId = liquidationNote.Id,
-                //        Role = RoleInContract.SIGNER,
-                //    };
-
-                //    List<UserContract> usersInContract = new List<UserContract> { leaderInLiquidationNote, requestParty };
-
-                //    liquidationNote.UserContracts = usersInContract;
-                //    var liquidationEntity = _contractRepository.Add(liquidationNote);
-
-                //    chosenContract.LiquidationNoteId = liquidationEntity.Id;
-                //    chosenContract.LastUpdatedBy = userInProject.User.FullName;
-                //    chosenContract.LastUpdatedTime = DateTimeOffset.UtcNow;
-                //    _contractRepository.Update(chosenContract);
-
-                //    var signingMethod = await _appSettingManager.GetSettingAsync("SignatureType");
-                //    if (signingMethod == SettingsValue.InternalApp)
-                //    {
-                //        liquidationNote.AzureLink = await _azureBlobService.UploadLiquidationNote(uploadFile);
-                //    }
-                //    if (signingMethod == SettingsValue.SignNow)
-                //    {
-                //        await _signNowService.AuthenticateAsync();
-                //        liquidationNote.SignNowDocumentId = await _signNowService.UploadDocumentAsync(uploadFile);
-                //    }
-                //    await _unitOfWork.SaveChangesAsync();
-                //    await _unitOfWork.CommitAsync();
-                //    return liquidationEntity;
-                //}
-
                 if (chosenContract.ContractType == ContractTypeEnum.INVESTMENT)
                 {
                     string prefix = "GTL";
