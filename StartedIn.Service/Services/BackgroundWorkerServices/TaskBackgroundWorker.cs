@@ -28,6 +28,7 @@ public class TaskBackgroundWorker : BackgroundService
                 ITaskService taskService = scope.ServiceProvider.GetRequiredService<ITaskService>();
                 await taskService.MarkTaskAsLate();
                 await taskService.StartTask();
+                await taskService.MarkTaskAsStartLate();
             }
 
             _logger.LogInformation("Task check completed. Waiting for next execution...");

@@ -800,6 +800,20 @@ namespace StartedIn.Service.Services
             await _unitOfWork.SaveChangesAsync();
         }
 
+        public async Task MarkTaskAsStartLate()
+        {
+            var tasks = await _taskRepository.QueryHelper()
+                .Filter(c => c.IsLate == false && c.Status == TaskEntityStatus.NOT_STARTED &&
+                             c.StartDate <= DateTimeOffset.UtcNow
+                             && c.UserTasks.Count() == 0).GetAllAsync();
+            foreach (var task in tasks)
+            {
+                task.IsLate = true;
+                _taskRepository.Update(task);
+            }
+
+            await _unitOfWork.SaveChangesAsync();
+        }
         public async Task StartTask()
         {
             var tasks = await _taskRepository.QueryHelper()
