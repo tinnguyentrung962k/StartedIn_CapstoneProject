@@ -19,6 +19,7 @@ using StartedIn.CrossCutting.DTOs.ResponseDTO.Disbursement;
 using Microsoft.AspNetCore.Http;
 using StartedIn.CrossCutting.DTOs.RequestDTO.Appointment;
 using CrossCutting.Exceptions;
+using System.Text;
 
 namespace StartedIn.Service.Services
 {
@@ -686,6 +687,7 @@ namespace StartedIn.Service.Services
                 _unitOfWork.BeginTransaction();
                 chosenContract.ValidDate = DateOnly.FromDateTime(DateTimeOffset.UtcNow.AddHours(7).Date);
                 chosenContract.ContractStatus = ContractStatusEnum.COMPLETED;
+                chosenContract.LastUpdatedTime = DateTimeOffset.UtcNow;
                 foreach (var equityShare in chosenContract.ShareEquities)
                 {
                     equityShare.DateAssigned = DateOnly.FromDateTime(DateTimeOffset.UtcNow.AddHours(7).Date);
@@ -1198,6 +1200,43 @@ namespace StartedIn.Service.Services
             }
         }
 
+        private void ValidateUploadFile(IFormFile uploadFile)
+        {
+            // Kiểm tra nếu file không tồn tại hoặc tên file rỗng
+            if (uploadFile == null || uploadFile.Length == 0 || string.IsNullOrWhiteSpace(uploadFile.FileName))
+            {
+                throw new InvalidDataException(MessageConstant.InvalidFileType);
+            }
+
+            // Kiểm tra định dạng file (chỉ chấp nhận docx hoặc pdf)
+            var allowedExtensions = new[] { ".docx", ".pdf" };
+            var fileExtension = Path.GetExtension(uploadFile.FileName).ToLowerInvariant();
+            if (!allowedExtensions.Contains(fileExtension))
+            {
+                throw new InvalidDataException(MessageConstant.InvalidFileType);
+            }
+
+            // Kiểm tra kích thước file (giới hạn 5 MB)
+            const long MaxFileSize = 5 * 1024 * 1024; // 5 MB
+            if (uploadFile.Length > MaxFileSize)
+            {
+                throw new InvalidDataException(MessageConstant.FileTooLarge);
+            }
+
+            // Kiểm tra tên file (chỉ chấp nhận ASCII)
+            var fileName = uploadFile.FileName.Trim();
+            if (!IsAscii(fileName))
+            {
+                throw new InvalidDataException(MessageConstant.InvalidFileType);
+            }
+        }
+
+        private bool IsAscii(string input)
+        {
+            // Kiểm tra tất cả các ký tự trong chuỗi có phải là ASCII và hợp lệ không
+            return input.All(c => c <= 127 && !Path.GetInvalidFileNameChars().Contains(c));
+        }
+
         public async Task<Contract> CreateLiquidationNote(string userId, string projectId, string contractId, IFormFile uploadFile)
         {
             var userInProject = await _userService.CheckIfUserInProject(userId, projectId);
@@ -1206,6 +1245,8 @@ namespace StartedIn.Service.Services
             {
                 throw new UnauthorizedProjectRoleException(MessageConstant.RolePermissionError);
             }
+
+            ValidateUploadFile(uploadFile);
 
             var chosenContract = await _contractRepository.GetContractById(contractId);
 
@@ -1260,65 +1301,6 @@ namespace StartedIn.Service.Services
             try
             {
                 _unitOfWork.BeginTransaction();
-                //if (request.FromId != userId) 
-                //{
-                //    string prefix = "GTL";
-                //    string currentDateTime = DateTimeOffset.UtcNow.AddHours(7).ToString("ddMMyyyyHHmm"); ;
-                //    string contractIdNumberGen = $"{prefix}-{currentDateTime}";
-                //    Contract liquidationNote = new Contract
-                //    {
-                //        ContractName = $"Biên bản thanh lý cho hợp đồng {chosenContract.ContractIdNumber}",
-                //        ContractPolicy = $"Thanh lý cho hợp đồng {chosenContract.ContractIdNumber}",
-                //        ContractType = ContractTypeEnum.LIQUIDATIONNOTE,
-                //        CreatedBy = userInProject.User.FullName,
-                //        ProjectId = projectId,
-                //        ContractStatus = ContractStatusEnum.DRAFT,
-                //        ContractIdNumber = contractIdNumberGen,
-                //        ParentContractId = chosenContract.Id,
-                //        ParentContract = chosenContract.ParentContract,
-                //    };
-
-                //    var leader = userInProject.User;
-                //    var leaderInLiquidationNote = new UserContract
-                //    {
-                //        UserId = leader.Id,
-                //        ContractId = liquidationNote.Id,
-                //        Role = RoleInContract.CREATOR
-                //    };
-
-
-                //    var requestParty = new UserContract
-                //    {
-                //        UserId = request.FromId,
-                //        ContractId = liquidationNote.Id,
-                //        Role = RoleInContract.SIGNER,
-                //    };
-
-                //    List<UserContract> usersInContract = new List<UserContract> { leaderInLiquidationNote, requestParty };
-
-                //    liquidationNote.UserContracts = usersInContract;
-                //    var liquidationEntity = _contractRepository.Add(liquidationNote);
-
-                //    chosenContract.LiquidationNoteId = liquidationEntity.Id;
-                //    chosenContract.LastUpdatedBy = userInProject.User.FullName;
-                //    chosenContract.LastUpdatedTime = DateTimeOffset.UtcNow;
-                //    _contractRepository.Update(chosenContract);
-
-                //    var signingMethod = await _appSettingManager.GetSettingAsync("SignatureType");
-                //    if (signingMethod == SettingsValue.InternalApp)
-                //    {
-                //        liquidationNote.AzureLink = await _azureBlobService.UploadLiquidationNote(uploadFile);
-                //    }
-                //    if (signingMethod == SettingsValue.SignNow)
-                //    {
-                //        await _signNowService.AuthenticateAsync();
-                //        liquidationNote.SignNowDocumentId = await _signNowService.UploadDocumentAsync(uploadFile);
-                //    }
-                //    await _unitOfWork.SaveChangesAsync();
-                //    await _unitOfWork.CommitAsync();
-                //    return liquidationEntity;
-                //}
-
                 if (chosenContract.ContractType == ContractTypeEnum.INVESTMENT)
                 {
                     string prefix = "GTL";
@@ -1711,6 +1693,15 @@ namespace StartedIn.Service.Services
                 terminatedContract.LastUpdatedTime = DateTimeOffset.UtcNow;
                 terminatedContract.LastUpdatedBy = userInProject.User.FullName;
                 terminatedContract.CurrentTerminationRequestId = null;
+                if (terminatedContract.LiquidationNoteId != null) 
+                {
+                    var liquidationNote = await _contractRepository.GetOneAsync(terminatedContract.LiquidationNoteId);
+                    if (liquidationNote != null)
+                    {
+                        liquidationNote.ContractStatus = ContractStatusEnum.CANCELLED;
+                        _contractRepository.Update(liquidationNote);
+                    }
+                }
                 _contractRepository.Update(terminatedContract);
                 await _unitOfWork.SaveChangesAsync();
                 await _unitOfWork.CommitAsync();

@@ -47,6 +47,7 @@ public class ProjectService : IProjectService
     private readonly ILeavingRequestRepository _leavingRequestRepository;
     private readonly ITaskRepository _taskRepository;
     private readonly IRecruitmentRepository _recruitmentRepository;
+    private readonly IMilestoneRepository _milestoneRepository;
 
     public ProjectService(
         IProjectRepository projectRepository,
@@ -69,6 +70,7 @@ public class ProjectService : IProjectService
         ILeavingRequestRepository leavingRequestRepository,
         ITaskRepository taskRepository,
         IRecruitmentRepository recruitmentRepository,
+        IMilestoneRepository milestoneRepository,
         IMapper mapper)
     {
         _projectRepository = projectRepository;
@@ -92,6 +94,7 @@ public class ProjectService : IProjectService
         _leavingRequestRepository = leavingRequestRepository;
         _taskRepository = taskRepository;
         _recruitmentRepository = recruitmentRepository;
+        _milestoneRepository = milestoneRepository;
     }
     public async Task<Project> CreateNewProject(string userId, ProjectCreateDTO projectCreateDTO)
     {
@@ -493,9 +496,9 @@ public class ProjectService : IProjectService
         PayOsPaymentGatewayResponseDTO payOsPaymentGatewayResponseDTO = new PayOsPaymentGatewayResponseDTO
         {
             ProjectId = project.Id,
-            ApiKey = DecryptString(project.HarshPayOsApiKey),
-            ChecksumKey = DecryptString(project.HarshChecksumPayOsKey),
-            ClientKey = DecryptString(project.HarshClientIdPayOsKey)
+            ApiKey = string.IsNullOrEmpty(project.HarshPayOsApiKey) ? null : DecryptString(project.HarshPayOsApiKey),
+            ChecksumKey = string.IsNullOrEmpty(project.HarshChecksumPayOsKey) ? null : DecryptString(project.HarshChecksumPayOsKey),
+            ClientKey = string.IsNullOrEmpty(project.HarshClientIdPayOsKey) ? null : DecryptString(project.HarshClientIdPayOsKey)
         };
         return payOsPaymentGatewayResponseDTO;
     }
@@ -576,9 +579,10 @@ public class ProjectService : IProjectService
         var userInProject = await _userService.CheckIfUserInProject(userId, projectId);
         var project = await _projectRepository.GetProjectById(projectId);
         var milestoneProgressList = new List<MilestoneProgressResponseDTO>();
-        if (project.Milestones != null)
+        var milestoneList = await _milestoneRepository.GetMilestoneListQuery(projectId).ToListAsync();
+        if (milestoneList != null || milestoneList.Any())
         {
-            milestoneProgressList = project.Milestones.Where(m => m.DeletedTime == null)
+            milestoneProgressList = milestoneList.Where(m => m.DeletedTime == null)
                 .Select(m => new MilestoneProgressResponseDTO
                 {
                     Id = m.Id,

@@ -154,5 +154,7 @@ namespace StartedIn.CrossCutting.Constants
         public const string CannotChangeStatusTaskWrongAssignee = "Bạn không phải là người thực hiện tác vụ nên không thể thay đổi trạng thái tác vụ";
         public const string NoMoreThanOneAssignee = "Không thể có nhiều hơn một người thực hiện tác vụ";
         public const string AssetCanBeLiquidatedWhenAvailable = "Tài sản chỉ có thể thanh lý ở trạng thái khả dụng";
+        public const string InvalidFileType = "Tệp tải lên không hợp lệ";
+        public const string FileTooLarge = "Kích thước tệp không vượt quá 5MB";
     }
 }
