@@ -805,7 +805,8 @@ namespace StartedIn.Service.Services
             var tasks = await _taskRepository.QueryHelper()
                 .Filter(c =>
                     c.IsLate == false &&
-                    (c.Status == TaskEntityStatus.NOT_STARTED && c.StartDate <= DateTimeOffset.UtcNow)).GetAllAsync();
+                    (c.Status == TaskEntityStatus.NOT_STARTED && c.StartDate <= DateTimeOffset.UtcNow)
+                    && c.UserTasks.Any(t => t.UserId != null)).GetAllAsync();
             foreach (var task in tasks)
             {
                 task.Status = TaskEntityStatus.IN_PROGRESS;
