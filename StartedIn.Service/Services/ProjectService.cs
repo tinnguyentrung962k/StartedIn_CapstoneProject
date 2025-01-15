@@ -139,7 +139,6 @@ public class ProjectService : IProjectService
                 Description = projectCreateDTO.Description,
                 LogoUrl = imgUrl,
                 ProjectStatus = ProjectStatusEnum.CONSTRUCTING,
-                EndDate = projectCreateDTO.EndDate,
                 StartDate = projectCreateDTO.StartDate,
                 CreatedBy = user.FullName
             };
