@@ -265,7 +265,7 @@ namespace StartedIn.Service.Services
                 filterTasks = filterTasks.Where(t => t.Status == taskFilterDto.Status.Value);
             }
 
-            if (taskFilterDto.IsLate != null)
+            if (taskFilterDto.IsLate == true)
             {
                 filterTasks = filterTasks.Where(t => t.IsLate == taskFilterDto.IsLate.Value);
             }
