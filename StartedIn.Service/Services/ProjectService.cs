@@ -48,6 +48,7 @@ public class ProjectService : IProjectService
     private readonly ITaskRepository _taskRepository;
     private readonly IRecruitmentRepository _recruitmentRepository;
     private readonly IMilestoneRepository _milestoneRepository;
+    private readonly IApplicationRepository _applicationRepository;
 
     public ProjectService(
         IProjectRepository projectRepository,
@@ -71,7 +72,8 @@ public class ProjectService : IProjectService
         ITaskRepository taskRepository,
         IRecruitmentRepository recruitmentRepository,
         IMilestoneRepository milestoneRepository,
-        IMapper mapper)
+        IMapper mapper,
+        IApplicationRepository applicationRepository)
     {
         _projectRepository = projectRepository;
         _unitOfWork = unitOfWork;
@@ -95,6 +97,7 @@ public class ProjectService : IProjectService
         _taskRepository = taskRepository;
         _recruitmentRepository = recruitmentRepository;
         _milestoneRepository = milestoneRepository;
+        _applicationRepository = applicationRepository;
     }
     public async Task<Project> CreateNewProject(string userId, ProjectCreateDTO projectCreateDTO)
     {
@@ -694,6 +697,16 @@ public class ProjectService : IProjectService
             {
                 recruitment.IsOpen = false;
                 _recruitmentRepository.Update(recruitment);
+            }
+            var pendingProjectApplications = await _applicationRepository.QueryHelper()
+                .Filter(x => x.ProjectId.Equals(projectId) && x.Status == ApplicationStatus.PENDING).GetAllAsync();
+            if (pendingProjectApplications != null) 
+            {
+                foreach (var application in pendingProjectApplications)
+                {
+                    application.Status = ApplicationStatus.CANCELLED;
+                    _applicationRepository.Update(application);
+                }
             }
             _projectRepository.Update(project);
             await _unitOfWork.SaveChangesAsync();
