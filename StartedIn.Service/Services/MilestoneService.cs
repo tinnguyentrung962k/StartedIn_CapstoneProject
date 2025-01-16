@@ -2,7 +2,9 @@
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
+using Microsoft.OpenApi.Services;
 using StartedIn.CrossCutting.Constants;
+using StartedIn.CrossCutting.DTOs.RequestDTO.InvestmentCall;
 using StartedIn.CrossCutting.DTOs.RequestDTO.Milestone;
 using StartedIn.CrossCutting.DTOs.ResponseDTO;
 using StartedIn.CrossCutting.DTOs.ResponseDTO.Milestone;
@@ -197,7 +199,10 @@ namespace StartedIn.Service.Services
             {
                 filterMilestones = filterMilestones.Where(m => m.PhaseId.Equals(milestoneFilterDTO.PhaseId));
             }
-
+            if (milestoneFilterDTO.StartDate.HasValue)
+                filterMilestones = filterMilestones.Where(ic => ic.StartDate >= milestoneFilterDTO.StartDate.Value);
+            if (milestoneFilterDTO.EndDate.HasValue)
+                filterMilestones = filterMilestones.Where(ic => ic.EndDate <= milestoneFilterDTO.EndDate.Value);
             int totalCount = await filterMilestones.CountAsync();
             var pagedResult = await filterMilestones
                 .Skip((page - 1) * size)

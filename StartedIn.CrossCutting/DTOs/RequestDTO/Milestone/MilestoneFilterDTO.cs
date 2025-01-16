@@ -11,5 +11,7 @@ namespace StartedIn.CrossCutting.DTOs.RequestDTO.Milestone
     {
         public string? Title { get; set; }
         public string? PhaseId { get; set; }
+        public DateOnly? StartDate { get; set; }
+        public DateOnly? EndDate { get; set; }
     }
 }
