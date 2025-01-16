@@ -156,5 +156,6 @@ namespace StartedIn.CrossCutting.Constants
         public const string AssetCanBeLiquidatedWhenAvailable = "Tài sản chỉ có thể thanh lý ở trạng thái khả dụng";
         public const string InvalidFileType = "Tệp tải lên không hợp lệ";
         public const string FileTooLarge = "Kích thước tệp không vượt quá 5MB";
+        public const string ClosedProject = "Dự án này đã đóng.";
     }
 }

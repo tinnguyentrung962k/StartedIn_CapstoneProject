@@ -71,6 +71,11 @@ namespace StartedIn.Service.Services
                 throw new InviteException(MessageConstant.RolePermissionError);
             }
 
+            if (project.ProjectStatus == ProjectStatusEnum.CLOSED)
+            {
+                throw new InviteException(MessageConstant.ClosedProject);
+            }
+
             var currentMemberInProject = project.UserProjects
                 .Where(x => (x.RoleInTeam == RoleInTeam.Leader || x.RoleInTeam == RoleInTeam.Member) && x.Status == UserStatusInProject.Active)
                 .Count();
@@ -312,6 +317,13 @@ namespace StartedIn.Service.Services
             if (existedApplication != null)
             {
                 throw new InviteException(MessageConstant.YouHaveAppliedForRecruitment);
+            }
+
+            var project = await _projectRepository.GetOneAsync(projectId);
+
+            if (project.ProjectStatus == ProjectStatusEnum.CLOSED)
+            {
+                throw new InviteException(MessageConstant.ClosedProject);
             }
 
             var userInOtherProjects = await _projectRepository.GetAProjectByUserId(userId);
