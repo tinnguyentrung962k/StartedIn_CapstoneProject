@@ -455,7 +455,7 @@ namespace StartedIn.Service.Services
             var toUser = await _userManager.FindByIdAsync(transaction.ToID);
             if (toUser != null)
             {
-                transactionResponse.FromUserProfilePicture = toUser.ProfilePicture;
+                transactionResponse.ToUserProfilePicture = toUser.ProfilePicture;
             }
             return transactionResponse;
         }
@@ -476,7 +476,7 @@ namespace StartedIn.Service.Services
             var toUser = await _userManager.FindByIdAsync(transaction.ToID);
             if (toUser != null)
             {
-                transactionResponse.FromUserProfilePicture = toUser.ProfilePicture;
+                transactionResponse.ToUserProfilePicture = toUser.ProfilePicture;
             }
             return transactionResponse;
         }
