@@ -10,7 +10,6 @@ namespace StartedIn.CrossCutting.DTOs.RequestDTO.Project
     public class ProjectFilterDTO
     {
         public string? ProjectName { get; set;}
-        public InvestmentCallStatus? Status { get; set; }
         public int? TargetFrom { get; set; }
         public int? TargetTo { get; set;}
         public int? RaisedFrom { get; set; }

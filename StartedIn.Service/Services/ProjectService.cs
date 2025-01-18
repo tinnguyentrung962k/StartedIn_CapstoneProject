@@ -377,48 +377,36 @@ public class ProjectService : IProjectService
         {
             projects = projects.Where(x => x.ProjectName.ToLower().Contains(projectFilterDTO.ProjectName.ToLower()));
         }
-
-        // Filter by active InvestmentCall status and apply additional filters if status is "open"
-        if (projectFilterDTO.Status != null)
+        if (projectFilterDTO.TargetFrom.HasValue)
         {
-            projects = projects.Where(x =>
-                x.ActiveCallId != null &&
-                x.InvestmentCalls.Any(ic => ic.Id == x.ActiveCallId && ic.Status == projectFilterDTO.Status));
-
-            // Additional filters if the call status is "open"
-            if (projectFilterDTO.Status == InvestmentCallStatus.Open)
-            {
-                if (projectFilterDTO.TargetFrom.HasValue)
-                {
-                    projects = projects.Where(x => x.InvestmentCalls.Any(ic => ic.Id == x.ActiveCallId && ic.TargetCall >= projectFilterDTO.TargetFrom.Value));
-                }
-
-                if (projectFilterDTO.TargetTo.HasValue)
-                {
-                    projects = projects.Where(x => x.InvestmentCalls.Any(ic => ic.Id == x.ActiveCallId && ic.TargetCall <= projectFilterDTO.TargetTo.Value));
-                }
-
-                if (projectFilterDTO.RaisedFrom.HasValue)
-                {
-                    projects = projects.Where(x => x.InvestmentCalls.Any(ic => ic.Id == x.ActiveCallId && ic.AmountRaised >= projectFilterDTO.RaisedFrom.Value));
-                }
-
-                if (projectFilterDTO.RaisedTo.HasValue)
-                {
-                    projects = projects.Where(x => x.InvestmentCalls.Any(ic => ic.Id == x.ActiveCallId && ic.AmountRaised <= projectFilterDTO.RaisedTo.Value));
-                }
-
-                if (projectFilterDTO.AvailableShareFrom.HasValue)
-                {
-                    projects = projects.Where(x => x.InvestmentCalls.Any(ic => ic.Id == x.ActiveCallId && ic.EquityShareCall >= projectFilterDTO.AvailableShareFrom.Value));
-                }
-
-                if (projectFilterDTO.AvailableShareTo.HasValue)
-                {
-                    projects = projects.Where(x => x.InvestmentCalls.Any(ic => ic.Id == x.ActiveCallId && ic.EquityShareCall <= projectFilterDTO.AvailableShareTo.Value));
-                }
-            }
+            projects = projects.Where(x => x.InvestmentCalls.Any(ic => ic.Id == x.ActiveCallId && ic.Status == InvestmentCallStatus.Open && ic.TargetCall >= projectFilterDTO.TargetFrom.Value));
         }
+
+        if (projectFilterDTO.TargetTo.HasValue)
+        {
+            projects = projects.Where(x => x.InvestmentCalls.Any(ic => ic.Id == x.ActiveCallId && ic.Status == InvestmentCallStatus.Open && ic.TargetCall <= projectFilterDTO.TargetTo.Value));
+        }
+
+        if (projectFilterDTO.RaisedFrom.HasValue)
+        {
+            projects = projects.Where(x => x.InvestmentCalls.Any(ic => ic.Id == x.ActiveCallId && ic.Status == InvestmentCallStatus.Open && ic.AmountRaised >= projectFilterDTO.RaisedFrom.Value));
+        }
+
+        if (projectFilterDTO.RaisedTo.HasValue)
+        {
+            projects = projects.Where(x => x.InvestmentCalls.Any(ic => ic.Id == x.ActiveCallId && ic.Status == InvestmentCallStatus.Open &&  ic.AmountRaised <= projectFilterDTO.RaisedTo.Value));
+        }
+
+        if (projectFilterDTO.AvailableShareFrom.HasValue)
+        {
+            projects = projects.Where(x => x.InvestmentCalls.Any(ic => ic.Id == x.ActiveCallId && ic.Status == InvestmentCallStatus.Open && ic.EquityShareCall >= projectFilterDTO.AvailableShareFrom.Value));
+        }
+
+        if (projectFilterDTO.AvailableShareTo.HasValue)
+        {
+            projects = projects.Where(x => x.InvestmentCalls.Any(ic => ic.Id == x.ActiveCallId && ic.Status == InvestmentCallStatus.Open && ic.EquityShareCall <= projectFilterDTO.AvailableShareTo.Value));
+        }
+
         int totalCount = await projects.CountAsync();
 
         var pagedResult = await projects
