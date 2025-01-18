@@ -296,21 +296,21 @@ namespace StartedIn.Service.Services
                     EvidenceUrl = evidenceUrl,
                     Content = $"Thanh lý tài sản: {chosenAsset.AssetName} - Số lượng: {assetLiquidatingDTO.SellQuantity} - Đơn giá: {assetLiquidatingDTO.SellPrice}.",
                     IsInFlow = true,
-                    FromID = userInProject.User.Id,
-                    FromName = userInProject.User.FullName,
+                    ToID = userInProject.User.Id,
+                    ToName = userInProject.User.FullName,
                     Type = TransactionType.AssetLiquidation,
                     FinanceId = project.Finance.Id,
                     AssetId = chosenAsset.Id
                 };
-                if (assetLiquidatingDTO.ToId != null)
+                if (assetLiquidatingDTO.FromId != null)
                 {
-                    var toUser = await _userManager.FindByIdAsync(assetLiquidatingDTO.ToId);
-                    liquidatingTransaction.ToID = assetLiquidatingDTO.ToId;
-                    liquidatingTransaction.ToName = toUser.FullName;
+                    var fromUser = await _userManager.FindByIdAsync(assetLiquidatingDTO.FromId);
+                    liquidatingTransaction.FromID = assetLiquidatingDTO.FromId;
+                    liquidatingTransaction.FromName = fromUser.FullName;
                 }
-                if (assetLiquidatingDTO.ToId == null)
+                if (assetLiquidatingDTO.FromId == null)
                 {
-                    liquidatingTransaction.ToName = assetLiquidatingDTO.ToName;
+                    liquidatingTransaction.FromName = assetLiquidatingDTO.FromName;
                 }
                 var soldAsset = _assetRepository.Update(chosenAsset);
                 var transactionEntity = _transactionRepository.Add(liquidatingTransaction);
